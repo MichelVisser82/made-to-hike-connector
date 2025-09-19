@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Resend } from 'npm:resend@4.0.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,7 +34,6 @@ serve(async (req) => {
       console.log('Email request parsed successfully, type:', emailRequest.type)
     } catch (parseError: any) {
       console.error('JSON parse error:', parseError.message)
-      console.error('Raw payload first 200 chars:', payload.substring(0, 200))
       return new Response(JSON.stringify({
         error: 'Invalid JSON payload',
         details: parseError.message
@@ -51,37 +51,128 @@ serve(async (req) => {
     if (!resendApiKey) {
       console.error('RESEND_API_KEY not found in environment')
       return new Response(JSON.stringify({
-        error: 'Email service not configured'
+        error: 'Email service not configured - missing API key'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       })
     }
 
-    console.log('RESEND_API_KEY found, proceeding with email send')
-    
-    // For now, let's just return success without actually sending
-    // to isolate the issue
-    console.log('Mock email send successful')
-    
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Email sent successfully (mock)',
-      type: type,
-      to: to
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    console.log('RESEND_API_KEY found, initializing Resend client')
+    const resend = new Resend(resendApiKey)
+
+    // Generate email content based on type
+    let html: string
+    let emailSubject: string = subject || 'MadeToHike Notification'
+
+    if (type === 'custom_verification') {
+      console.log('Generating custom verification email')
+      const userName = template_data?.user_name || 'Adventurer'
+      const verificationUrl = template_data?.verification_url || ''
+      
+      html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your MadeToHike Account</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f6f9fc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
+        <div style="text-align: center; padding: 20px;">
+            <h1 style="color: #1a73e8; margin: 0;">🏔️ MadeToHike</h1>
+        </div>
+        
+        <div style="text-align: center; padding: 20px;">
+            <h2 style="color: #1a1a1a;">Welcome to MadeToHike!</h2>
+            <p style="color: #666666; font-size: 16px;">
+                Hi ${userName}, we're excited to have you join our community!
+            </p>
+        </div>
+
+        <div style="padding: 20px;">
+            <p style="color: #525252; font-size: 16px;">
+                Please verify your email address by clicking the button below:
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${verificationUrl}" style="background-color: #1a73e8; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    Verify My Email
+                </a>
+            </div>
+
+            <p style="color: #525252; font-size: 14px;">
+                Or copy and paste this link: ${verificationUrl}
+            </p>
+        </div>
+
+        <div style="text-align: center; padding: 20px; color: #8898aa; font-size: 12px;">
+            <p>© 2025 MadeToHike. Happy hiking! 🏔️</p>
+        </div>
+    </div>
+</body>
+</html>`
+      emailSubject = 'Verify Your MadeToHike Account'
+      console.log('Custom verification email HTML generated')
+    } else {
+      console.error('Unsupported email type:', type)
+      return new Response(JSON.stringify({
+        error: `Unsupported email type: ${type}`
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    console.log('=== SENDING EMAIL VIA RESEND ===')
+    console.log(`Sending to: ${to}`)
+    console.log(`Subject: ${emailSubject}`)
+
+    try {
+      const result = await resend.emails.send({
+        from: 'MadeToHike <onboarding@resend.dev>',
+        to: Array.isArray(to) ? to : [to],
+        subject: emailSubject,
+        html: html,
+      })
+
+      console.log('=== RESEND RESPONSE ===')
+      console.log('Success:', JSON.stringify(result, null, 2))
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Email sent successfully',
+        data: result.data,
+        id: result.data?.id
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+
+    } catch (resendError: any) {
+      console.error('=== RESEND ERROR ===')
+      console.error('Error details:', JSON.stringify(resendError, null, 2))
+      console.error('Error message:', resendError.message)
+      
+      return new Response(JSON.stringify({
+        error: 'Failed to send email via Resend',
+        details: resendError.message,
+        code: resendError.code || 'RESEND_ERROR'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
 
   } catch (error: any) {
-    console.error('=== ERROR IN SEND-EMAIL FUNCTION ===')
+    console.error('=== GENERAL ERROR IN SEND-EMAIL FUNCTION ===')
     console.error('Error message:', error.message)
     console.error('Error stack:', error.stack)
     
     return new Response(JSON.stringify({
       error: error.message || 'Unknown error',
-      stack: error.stack
+      type: 'GENERAL_ERROR'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
