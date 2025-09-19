@@ -14,18 +14,11 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onNavigateToSearch, onShowAuth, onShowGuideSignup, user, onNavigateToDashboard }: LandingPageProps) {
-  const [selectedRegion, setSelectedRegion] = useState(0);
-
-  // Auto-rotate carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSelectedRegion(prev => (prev + 1) % regions.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+  const [selectedRegion, setSelectedRegion] = useState('dolomites');
 
   const regions = [
     {
+      id: 'dolomites',
       name: 'Dolomites',
       country: 'Italy',
       tours: 47,
@@ -35,6 +28,7 @@ export function LandingPage({ onNavigateToSearch, onShowAuth, onShowGuideSignup,
       image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=500&fit=crop'
     },
     {
+      id: 'pyrenees',
       name: 'Pyrenees',
       country: 'France/Spain',
       tours: 32,
@@ -44,6 +38,7 @@ export function LandingPage({ onNavigateToSearch, onShowAuth, onShowGuideSignup,
       image: 'https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=800&h=500&fit=crop'
     },
     {
+      id: 'scottish-highlands',
       name: 'Scottish Highlands',
       country: 'Scotland',
       tours: 28,
@@ -54,12 +49,14 @@ export function LandingPage({ onNavigateToSearch, onShowAuth, onShowGuideSignup,
     }
   ];
 
+  const currentRegion = regions.find(r => r.id === selectedRegion) || regions[0];
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-b from-primary/5 via-background to-background">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=1920&h=1080&fit=crop')] bg-cover bg-center opacity-5" />
-        <div className="relative container mx-auto px-4 pt-20 pb-32">
+        <div className="relative container mx-auto px-4 pt-20 pb-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
               Find Your Next
@@ -74,25 +71,24 @@ export function LandingPage({ onNavigateToSearch, onShowAuth, onShowGuideSignup,
             <Button 
               size="lg" 
               onClick={() => onNavigateToSearch()}
-              className="text-lg px-8 py-6 h-auto"
+              className="text-lg px-8 py-6 h-auto bg-primary hover:bg-primary/90"
             >
-              <Search className="mr-2 h-5 w-5" />
               Find Your Next Hiking Adventure
             </Button>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-8 mt-16 text-sm">
+            <div className="flex flex-wrap justify-center gap-8 mt-12 text-sm">
               <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-accent fill-current" />
-                <span className="font-medium">4.9/5</span> Average Rating
+                <Star className="h-5 w-5 text-yellow-500 fill-current" />
+                <span className="font-medium">4.9/5 Avg. Rating</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                <span className="font-medium">1,200+</span> Happy Hikers
+                <span className="font-medium">1,200+ Happy Hikers</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
-                <span className="font-medium">100%</span> Verified Guides
+                <span className="font-medium">100% Verified Guides</span>
               </div>
             </div>
           </div>
@@ -100,7 +96,7 @@ export function LandingPage({ onNavigateToSearch, onShowAuth, onShowGuideSignup,
       </section>
 
       {/* Explore Our Regions */}
-      <section className="py-20">
+      <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Explore Our Regions</h2>
@@ -109,117 +105,288 @@ export function LandingPage({ onNavigateToSearch, onShowAuth, onShowGuideSignup,
             </p>
           </div>
 
-          {/* Region Carousel */}
-          <div className="relative max-w-6xl mx-auto">
-            <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-8">
-              <img
-                src={regions[selectedRegion].image}
-                alt={regions[selectedRegion].name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-              <div className="absolute bottom-8 left-8 text-white">
-                <h3 className="text-3xl font-bold mb-2">{regions[selectedRegion].name}</h3>
-                <p className="text-lg opacity-90">{regions[selectedRegion].description}</p>
-              </div>
-            </div>
-
-            {/* Region Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {regions.map((region, index) => (
-                <Card
-                  key={region.name}
-                  className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                    index === selectedRegion ? 'ring-2 ring-primary shadow-lg' : ''
-                  }`}
-                  onClick={() => setSelectedRegion(index)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h4 className="text-lg font-semibold">{region.name}</h4>
-                        <p className="text-sm text-muted-foreground">{region.country}</p>
-                      </div>
-                      <Badge variant="secondary">{region.tours} tours</Badge>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        <span>{region.difficulty}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-primary" />
-                        <span>{region.bestSeason}</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-4"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onNavigateToSearch({ region: region.name.toLowerCase() });
-                      }}
+          {/* Featured Region with Side Selection */}
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Main Featured Region */}
+              <div className="lg:col-span-3">
+                <div className="relative aspect-[16/10] rounded-2xl overflow-hidden">
+                  <img
+                    src={currentRegion.image}
+                    alt={currentRegion.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute bottom-8 left-8 text-white">
+                    <Badge className="mb-3 bg-primary/90">Most Popular</Badge>
+                    <h3 className="text-4xl font-bold mb-2">{currentRegion.name}</h3>
+                    <p className="text-lg opacity-90 mb-4">{currentRegion.description}</p>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => onNavigateToSearch({ region: currentRegion.id })}
                     >
-                      Explore {region.name}
+                      Explore {currentRegion.name}
                     </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                </div>
+
+                {/* Region Stats */}
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="text-center">
+                    <h4 className="font-semibold text-muted-foreground text-sm">Difficulty Range</h4>
+                    <p className="font-medium">{currentRegion.difficulty}</p>
+                  </div>
+                  <div className="text-center">
+                    <h4 className="font-semibold text-muted-foreground text-sm">Best Season</h4>
+                    <p className="font-medium">{currentRegion.bestSeason}</p>
+                  </div>
+                  <div className="text-center">
+                    <h4 className="font-semibold text-muted-foreground text-sm">Available Tours</h4>
+                    <p className="font-medium">{currentRegion.tours} guided experiences</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Region Selection */}
+              <div className="space-y-4">
+                {regions.map((region) => (
+                  <Button
+                    key={region.id}
+                    variant={selectedRegion === region.id ? "default" : "outline"}
+                    className="w-full justify-start h-auto p-4"
+                    onClick={() => setSelectedRegion(region.id)}
+                  >
+                    <div className="text-left">
+                      <div className="font-semibold">{region.name}</div>
+                      <div className="text-sm opacity-70">{region.country}</div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trust Section */}
+      {/* Share Your Mountain Expertise */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl font-bold mb-4">Share Your Mountain Expertise</h2>
+            <p className="text-xl text-muted-foreground mb-8">
+              Turn your passion for hiking into income. Join our community of hand-selected, certified mountain guides.
+            </p>
+            {!user && (
+              <Button size="lg" onClick={onShowGuideSignup} className="bg-primary hover:bg-primary/90">
+                Become a Guide
+              </Button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Hand-Selected & Verified Guides */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                <Shield className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Certified Guides</h3>
-              <p className="text-muted-foreground">
-                All our guides are professionally certified and thoroughly vetted for your safety.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Verified Reviews</h3>
-              <p className="text-muted-foreground">
-                Read authentic reviews from real hikers who've experienced these adventures.
-              </p>
-            </div>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Hand-Selected & Verified Guides</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              We hand-check all certifications and display them prominently. Every guide is personally 
+              vetted for safety, expertise, and authentic mountain experience.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             <div className="text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
                 <Users className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Small Groups</h3>
-              <p className="text-muted-foreground">
-                Intimate group sizes ensure personalized attention and better experiences.
+              <h3 className="text-lg font-semibold mb-2">Hand-Selected Guides</h3>
+              <p className="text-sm text-muted-foreground">
+                Every guide is personally vetted for safety and expertise by our experienced mountaineering team.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Verified Certifications</h3>
+              <p className="text-sm text-muted-foreground">
+                All guiding certifications are verified by our certification specialists and updated annually.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                <Shield className="h-8 w-8 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Authentic Only</h3>
+              <p className="text-sm text-muted-foreground">
+                Guides available online to accept or withdraw bookings only. No false details or fake tours.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                <Star className="h-8 w-8 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Verified Reviews</h3>
+              <p className="text-sm text-muted-foreground">
+                Only users who have completed a tour with a guide can post tour reviews.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Certifications & Trust Indicators */}
       <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              {/* Certifications */}
+              <div>
+                <h3 className="text-2xl font-bold mb-8">Recognised Certifications</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span>First Aid/Advanced First Aid</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span>Wilderness First Aid (WFA)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span>Mountain Leader Training Association</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span>Local Safety Permits</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span>Avalanche Safety Training</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span>Rock Climbing Instructor</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Verified Features */}
+              <div>
+                <h3 className="text-2xl font-bold mb-8">Verified Features</h3>
+                <div className="space-y-6">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">Document Verification Reviews</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Document verification takes 3-5 business days. Our verification team responds to queries within 2 hours.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <Shield className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">Authentic Locations</h4>
+                      <p className="text-sm text-muted-foreground">
+                        All photos taken by guide themselves, that include authentic locations. No stock use or digital copy.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Statistics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 text-center">
+              <div>
+                <div className="text-4xl font-bold text-primary mb-2">100%</div>
+                <div className="text-sm font-medium text-muted-foreground">Verified Guides</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-green-600 mb-2">500+</div>
+                <div className="text-sm font-medium text-muted-foreground">Certified Guides</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-purple-600 mb-2">4.9</div>
+                <div className="text-sm font-medium text-muted-foreground">Average Rating</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-orange-600 mb-2">24/7</div>
+                <div className="text-sm font-medium text-muted-foreground">Safety Support</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* What Our Hikers Say */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">What Our Hikers Say</h2>
+            <p className="text-xl text-muted-foreground">Real experiences from real adventurers</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card className="p-6">
+              <div className="flex items-center gap-1 mb-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />
+                ))}
+              </div>
+              <p className="text-muted-foreground mb-4">
+                "Amazing experience in the Dolomites! Our guide Marco was incredibly knowledgeable and made us feel very safe throughout the challenging route."
+              </p>
+              <div className="font-semibold">Sarah M.</div>
+              <div className="text-sm text-muted-foreground">Dolomites Adventure - 5 days</div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center gap-1 mb-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />
+                ))}
+              </div>
+              <p className="text-muted-foreground mb-4">
+                "The Scottish Highlands tour exceeded my expectations. The guide was attentive to our group's needs and shared amazing local stories."
+              </p>
+              <div className="font-semibold">James R.</div>
+              <div className="text-sm text-muted-foreground">Scottish Highlands - 3 days</div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready for Your Adventure?</h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied hikers who've discovered their perfect mountain adventure with us.
+          <h2 className="text-4xl font-bold mb-4">Ready for Your Next Adventure?</h2>
+          <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
+            Join thousands of hikers who've discovered amazing trails with expert guides
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={() => onNavigateToSearch()}>
-              <Search className="mr-2 h-5 w-5" />
-              Start Exploring
+            <Button 
+              size="lg" 
+              variant="secondary"
+              onClick={() => onNavigateToSearch()}
+              className="bg-white text-primary hover:bg-white/90"
+            >
+              Browse All Tours
             </Button>
             {!user && (
-              <Button variant="outline" size="lg" onClick={onShowGuideSignup}>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={onShowGuideSignup}
+                className="border-white text-white hover:bg-white hover:text-primary"
+              >
                 Become a Guide
               </Button>
             )}
