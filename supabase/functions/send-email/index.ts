@@ -1,14 +1,8 @@
-import React from 'npm:react@18.3.1'
-import { Webhook } from 'https://esm.sh/standardwebhooks@1.0.0'
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from 'npm:resend@4.0.0'
-import { renderAsync } from 'npm:@react-email/components@0.0.22'
-import { VerificationEmail } from './_templates/verification-email.tsx'
-import { CustomVerificationEmail } from './_templates/custom-verification-email.tsx'
-import { WelcomeEmail } from './_templates/welcome-email.tsx'
-import { BookingConfirmationEmail } from './_templates/booking-confirmation-email.tsx'
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
-const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,32 +10,22 @@ const corsHeaders = {
 }
 
 interface EmailRequest {
-  type: 'verification' | 'custom_verification' | 'welcome' | 'booking_confirmation' | 'custom'
+  type: string
   to: string | string[]
   subject?: string
   template_data?: any
-  // For Supabase auth webhooks
-  user?: {
-    email: string
-    id: string
-  }
-  email_data?: {
-    token: string
-    token_hash: string
-    redirect_to: string
-    email_action_type: string
-    site_url: string
-  }
+  user?: any
+  email_data?: any
 }
 
-Deno.serve(async (req) => {
-  console.log('=== GENERIC EMAIL FUNCTION CALLED ===')
+serve(async (req) => {
+  console.log('=== SEND EMAIL FUNCTION CALLED ===')
   console.log('Method:', req.method)
   console.log('URL:', req.url)
-  
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
@@ -53,131 +37,100 @@ Deno.serve(async (req) => {
 
   try {
     const payload = await req.text()
-    const headers = Object.fromEntries(req.headers)
+    console.log('Payload received, length:', payload.length)
     
-    console.log('=== PROCESSING EMAIL REQUEST ===')
-    console.log('Payload length:', payload.length)
-    console.log('All headers:', JSON.stringify(Object.keys(headers), null, 2))
-    console.log('Looking for webhook signature...')
-    console.log('webhook-signature header:', headers['webhook-signature'] ? 'present' : 'missing')
-    console.log('Hook secret present:', hookSecret ? 'yes' : 'no')
-
     let emailRequest: EmailRequest
-
-    // Check if this is a webhook from Supabase (verification emails)
-    if (hookSecret && (headers['webhook-signature'] || headers['x-webhook-signature'] || headers['supabase-signature'] || payload.includes('user') && payload.includes('email_data'))) {
-      console.log('=== PROCESSING SUPABASE AUTH WEBHOOK ===')
-      try {
-        const wh = new Webhook(hookSecret)
-        const webhookData = wh.verify(payload, headers) as any
-        console.log('Webhook verification successful')
-        console.log('Webhook data keys:', Object.keys(webhookData))
-        
-        // Convert Supabase webhook to our format
-        emailRequest = {
-          type: 'verification',
-          to: webhookData.user.email,
-          user: webhookData.user,
-          email_data: webhookData.email_data
-        }
-        console.log('Converted to email request format')
-      } catch (webhookError: any) {
-        console.error('Webhook verification failed:', webhookError.message)
-        throw new Error(`Webhook verification failed: ${webhookError.message}`)
-      }
-    } else {
-      // Direct API call
-      console.log('=== PROCESSING DIRECT EMAIL REQUEST ===')
-      console.log('Parsing JSON payload...')
-      try {
-        emailRequest = JSON.parse(payload) as EmailRequest
-        console.log('JSON parsed successfully, type:', emailRequest.type)
-      } catch (parseError: any) {
-        console.error('JSON parse failed:', parseError.message)
-        console.log('Raw payload:', payload.substring(0, 200))
-        throw new Error(`Failed to parse JSON: ${parseError.message}`)
-      }
+    try {
+      emailRequest = JSON.parse(payload) as EmailRequest
+      console.log('Email request parsed:', { type: emailRequest.type, to: emailRequest.to })
+    } catch (parseError: any) {
+      console.error('JSON parse error:', parseError.message)
+      throw new Error(`Invalid JSON: ${parseError.message}`)
     }
 
-    const { type, to, subject, template_data, user, email_data } = emailRequest
-    console.log('Email request details:', { type, to: Array.isArray(to) ? to.length + ' recipients' : to })
+    const { type, to, subject, template_data } = emailRequest
+    console.log('Processing email type:', type)
 
     let html: string
     let emailSubject: string = subject || 'MadeToHike Notification'
 
-    console.log('=== GENERATING EMAIL HTML ===')
     // Generate HTML based on email type
     switch (type) {
-      case 'verification':
-        console.log('Processing verification email')
-        if (!user || !email_data) {
-          throw new Error('Missing user or email_data for verification email')
-        }
-        console.log('User email:', user.email)
-        console.log('Email data keys:', Object.keys(email_data))
-        
-        html = await renderAsync(
-          React.createElement(VerificationEmail, {
-            supabase_url: Deno.env.get('SUPABASE_URL') ?? '',
-            token: email_data.token,
-            token_hash: email_data.token_hash,
-            redirect_to: email_data.redirect_to || `${Deno.env.get('SUPABASE_URL')}/`,
-            email_action_type: email_data.email_action_type,
-            user_email: user.email,
-          })
-        )
-        emailSubject = 'Verify Your MadeToHike Account'
-        console.log('Verification email HTML generated')
-        break
-
       case 'custom_verification':
-        console.log('Processing custom verification email')
-        html = await renderAsync(
-          React.createElement(CustomVerificationEmail, {
-            user_name: template_data?.user_name || 'Adventurer',
-            verification_url: template_data?.verification_url || '',
-            user_email: template_data?.user_email || '',
-          })
-        )
+        console.log('Generating custom verification email HTML')
+        const userName = template_data?.user_name || 'Adventurer'
+        const verificationUrl = template_data?.verification_url || ''
+        const userEmail = template_data?.user_email || ''
+        
+        html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your MadeToHike Account</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif; background-color: #f6f9fc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
+        <div style="text-align: center; padding: 32px 20px;">
+            <h1 style="font-size: 32px; font-weight: bold; color: #1a73e8; margin: 0;">🏔️ MadeToHike</h1>
+        </div>
+        
+        <div style="text-align: center; padding: 0 20px;">
+            <h2 style="color: #1a1a1a; font-size: 32px; font-weight: bold; margin: 30px 0; line-height: 42px;">Welcome to MadeToHike!</h2>
+            <p style="color: #666666; font-size: 18px; line-height: 28px; margin: 16px 0 32px;">
+                Hi ${userName}, we're excited to have you join our community of hiking enthusiasts!
+            </p>
+        </div>
+
+        <div style="padding: 0 20px;">
+            <p style="color: #525252; font-size: 16px; line-height: 26px; margin: 16px 0;">
+                To get started with discovering amazing hiking tours and connecting with expert guides, 
+                please verify your email address by clicking the button below:
+            </p>
+
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="${verificationUrl}" style="background-color: #1a73e8; border-radius: 8px; color: #fff; font-size: 16px; font-weight: bold; text-decoration: none; display: inline-block; padding: 16px 24px;">
+                    Verify My Email
+                </a>
+            </div>
+
+            <p style="color: #525252; font-size: 16px; line-height: 26px; margin: 16px 0;">
+                Or copy and paste this link in your browser:
+            </p>
+            <p style="color: #1a73e8; font-size: 14px; word-break: break-all;">
+                ${verificationUrl}
+            </p>
+        </div>
+
+        <div style="padding: 32px 20px; background-color: #f8f9fa; margin: 32px 0; border-radius: 8px;">
+            <h3 style="color: #1a1a1a; font-size: 18px; font-weight: bold; margin: 0 0 16px;">What awaits you:</h3>
+            <p style="color: #525252; font-size: 16px; line-height: 24px; margin: 8px 0;">🥾 Access to premium hiking tours</p>
+            <p style="color: #525252; font-size: 16px; line-height: 24px; margin: 8px 0;">🗺️ Personalized route recommendations</p>
+            <p style="color: #525252; font-size: 16px; line-height: 24px; margin: 8px 0;">👥 Connect with certified guides</p>
+            <p style="color: #525252; font-size: 16px; line-height: 24px; margin: 8px 0;">📱 Track your hiking adventures</p>
+        </div>
+
+        <div style="padding: 20px; text-align: center;">
+            <p style="color: #8898aa; font-size: 14px; line-height: 20px; margin: 12px 0;">
+                This verification link will expire in 24 hours for security reasons.
+            </p>
+            <p style="color: #8898aa; font-size: 14px; line-height: 20px; margin: 12px 0;">
+                If you didn't create an account with MadeToHike, you can safely ignore this email.
+            </p>
+            <p style="color: #8898aa; font-size: 12px; margin: 24px 0 0;">
+                © 2025 MadeToHike. Happy hiking! 🏔️
+            </p>
+        </div>
+    </div>
+</body>
+</html>`
         emailSubject = 'Verify Your MadeToHike Account'
         console.log('Custom verification email HTML generated')
         break
 
-      case 'welcome':
-        console.log('Processing welcome email')
-        html = await renderAsync(
-          React.createElement(WelcomeEmail, {
-            user_name: template_data?.user_name || 'Adventurer',
-            ...template_data
-          })
-        )
-        emailSubject = subject || 'Welcome to MadeToHike! 🏔️'
-        break
-
-      case 'booking_confirmation':
-        console.log('Processing booking confirmation email')
-        html = await renderAsync(
-          React.createElement(BookingConfirmationEmail, {
-            booking_id: template_data?.booking_id,
-            tour_title: template_data?.tour_title,
-            booking_date: template_data?.booking_date,
-            guide_name: template_data?.guide_name,
-            meeting_point: template_data?.meeting_point,
-            total_price: template_data?.total_price,
-            currency: template_data?.currency || 'EUR',
-            ...template_data
-          })
-        )
-        emailSubject = subject || 'Your MadeToHike Booking Confirmation'
-        break
-
-      case 'custom':
-        console.log('Processing custom email')
-        // For custom HTML emails
-        html = template_data?.html || '<p>Hello from MadeToHike!</p>'
-        break
-
       default:
+        console.error('Unsupported email type:', type)
         throw new Error(`Unsupported email type: ${type}`)
     }
 
@@ -198,9 +151,13 @@ Deno.serve(async (req) => {
     }
 
     console.log('=== EMAIL SENT SUCCESSFULLY ===')
-    console.log('Resend response:', JSON.stringify(data, null, 2))
+    console.log('Email data:', JSON.stringify(data, null, 2))
 
-    return new Response(JSON.stringify({ success: true, data, type }), {
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Email sent successfully',
+      data
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
     })
@@ -210,17 +167,14 @@ Deno.serve(async (req) => {
     console.error('Error message:', error.message)
     console.error('Error stack:', error.stack)
     
-    return new Response(
-      JSON.stringify({
-        error: {
-          message: error.message || 'Internal server error',
-          code: error.code || 'UNKNOWN_ERROR',
-        },
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    return new Response(JSON.stringify({
+      error: {
+        message: error.message || 'Email sending failed',
+        type: 'EMAIL_SEND_ERROR'
       }
-    )
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
   }
 })
