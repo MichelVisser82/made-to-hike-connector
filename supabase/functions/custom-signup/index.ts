@@ -29,9 +29,12 @@ serve(async (req) => {
 
   try {
     const { email, password, metadata } = await req.json();
-    console.log('Signup request for:', email);
+    console.log('=== CUSTOM SIGNUP REQUEST ===');
+    console.log('Email:', email);
+    console.log('Metadata:', JSON.stringify(metadata, null, 2));
 
     if (!email || !password) {
+      console.error('Missing email or password');
       throw new Error('Email and password are required');
     }
 

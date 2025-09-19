@@ -31,6 +31,18 @@ export const CustomSignup = () => {
 
     try {
       console.log('Starting custom signup process...');
+      console.log('Calling supabase.functions.invoke with:', {
+        functionName: 'custom-signup',
+        body: {
+          email: formData.email,
+          password: formData.password,
+          metadata: {
+            name: formData.name,
+            phone: formData.phone,
+            role: 'hiker'
+          }
+        }
+      });
 
       // Call our custom signup function
       const { data, error } = await supabase.functions.invoke('custom-signup', {
@@ -44,6 +56,8 @@ export const CustomSignup = () => {
           }
         }
       });
+
+      console.log('Supabase function response:', { data, error });
 
       if (error) {
         console.error('Signup error:', error);
