@@ -34,7 +34,9 @@ interface EmailRequest {
 }
 
 Deno.serve(async (req) => {
-  console.log('Generic email function called')
+  console.log('=== GENERIC EMAIL FUNCTION CALLED ===')
+  console.log('Method:', req.method)
+  console.log('URL:', req.url)
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -52,40 +54,67 @@ Deno.serve(async (req) => {
     const payload = await req.text()
     const headers = Object.fromEntries(req.headers)
     
-    console.log('Processing email request')
+    console.log('=== PROCESSING EMAIL REQUEST ===')
+    console.log('Payload length:', payload.length)
+    console.log('All headers:', JSON.stringify(Object.keys(headers), null, 2))
+    console.log('Looking for webhook signature...')
+    console.log('webhook-signature header:', headers['webhook-signature'] ? 'present' : 'missing')
+    console.log('Hook secret present:', hookSecret ? 'yes' : 'no')
 
     let emailRequest: EmailRequest
 
     // Check if this is a webhook from Supabase (verification emails)
     if (hookSecret && headers['webhook-signature']) {
-      console.log('Processing Supabase auth webhook')
-      const wh = new Webhook(hookSecret)
-      const webhookData = wh.verify(payload, headers) as any
-      
-      // Convert Supabase webhook to our format
-      emailRequest = {
-        type: 'verification',
-        to: webhookData.user.email,
-        user: webhookData.user,
-        email_data: webhookData.email_data
+      console.log('=== PROCESSING SUPABASE AUTH WEBHOOK ===')
+      try {
+        const wh = new Webhook(hookSecret)
+        const webhookData = wh.verify(payload, headers) as any
+        console.log('Webhook verification successful')
+        console.log('Webhook data keys:', Object.keys(webhookData))
+        
+        // Convert Supabase webhook to our format
+        emailRequest = {
+          type: 'verification',
+          to: webhookData.user.email,
+          user: webhookData.user,
+          email_data: webhookData.email_data
+        }
+        console.log('Converted to email request format')
+      } catch (webhookError: any) {
+        console.error('Webhook verification failed:', webhookError.message)
+        throw new Error(`Webhook verification failed: ${webhookError.message}`)
       }
     } else {
       // Direct API call
-      console.log('Processing direct email request')
-      emailRequest = JSON.parse(payload) as EmailRequest
+      console.log('=== PROCESSING DIRECT EMAIL REQUEST ===')
+      console.log('Parsing JSON payload...')
+      try {
+        emailRequest = JSON.parse(payload) as EmailRequest
+        console.log('JSON parsed successfully, type:', emailRequest.type)
+      } catch (parseError: any) {
+        console.error('JSON parse failed:', parseError.message)
+        console.log('Raw payload:', payload.substring(0, 200))
+        throw new Error(`Failed to parse JSON: ${parseError.message}`)
+      }
     }
 
     const { type, to, subject, template_data, user, email_data } = emailRequest
+    console.log('Email request details:', { type, to: Array.isArray(to) ? to.length + ' recipients' : to })
 
     let html: string
     let emailSubject: string = subject || 'MadeToHike Notification'
 
+    console.log('=== GENERATING EMAIL HTML ===')
     // Generate HTML based on email type
     switch (type) {
       case 'verification':
+        console.log('Processing verification email')
         if (!user || !email_data) {
           throw new Error('Missing user or email_data for verification email')
         }
+        console.log('User email:', user.email)
+        console.log('Email data keys:', Object.keys(email_data))
+        
         html = await renderAsync(
           React.createElement(VerificationEmail, {
             supabase_url: Deno.env.get('SUPABASE_URL') ?? '',
@@ -97,9 +126,11 @@ Deno.serve(async (req) => {
           })
         )
         emailSubject = 'Verify Your MadeToHike Account'
+        console.log('Verification email HTML generated')
         break
 
       case 'welcome':
+        console.log('Processing welcome email')
         html = await renderAsync(
           React.createElement(WelcomeEmail, {
             user_name: template_data?.user_name || 'Adventurer',
@@ -110,6 +141,7 @@ Deno.serve(async (req) => {
         break
 
       case 'booking_confirmation':
+        console.log('Processing booking confirmation email')
         html = await renderAsync(
           React.createElement(BookingConfirmationEmail, {
             booking_id: template_data?.booking_id,
@@ -126,6 +158,7 @@ Deno.serve(async (req) => {
         break
 
       case 'custom':
+        console.log('Processing custom email')
         // For custom HTML emails
         html = template_data?.html || '<p>Hello from MadeToHike!</p>'
         break
@@ -134,6 +167,7 @@ Deno.serve(async (req) => {
         throw new Error(`Unsupported email type: ${type}`)
     }
 
+    console.log('=== SENDING EMAIL VIA RESEND ===')
     console.log(`Sending ${type} email to: ${Array.isArray(to) ? to.join(', ') : to}`)
 
     // Send the email using Resend
@@ -145,11 +179,12 @@ Deno.serve(async (req) => {
     })
 
     if (error) {  
-      console.error('Resend error:', error)
-      throw error
+      console.error('Resend error:', JSON.stringify(error, null, 2))
+      throw new Error(`Resend error: ${error.message || JSON.stringify(error)}`)
     }
 
-    console.log('Email sent successfully:', data)
+    console.log('=== EMAIL SENT SUCCESSFULLY ===')
+    console.log('Resend response:', JSON.stringify(data, null, 2))
 
     return new Response(JSON.stringify({ success: true, data, type }), {
       status: 200,
@@ -157,7 +192,9 @@ Deno.serve(async (req) => {
     })
 
   } catch (error: any) {
-    console.error('Error in send-email function:', error)
+    console.error('=== ERROR IN SEND-EMAIL FUNCTION ===')
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
     
     return new Response(
       JSON.stringify({
