@@ -7,13 +7,12 @@ import { type User } from '../../types';
 
 interface LandingPageProps {
   onNavigateToSearch: (filters?: any) => void;
-  onShowAuth: () => void;
   onShowGuideSignup: () => void;
   user: User | null;
   onNavigateToDashboard: () => void;
 }
 
-export function LandingPage({ onNavigateToSearch, onShowAuth, onShowGuideSignup, user, onNavigateToDashboard }: LandingPageProps) {
+export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNavigateToDashboard }: LandingPageProps) {
   const [selectedRegion, setSelectedRegion] = useState('dolomites');
 
   const regions = [

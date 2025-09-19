@@ -5,7 +5,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { X, Loader2 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface GuideSignupModalProps {
@@ -24,47 +24,64 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
     insurance: ''
   });
   const [error, setError] = useState('');
-  const { signUp, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (!formData.name || !formData.email || !formData.password || !formData.company || !formData.license) {
       setError('Please fill in all required fields.');
+      setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters long.');
+      setLoading(false);
       return;
     }
 
     if (!formData.experience || parseInt(formData.experience) < 0) {
       setError('Please enter a valid number of years of experience.');
+      setLoading(false);
       return;
     }
 
     try {
-      const { error } = await signUp(formData.email, formData.password, {
-        name: formData.name,
-        role: 'guide',
-        company_name: formData.company,
-        license_number: formData.license,
-        insurance_info: formData.insurance,
-        experience_years: parseInt(formData.experience)
+      console.log('Starting guide signup process...');
+
+      // Call our custom signup function with guide metadata
+      const { data, error } = await supabase.functions.invoke('custom-signup', {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          metadata: {
+            name: formData.name,
+            role: 'guide',
+            company_name: formData.company,
+            license_number: formData.license,
+            insurance_info: formData.insurance,
+            experience_years: parseInt(formData.experience)
+          }
+        }
       });
 
       if (error) {
-        setError(error);
-        return;
+        console.error('Guide signup error:', error);
+        throw new Error(error.message || 'Signup failed');
       }
 
+      console.log('Guide signup successful:', data);
       toast.success('Guide application submitted! Please check your email to verify your account.');
       onSignup(null); // Just signal successful signup
       onClose();
     } catch (err: any) {
+      console.error('Guide signup failed:', err);
       setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 

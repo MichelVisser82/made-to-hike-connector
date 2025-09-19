@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
 import { SearchPage } from './pages/SearchPage';
 import { TourDetailPage } from './pages/TourDetailPage';
@@ -123,7 +124,6 @@ function AppContent() {
         return (
           <LandingPage
             onNavigateToSearch={navigateToSearch}
-            onShowAuth={() => setShowAuthModal(true)}
             onShowGuideSignup={() => setShowGuideSignupModal(true)}
             user={user}
             onNavigateToDashboard={navigateToDashboard}
@@ -277,12 +277,18 @@ function AppContent() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setShowAuthModal(true)}
+                  <Link
+                    to="/auth?mode=signin"
                     className="text-sm hover:text-primary"
                   >
                     Sign In
-                  </button>
+                  </Link>
+                  <Link
+                    to="/auth?mode=signup"
+                    className="text-sm hover:text-primary mr-2"
+                  >
+                    Sign Up
+                  </Link>
                   <button
                     onClick={() => setShowGuideSignupModal(true)}
                     className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90"
