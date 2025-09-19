@@ -10,7 +10,10 @@ import { GuideDashboard } from './pages/GuideDashboard';
 import { BookingFlow } from './pages/BookingFlow';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { VerificationFlow } from './pages/VerificationFlow';
-import { Navigation } from './layout/Navigation';
+import { DecisionManager } from './DecisionManager';
+import { WireframePreloader } from './WireframePreloader';
+import { WireframeNotification } from './WireframeNotification';
+import { WireframeDesign } from './WireframeDesign';
 import { type Page, type User, type Tour, type SearchFilters } from '../types';
 
 export default function MadeToHikeApp() {
@@ -26,12 +29,23 @@ export default function MadeToHikeApp() {
     dateRange: '',
     maxPrice: ''
   });
+  const [wireframeDecisions, setWireframeDecisions] = useState<any>(null);
 
   // Mock user authentication - in real app this would use Supabase auth
   useEffect(() => {
     const savedUser = localStorage.getItem('madetohike-user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
+    }
+
+    // Load wireframe decisions
+    const savedDecisions = localStorage.getItem('madetohike-wireframe-decisions');
+    if (savedDecisions) {
+      try {
+        setWireframeDecisions(JSON.parse(savedDecisions));
+      } catch (e) {
+        console.error('Failed to load wireframe decisions:', e);
+      }
     }
 
     // Initialize sample users for testing
@@ -145,6 +159,15 @@ export default function MadeToHikeApp() {
     setCurrentPage('verification');
   };
 
+  const handleApplyDecisions = (decisions: any) => {
+    setWireframeDecisions(decisions);
+    if (decisions) {
+      console.log('Applied wireframe decisions:', decisions);
+      // Here you would apply the decisions to customize the marketplace
+      // This could involve updating design tokens, feature flags, etc.
+    }
+  };
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'landing':
@@ -211,6 +234,17 @@ export default function MadeToHikeApp() {
             onCancel={() => setCurrentPage('tour-detail')}
           />
         ) : null;
+      case 'settings':
+        return (
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-3xl font-bold mb-8">Marketplace Settings</h1>
+              <DecisionManager onApplyDecisions={handleApplyDecisions} />
+            </div>
+          </div>
+        );
+      case 'wireframe':
+        return <WireframeDesign />;
       default:
         return null;
     }
@@ -218,17 +252,102 @@ export default function MadeToHikeApp() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation 
-        currentPage={currentPage}
-        user={user}
-        onNavigate={setCurrentPage}
-        onNavigateToSearch={navigateToSearch}
-        onNavigateToDashboard={navigateToDashboard}
-        onShowAuth={() => setShowAuthModal(true)}
-        onShowGuideSignup={() => setShowGuideSignupModal(true)}
-        onLogout={handleLogout}
-      />
+      {/* Auto-load wireframe decisions */}
+      <WireframePreloader />
 
+      {/* Global Navigation */}
+      <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setCurrentPage('landing')}
+              className="flex items-center gap-2 hover:opacity-80"
+            >
+              <svg className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,6L10.25,11L14,16L15.5,14.5L13.25,11L15.5,7.5L14,6M9.5,6L8,7.5L10.25,11L8,14.5L9.5,16L13.25,11L9.5,6Z"/>
+                <path d="M4.5,3C3.67,3 3,3.67 3,4.5V19.5C3,20.33 3.67,21 4.5,21H19.5C20.33,21 21,20.33 21,19.5V4.5C21,3.67 20.33,3 19.5,3H4.5Z"/>
+              </svg>
+              <div>
+                <div className="text-lg font-semibold">MadeToHike</div>
+                <div className="text-xs text-muted-foreground">Guided Adventures</div>
+              </div>
+            </button>
+
+            <div className="flex items-center gap-4">
+              {currentPage !== 'search' && (
+                <button
+                  onClick={() => navigateToSearch()}
+                  className="text-sm hover:text-primary"
+                >
+                  Find Tours
+                </button>
+              )}
+
+              <button
+                onClick={() => setCurrentPage('settings')}
+                className="text-sm hover:text-primary"
+              >
+                Settings
+              </button>
+
+              <button
+                onClick={() => setCurrentPage('wireframe')}
+                className="text-sm hover:text-primary"
+              >
+                Wireframes
+              </button>
+
+              {user && user.role === 'admin' && (
+                <button
+                  onClick={() => setCurrentPage('admin-dashboard')}
+                  className="text-sm hover:text-primary"
+                >
+                  Admin Panel
+                </button>
+              )}
+
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={navigateToDashboard}
+                    className="text-sm hover:text-primary"
+                  >
+                    Dashboard
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="text-sm hover:text-primary"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => setShowGuideSignupModal(true)}
+                    className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90"
+                  >
+                    Become a Guide
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Page Content */}
       <main>{renderCurrentPage()}</main>
 
       {/* Modals */}
@@ -254,12 +373,16 @@ export default function MadeToHikeApp() {
           }}
           onRegister={(user) => {
             handleHikerRegistration(user);
+            // Don't change page immediately, let the booking flow handle it
             setShowHikerRegistrationModal(false);
             setCurrentPage('booking');
           }}
           tourTitle={selectedTour.title}
         />
       )}
+
+      {/* Wireframe Decisions Notification */}
+      <WireframeNotification />
     </div>
   );
 }
