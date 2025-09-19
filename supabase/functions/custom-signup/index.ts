@@ -72,7 +72,7 @@ serve(async (req) => {
         subject: 'Verify Your MadeToHike Account',
         template_data: {
           user_name: metadata?.name || email.split('@')[0],
-          verification_url: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovableproject.com')}/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`,
+          verification_url: `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`,
           user_email: email
         }
       })
