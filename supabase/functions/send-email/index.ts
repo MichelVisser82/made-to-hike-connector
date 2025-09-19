@@ -3,6 +3,7 @@ import { Webhook } from 'https://esm.sh/standardwebhooks@1.0.0'
 import { Resend } from 'npm:resend@4.0.0'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { VerificationEmail } from './_templates/verification-email.tsx'
+import { CustomVerificationEmail } from './_templates/custom-verification-email.tsx'
 import { WelcomeEmail } from './_templates/welcome-email.tsx'
 import { BookingConfirmationEmail } from './_templates/booking-confirmation-email.tsx'
 
@@ -15,7 +16,7 @@ const corsHeaders = {
 }
 
 interface EmailRequest {
-  type: 'verification' | 'welcome' | 'booking_confirmation' | 'custom'
+  type: 'verification' | 'custom_verification' | 'welcome' | 'booking_confirmation' | 'custom'
   to: string | string[]
   subject?: string
   template_data?: any
@@ -127,6 +128,19 @@ Deno.serve(async (req) => {
         )
         emailSubject = 'Verify Your MadeToHike Account'
         console.log('Verification email HTML generated')
+        break
+
+      case 'custom_verification':
+        console.log('Processing custom verification email')
+        html = await renderAsync(
+          React.createElement(CustomVerificationEmail, {
+            user_name: template_data?.user_name || 'Adventurer',
+            verification_url: template_data?.verification_url || '',
+            user_email: template_data?.user_email || '',
+          })
+        )
+        emailSubject = 'Verify Your MadeToHike Account'
+        console.log('Custom verification email HTML generated')
         break
 
       case 'welcome':
