@@ -3,12 +3,13 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { X } from 'lucide-react';
-import { type User } from '../../types';
+import { X, Loader2 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface HikerRegistrationModalProps {
   onClose: () => void;
-  onRegister: (user: User) => void;
+  onRegister: (user: any) => void;
   tourTitle: string;
 }
 
@@ -21,21 +22,43 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
     emergency_contact: '',
     emergency_phone: ''
   });
+  const [error, setError] = useState('');
+  const { signUp, loading } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Mock hiker registration - in real app this would use Supabase auth
-    const mockHiker: User = {
-      id: 'hiker-' + Date.now(),
-      email: formData.email,
-      name: formData.name,
-      role: 'hiker',
-      verified: true,
-      verification_status: 'approved'
-    };
-    
-    onRegister(mockHiker);
+    setError('');
+
+    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.emergency_contact || !formData.emergency_phone) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    try {
+      const { error } = await signUp(formData.email, formData.password, {
+        name: formData.name,
+        role: 'hiker',
+        phone: formData.phone,
+        emergency_contact: formData.emergency_contact,
+        emergency_phone: formData.emergency_phone
+      });
+
+      if (error) {
+        setError(error);
+        return;
+      }
+
+      toast.success('Account created! Please check your email to verify your account.');
+      onRegister(null); // Just signal successful signup
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -59,6 +82,12 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+                {error}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="hiker-name">Full Name</Label>
@@ -69,6 +98,7 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                   onChange={(e) => handleChange('name', e.target.value)}
                   required
                   placeholder="Your full name"
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -80,6 +110,7 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                   onChange={(e) => handleChange('email', e.target.value)}
                   required
                   placeholder="Your email"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -92,7 +123,8 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                 value={formData.password}
                 onChange={(e) => handleChange('password', e.target.value)}
                 required
-                placeholder="Create a password"
+                placeholder="Minimum 6 characters"
+                disabled={loading}
               />
             </div>
             
@@ -105,6 +137,7 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                 onChange={(e) => handleChange('phone', e.target.value)}
                 required
                 placeholder="Your phone number"
+                disabled={loading}
               />
             </div>
             
@@ -118,6 +151,7 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                   onChange={(e) => handleChange('emergency_contact', e.target.value)}
                   required
                   placeholder="Contact name"
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -129,6 +163,7 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                   onChange={(e) => handleChange('emergency_phone', e.target.value)}
                   required
                   placeholder="Contact phone"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -140,7 +175,8 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
               </p>
             </div>
             
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Account & Continue
             </Button>
           </form>

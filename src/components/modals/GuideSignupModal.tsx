@@ -4,12 +4,13 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { X } from 'lucide-react';
-import { type User } from '../../types';
+import { X, Loader2 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface GuideSignupModalProps {
   onClose: () => void;
-  onSignup: (user: User) => void;
+  onSignup: (user: any) => void;
 }
 
 export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
@@ -22,27 +23,49 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
     experience: '',
     insurance: ''
   });
+  const [error, setError] = useState('');
+  const { signUp, loading } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Mock guide registration - in real app this would use Supabase auth
-    const mockGuide: User = {
-      id: 'guide-' + Date.now(),
-      email: formData.email,
-      name: formData.name,
-      role: 'guide',
-      verified: false,
-      verification_status: 'pending',
-      business_info: {
+    setError('');
+
+    if (!formData.name || !formData.email || !formData.password || !formData.company || !formData.license) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (!formData.experience || parseInt(formData.experience) < 0) {
+      setError('Please enter a valid number of years of experience.');
+      return;
+    }
+
+    try {
+      const { error } = await signUp(formData.email, formData.password, {
+        name: formData.name,
+        role: 'guide',
         company_name: formData.company,
         license_number: formData.license,
         insurance_info: formData.insurance,
-        experience_years: parseInt(formData.experience) || 0
+        experience_years: parseInt(formData.experience)
+      });
+
+      if (error) {
+        setError(error);
+        return;
       }
-    };
-    
-    onSignup(mockGuide);
+
+      toast.success('Guide application submitted! Please check your email to verify your account.');
+      onSignup(null); // Just signal successful signup
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -66,6 +89,12 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+                {error}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="guide-name">Full Name</Label>
@@ -76,6 +105,7 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
                   onChange={(e) => handleChange('name', e.target.value)}
                   required
                   placeholder="Your full name"
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -87,6 +117,7 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
                   onChange={(e) => handleChange('email', e.target.value)}
                   required
                   placeholder="Your email"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -99,7 +130,8 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
                 value={formData.password}
                 onChange={(e) => handleChange('password', e.target.value)}
                 required
-                placeholder="Create a password"
+                placeholder="Minimum 6 characters"
+                disabled={loading}
               />
             </div>
             
@@ -112,6 +144,7 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
                 onChange={(e) => handleChange('company', e.target.value)}
                 required
                 placeholder="Your guiding business name"
+                disabled={loading}
               />
             </div>
             
@@ -125,6 +158,7 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
                   onChange={(e) => handleChange('license', e.target.value)}
                   required
                   placeholder="License #"
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -137,6 +171,7 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
                   onChange={(e) => handleChange('experience', e.target.value)}
                   required
                   placeholder="Years"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -150,6 +185,7 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
                 required
                 placeholder="Professional liability and public liability insurance details"
                 rows={3}
+                disabled={loading}
               />
             </div>
             
@@ -160,7 +196,8 @@ export function GuideSignupModal({ onClose, onSignup }: GuideSignupModalProps) {
               </p>
             </div>
             
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Submit Application
             </Button>
           </form>
