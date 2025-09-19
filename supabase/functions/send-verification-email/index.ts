@@ -37,17 +37,36 @@ Deno.serve(async (req) => {
     const headers = Object.fromEntries(req.headers)
     
     console.log('Processing email request for user verification')
+    console.log('Payload length:', payload.length)
+    console.log('Headers:', JSON.stringify(headers, null, 2))
+
+    // Check if required environment variables are present
+    if (!Deno.env.get('RESEND_API_KEY')) {
+      throw new Error('RESEND_API_KEY environment variable is missing')
+    }
 
     // If there's no webhook secret, process the request directly (for testing)
     let webhookData: WebhookPayload
 
     if (hookSecret) {
-      console.log('Verifying webhook signature')
-      const wh = new Webhook(hookSecret)
-      webhookData = wh.verify(payload, headers) as WebhookPayload
+      console.log('Verifying webhook signature with secret')
+      try {
+        const wh = new Webhook(hookSecret)
+        webhookData = wh.verify(payload, headers) as WebhookPayload
+        console.log('Webhook signature verified successfully')
+      } catch (webhookError) {
+        console.error('Webhook verification failed:', webhookError)
+        throw new Error(`Webhook verification failed: ${webhookError.message}`)
+      }
     } else {
       console.log('No webhook secret found, processing payload directly')
-      webhookData = JSON.parse(payload) as WebhookPayload
+      try {
+        webhookData = JSON.parse(payload) as WebhookPayload
+        console.log('Payload parsed successfully')
+      } catch (parseError) {
+        console.error('Failed to parse payload:', parseError)
+        throw new Error(`Failed to parse payload: ${parseError.message}`)
+      }
     }
 
     const {
@@ -56,7 +75,9 @@ Deno.serve(async (req) => {
     } = webhookData
 
     console.log(`Sending verification email to: ${user.email}`)
+    console.log('Email data:', { token: token ? 'present' : 'missing', token_hash: token_hash ? 'present' : 'missing', email_action_type })
 
+    console.log('Rendering React email template...')
     // Render the React email template
     const html = await renderAsync(
       React.createElement(VerificationEmail, {
@@ -68,10 +89,12 @@ Deno.serve(async (req) => {
         user_email: user.email,
       })
     )
+    console.log('Email template rendered successfully')
 
+    console.log('Sending email via Resend...')
     // Send the email using Resend
     const { data, error } = await resend.emails.send({
-      from: 'MadeToHike <onboarding@resend.dev>',
+      from: 'MadeToHike <noreply@madetohike.com>',
       to: [user.email],
       subject: 'Verify Your MadeToHike Account',
       html,
@@ -91,6 +114,7 @@ Deno.serve(async (req) => {
 
   } catch (error: any) {
     console.error('Error in send-verification-email function:', error)
+    console.error('Error stack:', error.stack)
     
     return new Response(
       JSON.stringify({
