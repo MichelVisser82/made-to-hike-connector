@@ -14,6 +14,7 @@ import { DecisionManager } from './DecisionManager';
 import { WireframePreloader } from './WireframePreloader';
 import { WireframeNotification } from './WireframeNotification';
 import { WireframeDesign } from './WireframeDesign';
+import { Footer } from './layout/Footer';
 import { type Page, type User, type Tour, type SearchFilters } from '../types';
 
 export default function MadeToHikeApp() {
@@ -383,6 +384,12 @@ export default function MadeToHikeApp() {
 
       {/* Wireframe Decisions Notification */}
       <WireframeNotification />
+
+      {/* Footer */}
+      <Footer 
+        onNavigate={(page: string) => setCurrentPage(page as Page)}
+        onNavigateToSearch={navigateToSearch}
+      />
     </div>
   );
 }
