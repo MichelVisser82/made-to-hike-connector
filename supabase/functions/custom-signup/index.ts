@@ -58,9 +58,10 @@ serve(async (req) => {
 
     console.log('User created successfully:', authData.user.id);
 
-    // Send verification email using our working Resend function
+    // Send verification email using our send-email function
     console.log('Sending verification email...');
-    console.log('Email request payload:', JSON.stringify({
+    
+    const emailPayload = {
       type: 'custom_verification',
       to: email,
       subject: 'Verify Your MadeToHike Account',
@@ -69,7 +70,9 @@ serve(async (req) => {
         verification_url: `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`,
         user_email: email
       }
-    }, null, 2));
+    };
+    
+    console.log('Email payload:', JSON.stringify(emailPayload, null, 2));
     
     const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
       method: 'POST',
@@ -77,28 +80,25 @@ serve(async (req) => {
         'Authorization': `Bearer ${supabaseServiceKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        type: 'custom_verification',
-        to: email,
-        subject: 'Verify Your MadeToHike Account',
-        template_data: {
-          user_name: metadata?.name || email.split('@')[0],
-          verification_url: `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`,
-          user_email: email
-        }
-      })
+      body: JSON.stringify(emailPayload)
     });
 
     console.log('Email response status:', emailResponse.status);
+    const responseText = await emailResponse.text();
+    console.log('Email response body:', responseText);
+    
     if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
       console.error('Email sending failed with status:', emailResponse.status);
-      console.error('Email error response:', errorText);
+      console.error('Email error response:', responseText);
       // Don't fail the signup if email fails, just log it
       console.log('Continuing signup despite email error');
     } else {
-      const emailResult = await emailResponse.json();
-      console.log('Verification email sent successfully:', emailResult);
+      try {
+        const emailResult = JSON.parse(responseText);
+        console.log('Verification email sent successfully:', emailResult);
+      } catch (e) {
+        console.log('Email sent but response not JSON:', responseText);
+      }
     }
 
     return new Response(JSON.stringify({ 
