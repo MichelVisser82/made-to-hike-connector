@@ -3,61 +3,63 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { X } from 'lucide-react';
-import { type User } from '../../types';
+import { X, Loader2 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface AuthModalProps {
   onClose: () => void;
-  onLogin: (user: User) => void;
 }
 
-export function AuthModal({ onClose, onLogin }: AuthModalProps) {
+export function AuthModal({ onClose }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const { signUp, signIn, loading } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Check if signing in with existing admin account
-    if (isLogin && email === 'admin@madetohike.com') {
-      const adminUser: User = {
-        id: 'admin',
-        email: 'admin@madetohike.com',
-        name: 'Admin User',
-        role: 'admin',
-        verified: true,
-        verification_status: 'approved'
-      };
-      onLogin(adminUser);
+    setError('');
+
+    if (!email || !password) {
+      setError('Please fill in all required fields.');
       return;
     }
 
-    // Check if signing in with existing guide accounts
-    if (isLogin) {
-      const savedUsers = localStorage.getItem('madetohike-users');
-      if (savedUsers) {
-        const users = JSON.parse(savedUsers);
-        const existingUser = users.find((u: User) => u.email === email);
-        if (existingUser) {
-          onLogin(existingUser);
+    if (!isLogin && !name.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    try {
+      if (isLogin) {
+        const { error } = await signIn(email, password);
+        if (error) {
+          setError(error);
           return;
         }
+        onClose();
+      } else {
+        const { error } = await signUp(email, password, {
+          name: name.trim(),
+          role: 'hiker'
+        });
+        if (error) {
+          setError(error);
+          return;
+        }
+        onClose();
       }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
     }
-    
-    // Create new user (registration)
-    const mockUser: User = {
-      id: 'user-' + Date.now(),
-      email,
-      name: isLogin ? 'John Hiker' : name,
-      role: 'hiker',
-      verified: true,
-      verification_status: 'approved'
-    };
-    
-    onLogin(mockUser);
   };
 
   return (
@@ -80,6 +82,12 @@ export function AuthModal({ onClose, onLogin }: AuthModalProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+                {error}
+              </div>
+            )}
+
             {!isLogin && (
               <div>
                 <Label htmlFor="name">Full Name</Label>
@@ -90,6 +98,7 @@ export function AuthModal({ onClose, onLogin }: AuthModalProps) {
                   onChange={(e) => setName(e.target.value)}
                   required={!isLogin}
                   placeholder="Enter your full name"
+                  disabled={loading}
                 />
               </div>
             )}
@@ -103,6 +112,7 @@ export function AuthModal({ onClose, onLogin }: AuthModalProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Enter your email"
+                disabled={loading}
               />
             </div>
             
@@ -114,39 +124,23 @@ export function AuthModal({ onClose, onLogin }: AuthModalProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Enter your password"
+                placeholder={isLogin ? "Enter your password" : "Minimum 6 characters"}
+                disabled={loading}
               />
             </div>
             
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLogin ? 'Sign In' : 'Create Account'}
             </Button>
           </form>
 
-          {/* Demo Accounts */}
           {isLogin && (
             <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-              <p className="text-xs font-medium mb-2">Demo Accounts:</p>
-              <div className="space-y-1 text-xs">
-                <button
-                  onClick={() => {
-                    setEmail('admin@madetohike.com');
-                    setPassword('admin');
-                  }}
-                  className="block w-full text-left hover:bg-muted p-1 rounded"
-                >
-                  <strong>Admin:</strong> admin@madetohike.com
-                </button>
-                <button
-                  onClick={() => {
-                    setEmail('marco@alpineguides.com');
-                    setPassword('guide');
-                  }}
-                  className="block w-full text-left hover:bg-muted p-1 rounded"
-                >
-                  <strong>Guide:</strong> marco@alpineguides.com
-                </button>
-              </div>
+              <p className="text-xs font-medium mb-2">Need help getting started?</p>
+              <p className="text-xs text-muted-foreground">
+                Create a new account or contact support if you need assistance.
+              </p>
             </div>
           )}
           

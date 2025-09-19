@@ -15,11 +15,13 @@ import { WireframePreloader } from './WireframePreloader';
 import { WireframeNotification } from './WireframeNotification';
 import { WireframeDesign } from './WireframeDesign';
 import { Footer } from './layout/Footer';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { useProfile } from '../hooks/useProfile';
 import { type Page, type User, type Tour, type SearchFilters } from '../types';
+import { Toaster } from './ui/sonner';
 
-export default function MadeToHikeApp() {
+function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('landing');
-  const [user, setUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showGuideSignupModal, setShowGuideSignupModal] = useState(false);
   const [showHikerRegistrationModal, setShowHikerRegistrationModal] = useState(false);
@@ -31,14 +33,14 @@ export default function MadeToHikeApp() {
     maxPrice: ''
   });
   const [wireframeDecisions, setWireframeDecisions] = useState<any>(null);
+  
+  const { user: authUser, signOut, loading } = useAuth();
+  const { profile } = useProfile();
 
-  // Mock user authentication - in real app this would use Supabase auth
+  // Use profile as the user data throughout the app
+  const user = profile;
+
   useEffect(() => {
-    const savedUser = localStorage.getItem('madetohike-user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-
     // Load wireframe decisions
     const savedDecisions = localStorage.getItem('madetohike-wireframe-decisions');
     if (savedDecisions) {
@@ -48,74 +50,20 @@ export default function MadeToHikeApp() {
         console.error('Failed to load wireframe decisions:', e);
       }
     }
-
-    // Initialize sample users for testing
-    const sampleUsers = [
-      {
-        id: 'admin',
-        email: 'admin@madetohike.com',
-        name: 'Admin User',
-        role: 'admin',
-        verified: true,
-        verification_status: 'approved'
-      },
-      {
-        id: 'guide1',
-        email: 'marco@alpineguides.com',
-        name: 'Marco Alpine',
-        role: 'guide',
-        verified: false,
-        verification_status: 'pending',
-        business_info: {
-          company_name: 'Alpine Adventures Italy',
-          license_number: 'IT-AG-2024-001',
-          insurance_info: 'Professional Liability: €2M, Public Liability: €5M',
-          experience_years: 8
-        }
-      },
-      {
-        id: 'guide2',
-        email: 'sarah@scotlandtreks.co.uk',
-        name: 'Sarah Mountain',
-        role: 'guide',
-        verified: false,
-        verification_status: 'pending',
-        business_info: {
-          company_name: 'Scotland Highland Treks',
-          license_number: 'UK-SHT-2024-002',
-          insurance_info: 'Professional Indemnity: £3M, Public Liability: £6M',
-          experience_years: 12
-        }
-      }
-    ];
-
-    const existingUsers = localStorage.getItem('madetohike-users');
-    if (!existingUsers) {
-      localStorage.setItem('madetohike-users', JSON.stringify(sampleUsers));
-    }
   }, []);
 
-  const handleLogin = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('madetohike-user', JSON.stringify(userData));
-    setShowAuthModal(false);
-  };
-
   const handleGuideSignup = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('madetohike-user', JSON.stringify(userData));
     setShowGuideSignupModal(false);
+    // The guide signup will be handled by the GuideSignupModal with real Supabase auth
   };
 
   const handleHikerRegistration = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('madetohike-user', JSON.stringify(userData));
     setShowHikerRegistrationModal(false);
+    // The hiker registration will be handled by the HikerRegistrationModal with real Supabase auth
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('madetohike-user');
+  const handleLogout = async () => {
+    await signOut();
     setCurrentPage('landing');
   };
 
@@ -355,7 +303,6 @@ export default function MadeToHikeApp() {
       {showAuthModal && (
         <AuthModal
           onClose={() => setShowAuthModal(false)}
-          onLogin={handleLogin}
         />
       )}
 
@@ -390,6 +337,17 @@ export default function MadeToHikeApp() {
         onNavigate={(page: string) => setCurrentPage(page as Page)}
         onNavigateToSearch={navigateToSearch}
       />
+
+      {/* Toast notifications */}
+      <Toaster />
     </div>
+  );
+}
+
+export default function MadeToHikeApp() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
