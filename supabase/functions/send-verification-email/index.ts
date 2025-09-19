@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
 
     // Send the email using Resend
     const { data, error } = await resend.emails.send({
-      from: 'MadeToHike <noreply@madetohike.com>',
+      from: 'MadeToHike <onboarding@resend.dev>',
       to: [user.email],
       subject: 'Verify Your MadeToHike Account',
       html,
