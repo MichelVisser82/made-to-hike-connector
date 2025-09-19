@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booking_date: string
+          created_at: string
+          currency: Database["public"]["Enums"]["currency"]
+          hiker_id: string
+          id: string
+          participants: number
+          special_requests: string | null
+          status: string
+          total_price: number
+          tour_id: string
+          updated_at: string
+        }
+        Insert: {
+          booking_date: string
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency"]
+          hiker_id: string
+          id?: string
+          participants?: number
+          special_requests?: string | null
+          status?: string
+          total_price: number
+          tour_id: string
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency"]
+          hiker_id?: string
+          id?: string
+          participants?: number
+          special_requests?: string | null
+          status?: string
+          total_price?: number
+          tour_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_hiker_id_fkey"
+            columns: ["hiker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kv_store_158bb0c0: {
         Row: {
           key: string
@@ -29,15 +86,274 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          booking_id: string
+          comment: string | null
+          created_at: string
+          guide_id: string
+          hiker_id: string
+          id: string
+          rating: number
+          tour_id: string
+        }
+        Insert: {
+          booking_id: string
+          comment?: string | null
+          created_at?: string
+          guide_id: string
+          hiker_id: string
+          id?: string
+          rating: number
+          tour_id: string
+        }
+        Update: {
+          booking_id?: string
+          comment?: string | null
+          created_at?: string
+          guide_id?: string
+          hiker_id?: string
+          id?: string
+          rating?: number
+          tour_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_hiker_id_fkey"
+            columns: ["hiker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tours: {
+        Row: {
+          available_dates: string[]
+          created_at: string
+          currency: Database["public"]["Enums"]["currency"]
+          description: string
+          difficulty: Database["public"]["Enums"]["difficulty"]
+          duration: string
+          group_size: number
+          guide_id: string
+          highlights: string[]
+          id: string
+          images: string[]
+          includes: string[]
+          is_active: boolean
+          meeting_point: string
+          price: number
+          rating: number | null
+          region: Database["public"]["Enums"]["region"]
+          reviews_count: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          available_dates?: string[]
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency"]
+          description: string
+          difficulty: Database["public"]["Enums"]["difficulty"]
+          duration: string
+          group_size: number
+          guide_id: string
+          highlights?: string[]
+          id?: string
+          images?: string[]
+          includes?: string[]
+          is_active?: boolean
+          meeting_point: string
+          price: number
+          rating?: number | null
+          region: Database["public"]["Enums"]["region"]
+          reviews_count?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          available_dates?: string[]
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency"]
+          description?: string
+          difficulty?: Database["public"]["Enums"]["difficulty"]
+          duration?: string
+          group_size?: number
+          guide_id?: string
+          highlights?: string[]
+          id?: string
+          images?: string[]
+          includes?: string[]
+          is_active?: boolean
+          meeting_point?: string
+          price?: number
+          rating?: number | null
+          region?: Database["public"]["Enums"]["region"]
+          reviews_count?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tours_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_verifications: {
+        Row: {
+          admin_notes: string | null
+          company_name: string | null
+          created_at: string
+          experience_years: number | null
+          id: string
+          insurance_info: string | null
+          license_number: string | null
+          updated_at: string
+          user_id: string
+          verification_documents: string[] | null
+          verification_status: Database["public"]["Enums"]["verification_status"]
+        }
+        Insert: {
+          admin_notes?: string | null
+          company_name?: string | null
+          created_at?: string
+          experience_years?: number | null
+          id?: string
+          insurance_info?: string | null
+          license_number?: string | null
+          updated_at?: string
+          user_id: string
+          verification_documents?: string[] | null
+          verification_status?: Database["public"]["Enums"]["verification_status"]
+        }
+        Update: {
+          admin_notes?: string | null
+          company_name?: string | null
+          created_at?: string
+          experience_years?: number | null
+          id?: string
+          insurance_info?: string | null
+          license_number?: string | null
+          updated_at?: string
+          user_id?: string
+          verification_documents?: string[] | null
+          verification_status?: Database["public"]["Enums"]["verification_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_verifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "hiker" | "guide" | "admin"
+      currency: "EUR" | "GBP"
+      difficulty: "easy" | "moderate" | "challenging" | "expert"
+      region: "dolomites" | "pyrenees" | "scotland"
+      verification_status: "pending" | "approved" | "rejected" | "not_requested"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -164,6 +480,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["hiker", "guide", "admin"],
+      currency: ["EUR", "GBP"],
+      difficulty: ["easy", "moderate", "challenging", "expert"],
+      region: ["dolomites", "pyrenees", "scotland"],
+      verification_status: ["pending", "approved", "rejected", "not_requested"],
+    },
   },
 } as const
