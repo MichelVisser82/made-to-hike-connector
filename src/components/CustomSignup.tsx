@@ -25,6 +25,8 @@ export const CustomSignup = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('=== FORM SUBMITTED ===');
+    console.log('Form data:', formData);
     setIsLoading(true);
 
     try {
