@@ -60,6 +60,17 @@ serve(async (req) => {
 
     // Send verification email using our working Resend function
     console.log('Sending verification email...');
+    console.log('Email request payload:', JSON.stringify({
+      type: 'custom_verification',
+      to: email,
+      subject: 'Verify Your MadeToHike Account',
+      template_data: {
+        user_name: metadata?.name || email.split('@')[0],
+        verification_url: `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`,
+        user_email: email
+      }
+    }, null, 2));
+    
     const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
       method: 'POST',
       headers: {
@@ -78,9 +89,11 @@ serve(async (req) => {
       })
     });
 
+    console.log('Email response status:', emailResponse.status);
     if (!emailResponse.ok) {
       const errorText = await emailResponse.text();
-      console.error('Email sending failed:', errorText);
+      console.error('Email sending failed with status:', emailResponse.status);
+      console.error('Email error response:', errorText);
       // Don't fail the signup if email fails, just log it
       console.log('Continuing signup despite email error');
     } else {
