@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
     let emailRequest: EmailRequest
 
     // Check if this is a webhook from Supabase (verification emails)
-    if (hookSecret && headers['webhook-signature']) {
+    if (hookSecret && (headers['webhook-signature'] || headers['x-webhook-signature'] || headers['supabase-signature'] || payload.includes('user') && payload.includes('email_data'))) {
       console.log('=== PROCESSING SUPABASE AUTH WEBHOOK ===')
       try {
         const wh = new Webhook(hookSecret)
