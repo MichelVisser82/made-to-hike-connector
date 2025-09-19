@@ -2,9 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* MadeToHike Design System - Nature-inspired palette */
 
 @layer base {
   :root {
@@ -17,17 +15,28 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    /* Nature-inspired primary colors - deep forest green */
+    --primary: 142 76% 36%;
     --primary-foreground: 210 40% 98%;
+    --primary-glow: 142 76% 45%;
 
+    /* Mountain-inspired secondary colors */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 39 77% 58%;
     --accent-foreground: 222.2 47.4% 11.2%;
+
+    /* Nature gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-mountain: linear-gradient(180deg, hsl(210 40% 98%), hsl(210 30% 95%));
+    
+    /* Trust and safety colors */
+    --trust-green: 142 71% 45%;
+    --trust-blue: 217 91% 60%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -65,8 +74,10 @@ All colors MUST be HSL.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    /* Dark mode nature colors */
+    --primary: 142 76% 45%;
     --primary-foreground: 222.2 47.4% 11.2%;
+    --primary-glow: 142 76% 55%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
