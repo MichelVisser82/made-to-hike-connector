@@ -88,7 +88,7 @@ function AppContent() {
 
   const navigateToBooking = (tour: Tour) => {
     setSelectedTour(tour);
-    if (!user) {
+    if (!user && !authUser) {
       setShowHikerRegistrationModal(true);
     } else {
       setCurrentPage('booking');
@@ -183,10 +183,16 @@ function AppContent() {
           />
         ) : null;
       case 'booking':
-        return selectedTour && user ? (
+        return selectedTour && (user || authUser) ? (
           <BookingFlow
             tour={selectedTour}
-            user={user}
+            user={user || {
+              id: authUser!.id,
+              email: authUser!.email || '',
+              name: authUser!.user_metadata?.name || authUser!.email || '',
+              role: (authUser!.user_metadata?.role || 'hiker') as 'hiker' | 'guide' | 'admin',
+              verified: !!authUser!.email_confirmed_at
+            } as User}
             onComplete={() => setCurrentPage('user-dashboard')}
             onCancel={() => setCurrentPage('tour-detail')}
           />
@@ -350,12 +356,9 @@ function AppContent() {
           }}
           onRegister={(data) => {
             handleHikerRegistration(data);
-            // Store email for pending booking flow
-            if (data?.email) {
-              setPendingBookingEmail(data.email);
-            }
             setShowHikerRegistrationModal(false);
-            setCurrentPage('pending-booking');
+            // Immediately proceed to booking after registration
+            setCurrentPage('booking');
           }}
           tourTitle={selectedTour.title}
         />
