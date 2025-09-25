@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from 'npm:resend@4.0.0'
+import { Resend } from 'https://esm.sh/resend@4.0.0'
 
 // Get allowed origins from environment or use default for development
 const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
