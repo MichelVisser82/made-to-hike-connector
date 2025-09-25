@@ -1,13 +1,10 @@
 project_id = "ohecxwxumzpfcfsokfkg"
 
-# send-email is called by Supabase auth webhooks, so JWT verification must be disabled
 [functions.send-email]
 verify_jwt = false
 
-# custom-signup needs to be public for user registration
 [functions.custom-signup]
 verify_jwt = false
 
-# verify-email needs to be public for email verification links
 [functions.verify-email]
 verify_jwt = false

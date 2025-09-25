@@ -2,17 +2,9 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
 
-// Get allowed origins from environment or use default for development
-const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com'
-];
-
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Will be set dynamically based on request origin
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
 // Initialize Supabase client with service role for admin operations
@@ -22,34 +14,22 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 serve(async (req) => {
   console.log('=== EMAIL VERIFICATION FUNCTION CALLED ===')
-
-  // Get request origin and set CORS headers dynamically
-  const origin = req.headers.get('origin') || '';
-  const headers = { ...corsHeaders };
-
-  if (allowedOrigins.includes(origin)) {
-    headers['Access-Control-Allow-Origin'] = origin;
-  } else if (Deno.env.get('ENVIRONMENT') === 'development') {
-    headers['Access-Control-Allow-Origin'] = '*';
-  } else {
-    headers['Access-Control-Allow-Origin'] = allowedOrigins[0] || 'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com';
-  }
-
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers });
+    return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { 
-      status: 405,
-      headers
+      status: 405, 
+      headers: corsHeaders 
     });
   }
 
   try {
     const { token, email } = await req.json();
-    console.log('Verification request for email:', email?.substring(0, 3) + '***');
+    console.log('Verification request for:', email, 'with token:', token ? 'present' : 'missing');
 
     if (!token || !email) {
       throw new Error('Token and email are required');
@@ -63,25 +43,15 @@ serve(async (req) => {
       throw new Error('Failed to verify email');
     }
 
-    // Check token expiration
-    const user = users.users.find(u => {
-      if (u.email !== email || u.user_metadata?.verification_token !== token || u.email_confirmed_at) {
-        return false;
-      }
-
-      // Check if token has expired
-      const expiresAt = u.user_metadata?.verification_token_expires_at;
-      if (expiresAt && new Date(expiresAt) < new Date()) {
-        console.log('Token expired for user:', u.id);
-        return false;
-      }
-
-      return true;
-    });
+    const user = users.users.find(u => 
+      u.email === email && 
+      u.user_metadata?.verification_token === token &&
+      !u.email_confirmed_at
+    );
 
     if (!user) {
       console.log('User not found or already verified');
-      throw new Error('Invalid or expired verification token, or email already verified');
+      throw new Error('Invalid verification token or email already verified');
     }
 
     // Confirm the user's email
@@ -92,7 +62,6 @@ serve(async (req) => {
         user_metadata: {
           ...user.user_metadata,
           verification_token: null, // Clear the token
-          verification_token_expires_at: null, // Clear expiry
           verified_at: new Date().toISOString()
         }
       }
@@ -135,7 +104,7 @@ serve(async (req) => {
       user_id: user.id
     }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json', ...headers },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
 
   } catch (error: any) {
@@ -148,7 +117,7 @@ serve(async (req) => {
       }
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...headers },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   }
 });
