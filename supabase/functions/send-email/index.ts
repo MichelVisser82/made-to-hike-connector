@@ -2,24 +2,44 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from 'npm:resend@4.0.0'
 
+// Get allowed origins from environment or use default for development
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com'
+];
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': '*', // Will be set dynamically based on request origin
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
 serve(async (req) => {
   console.log('=== SEND EMAIL FUNCTION CALLED ===')
   console.log('Method:', req.method)
 
+  // Get request origin and set CORS headers dynamically
+  const origin = req.headers.get('origin') || '';
+  const headers = { ...corsHeaders };
+
+  if (allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  } else if (Deno.env.get('ENVIRONMENT') === 'development') {
+    headers['Access-Control-Allow-Origin'] = '*';
+  } else {
+    headers['Access-Control-Allow-Origin'] = allowedOrigins[0] || 'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com';
+  }
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers });
   }
 
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { 
       status: 405,
-      headers: corsHeaders 
+      headers
     })
   }
 
@@ -39,12 +59,12 @@ serve(async (req) => {
         details: parseError.message
       }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { 'Content-Type': 'application/json', ...headers },
       })
     }
 
     const { type, to, subject, template_data } = emailRequest
-    console.log('Email details:', { type, to, hasTemplateData: !!template_data })
+    console.log('Email type:', type, 'Has template data:', !!template_data)
 
     // Check if we have the RESEND_API_KEY
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
@@ -54,11 +74,11 @@ serve(async (req) => {
         error: 'Email service not configured - missing API key'
       }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { 'Content-Type': 'application/json', ...headers },
       })
     }
 
-    console.log('RESEND_API_KEY found, initializing Resend client')
+    // API key found, initializing Resend client
     const resend = new Resend(resendApiKey)
 
     // Generate email content based on type
@@ -69,7 +89,9 @@ serve(async (req) => {
       console.log('Generating custom verification email')
       const userName = template_data?.user_name || 'Adventurer'
       const verificationUrl = template_data?.verification_url || ''
-      
+      const verificationToken = template_data?.verification_token || ''
+      const userEmail = template_data?.user_email || ''
+
       html = `
 <!DOCTYPE html>
 <html>
@@ -102,8 +124,15 @@ serve(async (req) => {
                 </a>
             </div>
 
-            <p style="color: #525252; font-size: 14px;">
-                Or copy and paste this link: ${verificationUrl}
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="color: #525252; font-size: 14px; margin: 0;">
+                    <strong>Your verification code:</strong><br>
+                    <code style="font-size: 18px; color: #1a73e8;">${verificationToken}</code>
+                </p>
+            </div>
+
+            <p style="color: #525252; font-size: 12px;">
+                This verification link will expire in 24 hours for security reasons.
             </p>
         </div>
 
@@ -121,7 +150,7 @@ serve(async (req) => {
         error: `Unsupported email type: ${type}`
       }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { 'Content-Type': 'application/json', ...headers },
       })
     }
 
@@ -131,7 +160,7 @@ serve(async (req) => {
 
     try {
       const result = await resend.emails.send({
-        from: 'MadeToHike <onboarding@resend.dev>',
+        from: 'MadeToHike <noreply@madetohike.com>',
         to: Array.isArray(to) ? to : [to],
         subject: emailSubject,
         html: html,
@@ -147,7 +176,7 @@ serve(async (req) => {
         id: result.data?.id
       }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { 'Content-Type': 'application/json', ...headers },
       })
 
     } catch (resendError: any) {
@@ -161,7 +190,7 @@ serve(async (req) => {
         code: resendError.code || 'RESEND_ERROR'
       }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { 'Content-Type': 'application/json', ...headers },
       })
     }
 

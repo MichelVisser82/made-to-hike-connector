@@ -1,10 +1,13 @@
 project_id = "ohecxwxumzpfcfsokfkg"
 
+# send-email should only be callable by authenticated services
 [functions.send-email]
-verify_jwt = false
+verify_jwt = true
 
+# custom-signup needs to be public for user registration
 [functions.custom-signup]
 verify_jwt = false
 
+# verify-email needs to be public for email verification links
 [functions.verify-email]
 verify_jwt = false
