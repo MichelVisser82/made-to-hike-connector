@@ -14,11 +14,11 @@ interface PendingBookingFlowProps {
 
 export function PendingBookingFlow({ tour, userEmail, onVerified, onCancel }: PendingBookingFlowProps) {
   const [timeRemaining, setTimeRemaining] = useState(600); // 10 minutes
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     // Check if user has been verified
-    if (user && user.email_confirmed_at) {
+    if (authUser && authUser.email_confirmed_at) {
       onVerified();
       return;
     }
@@ -35,7 +35,7 @@ export function PendingBookingFlow({ tour, userEmail, onVerified, onCancel }: Pe
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [user, onVerified]);
+  }, [authUser, onVerified]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

@@ -40,8 +40,14 @@ function AppContent() {
   const { user: authUser, signOut, loading } = useAuth();
   const { profile } = useProfile();
 
-  // Use profile as the user data throughout the app
-  const user = profile;
+  // Use profile as the user data throughout the app, fallback to authUser for booking flow
+  const user = profile || (authUser && authUser.email_confirmed_at ? {
+    id: authUser.id,
+    email: authUser.email || '',
+    name: authUser.user_metadata?.name || authUser.email || '',
+    role: (authUser.user_metadata?.role || 'hiker') as 'hiker' | 'guide' | 'admin',
+    verified: false
+  } as User : null);
 
   useEffect(() => {
     // Load wireframe decisions
