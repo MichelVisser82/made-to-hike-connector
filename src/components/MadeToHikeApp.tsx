@@ -9,6 +9,7 @@ import { HikerRegistrationModal } from './modals/HikerRegistrationModal';
 import { UserDashboard } from './pages/UserDashboard';
 import { GuideDashboard } from './pages/GuideDashboard';
 import { BookingFlow } from './pages/BookingFlow';
+import { PendingBookingFlow } from './pages/PendingBookingFlow';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { VerificationFlow } from './pages/VerificationFlow';
 import { DecisionManager } from './DecisionManager';
@@ -34,6 +35,7 @@ function AppContent() {
     maxPrice: ''
   });
   const [wireframeDecisions, setWireframeDecisions] = useState<any>(null);
+  const [pendingBookingEmail, setPendingBookingEmail] = useState<string | null>(null);
   
   const { user: authUser, signOut, loading } = useAuth();
   const { profile } = useProfile();
@@ -183,6 +185,21 @@ function AppContent() {
             onCancel={() => setCurrentPage('tour-detail')}
           />
         ) : null;
+      case 'pending-booking':
+        return selectedTour && pendingBookingEmail ? (
+          <PendingBookingFlow
+            tour={selectedTour}
+            userEmail={pendingBookingEmail}
+            onVerified={() => {
+              setPendingBookingEmail(null);
+              setCurrentPage('booking');
+            }}
+            onCancel={() => {
+              setPendingBookingEmail(null);
+              setCurrentPage('tour-detail');
+            }}
+          />
+        ) : null;
       case 'settings':
         return (
           <div className="container mx-auto px-4 py-8">
@@ -325,11 +342,14 @@ function AppContent() {
             setShowHikerRegistrationModal(false);
             setSelectedTour(null);
           }}
-          onRegister={(user) => {
-            handleHikerRegistration(user);
-            // Don't change page immediately, let the booking flow handle it
+          onRegister={(data) => {
+            handleHikerRegistration(data);
+            // Store email for pending booking flow
+            if (data?.email) {
+              setPendingBookingEmail(data.email);
+            }
             setShowHikerRegistrationModal(false);
-            setCurrentPage('booking');
+            setCurrentPage('pending-booking');
           }}
           tourTitle={selectedTour.title}
         />

@@ -68,7 +68,7 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
       }
 
       toast.success('Account created! Please check your email to verify your account.');
-      onRegister(null); // Just signal successful signup
+      onRegister({ email: formData.email }); // Pass email for pending booking flow
       onClose();
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
