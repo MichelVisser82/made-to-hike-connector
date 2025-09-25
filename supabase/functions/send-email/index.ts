@@ -1,111 +1,52 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from 'https://esm.sh/resend@4.0.0'
+import { Webhook } from 'https://esm.sh/standardwebhooks@1.0.0'
 
-// Get allowed origins from environment or use default for development
-const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com'
-];
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Will be set dynamically based on request origin
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
-}
+const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
+const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string
 
 serve(async (req) => {
   console.log('=== SEND EMAIL FUNCTION CALLED ===')
   console.log('Method:', req.method)
 
-  // Get request origin and set CORS headers dynamically
-  const origin = req.headers.get('origin') || '';
-  const headers = { ...corsHeaders };
-
-  if (allowedOrigins.includes(origin)) {
-    headers['Access-Control-Allow-Origin'] = origin;
-  } else if (Deno.env.get('ENVIRONMENT') === 'development') {
-    headers['Access-Control-Allow-Origin'] = '*';
-  } else {
-    headers['Access-Control-Allow-Origin'] = allowedOrigins[0] || 'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com';
-  }
-
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers });
-  }
-
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { 
-      status: 405,
-      headers
-    })
+    return new Response('not allowed', { status: 400 })
   }
 
-  // Validate auth hook secret
-  const authHeader = req.headers.get('authorization');
-  const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET');
+  const payload = await req.text()
+  const headers = Object.fromEntries(req.headers)
   
-  if (hookSecret && authHeader !== `Bearer ${hookSecret}`) {
-    console.error('Invalid auth hook secret');
-    return new Response(JSON.stringify({
-      error: 'Unauthorized - Invalid hook secret'
-    }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json', ...headers },
-    });
-  }
-
   try {
-    console.log('Reading request payload...')
-    const payload = await req.text()
-    console.log('Payload length:', payload.length)
-    
-    let emailRequest: any
-    try {
-      emailRequest = JSON.parse(payload)
-      console.log('Email request parsed successfully, type:', emailRequest.type)
-    } catch (parseError: any) {
-      console.error('JSON parse error:', parseError.message)
-      return new Response(JSON.stringify({
-        error: 'Invalid JSON payload',
-        details: parseError.message
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...headers },
-      })
+    const wh = new Webhook(hookSecret)
+    const {
+      user,
+      email_data: { token, token_hash, redirect_to, email_action_type, site_url },
+    } = wh.verify(payload, headers) as {
+      user: {
+        email: string
+        id: string
+      }
+      email_data: {
+        token: string
+        token_hash: string
+        redirect_to: string
+        email_action_type: string
+        site_url: string
+      }
     }
 
-    const { type, to, subject, template_data } = emailRequest
-    console.log('Email type:', type, 'Has template data:', !!template_data)
+    console.log('=== WEBHOOK VERIFIED ===')
+    console.log('User email:', user.email)
+    console.log('Email action type:', email_action_type)
 
-    // Check if we have the RESEND_API_KEY
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
-    if (!resendApiKey) {
-      console.error('RESEND_API_KEY not found in environment')
-      return new Response(JSON.stringify({
-        error: 'Email service not configured - missing API key'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...headers },
-      })
-    }
-
-    // API key found, initializing Resend client
-    const resend = new Resend(resendApiKey)
-
-    // Generate email content based on type
     let html: string
-    let emailSubject: string = subject || 'MadeToHike Notification'
+    let subject: string
 
-    if (type === 'custom_verification') {
-      console.log('Generating custom verification email')
-      const userName = template_data?.user_name || 'Adventurer'
-      const verificationUrl = template_data?.verification_url || ''
-      const verificationToken = template_data?.verification_token || ''
-      const userEmail = template_data?.user_email || ''
-
+    if (email_action_type === 'signup') {
+      // Handle signup confirmation
+      const verificationUrl = `${site_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`
+      
       html = `
 <!DOCTYPE html>
 <html>
@@ -123,7 +64,7 @@ serve(async (req) => {
         <div style="text-align: center; padding: 20px;">
             <h2 style="color: #1a1a1a;">Welcome to MadeToHike!</h2>
             <p style="color: #666666; font-size: 16px;">
-                Hi ${userName}, we're excited to have you join our community!
+                We're excited to have you join our hiking community!
             </p>
         </div>
 
@@ -141,7 +82,7 @@ serve(async (req) => {
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <p style="color: #525252; font-size: 14px; margin: 0;">
                     <strong>Your verification code:</strong><br>
-                    <code style="font-size: 18px; color: #1a73e8;">${verificationToken}</code>
+                    <code style="font-size: 18px; color: #1a73e8;">${token}</code>
                 </p>
             </div>
 
@@ -156,69 +97,68 @@ serve(async (req) => {
     </div>
 </body>
 </html>`
-      emailSubject = 'Verify Your MadeToHike Account'
-      console.log('Custom verification email HTML generated')
+      subject = 'Verify Your MadeToHike Account'
     } else {
-      console.error('Unsupported email type:', type)
-      return new Response(JSON.stringify({
-        error: `Unsupported email type: ${type}`
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...headers },
-      })
+      // Handle other email types (recovery, etc.)
+      html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MadeToHike - ${email_action_type}</title>
+</head>
+<body style="font-family: Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #1a73e8;">🏔️ MadeToHike</h1>
+        <p>Please click the link below to continue:</p>
+        <a href="${site_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}" 
+           style="background-color: #1a73e8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+          Continue
+        </a>
+        <p>Your verification code: <code>${token}</code></p>
+    </div>
+</body>
+</html>`
+      subject = `MadeToHike - ${email_action_type}`
     }
 
     console.log('=== SENDING EMAIL VIA RESEND ===')
-    console.log(`Sending to: ${to}`)
-    console.log(`Subject: ${emailSubject}`)
+    console.log(`Sending to: ${user.email}`)
+    console.log(`Subject: ${subject}`)
 
-    try {
-      const result = await resend.emails.send({
-        from: 'MadeToHike <noreply@madetohike.com>',
-        to: Array.isArray(to) ? to : [to],
-        subject: emailSubject,
-        html: html,
-      })
+    const { error } = await resend.emails.send({
+      from: 'MadeToHike <noreply@madetohike.com>',
+      to: [user.email],
+      subject: subject,
+      html: html,
+    })
 
-      console.log('=== RESEND RESPONSE ===')
-      console.log('Success:', JSON.stringify(result, null, 2))
-
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Email sent successfully',
-        data: result.data,
-        id: result.data?.id
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ...headers },
-      })
-
-    } catch (resendError: any) {
-      console.error('=== RESEND ERROR ===')
-      console.error('Error details:', JSON.stringify(resendError, null, 2))
-      console.error('Error message:', resendError.message)
-      
-      return new Response(JSON.stringify({
-        error: 'Failed to send email via Resend',
-        details: resendError.message,
-        code: resendError.code || 'RESEND_ERROR'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...headers },
-      })
+    if (error) {
+      console.error('Resend error:', error)
+      throw error
     }
 
-  } catch (error: any) {
-    console.error('=== GENERAL ERROR IN SEND-EMAIL FUNCTION ===')
-    console.error('Error message:', error.message)
-    console.error('Error stack:', error.stack)
-    
-    return new Response(JSON.stringify({
-      error: error.message || 'Unknown error',
-      type: 'GENERAL_ERROR'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    console.log('=== EMAIL SENT SUCCESSFULLY ===')
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
     })
+
+  } catch (error: any) {
+    console.error('=== ERROR IN SEND EMAIL HOOK ===')
+    console.error('Error:', error)
+    
+    return new Response(
+      JSON.stringify({
+        error: {
+          http_code: error.code || 500,
+          message: error.message || 'Unknown error',
+        },
+      }),
+      {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    )
   }
 })
