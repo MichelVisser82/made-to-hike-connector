@@ -4,7 +4,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { X, Loader2 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface HikerRegistrationModalProps {
@@ -23,7 +23,7 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
     emergency_phone: ''
   });
   const [error, setError] = useState('');
-  const { signUp, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,16 +40,30 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
     }
 
     try {
-      const { error } = await signUp(formData.email, formData.password, {
-        name: formData.name,
-        role: 'hiker',
-        phone: formData.phone,
-        emergency_contact: formData.emergency_contact,
-        emergency_phone: formData.emergency_phone
+      setLoading(true);
+      
+      // Use custom signup function like guide registration
+      const { data, error: supabaseError } = await supabase.functions.invoke('custom-signup', {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          metadata: {
+            name: formData.name,
+            role: 'hiker',
+            phone: formData.phone,
+            emergency_contact: formData.emergency_contact,
+            emergency_phone: formData.emergency_phone
+          }
+        }
       });
 
-      if (error) {
-        setError(error);
+      if (supabaseError) {
+        setError(supabaseError.message || 'Signup failed');
+        return;
+      }
+
+      if (data?.error) {
+        setError(data.error);
         return;
       }
 
@@ -58,6 +72,8 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
       onClose();
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
