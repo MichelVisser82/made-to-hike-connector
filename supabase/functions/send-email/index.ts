@@ -43,14 +43,14 @@ serve(async (req) => {
     })
   }
 
-  // Validate webhook secret for Supabase auth hooks
+  // Validate auth hook secret
   const authHeader = req.headers.get('authorization');
-  const webhookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET');
+  const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET');
   
-  if (webhookSecret && authHeader !== `Bearer ${webhookSecret}`) {
-    console.error('Invalid webhook secret');
+  if (hookSecret && authHeader !== `Bearer ${hookSecret}`) {
+    console.error('Invalid auth hook secret');
     return new Response(JSON.stringify({
-      error: 'Unauthorized'
+      error: 'Unauthorized - Invalid hook secret'
     }), {
       status: 401,
       headers: { 'Content-Type': 'application/json', ...headers },
