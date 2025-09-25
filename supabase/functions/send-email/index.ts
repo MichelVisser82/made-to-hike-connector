@@ -131,7 +131,7 @@ serve(async (req) => {
 
     try {
       const result = await resend.emails.send({
-        from: 'MadeToHike <onboarding@resend.dev>',
+        from: 'MadeToHike <noreply@madetohike.com>',
         to: Array.isArray(to) ? to : [to],
         subject: emailSubject,
         html: html,
