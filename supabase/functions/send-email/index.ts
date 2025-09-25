@@ -1,76 +1,188 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from 'npm:resend@4.0.0'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { corsHeaders } from '../_shared/cors.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+
+interface EmailRequest {
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification'
+  to: string
+  from?: string
+  name?: string
+  email?: string
+  subject?: string
+  message?: string
+  data?: Record<string, any>
+  template_data?: Record<string, any>
 }
 
-serve(async (req) => {
-  console.log('=== SEND EMAIL FUNCTION CALLED ===')
-  console.log('Method:', req.method)
+interface EmailTemplate {
+  subject: string
+  html: string
+  text?: string
+}
 
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+// Enhanced email templates
+const getEmailTemplate = (type: string, data: any): EmailTemplate => {
+  const templates = {
+    contact: {
+      subject: `New Contact Form Submission from ${data.name}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>New Contact Form Submission</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Made to Hike</h1>
+              <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">New Contact Form Submission</p>
+            </div>
+            
+            <div style="padding: 30px;">
+              <div style="background: #f8fffe; border-left: 4px solid #2c5530; padding: 20px; margin-bottom: 25px; border-radius: 0 4px 4px 0;">
+                <h2 style="margin: 0 0 15px; color: #2c5530; font-size: 18px;">Contact Details</h2>
+                <p style="margin: 8px 0;"><strong>Name:</strong> ${data.name}</p>
+                <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #2c5530; text-decoration: none;">${data.email}</a></p>
+                <p style="margin: 8px 0;"><strong>Subject:</strong> ${data.subject || 'No subject provided'}</p>
+                <p style="margin: 8px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric', 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}</p>
+              </div>
+              
+              <div style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 20px;">
+                <h3 style="margin: 0 0 15px; color: #2c5530; font-size: 16px;">Message:</h3>
+                <div style="color: #4a5568; line-height: 1.6; white-space: pre-wrap;">${data.message}</div>
+              </div>
+              
+              <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">Reply directly to this email to respond to ${data.name}</p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `New contact form submission from ${data.name}\n\nEmail: ${data.email}\nSubject: ${data.subject || 'No subject'}\n\nMessage:\n${data.message}\n\nSubmitted: ${new Date().toLocaleString()}`
+    },
 
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { 
-      status: 405,
-      headers: corsHeaders 
-    })
-  }
+    confirmation: {
+      subject: "Thank you for contacting Made to Hike",
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Thank You - Made to Hike</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Made to Hike</h1>
+              <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Your Adventure Starts Here</p>
+            </div>
+            
+            <div style="padding: 30px; text-align: center;">
+              <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Thank You, ${data.name}! 🏔️</h2>
+              
+              <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">We've received your message and will get back to you within <strong>24 hours</strong>.</p>
+              
+              <div style="background: #f0f8f0; border-radius: 6px; padding: 20px; margin: 25px 0;">
+                <h3 style="margin: 0 0 15px; color: #2c5530; font-size: 18px;">While You Wait...</h3>
+                <p style="margin: 0; color: #4a5568;">Explore our hiking guides and discover your next adventure!</p>
+              </div>
+              
+              <div style="margin: 30px 0;">
+                <a href="${data.websiteUrl || '#'}" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; font-size: 16px;">Explore Trails</a>
+              </div>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0 0 10px; color: #718096; font-size: 14px;">Happy hiking!</p>
+                <p style="margin: 0; color: #718096; font-size: 14px;"><strong>The Made to Hike Team</strong></p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Thank you for contacting Made to Hike, ${data.name}!\n\nWe've received your message and will get back to you within 24 hours.\n\nIn the meantime, feel free to explore our hiking guides and trail recommendations.\n\nHappy hiking!\nThe Made to Hike Team`
+    },
 
-  try {
-    console.log('Reading request payload...')
-    const payload = await req.text()
-    console.log('Payload length:', payload.length)
-    
-    let emailRequest: any
-    try {
-      emailRequest = JSON.parse(payload)
-      console.log('Email request parsed successfully, type:', emailRequest.type)
-    } catch (parseError: any) {
-      console.error('JSON parse error:', parseError.message)
-      return new Response(JSON.stringify({
-        error: 'Invalid JSON payload',
-        details: parseError.message
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
-    }
+    newsletter: {
+      subject: "Welcome to Made to Hike Newsletter! 🥾",
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Welcome to Made to Hike Newsletter</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Made to Hike</h1>
+              <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Newsletter Subscription</p>
+            </div>
+            
+            <div style="padding: 30px;">
+              <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px; text-align: center;">Welcome to the Adventure, ${data.name || 'Fellow Hiker'}! 🏔️</h2>
+              
+              <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px; text-align: center;">Thank you for subscribing to the Made to Hike newsletter!</p>
+              
+              <div style="background: #f0f8f0; border-radius: 6px; padding: 25px; margin: 25px 0;">
+                <h3 style="margin: 0 0 15px; color: #2c5530; font-size: 18px; text-align: center;">You'll now receive:</h3>
+                <div style="display: grid; gap: 12px;">
+                  <div style="display: flex; align-items: center; color: #4a5568;">
+                    <span style="margin-right: 10px; font-size: 18px;">🥾</span>
+                    <span>Weekly trail recommendations</span>
+                  </div>
+                  <div style="display: flex; align-items: center; color: #4a5568;">
+                    <span style="margin-right: 10px; font-size: 18px;">🏔️</span>
+                    <span>Expert hiking tips and guides</span>
+                  </div>
+                  <div style="display: flex; align-items: center; color: #4a5568;">
+                    <span style="margin-right: 10px; font-size: 18px;">📸</span>
+                    <span>Stunning trail photography</span>
+                  </div>
+                  <div style="display: flex; align-items: center; color: #4a5568;">
+                    <span style="margin-right: 10px; font-size: 18px;">🗓️</span>
+                    <span>Upcoming hiking events</span>
+                  </div>
+                  <div style="display: flex; align-items: center; color: #4a5568;">
+                    <span style="margin-right: 10px; font-size: 18px;">⚡</span>
+                    <span>Early access to new features</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.websiteUrl || '#'}" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; font-size: 16px;">Start Exploring</a>
+              </div>
+              
+              <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0 0 10px; color: #2c5530; font-size: 16px; font-weight: 500;">Get ready to explore!</p>
+                <p style="margin: 0; color: #718096; font-size: 14px;">Your next adventure is just an email away.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Welcome to Made to Hike Newsletter, ${data.name || 'Fellow Hiker'}!\n\nThank you for subscribing! You'll now receive:\n\n🥾 Weekly trail recommendations\n🏔️ Expert hiking tips and guides\n📸 Stunning trail photography\n🗓️ Upcoming hiking events\n⚡ Early access to new features\n\nGet ready to explore!\nYour next adventure is just an email away.\n\nHappy hiking!\nThe Made to Hike Team`
+    },
 
-    const { type, to, subject, template_data } = emailRequest
-    console.log('Email details:', { type, to, hasTemplateData: !!template_data })
-
-    // Check if we have the RESEND_API_KEY
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
-    if (!resendApiKey) {
-      console.error('RESEND_API_KEY not found in environment')
-      return new Response(JSON.stringify({
-        error: 'Email service not configured - missing API key'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
-    }
-
-    console.log('RESEND_API_KEY found, initializing Resend client')
-    const resend = new Resend(resendApiKey)
-
-    // Generate email content based on type
-    let html: string
-    let emailSubject: string = subject || 'MadeToHike Notification'
-
-    if (type === 'custom_verification') {
-      console.log('Generating custom verification email')
-      const userName = template_data?.user_name || 'Adventurer'
-      const verificationUrl = template_data?.verification_url || ''
-      
-      html = `
+    custom_verification: {
+      subject: 'Verify Your MadeToHike Account',
+      html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -87,7 +199,7 @@ serve(async (req) => {
         <div style="text-align: center; padding: 20px;">
             <h2 style="color: #1a1a1a;">Welcome to MadeToHike!</h2>
             <p style="color: #666666; font-size: 16px;">
-                Hi ${userName}, we're excited to have you join our community!
+                Hi ${data.user_name || 'Adventurer'}, we're excited to have you join our community!
             </p>
         </div>
 
@@ -97,13 +209,13 @@ serve(async (req) => {
             </p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${verificationUrl}" style="background-color: #1a73e8; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                <a href="${data.verification_url}" style="background-color: #1a73e8; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                     Verify My Email
                 </a>
             </div>
 
             <p style="color: #525252; font-size: 14px;">
-                Or copy and paste this link: ${verificationUrl}
+                Or copy and paste this link: ${data.verification_url}
             </p>
         </div>
 
@@ -112,70 +224,165 @@ serve(async (req) => {
         </div>
     </div>
 </body>
-</html>`
-      emailSubject = 'Verify Your MadeToHike Account'
-      console.log('Custom verification email HTML generated')
-    } else {
-      console.error('Unsupported email type:', type)
-      return new Response(JSON.stringify({
-        error: `Unsupported email type: ${type}`
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
+</html>`,
+      text: `Welcome to MadeToHike!\n\nHi ${data.user_name || 'Adventurer'}, we're excited to have you join our community!\n\nPlease verify your email address by clicking this link:\n${data.verification_url}\n\n© 2025 MadeToHike. Happy hiking! 🏔️`
+    }
+  }
+
+  return templates[type as keyof typeof templates] || templates.contact
+}
+
+// Enhanced validation function
+const validateEmailRequest = (body: any): EmailRequest => {
+  const errors: string[] = []
+
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification'].includes(body.type)) {
+    errors.push('Invalid or missing email type')
+  }
+
+  if (!body.to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.to)) {
+    errors.push('Invalid or missing recipient email')
+  }
+
+  // Type-specific validation
+  switch (body.type) {
+    case 'contact':
+      if (!body.name || body.name.trim().length < 2) errors.push('Name is required (minimum 2 characters)')
+      if (!body.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) errors.push('Valid email is required')
+      if (!body.message || body.message.trim().length < 10) errors.push('Message is required (minimum 10 characters)')
+      if (body.message && body.message.length > 5000) errors.push('Message too long (maximum 5000 characters)')
+      break
+    case 'newsletter':
+      if (!body.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) errors.push('Valid email is required')
+      break
+    case 'custom_verification':
+      if (!body.template_data?.user_name) errors.push('User name is required for verification emails')
+      if (!body.template_data?.verification_url) errors.push('Verification URL is required')
+      break
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Validation errors: ${errors.join(', ')}`)
+  }
+
+  return body as EmailRequest
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    // Validate API key
+    if (!RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is not set')
+      return new Response(
+        JSON.stringify({ error: 'Email service configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    console.log('=== SENDING EMAIL VIA RESEND ===')
-    console.log(`Sending to: ${to}`)
-    console.log(`Subject: ${emailSubject}`)
+    const emailRequest = validateEmailRequest(await req.json())
+    console.log('Processing email request:', { type: emailRequest.type, to: emailRequest.to })
 
-    try {
-      const result = await resend.emails.send({
-        from: 'MadeToHike <noreply@madetohike.com>',
-        to: Array.isArray(to) ? to : [to],
-        subject: emailSubject,
-        html: html,
-      })
+    // Get the appropriate email template
+    const template = getEmailTemplate(emailRequest.type, {
+      ...emailRequest,
+      ...emailRequest.template_data,
+      websiteUrl: 'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com'
+    })
 
-      console.log('=== RESEND RESPONSE ===')
-      console.log('Success:', JSON.stringify(result, null, 2))
+    // Prepare email payload
+    const emailPayload = {
+      from: emailRequest.from || 'MadeToHike <noreply@madetohike.com>',
+      to: emailRequest.to,
+      subject: emailRequest.subject || template.subject,
+      html: template.html,
+      text: template.text,
+      ...(emailRequest.email && { reply_to: emailRequest.email })
+    }
 
-      return new Response(JSON.stringify({
-        success: true,
+    // Send email via Resend
+    console.log('Sending email via Resend...')
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailPayload),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      console.error('Resend API error:', result)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to send email', 
+          details: result.message || 'Unknown error',
+          code: result.name || 'EMAIL_SEND_ERROR'
+        }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('Email sent successfully:', result.id)
+
+    // Send confirmation email for contact forms
+    if (emailRequest.type === 'contact' && emailRequest.email) {
+      try {
+        const confirmationTemplate = getEmailTemplate('confirmation', {
+          name: emailRequest.name,
+          websiteUrl: 'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com'
+        })
+
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'MadeToHike <noreply@madetohike.com>',
+            to: emailRequest.email,
+            subject: confirmationTemplate.subject,
+            html: confirmationTemplate.html,
+            text: confirmationTemplate.text,
+          }),
+        })
+        
+        console.log('Confirmation email sent to user')
+      } catch (error) {
+        console.error('Failed to send confirmation email:', error)
+        // Don't fail the main request if confirmation email fails
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
         message: 'Email sent successfully',
-        data: result.data,
-        id: result.data?.id
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
-
-    } catch (resendError: any) {
-      console.error('=== RESEND ERROR ===')
-      console.error('Error details:', JSON.stringify(resendError, null, 2))
-      console.error('Error message:', resendError.message)
-      
-      return new Response(JSON.stringify({
-        error: 'Failed to send email via Resend',
-        details: resendError.message,
-        code: resendError.code || 'RESEND_ERROR'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
-    }
+        id: result.id,
+        type: emailRequest.type
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
 
   } catch (error: any) {
-    console.error('=== GENERAL ERROR IN SEND-EMAIL FUNCTION ===')
-    console.error('Error message:', error.message)
-    console.error('Error stack:', error.stack)
+    console.error('Email function error:', error)
     
-    return new Response(JSON.stringify({
-      error: error.message || 'Unknown error',
-      type: 'GENERAL_ERROR'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'Internal server error',
+        type: 'FUNCTION_ERROR'
+      }),
+      { 
+        status: error.message?.includes('Validation errors') ? 400 : 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
   }
 })
