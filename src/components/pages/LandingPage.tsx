@@ -482,9 +482,9 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
 
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
               <SmartImage
-                category="adventure"
+                category="hero"
                 usageContext="tours"
-                tags={['scotland', 'highlands', 'via ferrata', 'mountain trail', 'panoramic view']}
+                tags={['highland', 'trail', 'moorland', 'stream', 'backpacking', 'wilderness']}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 fallbackSrc=""
                 alt="Highland adventure trail with panoramic mountain views in Scotland"
