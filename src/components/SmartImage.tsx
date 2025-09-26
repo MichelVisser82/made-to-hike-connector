@@ -20,126 +20,49 @@ export function SmartImage({
   alt,
   priority = 'medium'
 }: SmartImageProps) {
-  const { getRandomImage, getImageUrl, fetchImages } = useWebsiteImages();
+  const { fetchImages, getImageUrl, getRandomImage } = useWebsiteImages();
   const [selectedImage, setSelectedImage] = useState<WebsiteImage | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [singleImageMode, setSingleImageMode] = useState(false);
 
   useEffect(() => {
-    // Skip rotation if we're in single image mode and already have an image
-    if (singleImageMode && selectedImage) {
-      return;
-    }
-
     const fetchImage = async () => {
       try {
         setLoading(true);
         
-        // Define region tags to exclude when looking for a specific region
-        const regionTags = ['dolomites', 'pyrenees', 'scotland'];
-        
-        const isRegionSearch = tags && tags.some(tag => 
-          regionTags.some(regionTag => 
-            tag.toLowerCase() === regionTag.toLowerCase()
-          )
+        // Check if this is a location-based request
+        const locationTag = tags?.find(tag => 
+          ['dolomites', 'pyrenees', 'scotland'].includes(tag.toLowerCase())
         );
         
-        // Helper function to check if image matches target region
-        const matchesTargetRegion = (image: WebsiteImage, targetTags: string[]) => {
-          const targetRegions = targetTags.map(tag => tag.toLowerCase());
-          return image.tags.some(imageTag => 
-            targetRegions.some(targetRegion => 
-              imageTag.toLowerCase().includes(targetRegion) ||
-              imageTag.toLowerCase().includes(`location:${targetRegion}`)
-            )
-          );
-        };
-        
-        // Helper function to check if image has conflicting region tags
-        const hasConflictingRegion = (image: WebsiteImage, targetTags: string[]) => {
-          if (!isRegionSearch) return false;
-          
-          const targetRegions = targetTags.map(tag => tag.toLowerCase());
-          const otherRegions = regionTags.filter(region => !targetRegions.includes(region));
-          
-          return image.tags.some(imageTag => 
-            otherRegions.some(otherRegion => 
-              imageTag.toLowerCase().includes(otherRegion) ||
-              imageTag.toLowerCase().includes(`location:${otherRegion}`)
-            )
-          );
-        };
-        
         let image = null;
-        let availableImages: WebsiteImage[] = [];
         
-        if (tags && tags.length > 0 && isRegionSearch) {
-          // For region searches, fetch ALL images and filter properly
-          console.log('Region search for tags:', tags);
+        if (locationTag) {
+          console.log('Looking for images with location:', locationTag);
           
-          const allImages = await fetchImages({ 
-            usage_context: usageContext,
-            limit: 100 // Get more images to filter from
-          });
+          // Search for images with the exact location tag
+          const allImages = await fetchImages({ limit: 100 });
           
-          if (allImages && allImages.length > 0) {
-            console.log('Total images found:', allImages.length);
-            
-            // Filter images that match the target region and don't have conflicting regions
-            const validImages = allImages.filter(img => 
-              matchesTargetRegion(img, tags) && !hasConflictingRegion(img, tags)
-            );
-            
-            console.log('Valid region images:', validImages.map(img => ({ 
-              file_name: img.file_name, 
-              category: img.category, 
-              tags: img.tags 
-            })));
-            
-            if (validImages.length > 0) {
-              // Randomly select from valid images
-              image = validImages[Math.floor(Math.random() * validImages.length)];
-              availableImages = validImages;
-              console.log('Selected image:', image.file_name);
-            } else {
-              console.log('No valid images found for region, trying fallback categories...');
-              
-              // If no valid images found, try without category restriction
-              const allImagesNoCategory = await fetchImages({ 
-                limit: 100
-              });
-              
-              if (allImagesNoCategory && allImagesNoCategory.length > 0) {
-                const validFallbackImages = allImagesNoCategory.filter(img => 
-                  matchesTargetRegion(img, tags) && !hasConflictingRegion(img, tags)
-                );
-                
-                console.log('Fallback valid images:', validFallbackImages.map(img => ({ 
-                  file_name: img.file_name, 
-                  category: img.category, 
-                  tags: img.tags 
-                })));
-                
-                if (validFallbackImages.length > 0) {
-                  image = validFallbackImages[Math.floor(Math.random() * validFallbackImages.length)];
-                  availableImages = validFallbackImages;
-                  console.log('Selected fallback image:', image.file_name);
-                }
-              }
-            }
-          }
-        } else {
-          // For non-region searches, use the original random logic
-          image = await getRandomImage({ category, usage_context: usageContext });
-          if (image) {
-            availableImages = [image];
+          const locationImages = allImages.filter(img => 
+            img.tags.some(imgTag => 
+              imgTag.toLowerCase() === `location:${locationTag.toLowerCase()}` ||
+              (imgTag.toLowerCase() === locationTag.toLowerCase() && 
+               img.tags.some(t => t.toLowerCase().includes('location:')))
+            )
+          );
+          
+          console.log(`Found ${locationImages.length} images for location:${locationTag}`);
+          locationImages.forEach(img => console.log('- ', img.file_name, img.tags));
+          
+          if (locationImages.length > 0) {
+            image = locationImages[Math.floor(Math.random() * locationImages.length)];
+            console.log('Selected location image:', image.file_name);
           }
         }
         
-        // Check if we only have one available image
-        if (availableImages.length === 1) {
-          setSingleImageMode(true);
+        // Fallback to original logic for non-location requests
+        if (!image && !locationTag) {
+          image = await getRandomImage({ category, usage_context: usageContext });
         }
         
         if (image) {
@@ -154,7 +77,7 @@ export function SmartImage({
     };
 
     fetchImage();
-  }, [category, usageContext, tags?.join(','), singleImageMode, selectedImage]);
+  }, [category, usageContext, tags?.join(',')]);
 
   if (loading) {
     return (
