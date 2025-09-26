@@ -136,9 +136,9 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                   <SmartImage
                     category="region"
                     usageContext={currentRegion.id}
-                    tags={[currentRegion.name.toLowerCase(), currentRegion.country.toLowerCase(), 'landscape', 'mountains']}
+                    tags={[currentRegion.name.toLowerCase(), currentRegion.country.toLowerCase(), 'featured', 'hero', 'landscape']}
                     className="w-full h-full object-cover"
-                    fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=500&fit=crop"
+                    fallbackSrc=""
                     alt={`${currentRegion.name} mountain landscape - ${currentRegion.description}`}
                     priority="high"
                   />
