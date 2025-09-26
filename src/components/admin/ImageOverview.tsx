@@ -45,6 +45,21 @@ export const ImageOverview = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [selectedImage, setSelectedImage] = useState<ExtendedWebsiteImage | null>(null);
   const [imageDetails, setImageDetails] = useState<{width: number, height: number, size: number} | null>(null);
+
+  // Utility functions for location handling
+  const extractLocationFromTags = (tags: string[]) => {
+    const locationTag = tags.find(tag => tag.startsWith('location:'));
+    return locationTag ? locationTag.replace('location:', '') : '';
+  };
+
+  const removeLocationFromTags = (tags: string[]) => {
+    return tags.filter(tag => !tag.startsWith('location:'));
+  };
+
+  const addLocationToTags = (tags: string[], location: string) => {
+    const cleanTags = removeLocationFromTags(tags);
+    return location ? [...cleanTags, `location:${location}`] : cleanTags;
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
@@ -56,6 +71,7 @@ export const ImageOverview = () => {
     usageContext: boolean;
     priority: boolean;
     status: boolean;
+    location: boolean;
   }>({
     altText: false,
     description: false,
@@ -64,6 +80,7 @@ export const ImageOverview = () => {
     usageContext: false,
     priority: false,
     status: false,
+    location: false,
   });
   const [savingSections, setSavingSections] = useState<Set<string>>(new Set());
   const [editForm, setEditForm] = useState({
@@ -73,7 +90,8 @@ export const ImageOverview = () => {
     category: '',
     usage_context: '',
     priority: 5,
-    is_active: true
+    is_active: true,
+    location: ''
   });
 
   // Fetch extended image data with uploader info
@@ -171,14 +189,19 @@ export const ImageOverview = () => {
   const handleImageClick = (image: ExtendedWebsiteImage) => {
     setSelectedImage(image);
     setImageDetails(null); // Reset details
+    
+    const location = extractLocationFromTags(image.tags);
+    const tagsWithoutLocation = removeLocationFromTags(image.tags);
+    
     setEditForm({
       alt_text: image.alt_text || '',
       description: image.description || '',
-      tags: image.tags.join(', '),
+      tags: tagsWithoutLocation.join(', '),
       category: image.category,
       usage_context: image.usage_context?.join(', ') || '',
       priority: image.priority || 5,
-      is_active: image.is_active ?? true
+      is_active: image.is_active ?? true,
+      location: location
     });
 
     // Get image dimensions and file size
@@ -265,6 +288,16 @@ export const ImageOverview = () => {
 
   const handleSaveStatus = () => {
     saveSectionData('status', { is_active: editForm.is_active });
+  };
+
+  const handleSaveLocation = () => {
+    if (!selectedImage) return;
+    
+    // Get current tags without location and add the new location
+    const currentTags = removeLocationFromTags(selectedImage.tags);
+    const newTags = addLocationToTags(currentTags, editForm.location);
+    
+    saveSectionData('location', { tags: newTags });
   };
 
   const toggleSectionEdit = (section: keyof typeof editingSections) => {
@@ -737,7 +770,7 @@ export const ImageOverview = () => {
                         </div>
                         {!editingSections.tags ? (
                           <div className="flex flex-wrap gap-1">
-                            {image.tags.map(tag => (
+                            {removeLocationFromTags(image.tags).map(tag => (
                               <Badge key={tag} variant="outline" className="text-xs">
                                 {tag}
                               </Badge>
@@ -755,6 +788,48 @@ export const ImageOverview = () => {
                                 {savingSections.has('tags') ? 'Saving...' : 'Save'}
                               </Button>
                               <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('tags')}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Location Section */}
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-sm font-medium">Location</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleSectionEdit('location')}
+                            disabled={savingSections.has('location')}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {!editingSections.location ? (
+                          <Badge variant="secondary">
+                            {extractLocationFromTags(image.tags) || 'No location set'}
+                          </Badge>
+                        ) : (
+                          <div className="space-y-2">
+                            <Select value={editForm.location} onValueChange={(value) => setEditForm({...editForm, location: value})}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select location" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="">No location</SelectItem>
+                                <SelectItem value="dolomites">Dolomites</SelectItem>
+                                <SelectItem value="scotland">Scotland</SelectItem>
+                                <SelectItem value="pyrenees">Pyrenees</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={handleSaveLocation} disabled={savingSections.has('location')}>
+                                {savingSections.has('location') ? 'Saving...' : 'Save'}
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('location')}>
                                 Cancel
                               </Button>
                             </div>
