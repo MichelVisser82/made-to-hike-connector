@@ -340,11 +340,14 @@ export function BulkImageUpload() {
       try {
         // Extract GPS data from original file if it was HEIC
         const originalFile = supportedFiles[i];
+        console.log(`Extracting GPS from file: ${originalFile.name}`);
         const gpsData = await extractGPSData(originalFile);
         
         // Update GPS data and location immediately if found
         if (gpsData) {
+          console.log(`GPS found for ${originalFile.name}:`, gpsData);
           const detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+          console.log(`Detected location for ${originalFile.name}:`, detectedLocation);
           setImages(prev => prev.map((img, idx) => 
             idx === imageIndex ? { 
               ...img, 
@@ -355,6 +358,8 @@ export function BulkImageUpload() {
               }
             } : img
           ));
+        } else {
+          console.log(`No GPS data found for ${originalFile.name}`);
         }
         
         // Then analyze with AI using the converted file
