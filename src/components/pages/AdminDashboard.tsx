@@ -17,7 +17,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="images">Image Manager</TabsTrigger>
             <TabsTrigger value="image-overview">Image Overview</TabsTrigger>
