@@ -76,42 +76,55 @@ export function SmartImage({
         
         if (tags && tags.length > 0 && isRegionSearch) {
           // For region searches, fetch ALL images and filter properly
+          console.log('Region search for tags:', tags);
+          
           const allImages = await fetchImages({ 
-            category, 
             usage_context: usageContext,
             limit: 100 // Get more images to filter from
           });
           
           if (allImages && allImages.length > 0) {
+            console.log('Total images found:', allImages.length);
+            
             // Filter images that match the target region and don't have conflicting regions
             const validImages = allImages.filter(img => 
               matchesTargetRegion(img, tags) && !hasConflictingRegion(img, tags)
             );
             
+            console.log('Valid region images:', validImages.map(img => ({ 
+              file_name: img.file_name, 
+              category: img.category, 
+              tags: img.tags 
+            })));
+            
             if (validImages.length > 0) {
               // Randomly select from valid images
               image = validImages[Math.floor(Math.random() * validImages.length)];
               availableImages = validImages;
+              console.log('Selected image:', image.file_name);
             } else {
-              // If no valid images in primary category, try fallback categories
-              const fallbackCategories = ['landscape', 'mountains', 'adventure', 'hero'];
-              for (const fallbackCategory of fallbackCategories) {
-                const fallbackImages = await fetchImages({ 
-                  category: fallbackCategory, 
-                  usage_context: usageContext,
-                  limit: 100
-                });
+              console.log('No valid images found for region, trying fallback categories...');
+              
+              // If no valid images found, try without category restriction
+              const allImagesNoCategory = await fetchImages({ 
+                limit: 100
+              });
+              
+              if (allImagesNoCategory && allImagesNoCategory.length > 0) {
+                const validFallbackImages = allImagesNoCategory.filter(img => 
+                  matchesTargetRegion(img, tags) && !hasConflictingRegion(img, tags)
+                );
                 
-                if (fallbackImages && fallbackImages.length > 0) {
-                  const validFallbackImages = fallbackImages.filter(img => 
-                    matchesTargetRegion(img, tags) && !hasConflictingRegion(img, tags)
-                  );
-                  
-                  if (validFallbackImages.length > 0) {
-                    image = validFallbackImages[Math.floor(Math.random() * validFallbackImages.length)];
-                    availableImages = validFallbackImages;
-                    break;
-                  }
+                console.log('Fallback valid images:', validFallbackImages.map(img => ({ 
+                  file_name: img.file_name, 
+                  category: img.category, 
+                  tags: img.tags 
+                })));
+                
+                if (validFallbackImages.length > 0) {
+                  image = validFallbackImages[Math.floor(Math.random() * validFallbackImages.length)];
+                  availableImages = validFallbackImages;
+                  console.log('Selected fallback image:', image.file_name);
                 }
               }
             }
