@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle } from 'lucide-react';
+import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 
 interface TourDetailPageProps {
@@ -29,12 +30,50 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Image */}
-            <div className="aspect-video rounded-lg overflow-hidden">
-              <img
-                src={tour.images[0]}
-                alt={tour.title}
+            <div className="aspect-video rounded-lg overflow-hidden mb-6">
+              <SmartImage
+                category="tour"
+                usageContext={tour.region}
+                tags={[tour.region, tour.difficulty, 'landscape', 'hiking', 'detailed']}
                 className="w-full h-full object-cover"
+                fallbackSrc={tour.images[0]}
+                alt={`${tour.title} - Detailed view of ${tour.region} hiking tour`}
+                priority="high"
               />
+            </div>
+
+            {/* Image Gallery */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+              <div className="aspect-square rounded-lg overflow-hidden">
+                <SmartImage
+                  category="tour"
+                  usageContext={tour.region}
+                  tags={[tour.region, 'trail', 'path', 'hiking']}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                  fallbackSrc={tour.images[0]}
+                  alt={`${tour.title} - Mountain trail and hiking path views`}
+                />
+              </div>
+              <div className="aspect-square rounded-lg overflow-hidden">
+                <SmartImage
+                  category="tour"
+                  usageContext={tour.region}
+                  tags={[tour.region, 'summit', 'peak', 'view']}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                  fallbackSrc={tour.images[0]}
+                  alt={`${tour.title} - Summit views and mountain peaks`}
+                />
+              </div>
+              <div className="aspect-square rounded-lg overflow-hidden">
+                <SmartImage
+                  category="tour"
+                  usageContext={tour.region}
+                  tags={[tour.region, 'group', 'hikers', 'adventure']}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                  fallbackSrc={tour.images[0]}
+                  alt={`${tour.title} - Group hiking adventures and team experiences`}
+                />
+              </div>
             </div>
 
             {/* Tour Info */}
@@ -128,10 +167,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4">
-                  <img
-                    src={tour.guide_avatar}
-                    alt={tour.guide_name}
-                    className="w-16 h-16 rounded-full"
+                  <SmartImage
+                    category="guide"
+                    usageContext="avatar"
+                    tags={['portrait', 'guide', 'professional', 'large']}
+                    className="w-16 h-16 rounded-full object-cover"
+                    fallbackSrc={tour.guide_avatar}
+                    alt={`${tour.guide_name} - Certified professional hiking guide portrait`}
                   />
                   <div>
                     <h3 className="font-semibold text-lg">{tour.guide_name}</h3>

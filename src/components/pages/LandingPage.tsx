@@ -121,10 +121,14 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               {/* Main Featured Region */}
               <div className="lg:col-span-3">
                 <div className="relative aspect-[16/10] rounded-2xl overflow-hidden">
-                  <img
-                    src={currentRegion.image}
-                    alt={currentRegion.name}
+                  <SmartImage
+                    category="region"
+                    usageContext={currentRegion.id}
+                    tags={[currentRegion.name.toLowerCase(), currentRegion.country.toLowerCase()]}
                     className="w-full h-full object-cover"
+                    fallbackSrc={currentRegion.image}
+                    alt={`${currentRegion.name} mountain landscape - ${currentRegion.description}`}
+                    priority="high"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                   <div className="absolute bottom-8 left-8 text-white">
@@ -370,6 +374,75 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               <div className="font-semibold">James R.</div>
               <div className="text-sm text-muted-foreground">Scottish Highlands - 3 days</div>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Adventures Gallery */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Featured Adventures</h2>
+            <p className="text-xl text-muted-foreground">Discover breathtaking moments from recent expeditions</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
+              <SmartImage
+                category="tour"
+                usageContext="dolomites"
+                tags={['dolomites', 'summit', 'adventure', 'dramatic']}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=750&fit=crop"
+                alt="Dramatic Dolomites summit with hikers enjoying panoramic alpine views"
+                priority="medium"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 text-white">
+                <h3 className="text-xl font-bold mb-1">Dolomites Summit</h3>
+                <p className="text-sm opacity-90">Tre Cime Adventure</p>
+              </div>
+            </div>
+
+            <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
+              <SmartImage
+                category="tour"
+                usageContext="scotland"
+                tags={['scotland', 'highlands', 'loch', 'misty']}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                fallbackSrc="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600&h=750&fit=crop"
+                alt="Misty Scottish Highlands with ancient loch reflecting dramatic mountain peaks"
+                priority="medium"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 text-white">
+                <h3 className="text-xl font-bold mb-1">Highland Mysteries</h3>
+                <p className="text-sm opacity-90">Glen Coe Explorer</p>
+              </div>
+            </div>
+
+            <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
+              <SmartImage
+                category="tour"
+                usageContext="pyrenees"
+                tags={['pyrenees', 'alpine', 'meadow', 'wilderness']}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                fallbackSrc="https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=600&h=750&fit=crop"
+                alt="Pristine Pyrenees alpine meadows with wildflowers and snow-capped peaks"
+                priority="medium"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 text-white">
+                <h3 className="text-xl font-bold mb-1">Alpine Paradise</h3>
+                <p className="text-sm opacity-90">Pyrenees Wilderness</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mt-12">
+            <Button size="lg" onClick={() => onNavigateToSearch()} className="bg-primary hover:bg-primary/90">
+              Explore All Adventures
+            </Button>
           </div>
         </div>
       </section>
