@@ -342,10 +342,18 @@ export function BulkImageUpload() {
         const originalFile = supportedFiles[i];
         const gpsData = await extractGPSData(originalFile);
         
-        // Update GPS data immediately if found
+        // Update GPS data and location immediately if found
         if (gpsData) {
+          const detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
           setImages(prev => prev.map((img, idx) => 
-            idx === imageIndex ? { ...img, gpsData } : img
+            idx === imageIndex ? { 
+              ...img, 
+              gpsData,
+              metadata: {
+                ...img.metadata,
+                location: detectedLocation || ''
+              }
+            } : img
           ));
         }
         
