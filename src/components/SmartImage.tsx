@@ -29,35 +29,61 @@ export function SmartImage({
     const fetchImage = async () => {
       try {
         setLoading(true);
-        const image = await getRandomImage({ 
-          category, 
-          usage_context: usageContext 
-        });
         
-        if (image) {
-          // Additional filtering by tags if provided
-          if (tags && tags.length > 0) {
-            const hasMatchingTag = image.tags.some(tag => 
+        // First try to get image with specific tag matching
+        let image = null;
+        if (tags && tags.length > 0) {
+          // Try to find image with matching tags first
+          const allImages = await getRandomImage({ 
+            category, 
+            usage_context: usageContext 
+          });
+          
+          if (allImages) {
+            const hasMatchingTag = allImages.tags.some(tag => 
               tags.some(searchTag => 
                 tag.toLowerCase().includes(searchTag.toLowerCase())
               )
             );
             
             if (hasMatchingTag) {
-              setSelectedImage(image);
-              setImageUrl(getImageUrl(image));
-            } else {
-              // Try again without tag filtering
-              const fallbackImage = await getRandomImage({ category, usage_context: usageContext });
+              image = allImages;
+            }
+          }
+          
+          // If no matching image found in primary category, try other categories
+          if (!image) {
+            const fallbackCategories = ['landscape', 'mountains', 'adventure'];
+            for (const fallbackCategory of fallbackCategories) {
+              const fallbackImage = await getRandomImage({ 
+                category: fallbackCategory, 
+                usage_context: usageContext 
+              });
+              
               if (fallbackImage) {
-                setSelectedImage(fallbackImage);
-                setImageUrl(getImageUrl(fallbackImage));
+                const hasMatchingTag = fallbackImage.tags.some(tag => 
+                  tags.some(searchTag => 
+                    tag.toLowerCase().includes(searchTag.toLowerCase())
+                  )
+                );
+                
+                if (hasMatchingTag) {
+                  image = fallbackImage;
+                  break;
+                }
               }
             }
-          } else {
-            setSelectedImage(image);
-            setImageUrl(getImageUrl(image));
           }
+        }
+        
+        // Final fallback - get any image from primary category
+        if (!image) {
+          image = await getRandomImage({ category, usage_context: usageContext });
+        }
+        
+        if (image) {
+          setSelectedImage(image);
+          setImageUrl(getImageUrl(image));
         }
       } catch (error) {
         console.error('Error fetching smart image:', error);
