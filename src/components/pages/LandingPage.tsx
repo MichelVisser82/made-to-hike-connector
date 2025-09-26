@@ -133,18 +133,18 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               {/* Main Featured Region */}
               <div className="lg:col-span-3">
                 <div className="relative aspect-[16/10] rounded-2xl overflow-hidden">
-                  <SmartImage
-                    category="hero"
-                    usageContext="landing"
-                    tags={
-                      currentRegion.id === 'dolomites' 
-                        ? ['dolomites'] 
-                        : currentRegion.id === 'pyrenees'
-                        ? ['pyrenees']
-                        : currentRegion.id === 'scottish-highlands'
-                        ? ['scotland']
-                        : ['scotland']
-                    }
+                   <SmartImage
+                     category="hero"
+                     usageContext="landing"
+                     tags={
+                       currentRegion.id === 'dolomites' 
+                         ? ['dolomites'] 
+                         : currentRegion.id === 'pyrenees'
+                         ? ['pyrenees']
+                         : currentRegion.id === 'scottish-highlands'
+                         ? ['scotland']
+                         : ['mountains']
+                     }
                     className="w-full h-full object-cover"
                     fallbackSrc=""
                     alt={`${currentRegion.name} mountain landscape - ${currentRegion.description}`}
