@@ -57,23 +57,49 @@ export function BulkImageUpload() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Function to determine location based on GPS coordinates
-  const getLocationFromGPS = (latitude: number, longitude: number): string | null => {
-    // Scotland Highlands boundaries (approximate)
-    if (latitude >= 56.0 && latitude <= 58.7 && longitude >= -8.0 && longitude <= -2.0) {
-      return 'scotland';
+  const getLocationFromGPS = (latitude: number, longitude: number): string => {
+    const locations = [
+      {
+        name: 'scotland',
+        bounds: { latMin: 56.0, latMax: 58.7, lngMin: -8.0, lngMax: -2.0 },
+        center: { lat: 57.35, lng: -5.0 }
+      },
+      {
+        name: 'dolomites',
+        bounds: { latMin: 46.0, latMax: 47.0, lngMin: 10.5, lngMax: 12.5 },
+        center: { lat: 46.5, lng: 11.5 }
+      },
+      {
+        name: 'pyrenees',
+        bounds: { latMin: 42.0, latMax: 43.5, lngMin: -2.0, lngMax: 3.5 },
+        center: { lat: 42.75, lng: 0.75 }
+      }
+    ];
+
+    // Check if coordinates are within any location boundaries
+    for (const location of locations) {
+      const { latMin, latMax, lngMin, lngMax } = location.bounds;
+      if (latitude >= latMin && latitude <= latMax && longitude >= lngMin && longitude <= lngMax) {
+        return location.name;
+      }
     }
-    
-    // Dolomites boundaries (approximate)
-    if (latitude >= 46.0 && latitude <= 47.0 && longitude >= 10.5 && longitude <= 12.5) {
-      return 'dolomites';
+
+    // If not within any boundaries, find the closest location
+    let closestLocation = locations[0];
+    let minDistance = Number.MAX_VALUE;
+
+    for (const location of locations) {
+      const distance = Math.sqrt(
+        Math.pow(latitude - location.center.lat, 2) + 
+        Math.pow(longitude - location.center.lng, 2)
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestLocation = location;
+      }
     }
-    
-    // Pyrenees boundaries (approximate)
-    if (latitude >= 42.0 && latitude <= 43.5 && longitude >= -2.0 && longitude <= 3.5) {
-      return 'pyrenees';
-    }
-    
-    return null;
+
+    return closestLocation.name;
   };
 
   const categories = [
@@ -284,12 +310,34 @@ export function BulkImageUpload() {
     setIsAnalyzing(true);
     const processedImages: ImageWithMetadata[] = [];
 
-    // Process each file: convert HEIC first, then create preview
+    // STEP 1: Extract GPS data from ALL original files FIRST
+    const fileGPSData: Array<{ file: File; gpsData: any; detectedLocation: string }> = [];
+    
     for (let i = 0; i < supportedFiles.length; i++) {
       const file = supportedFiles[i];
+      console.log(`Extracting GPS from file: ${file.name}`);
+      
+      const gpsData = await extractGPSData(file);
+      let detectedLocation = '';
+      
+      if (gpsData) {
+        console.log(`GPS found for ${file.name}:`, gpsData);
+        detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+        console.log(`Detected location for ${file.name}:`, detectedLocation);
+      } else {
+        console.log(`No GPS data found for ${file.name}`);
+      }
+      
+      fileGPSData.push({ file, gpsData, detectedLocation });
+    }
+
+    // STEP 2: Process each file with GPS data already available
+    for (let i = 0; i < supportedFiles.length; i++) {
+      const file = supportedFiles[i];
+      const { gpsData, detectedLocation } = fileGPSData[i];
       
       try {
-        // Convert HEIC immediately
+        // Convert HEIC after GPS extraction
         const convertedFile = await convertHEIC(file);
         
         // Show conversion notification if file was converted
@@ -298,8 +346,8 @@ export function BulkImageUpload() {
         }
 
         const imageData: ImageWithMetadata = {
-          file: convertedFile, // Use converted file
-          preview: URL.createObjectURL(convertedFile), // Preview from converted file
+          file: convertedFile,
+          preview: URL.createObjectURL(convertedFile),
           suggestions: {
             category: 'landscape',
             tags: [],
@@ -307,7 +355,7 @@ export function BulkImageUpload() {
             description: '',
             usage_context: [],
             priority: 5,
-            location: ''
+            location: detectedLocation // Set GPS-detected location immediately
           },
           metadata: {
             category: '',
@@ -316,9 +364,10 @@ export function BulkImageUpload() {
             description: '',
             usage_context: '',
             priority: '5',
-            location: ''
+            location: detectedLocation // Set GPS-detected location immediately
           },
-          analyzing: true
+          analyzing: true,
+          gpsData // Store GPS data with the image
         };
 
         processedImages.push(imageData);
@@ -330,39 +379,16 @@ export function BulkImageUpload() {
 
     setImages(prev => [...prev, ...processedImages]);
 
-    // Analyze images sequentially to avoid overwhelming the system
+    // STEP 3: Analyze images with AI (GPS data already available)
     const startIndex = images.length;
     
     for (let i = 0; i < processedImages.length; i++) {
       const imageData = processedImages[i];
       const imageIndex = startIndex + i;
+      const { gpsData } = fileGPSData[i];
       
       try {
-        // Extract GPS data from original file if it was HEIC
-        const originalFile = supportedFiles[i];
-        console.log(`Extracting GPS from file: ${originalFile.name}`);
-        const gpsData = await extractGPSData(originalFile);
-        
-        // Update GPS data and location immediately if found
-        if (gpsData) {
-          console.log(`GPS found for ${originalFile.name}:`, gpsData);
-          const detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
-          console.log(`Detected location for ${originalFile.name}:`, detectedLocation);
-          setImages(prev => prev.map((img, idx) => 
-            idx === imageIndex ? { 
-              ...img, 
-              gpsData,
-              metadata: {
-                ...img.metadata,
-                location: detectedLocation || ''
-              }
-            } : img
-          ));
-        } else {
-          console.log(`No GPS data found for ${originalFile.name}`);
-        }
-        
-        // Then analyze with AI using the converted file
+        // Analyze with AI using the converted file and GPS data
         await analyzeImage(imageData.file, imageIndex, gpsData);
         
         // Small delay between analyses to avoid rate limiting
@@ -370,12 +396,12 @@ export function BulkImageUpload() {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       } catch (error) {
-        console.error(`Failed to process ${imageData.file.name}:`, error);
+        console.error(`Failed to analyze ${imageData.file.name}:`, error);
       }
     }
     
     setIsAnalyzing(false);
-    toast.success(`Processing ${processedImages.length} images sequentially`);
+    toast.success(`Processed ${processedImages.length} images with GPS location detection`);
   };
 
   const updateImageMetadata = (index: number, field: string, value: string) => {
