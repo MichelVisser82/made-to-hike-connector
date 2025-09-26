@@ -7,10 +7,12 @@ import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { ImageSizeGuide } from './ImageSizeGuide';
+import { BulkImageUpload } from './BulkImageUpload';
 import { toast } from 'sonner';
-import { Upload, Image as ImageIcon, Tag, Trash2, Zap, Info } from 'lucide-react';
+import { Upload, Image as ImageIcon, Tag, Trash2, Zap, Info, Sparkles } from 'lucide-react';
 
 export function ImageManager() {
   const { images, loading, uploadImage, getImageUrl, fetchImages } = useWebsiteImages();
@@ -97,6 +99,23 @@ export function ImageManager() {
       
       {/* Upload and Management */}
       <div className="lg:col-span-2 space-y-6">
+        <Tabs defaultValue="bulk" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="bulk" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              AI Bulk Upload
+            </TabsTrigger>
+            <TabsTrigger value="single" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Single Upload
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="bulk" className="space-y-6">
+            <BulkImageUpload />
+          </TabsContent>
+          
+          <TabsContent value="single" className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -302,6 +321,8 @@ export function ImageManager() {
           )}
         </CardContent>
       </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
