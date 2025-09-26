@@ -61,6 +61,13 @@ function AppContent() {
     }
   }, []);
 
+  // Auto-redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && user && currentPage === 'landing') {
+      navigateToDashboard();
+    }
+  }, [user, loading, currentPage]);
+
   const handleGuideSignup = (userData: User) => {
     setShowGuideSignupModal(false);
     // The guide signup will be handled by the GuideSignupModal with real Supabase auth
