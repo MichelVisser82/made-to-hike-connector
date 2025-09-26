@@ -134,9 +134,9 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               <div className="lg:col-span-3">
                 <div className="relative aspect-[16/10] rounded-2xl overflow-hidden">
                   <SmartImage
-                    category="region"
-                    usageContext={currentRegion.id}
-                    tags={[currentRegion.name.toLowerCase(), currentRegion.country.toLowerCase(), 'featured', 'hero', 'landscape']}
+                    category="landscape"
+                    usageContext="hero"
+                    tags={['dolomites', currentRegion.name.toLowerCase(), 'peaks', 'alpine', 'dramatic']}
                     className="w-full h-full object-cover"
                     fallbackSrc=""
                     alt={`${currentRegion.name} mountain landscape - ${currentRegion.description}`}
