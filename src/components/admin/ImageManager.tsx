@@ -6,9 +6,11 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
+import { Switch } from '../ui/switch';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
+import { ImageSizeGuide } from './ImageSizeGuide';
 import { toast } from 'sonner';
-import { Upload, Image as ImageIcon, Tag, Trash2 } from 'lucide-react';
+import { Upload, Image as ImageIcon, Tag, Trash2, Zap, Info } from 'lucide-react';
 
 export function ImageManager() {
   const { images, loading, uploadImage, getImageUrl, fetchImages } = useWebsiteImages();
@@ -21,6 +23,7 @@ export function ImageManager() {
     description: '',
     usage_context: '',
     priority: '0',
+    optimize: true,
   });
 
   const categories = [
@@ -57,7 +60,13 @@ export function ImageManager() {
       };
 
       for (const file of selectedFiles) {
-        await uploadImage(file, metadata);
+        const result = await uploadImage(file, metadata, uploadMetadata.optimize);
+        
+        if (result.optimization) {
+          toast.success(
+            `Image optimized! Reduced by ${result.optimization.compression_ratio}% (${(result.optimization.original_size / 1024).toFixed(0)}KB → ${(result.optimization.optimized_size / 1024).toFixed(0)}KB)`
+          );
+        }
       }
 
       toast.success(`Successfully uploaded ${selectedFiles.length} image(s)`);
@@ -69,6 +78,7 @@ export function ImageManager() {
         description: '',
         usage_context: '',
         priority: '0',
+        optimize: true,
       });
     } catch (error) {
       toast.error('Failed to upload images');
@@ -79,7 +89,14 @@ export function ImageManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Size Guide */}
+      <div>
+        <ImageSizeGuide />
+      </div>
+      
+      {/* Upload and Management */}
+      <div className="lg:col-span-2 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -138,6 +155,37 @@ export function ImageManager() {
               />
             </div>
           </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="optimize"
+              checked={uploadMetadata.optimize}
+              onCheckedChange={(checked) => 
+                setUploadMetadata(prev => ({ ...prev, optimize: checked }))
+              }
+            />
+            <Label htmlFor="optimize" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Auto-optimize images (recommended)
+            </Label>
+          </div>
+          
+          {uploadMetadata.optimize && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-900">Optimization will:</p>
+                  <ul className="text-blue-700 mt-1 space-y-1">
+                    <li>• Resize to optimal dimensions for category</li>
+                    <li>• Compress to reduce file size (60-90% smaller)</li>
+                    <li>• Convert to JPEG format for best compatibility</li>
+                    <li>• Preserve image quality while reducing load times</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="tags">Tags (comma-separated)</Label>
@@ -254,6 +302,7 @@ export function ImageManager() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

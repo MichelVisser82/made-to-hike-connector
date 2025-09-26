@@ -98,10 +98,49 @@ export function useWebsiteImages() {
       description?: string;
       usage_context?: string[];
       priority?: number;
-    }
+    },
+    optimize: boolean = true
   ) => {
     try {
       setLoading(true);
+      
+      let processedFile = file;
+      let optimizationInfo = null;
+
+      // Optimize image if requested
+      if (optimize) {
+        console.log('Optimizing image...');
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('category', metadata.category);
+
+        const optimizeResponse = await supabase.functions.invoke('optimize-image', {
+          body: formData,
+        });
+
+        if (optimizeResponse.error) {
+          console.warn('Image optimization failed, uploading original:', optimizeResponse.error);
+        } else if (optimizeResponse.data) {
+          // Get the blob data
+          const blob = optimizeResponse.data as Blob;
+          
+          // Extract optimization info from response metadata if available
+          optimizationInfo = {
+            success: true,
+            original_size: file.size,
+            optimized_size: blob.size,
+            compression_ratio: Math.round((1 - blob.size / file.size) * 100),
+            filename: `optimized_${file.name.split('.')[0]}.jpg`,
+          };
+          
+          // Use optimized image data
+          processedFile = new File([blob], optimizationInfo.filename, { 
+            type: 'image/jpeg' 
+          });
+          
+          console.log(`Image optimized: ${optimizationInfo.compression_ratio}% smaller`);
+        }
+      }
       
       // Determine bucket based on category
       let bucket_id = 'website-images';
@@ -109,14 +148,14 @@ export function useWebsiteImages() {
       if (metadata.category === 'tour') bucket_id = 'tour-images';
 
       // Generate unique filename
-      const fileExt = file.name.split('.').pop();
+      const fileExt = optimizationInfo ? 'jpg' : file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${metadata.category}/${fileName}`;
 
       // Upload file to storage
       const { error: uploadError } = await supabase.storage
         .from(bucket_id)
-        .upload(filePath, file);
+        .upload(filePath, processedFile);
 
       if (uploadError) throw uploadError;
 
@@ -124,7 +163,7 @@ export function useWebsiteImages() {
       const { data, error: dbError } = await supabase
         .from('website_images')
         .insert({
-          file_name: file.name,
+          file_name: optimizationInfo?.filename || file.name,
           file_path: filePath,
           bucket_id,
           category: metadata.category,
@@ -140,7 +179,11 @@ export function useWebsiteImages() {
       if (dbError) throw dbError;
 
       await fetchImages();
-      return data;
+      
+      return { 
+        data, 
+        optimization: optimizationInfo 
+      };
     } catch (error) {
       console.error('Error uploading image:', error);
       throw error;
