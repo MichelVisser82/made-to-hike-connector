@@ -12,13 +12,15 @@ import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { ImageSizeGuide } from './ImageSizeGuide';
 import { BulkImageUpload } from './BulkImageUpload';
 import { toast } from 'sonner';
-import { Upload, Image as ImageIcon, Tag, Trash2, Zap, Info, Sparkles } from 'lucide-react';
+import { Upload, Image as ImageIcon, Tag, Trash2, Zap, Info, Sparkles, MapPin } from 'lucide-react';
+import { parse } from 'exifr';
 
 export function ImageManager() {
   const { images, loading, uploadImage, getImageUrl, fetchImages } = useWebsiteImages();
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [filesGpsData, setFilesGpsData] = useState<Array<{latitude: number; longitude: number} | null>>([]);
   const [converting, setConverting] = useState(false);
   const [uploadMetadata, setUploadMetadata] = useState({
     category: '',
@@ -40,6 +42,44 @@ export function ImageManager() {
     'booking', 'testimonials', 'gallery', 'background'
   ];
 
+  const extractGPSData = async (file: File) => {
+    try {
+      const exifData = await parse(file, {
+        gps: true,
+        pick: ['latitude', 'longitude']
+      });
+      
+      if (exifData?.latitude && exifData?.longitude) {
+        return {
+          latitude: exifData.latitude,
+          longitude: exifData.longitude
+        };
+      }
+    } catch (error) {
+      console.error('GPS extraction failed:', error);
+    }
+    return null;
+  };
+
+  const getLocationFromGPS = (latitude: number, longitude: number): string | null => {
+    // Scotland Highlands boundaries (approximate)
+    if (latitude >= 56.0 && latitude <= 58.7 && longitude >= -8.0 && longitude <= -2.0) {
+      return 'scotland';
+    }
+    
+    // Dolomites boundaries (approximate)
+    if (latitude >= 46.0 && latitude <= 47.0 && longitude >= 10.5 && longitude <= 12.5) {
+      return 'dolomites';
+    }
+    
+    // Pyrenees boundaries (approximate)
+    if (latitude >= 42.0 && latitude <= 43.5 && longitude >= -2.0 && longitude <= 3.5) {
+      return 'pyrenees';
+    }
+    
+    return null;
+  };
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
 
@@ -49,8 +89,13 @@ export function ImageManager() {
     try {
       const processedFiles: File[] = [];
       const urls: string[] = [];
+      const gpsDataArray: Array<{latitude: number; longitude: number} | null> = [];
 
       for (const file of files) {
+        // Extract GPS data from original file
+        const gpsData = await extractGPSData(file);
+        gpsDataArray.push(gpsData);
+        
         // Convert HEIC files immediately
         const processedFile = await convertHEIC(file);
         processedFiles.push(processedFile);
@@ -63,6 +108,11 @@ export function ImageManager() {
         if (file.name !== processedFile.name) {
           toast.success(`Converted ${file.name} to JPEG`);
         }
+        
+        // Show GPS detection notification
+        if (gpsData) {
+          toast.success(`GPS location detected in ${file.name}`);
+        }
       }
 
       // Clean up old preview URLs
@@ -70,6 +120,7 @@ export function ImageManager() {
       
       setSelectedFiles(processedFiles);
       setPreviewUrls(urls);
+      setFilesGpsData(gpsDataArray);
     } catch (error) {
       console.error('Error processing files:', error);
       toast.error('Failed to process some files');
@@ -179,7 +230,10 @@ export function ImageManager() {
         priority: parseInt(uploadMetadata.priority) || 0,
       };
 
-      for (const file of selectedFiles) {
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const gpsData = filesGpsData[i];
+        
         // Files are already converted from HEIC if needed
         let processedFile = file;
         
@@ -188,7 +242,16 @@ export function ImageManager() {
           processedFile = await compressImage(processedFile, uploadMetadata.category);
         }
         
-        const result = await uploadImage(processedFile, metadata, false); // Don't double-optimize
+        // Add location tag based on GPS data
+        let finalMetadata = { ...metadata };
+        if (gpsData) {
+          const location = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+          if (location && !finalMetadata.tags.includes(`location:${location}`)) {
+            finalMetadata.tags.push(`location:${location}`);
+          }
+        }
+        
+        const result = await uploadImage(processedFile, finalMetadata, false); // Don't double-optimize
         
         if (result.optimization) {
           toast.success(

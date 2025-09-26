@@ -14,6 +14,7 @@ interface ImageAnalysisRequest {
   gpsData?: {
     latitude: number;
     longitude: number;
+    location?: string;
   };
 }
 
@@ -31,13 +32,33 @@ interface ImageMetadataSuggestions {
   };
 }
 
+// Function to determine location based on GPS coordinates
+function getLocationFromGPS(latitude: number, longitude: number): string | null {
+  // Scotland Highlands boundaries (approximate)
+  if (latitude >= 56.0 && latitude <= 58.7 && longitude >= -8.0 && longitude <= -2.0) {
+    return 'scotland';
+  }
+  
+  // Dolomites boundaries (approximate)
+  if (latitude >= 46.0 && latitude <= 47.0 && longitude >= 10.5 && longitude <= 12.5) {
+    return 'dolomites';
+  }
+  
+  // Pyrenees boundaries (approximate)
+  if (latitude >= 42.0 && latitude <= 43.5 && longitude >= -2.0 && longitude <= 3.5) {
+    return 'pyrenees';
+  }
+  
+  return null;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let gpsData: { latitude: number; longitude: number } | undefined;
+  let gpsData: { latitude: number; longitude: number; location?: string } | undefined;
 
   try {
     const requestData: ImageAnalysisRequest = await req.json();
@@ -158,22 +179,56 @@ Filename: ${filename}${gpsData ? `\nGPS: ${gpsData.latitude}, ${gpsData.longitud
       };
     }
 
+    // Add location tag based on GPS coordinates
+    if (gpsData) {
+      const location = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+      if (location) {
+        // Add location tag if not already present
+        const locationTag = `location:${location}`;
+        if (!suggestions.tags.includes(locationTag)) {
+          suggestions.tags.push(locationTag);
+        }
+        
+        // Add GPS info with detected location
+        suggestions.gps = {
+          ...gpsData,
+          location: location
+        };
+      }
+    }
+
     return new Response(JSON.stringify({ suggestions }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in analyze-image-metadata function:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    // Generate fallback suggestions with location if GPS is available
+    let fallbackTags = ['hiking', 'outdoor', 'adventure'];
+    let fallbackGps = gpsData;
+    
+    if (gpsData) {
+      const location = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+      if (location) {
+        fallbackTags.push(`location:${location}`);
+        fallbackGps = {
+          ...gpsData,
+          location: location
+        };
+      }
+    }
+    
     return new Response(JSON.stringify({ 
       error: errorMessage,
       suggestions: {
         category: 'landscape',
-        tags: ['hiking', 'outdoor', 'adventure'],
+        tags: fallbackTags,
         alt_text: 'Outdoor adventure image',
         description: 'An image suitable for hiking and outdoor adventure content',
         usage_context: ['gallery'],
         priority: 5,
-        ...(gpsData && { gps: gpsData })
+        ...(fallbackGps && { gps: fallbackGps })
       }
     }), {
       status: 500,
