@@ -48,48 +48,83 @@ serve(async (req) => {
       throw new Error('ANTHROPIC_API_KEY not configured');
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': anthropicApiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1000,
-        messages: [
-          {
-            role: 'user',
-            content: [
+    // Retry logic for API calls
+    let response: Response | undefined;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': anthropicApiKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 800,
+            messages: [
               {
-                type: 'text',
-                text: `Analyze this image for a hiking/outdoor adventure website and provide metadata suggestions. The image filename is: ${filename}${gpsData ? `\n\nGPS Data Available: Latitude ${gpsData.latitude}, Longitude ${gpsData.longitude}` : ''}
-
-Please provide your response as a JSON object with these fields:
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: `Analyze this hiking image and return ONLY a JSON object with these fields:
 - category: one of [hero, landscape, hiking, portrait, detail, equipment, nature, mountains, trails, adventure]
-- tags: array of 3-6 relevant tags for SEO and searchability
-- alt_text: descriptive alt text for accessibility (max 125 chars)
-- description: detailed description for content management (max 255 chars)
-- usage_context: array of 1-3 contexts where this image would work best [landing, tours, about, contact, search, booking, testimonials, gallery, background]
-- priority: number 1-10 based on visual impact and usefulness (10 being highest)
-${gpsData ? '- gps: object with latitude, longitude, and optional location string based on coordinates' : ''}
+- tags: array of 3-5 relevant tags
+- alt_text: accessibility description (max 100 chars)
+- description: detailed description (max 200 chars)
+- usage_context: array of 1-2 contexts [landing, tours, gallery, background]
+- priority: number 1-10${gpsData ? `\n- gps: {latitude: ${gpsData.latitude}, longitude: ${gpsData.longitude}, location: "estimated location name"}` : ''}
 
-Focus on hiking, outdoor adventure, nature, and travel themes. Be specific and actionable.${gpsData ? ' Use the GPS coordinates to provide location-specific context and tags.' : ''}`
-              },
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: 'image/jpeg',
-                  data: imageBase64
-                }
+Filename: ${filename}${gpsData ? `\nGPS: ${gpsData.latitude}, ${gpsData.longitude}` : ''}`
+                  },
+                  {
+                    type: 'image',
+                    source: {
+                      type: 'base64',
+                      media_type: 'image/jpeg',
+                      data: imageBase64
+                    }
+                  }
+                ]
               }
             ]
-          }
-        ]
-      })
-    });
+          })
+        });
+
+        if (response.ok) {
+          break;
+        }
+
+        if (response.status === 529 && retryCount < maxRetries - 1) {
+          // Exponential backoff
+          const delay = Math.pow(2, retryCount) * 1000;
+          console.log(`API overloaded, retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          retryCount++;
+          continue;
+        }
+
+        const errorText = await response.text();
+        console.error('Claude API error:', errorText);
+        throw new Error(`Claude API error: ${response.status}`);
+      } catch (error) {
+        if (retryCount === maxRetries - 1) {
+          throw error;
+        }
+        retryCount++;
+        const delay = Math.pow(2, retryCount - 1) * 1000;
+        console.log(`Request failed, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    if (!response) {
+      throw new Error('Failed to get response after retries');
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
