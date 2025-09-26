@@ -246,7 +246,7 @@ export function ImageManager() {
         let finalMetadata = { ...metadata };
         if (gpsData) {
           const location = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
-          if (location && !finalMetadata.tags.includes(`location:${location}`)) {
+          if (location) {
             finalMetadata.tags.push(`location:${location}`);
           }
         }

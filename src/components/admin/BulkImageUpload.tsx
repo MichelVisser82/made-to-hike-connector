@@ -24,6 +24,7 @@ interface ImageWithMetadata {
     description: string;
     usage_context: string[];
     priority: number;
+    location?: string;
     gps?: {
       latitude: number;
       longitude: number;
@@ -37,6 +38,7 @@ interface ImageWithMetadata {
     description: string;
     usage_context: string;
     priority: string;
+    location?: string;
   };
   analyzing: boolean;
   error?: string;
@@ -53,6 +55,26 @@ export function BulkImageUpload() {
   const [uploading, setUploading] = useState(false);
   const [optimize, setOptimize] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Function to determine location based on GPS coordinates
+  const getLocationFromGPS = (latitude: number, longitude: number): string | null => {
+    // Scotland Highlands boundaries (approximate)
+    if (latitude >= 56.0 && latitude <= 58.7 && longitude >= -8.0 && longitude <= -2.0) {
+      return 'scotland';
+    }
+    
+    // Dolomites boundaries (approximate)
+    if (latitude >= 46.0 && latitude <= 47.0 && longitude >= 10.5 && longitude <= 12.5) {
+      return 'dolomites';
+    }
+    
+    // Pyrenees boundaries (approximate)
+    if (latitude >= 42.0 && latitude <= 43.5 && longitude >= -2.0 && longitude <= 3.5) {
+      return 'pyrenees';
+    }
+    
+    return null;
+  };
 
   const categories = [
     'hero', 'landscape', 'hiking', 'portrait', 'detail', 
@@ -201,17 +223,30 @@ export function BulkImageUpload() {
 
       const suggestions = data.suggestions;
       
+      // Extract location from AI suggestions or GPS data
+      const aiLocation = suggestions.location || 
+                         (suggestions.gps?.location) || 
+                         (gpsData && getLocationFromGPS(gpsData.latitude, gpsData.longitude));
+      
+      // Remove location tags from AI suggestions
+      const cleanTags = suggestions.tags.filter(tag => !tag.startsWith('location:'));
+      
       setImages(prev => prev.map((img, i) => 
         i === index ? {
           ...img,
-          suggestions,
+          suggestions: {
+            ...suggestions,
+            tags: cleanTags,
+            location: aiLocation
+          },
           metadata: {
             category: suggestions.category,
-            tags: suggestions.tags.join(', '),
+            tags: cleanTags.join(', '),
             alt_text: suggestions.alt_text,
             description: suggestions.description,
             usage_context: suggestions.usage_context.join(', '),
-            priority: suggestions.priority.toString()
+            priority: suggestions.priority.toString(),
+            location: aiLocation || ''
           },
           analyzing: false,
           gpsData: suggestions.gps || gpsData
@@ -271,7 +306,8 @@ export function BulkImageUpload() {
             alt_text: '',
             description: '',
             usage_context: [],
-            priority: 5
+            priority: 5,
+            location: ''
           },
           metadata: {
             category: '',
@@ -279,7 +315,8 @@ export function BulkImageUpload() {
             alt_text: '',
             description: '',
             usage_context: '',
-            priority: '5'
+            priority: '5',
+            location: ''
           },
           analyzing: true
         };
@@ -347,7 +384,8 @@ export function BulkImageUpload() {
           alt_text: img.suggestions.alt_text,
           description: img.suggestions.description,
           usage_context: img.suggestions.usage_context.join(', '),
-          priority: img.suggestions.priority.toString()
+          priority: img.suggestions.priority.toString(),
+          location: img.suggestions.location || ''
         }
       } : img
     ));
@@ -383,6 +421,11 @@ export function BulkImageUpload() {
           usage_context: imageData.metadata.usage_context.split(',').map(ctx => ctx.trim()).filter(Boolean),
           priority: parseInt(imageData.metadata.priority) || 0,
         };
+
+        // Add location to tags if set
+        if (imageData.metadata.location) {
+          metadata.tags.push(`location:${imageData.metadata.location}`);
+        }
 
         // Process file for upload (files are already converted from HEIC)
         let finalFile = imageData.file;
