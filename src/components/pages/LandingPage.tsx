@@ -58,22 +58,24 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-primary/5 via-background to-background">
+      <section className="relative h-screen">
         <SmartImage
           category="hero"
           usageContext="landing"
-          className="absolute inset-0 w-full h-full object-cover opacity-5"
+          className="absolute inset-0 w-full h-full object-cover"
           fallbackSrc="https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=1920&h=1080&fit=crop"
           alt="Hikers on mountain trail with dramatic alpine landscape"
+          priority="high"
         />
-        <div className="relative container mx-auto px-4 pt-20 pb-16">
-          <div className="max-w-4xl mx-auto text-center">
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="relative container mx-auto px-4 h-full flex items-center justify-center">
+          <div className="max-w-4xl mx-auto text-center text-white">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
               Find Your Next
               <br />
-              <span className="text-primary">Hiking Adventure</span>
+              <span className="text-accent">Hiking Adventure</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
               One hiking step away from nature. Join hand-selected, certified
               guides for unforgettable experiences across Europe's most
               stunning mountain ranges.
@@ -130,7 +132,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                     alt={`${currentRegion.name} mountain landscape - ${currentRegion.description}`}
                     priority="high"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   <div className="absolute bottom-8 left-8 text-white">
                     <Badge className="mb-3 bg-primary/90">Most Popular</Badge>
                     <h3 className="text-4xl font-bold mb-2">{currentRegion.name}</h3>
@@ -183,11 +185,22 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       </section>
 
       {/* Share Your Mountain Expertise */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
+      <section className="py-20 relative">
+        <div className="absolute inset-0">
+          <SmartImage
+            category="guide"
+            usageContext="teaching"
+            tags={['guide', 'mountain', 'expert', 'teaching']}
+            className="w-full h-full object-cover"
+            fallbackSrc="https://images.unsplash.com/photo-1551632811-561732d1e306?w=1920&h=800&fit=crop"
+            alt="Professional mountain guide teaching hiking techniques to a group"
+          />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
+        <div className="relative container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center text-white">
             <h2 className="text-4xl font-bold mb-4">Share Your Mountain Expertise</h2>
-            <p className="text-xl text-muted-foreground mb-8">
+            <p className="text-xl opacity-90 mb-8">
               Turn your passion for hiking into income. Join our community of hand-selected, certified mountain guides.
             </p>
             {!user && (
@@ -348,31 +361,74 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
             <p className="text-xl text-muted-foreground">Real experiences from real adventurers</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="p-6">
-              <div className="flex items-center gap-1 mb-4">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <Card className="relative overflow-hidden">
+              <SmartImage
+                category="hiker"
+                usageContext="testimonial"
+                tags={['hiker', 'portrait', 'happy', 'dolomites']}
+                className="w-full h-48 object-cover"
+                fallbackSrc="https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=200&fit=crop"
+                alt="Happy female hiker Sarah enjoying her Dolomites adventure"
+              />
+              <div className="p-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />
+                  ))}
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  "Amazing experience in the Dolomites! Our guide Marco was incredibly knowledgeable and made us feel very safe throughout the challenging route."
+                </p>
+                <div className="font-semibold">Sarah M.</div>
+                <div className="text-sm text-muted-foreground">Dolomites Adventure - 5 days</div>
               </div>
-              <p className="text-muted-foreground mb-4">
-                "Amazing experience in the Dolomites! Our guide Marco was incredibly knowledgeable and made us feel very safe throughout the challenging route."
-              </p>
-              <div className="font-semibold">Sarah M.</div>
-              <div className="text-sm text-muted-foreground">Dolomites Adventure - 5 days</div>
             </Card>
 
-            <Card className="p-6">
-              <div className="flex items-center gap-1 mb-4">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />
-                ))}
+            <Card className="relative overflow-hidden">
+              <SmartImage
+                category="hiker"
+                usageContext="testimonial"
+                tags={['hiker', 'portrait', 'male', 'scotland']}
+                className="w-full h-48 object-cover"
+                fallbackSrc="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&h=200&fit=crop"
+                alt="Satisfied male hiker James after his Scottish Highlands tour"
+              />
+              <div className="p-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />
+                  ))}
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  "The Scottish Highlands tour exceeded my expectations. The guide was attentive to our group's needs and shared amazing local stories."
+                </p>
+                <div className="font-semibold">James R.</div>
+                <div className="text-sm text-muted-foreground">Scottish Highlands - 3 days</div>
               </div>
-              <p className="text-muted-foreground mb-4">
-                "The Scottish Highlands tour exceeded my expectations. The guide was attentive to our group's needs and shared amazing local stories."
-              </p>
-              <div className="font-semibold">James R.</div>
-              <div className="text-sm text-muted-foreground">Scottish Highlands - 3 days</div>
+            </Card>
+
+            <Card className="relative overflow-hidden">
+              <SmartImage
+                category="hiker"
+                usageContext="testimonial"
+                tags={['hiker', 'portrait', 'group', 'pyrenees']}
+                className="w-full h-48 object-cover"
+                fallbackSrc="https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=200&fit=crop"
+                alt="Group of hikers celebrating their successful Pyrenees expedition"
+              />
+              <div className="p-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />
+                  ))}
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  "Unforgettable Pyrenees adventure! The pristine wilderness and our guide's expertise made this the highlight of our year."
+                </p>
+                <div className="font-semibold">Maria & Carlos</div>
+                <div className="text-sm text-muted-foreground">Pyrenees Wilderness - 7 days</div>
+              </div>
             </Card>
           </div>
         </div>
