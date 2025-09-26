@@ -58,7 +58,7 @@ export const ImageOverview = () => {
 
   const addLocationToTags = (tags: string[], location: string) => {
     const cleanTags = removeLocationFromTags(tags);
-    return location ? [...cleanTags, `location:${location}`] : cleanTags;
+    return location && location !== 'none' ? [...cleanTags, `location:${location}`] : cleanTags;
   };
   const [isEditing, setIsEditing] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
@@ -91,7 +91,7 @@ export const ImageOverview = () => {
     usage_context: '',
     priority: 5,
     is_active: true,
-    location: ''
+    location: 'none'
   });
 
   // Fetch extended image data with uploader info
@@ -201,7 +201,7 @@ export const ImageOverview = () => {
       usage_context: image.usage_context?.join(', ') || '',
       priority: image.priority || 5,
       is_active: image.is_active ?? true,
-      location: location
+      location: location || 'none'
     });
 
     // Get image dimensions and file size
@@ -818,9 +818,9 @@ export const ImageOverview = () => {
                               <SelectTrigger>
                                 <SelectValue placeholder="Select location" />
                               </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="">No location</SelectItem>
-                                <SelectItem value="dolomites">Dolomites</SelectItem>
+                               <SelectContent>
+                                 <SelectItem value="none">No location</SelectItem>
+                                 <SelectItem value="dolomites">Dolomites</SelectItem>
                                 <SelectItem value="scotland">Scotland</SelectItem>
                                 <SelectItem value="pyrenees">Pyrenees</SelectItem>
                               </SelectContent>
