@@ -134,18 +134,14 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               <div className="lg:col-span-3">
                 <div className="relative aspect-[16/10] rounded-2xl overflow-hidden">
                   <SmartImage
-                    category={
-                      currentRegion.id === 'dolomites' ? 'landscape' :
-                      currentRegion.id === 'pyrenees' ? 'mountains' : 
-                      'adventure'
-                    }
-                    usageContext="hero"
+                    category="hero"
+                    usageContext="landing"
                     tags={
                       currentRegion.id === 'dolomites' 
-                        ? ['dolomites', 'limestone', 'alpine'] 
+                        ? ['location:dolomites', 'limestone', 'alpine', 'dramatic peaks'] 
                         : currentRegion.id === 'pyrenees'
-                        ? ['alpine', 'meadows', 'wildflowers', 'peaks']
-                        : ['highlands', 'scotland', 'rugged', 'loch', 'misty', 'castle']
+                        ? ['location:pyrenees', 'alpine', 'meadows', 'wildflowers', 'peaks']
+                        : ['location:scotland', 'highlands', 'rugged', 'loch', 'misty', 'castle']
                     }
                     className="w-full h-full object-cover"
                     fallbackSrc=""
