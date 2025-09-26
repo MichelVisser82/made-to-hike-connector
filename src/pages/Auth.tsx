@@ -13,7 +13,10 @@ export const Auth = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const mode = searchParams.get('mode') || 'signup';
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ 
+    email: mode === 'admin' ? 'michel@madetohike.com' : '', 
+    password: '' 
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -68,6 +71,63 @@ export const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  if (mode === 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <Card className="border-primary/20 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-primary">🔐 Admin Access</CardTitle>
+              <CardDescription>
+                Administrative portal for MadeToHike
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-email">Admin Email</Label>
+                  <Input
+                    id="admin-email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="admin-password">Admin Password</Label>
+                  <Input
+                    id="admin-password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter admin password"
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Authenticating...' : 'Access Admin Panel'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          
+          <div className="text-center">
+            <Button variant="link" onClick={() => navigate('/')}>
+              Back to Main Site
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (mode === 'signup') {
     return (

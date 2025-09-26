@@ -242,6 +242,12 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
             >
               Contact Support
             </button>
+            <button 
+              onClick={() => window.location.href = '/auth?mode=admin'}
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              Admin Login
+            </button>
           </div>
         </div>
 
