@@ -3,6 +3,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { ImageManager } from '../admin/ImageManager';
+import { ImageOverview } from '../admin/ImageOverview';
 import { type User } from '../../types';
 
 interface AdminDashboardProps {
@@ -16,9 +17,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="images">Image Manager</TabsTrigger>
+            <TabsTrigger value="image-overview">Image Overview</TabsTrigger>
             <TabsTrigger value="verifications">Verifications</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
           </TabsList>
@@ -59,6 +61,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
           <TabsContent value="images">
             <ImageManager />
+          </TabsContent>
+
+          <TabsContent value="image-overview">
+            <ImageOverview />
           </TabsContent>
 
           <TabsContent value="verifications" className="space-y-6">

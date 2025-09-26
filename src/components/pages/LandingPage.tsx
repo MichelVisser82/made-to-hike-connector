@@ -3,7 +3,9 @@ import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Star, MapPin, Users, Shield, Calendar, Search, CheckCircle } from 'lucide-react';
-import { SmartImage } from '../SmartImage';
+import { SmartImage } from "../SmartImage";
+import { useWebsiteImages } from "@/hooks/useWebsiteImages";
+import { supabase } from "@/integrations/supabase/client";
 import { imageRecommendations } from '@/lib/imageRecommendations';
 import { type User } from '../../types';
 
@@ -16,6 +18,7 @@ interface LandingPageProps {
 
 export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNavigateToDashboard }: LandingPageProps) {
   const [selectedRegion, setSelectedRegion] = useState('dolomites');
+  const { getRandomImage, getImagesByContext } = useWebsiteImages();
 
   const regions = [
     {
@@ -57,9 +60,11 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       {/* Hero Section */}
       <section className="relative bg-gradient-to-b from-primary/5 via-background to-background">
         <SmartImage
-          {...imageRecommendations.heroSection}
+          category="hero"
+          usageContext="landing"
           className="absolute inset-0 w-full h-full object-cover opacity-5"
           fallbackSrc="https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=1920&h=1080&fit=crop"
+          alt="Hikers on mountain trail with dramatic alpine landscape"
         />
         <div className="relative container mx-auto px-4 pt-20 pb-16">
           <div className="max-w-4xl mx-auto text-center">
