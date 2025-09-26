@@ -104,6 +104,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       setLoading(true);
+      
+      // Check if there's an active session before attempting signout
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // No active session, just clear local state
+        setSession(null);
+        setUser(null);
+        return;
+      }
+      
       const { error } = await supabase.auth.signOut();
       if (error) {
         toast.error('Error signing out: ' + error.message);
