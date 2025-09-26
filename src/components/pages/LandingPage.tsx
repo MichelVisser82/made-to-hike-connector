@@ -138,10 +138,10 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                     usageContext="landing"
                     tags={
                       currentRegion.id === 'dolomites' 
-                        ? ['location:dolomites', 'limestone', 'alpine', 'dramatic peaks'] 
+                        ? ['location:dolomites', 'dolomites', 'limestone', 'alpine'] 
                         : currentRegion.id === 'pyrenees'
-                        ? ['location:pyrenees', 'alpine', 'meadows', 'wildflowers', 'peaks']
-                        : ['location:scotland', 'highlands', 'rugged', 'loch', 'misty', 'castle']
+                        ? ['location:pyrenees', 'alpine-lake', 'mountain-reflection', 'glacial-valley', 'turquoise waters']
+                        : ['location:scotland', 'highland', 'moorland', 'scottish highlands', 'rugged']
                     }
                     className="w-full h-full object-cover"
                     fallbackSrc=""
