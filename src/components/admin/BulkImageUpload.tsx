@@ -246,41 +246,64 @@ export function BulkImageUpload() {
 
     if (supportedFiles.length === 0) return;
 
-    const newImages: ImageWithMetadata[] = supportedFiles.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      suggestions: {
-        category: 'landscape',
-        tags: [],
-        alt_text: '',
-        description: '',
-        usage_context: [],
-        priority: 5
-      },
-      metadata: {
-        category: '',
-        tags: '',
-        alt_text: '',
-        description: '',
-        usage_context: '',
-        priority: '5'
-      },
-      analyzing: true
-    }));
-
-    setImages(prev => [...prev, ...newImages]);
-
-    // Analyze images sequentially to avoid overwhelming the system
     setIsAnalyzing(true);
-    const startIndex = images.length;
-    
+    const processedImages: ImageWithMetadata[] = [];
+
+    // Process each file: convert HEIC first, then create preview
     for (let i = 0; i < supportedFiles.length; i++) {
       const file = supportedFiles[i];
+      
+      try {
+        // Convert HEIC immediately
+        const convertedFile = await convertHEIC(file);
+        
+        // Show conversion notification if file was converted
+        if (file.name !== convertedFile.name) {
+          toast.success(`Converted ${file.name} to JPEG`);
+        }
+
+        const imageData: ImageWithMetadata = {
+          file: convertedFile, // Use converted file
+          preview: URL.createObjectURL(convertedFile), // Preview from converted file
+          suggestions: {
+            category: 'landscape',
+            tags: [],
+            alt_text: '',
+            description: '',
+            usage_context: [],
+            priority: 5
+          },
+          metadata: {
+            category: '',
+            tags: '',
+            alt_text: '',
+            description: '',
+            usage_context: '',
+            priority: '5'
+          },
+          analyzing: true
+        };
+
+        processedImages.push(imageData);
+      } catch (error) {
+        console.error(`Failed to process ${file.name}:`, error);
+        toast.error(`Failed to process ${file.name}`);
+      }
+    }
+
+    setImages(prev => [...prev, ...processedImages]);
+
+    // Analyze images sequentially to avoid overwhelming the system
+    const startIndex = images.length;
+    
+    for (let i = 0; i < processedImages.length; i++) {
+      const imageData = processedImages[i];
       const imageIndex = startIndex + i;
       
       try {
-        // Extract GPS data first
-        const gpsData = await extractGPSData(file);
+        // Extract GPS data from original file if it was HEIC
+        const originalFile = supportedFiles[i];
+        const gpsData = await extractGPSData(originalFile);
         
         // Update GPS data immediately if found
         if (gpsData) {
@@ -289,20 +312,20 @@ export function BulkImageUpload() {
           ));
         }
         
-        // Then analyze with AI (this will take longer)
-        await analyzeImage(file, imageIndex, gpsData);
+        // Then analyze with AI using the converted file
+        await analyzeImage(imageData.file, imageIndex, gpsData);
         
         // Small delay between analyses to avoid rate limiting
-        if (i < supportedFiles.length - 1) {
+        if (i < processedImages.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       } catch (error) {
-        console.error(`Failed to process ${file.name}:`, error);
+        console.error(`Failed to process ${imageData.file.name}:`, error);
       }
     }
     
     setIsAnalyzing(false);
-    toast.success(`Processing ${supportedFiles.length} images sequentially`);
+    toast.success(`Processing ${processedImages.length} images sequentially`);
   };
 
   const updateImageMetadata = (index: number, field: string, value: string) => {
@@ -361,8 +384,8 @@ export function BulkImageUpload() {
           priority: parseInt(imageData.metadata.priority) || 0,
         };
 
-        // Process file for upload
-        let finalFile = await convertHEIC(imageData.file);
+        // Process file for upload (files are already converted from HEIC)
+        let finalFile = imageData.file;
         if (optimize) {
           finalFile = await compressImage(finalFile, imageData.metadata.category);
         }

@@ -18,6 +18,8 @@ export function ImageManager() {
   const { images, loading, uploadImage, getImageUrl, fetchImages } = useWebsiteImages();
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [converting, setConverting] = useState(false);
   const [uploadMetadata, setUploadMetadata] = useState({
     category: '',
     tags: '',
@@ -38,9 +40,41 @@ export function ImageManager() {
     'booking', 'testimonials', 'gallery', 'background'
   ];
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setSelectedFiles(Array.from(event.target.files));
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) return;
+
+    const files = Array.from(event.target.files);
+    setConverting(true);
+    
+    try {
+      const processedFiles: File[] = [];
+      const urls: string[] = [];
+
+      for (const file of files) {
+        // Convert HEIC files immediately
+        const processedFile = await convertHEIC(file);
+        processedFiles.push(processedFile);
+        
+        // Create preview URL from converted file
+        const previewUrl = URL.createObjectURL(processedFile);
+        urls.push(previewUrl);
+        
+        // Show conversion notification if file was converted
+        if (file.name !== processedFile.name) {
+          toast.success(`Converted ${file.name} to JPEG`);
+        }
+      }
+
+      // Clean up old preview URLs
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      
+      setSelectedFiles(processedFiles);
+      setPreviewUrls(urls);
+    } catch (error) {
+      console.error('Error processing files:', error);
+      toast.error('Failed to process some files');
+    } finally {
+      setConverting(false);
     }
   };
 
@@ -146,8 +180,8 @@ export function ImageManager() {
       };
 
       for (const file of selectedFiles) {
-        // Convert HEIC if needed
-        let processedFile = await convertHEIC(file);
+        // Files are already converted from HEIC if needed
+        let processedFile = file;
         
         // Apply compression if optimization is enabled
         if (uploadMetadata.optimize) {
@@ -165,6 +199,7 @@ export function ImageManager() {
 
       toast.success(`Successfully uploaded ${selectedFiles.length} image(s)`);
       setSelectedFiles([]);
+      setPreviewUrls([]);
       setUploadMetadata({
         category: '',
         tags: '',
@@ -224,7 +259,13 @@ export function ImageManager() {
               multiple
               accept="image/*,.heic,.HEIC"
               onChange={handleFileSelect}
+              disabled={converting}
             />
+            {converting && (
+              <p className="text-sm text-blue-600 mt-1">
+                Converting HEIC files...
+              </p>
+            )}
             {selectedFiles.length > 0 && (
               <p className="text-sm text-muted-foreground mt-1">
                 {selectedFiles.length} file(s) selected
@@ -352,11 +393,32 @@ export function ImageManager() {
 
           <Button 
             onClick={handleUpload} 
-            disabled={uploading || selectedFiles.length === 0 || !uploadMetadata.category}
+            disabled={uploading || converting || selectedFiles.length === 0 || !uploadMetadata.category}
             className="w-full"
           >
-            {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} Image(s)`}
+            {uploading ? 'Uploading...' : converting ? 'Converting...' : `Upload ${selectedFiles.length} Image(s)`}
           </Button>
+
+          {/* Image Previews */}
+          {previewUrls.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium mb-2">Preview:</h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1 rounded">
+                      {selectedFiles[index]?.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
