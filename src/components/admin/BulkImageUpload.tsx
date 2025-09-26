@@ -9,8 +9,10 @@ import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { toast } from 'sonner';
-import { Upload, Sparkles, Image as ImageIcon, Edit3, Check, X, Loader2 } from 'lucide-react';
+import { Upload, Sparkles, Image as ImageIcon, Edit3, Check, X, Loader2, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import heic2any from 'heic2any';
+import { parse } from 'exifr';
 
 interface ImageWithMetadata {
   file: File;
@@ -22,6 +24,11 @@ interface ImageWithMetadata {
     description: string;
     usage_context: string[];
     priority: number;
+    gps?: {
+      latitude: number;
+      longitude: number;
+      location?: string;
+    };
   };
   metadata: {
     category: string;
@@ -33,6 +40,11 @@ interface ImageWithMetadata {
   };
   analyzing: boolean;
   error?: string;
+  gpsData?: {
+    latitude: number;
+    longitude: number;
+    location?: string;
+  };
 }
 
 export function BulkImageUpload() {
@@ -40,6 +52,7 @@ export function BulkImageUpload() {
   const [images, setImages] = useState<ImageWithMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
   const [optimize, setOptimize] = useState(true);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const categories = [
     'hero', 'landscape', 'hiking', 'portrait', 'detail', 
@@ -50,6 +63,92 @@ export function BulkImageUpload() {
     'landing', 'tours', 'about', 'contact', 'search', 
     'booking', 'testimonials', 'gallery', 'background'
   ];
+
+  const convertHEIC = async (file: File): Promise<File> => {
+    if (file.type !== 'image/heic' && !file.name.toLowerCase().endsWith('.heic')) {
+      return file;
+    }
+    
+    try {
+      const convertedBlob = await heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.8
+      }) as Blob;
+      
+      return new File([convertedBlob], file.name.replace(/\.heic$/i, '.jpg'), {
+        type: 'image/jpeg'
+      });
+    } catch (error) {
+      console.error('HEIC conversion failed:', error);
+      throw new Error('Failed to convert HEIC image');
+    }
+  };
+
+  const compressImage = (file: File, maxSizeMB = 4): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions to keep under 4MB
+        let { width, height } = img;
+        const maxDimension = 2048;
+        
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Image compression failed'));
+            return;
+          }
+          
+          const compressedFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+          
+          resolve(compressedFile);
+        }, 'image/jpeg', 0.8);
+      };
+      
+      img.onerror = () => reject(new Error('Image loading failed'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const extractGPSData = async (file: File) => {
+    try {
+      const exifData = await parse(file, {
+        gps: true,
+        pick: ['latitude', 'longitude']
+      });
+      
+      if (exifData?.latitude && exifData?.longitude) {
+        return {
+          latitude: exifData.latitude,
+          longitude: exifData.longitude
+        };
+      }
+    } catch (error) {
+      console.error('GPS extraction failed:', error);
+    }
+    return null;
+  };
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -65,14 +164,21 @@ export function BulkImageUpload() {
     });
   };
 
-  const analyzeImage = async (file: File, index: number) => {
+  const analyzeImage = async (file: File, index: number, gpsData?: any) => {
     try {
-      const base64 = await fileToBase64(file);
+      // Convert HEIC if needed
+      let processedFile = await convertHEIC(file);
+      
+      // Compress image to stay under 4MB
+      processedFile = await compressImage(processedFile);
+      
+      const base64 = await fileToBase64(processedFile);
       
       const { data, error } = await supabase.functions.invoke('analyze-image-metadata', {
         body: {
           imageBase64: base64,
-          filename: file.name
+          filename: file.name,
+          gpsData
         }
       });
 
@@ -92,7 +198,8 @@ export function BulkImageUpload() {
             usage_context: suggestions.usage_context.join(', '),
             priority: suggestions.priority.toString()
           },
-          analyzing: false
+          analyzing: false,
+          gpsData: suggestions.gps || gpsData
         } : img
       ));
     } catch (error) {
@@ -101,7 +208,7 @@ export function BulkImageUpload() {
         i === index ? {
           ...img,
           analyzing: false,
-          error: 'Failed to analyze image'
+          error: error instanceof Error ? error.message : 'Failed to analyze image'
         } : img
       ));
     }
@@ -111,7 +218,20 @@ export function BulkImageUpload() {
     if (!event.target.files) return;
 
     const files = Array.from(event.target.files);
-    const newImages: ImageWithMetadata[] = files.map(file => ({
+    
+    // Filter out unsupported files
+    const supportedFiles = files.filter(file => {
+      const isSupported = file.type.startsWith('image/') || 
+                         file.name.toLowerCase().endsWith('.heic');
+      if (!isSupported) {
+        toast.error(`Unsupported file type: ${file.name}`);
+      }
+      return isSupported;
+    });
+
+    if (supportedFiles.length === 0) return;
+
+    const newImages: ImageWithMetadata[] = supportedFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file),
       suggestions: {
@@ -135,11 +255,39 @@ export function BulkImageUpload() {
 
     setImages(prev => [...prev, ...newImages]);
 
-    // Analyze each image
+    // Analyze images sequentially to avoid overwhelming the system
+    setIsAnalyzing(true);
     const startIndex = images.length;
-    files.forEach((file, index) => {
-      analyzeImage(file, startIndex + index);
-    });
+    
+    for (let i = 0; i < supportedFiles.length; i++) {
+      const file = supportedFiles[i];
+      const imageIndex = startIndex + i;
+      
+      try {
+        // Extract GPS data first
+        const gpsData = await extractGPSData(file);
+        
+        // Update GPS data immediately if found
+        if (gpsData) {
+          setImages(prev => prev.map((img, idx) => 
+            idx === imageIndex ? { ...img, gpsData } : img
+          ));
+        }
+        
+        // Then analyze with AI (this will take longer)
+        await analyzeImage(file, imageIndex, gpsData);
+        
+        // Small delay between analyses to avoid rate limiting
+        if (i < supportedFiles.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } catch (error) {
+        console.error(`Failed to process ${file.name}:`, error);
+      }
+    }
+    
+    setIsAnalyzing(false);
+    toast.success(`Processing ${supportedFiles.length} images sequentially`);
   };
 
   const updateImageMetadata = (index: number, field: string, value: string) => {
@@ -231,8 +379,9 @@ export function BulkImageUpload() {
               id="bulk-files"
               type="file"
               multiple
-              accept="image/*"
+              accept="image/*,.heic"
               onChange={handleFileSelect}
+              disabled={isAnalyzing}
             />
           </div>
 
@@ -244,6 +393,13 @@ export function BulkImageUpload() {
             />
             <Label htmlFor="bulk-optimize">Auto-optimize images</Label>
           </div>
+
+          {isAnalyzing && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted p-3 rounded">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processing images sequentially to ensure reliable analysis...
+            </div>
+          )}
 
           {images.length > 0 && (
             <Button 
@@ -286,7 +442,15 @@ export function BulkImageUpload() {
               
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium truncate">{imageData.file.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium truncate">{imageData.file.name}</p>
+                    {imageData.gpsData && (
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <MapPin className="h-3 w-3" />
+                        GPS
+                      </div>
+                    )}
+                  </div>
                   {imageData.analyzing && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />

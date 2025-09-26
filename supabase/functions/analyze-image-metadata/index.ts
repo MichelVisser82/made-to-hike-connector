@@ -11,6 +11,10 @@ const corsHeaders = {
 interface ImageAnalysisRequest {
   imageBase64: string;
   filename: string;
+  gpsData?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 interface ImageMetadataSuggestions {
@@ -20,6 +24,11 @@ interface ImageMetadataSuggestions {
   description: string;
   usage_context: string[];
   priority: number;
+  gps?: {
+    latitude: number;
+    longitude: number;
+    location?: string;
+  };
 }
 
 serve(async (req) => {
@@ -28,8 +37,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let gpsData: { latitude: number; longitude: number } | undefined;
+
   try {
-    const { imageBase64, filename }: ImageAnalysisRequest = await req.json();
+    const requestData: ImageAnalysisRequest = await req.json();
+    const { imageBase64, filename } = requestData;
+    gpsData = requestData.gpsData;
 
     if (!anthropicApiKey) {
       throw new Error('ANTHROPIC_API_KEY not configured');
@@ -51,7 +64,7 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: `Analyze this image for a hiking/outdoor adventure website and provide metadata suggestions. The image filename is: ${filename}
+                text: `Analyze this image for a hiking/outdoor adventure website and provide metadata suggestions. The image filename is: ${filename}${gpsData ? `\n\nGPS Data Available: Latitude ${gpsData.latitude}, Longitude ${gpsData.longitude}` : ''}
 
 Please provide your response as a JSON object with these fields:
 - category: one of [hero, landscape, hiking, portrait, detail, equipment, nature, mountains, trails, adventure]
@@ -60,8 +73,9 @@ Please provide your response as a JSON object with these fields:
 - description: detailed description for content management (max 255 chars)
 - usage_context: array of 1-3 contexts where this image would work best [landing, tours, about, contact, search, booking, testimonials, gallery, background]
 - priority: number 1-10 based on visual impact and usefulness (10 being highest)
+${gpsData ? '- gps: object with latitude, longitude, and optional location string based on coordinates' : ''}
 
-Focus on hiking, outdoor adventure, nature, and travel themes. Be specific and actionable.`
+Focus on hiking, outdoor adventure, nature, and travel themes. Be specific and actionable.${gpsData ? ' Use the GPS coordinates to provide location-specific context and tags.' : ''}`
               },
               {
                 type: 'image',
@@ -104,7 +118,8 @@ Focus on hiking, outdoor adventure, nature, and travel themes. Be specific and a
         alt_text: 'Outdoor hiking scene',
         description: 'A scenic outdoor image perfect for hiking and adventure content',
         usage_context: ['gallery', 'tours'],
-        priority: 5
+        priority: 5,
+        ...(gpsData && { gps: gpsData })
       };
     }
 
@@ -122,7 +137,8 @@ Focus on hiking, outdoor adventure, nature, and travel themes. Be specific and a
         alt_text: 'Outdoor adventure image',
         description: 'An image suitable for hiking and outdoor adventure content',
         usage_context: ['gallery'],
-        priority: 5
+        priority: 5,
+        ...(gpsData && { gps: gpsData })
       }
     }), {
       status: 500,
