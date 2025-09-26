@@ -24,14 +24,47 @@ export function SmartImage({
   const [selectedImage, setSelectedImage] = useState<WebsiteImage | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [singleImageMode, setSingleImageMode] = useState(false);
 
   useEffect(() => {
+    // Skip rotation if we're in single image mode and already have an image
+    if (singleImageMode && selectedImage) {
+      return;
+    }
+
     const fetchImage = async () => {
       try {
         setLoading(true);
         
+        // Define region tags to exclude when looking for a specific region
+        const regionTags = ['dolomites', 'pyrenees', 'scotland', 'location:dolomites', 'location:pyrenees', 'location:scotland'];
+        
+        const isRegionSearch = tags && tags.some(tag => 
+          regionTags.some(regionTag => 
+            tag.toLowerCase() === regionTag.toLowerCase().replace('location:', '')
+          )
+        );
+        
+        // Helper function to check if image has conflicting region tags
+        const hasConflictingRegion = (image: WebsiteImage, targetTags: string[]) => {
+          if (!isRegionSearch) return false;
+          
+          const targetRegions = targetTags.map(tag => tag.toLowerCase());
+          const otherRegions = regionTags
+            .map(tag => tag.toLowerCase().replace('location:', ''))
+            .filter(region => !targetRegions.includes(region));
+          
+          return image.tags.some(imageTag => 
+            otherRegions.some(otherRegion => 
+              imageTag.toLowerCase().includes(otherRegion)
+            )
+          );
+        };
+        
         // First try to get image with specific tag matching
         let image = null;
+        let availableImages: WebsiteImage[] = [];
+        
         if (tags && tags.length > 0) {
           // Try to find image with matching tags first
           const allImages = await getRandomImage({ 
@@ -39,7 +72,7 @@ export function SmartImage({
             usage_context: usageContext 
           });
           
-          if (allImages) {
+          if (allImages && !hasConflictingRegion(allImages, tags)) {
             const hasMatchingTag = allImages.tags.some(tag => 
               tags.some(searchTag => 
                 tag.toLowerCase().includes(searchTag.toLowerCase())
@@ -48,6 +81,7 @@ export function SmartImage({
             
             if (hasMatchingTag) {
               image = allImages;
+              availableImages = [allImages];
             }
           }
           
@@ -60,7 +94,7 @@ export function SmartImage({
                 usage_context: usageContext 
               });
               
-              if (fallbackImage) {
+              if (fallbackImage && !hasConflictingRegion(fallbackImage, tags)) {
                 const hasMatchingTag = fallbackImage.tags.some(tag => 
                   tags.some(searchTag => 
                     tag.toLowerCase().includes(searchTag.toLowerCase())
@@ -69,6 +103,7 @@ export function SmartImage({
                 
                 if (hasMatchingTag) {
                   image = fallbackImage;
+                  availableImages = [fallbackImage];
                   break;
                 }
               }
@@ -76,9 +111,17 @@ export function SmartImage({
           }
         }
         
-        // Final fallback - get any image from primary category
-        if (!image) {
+        // Final fallback - get any image from primary category (if not region search)
+        if (!image && !isRegionSearch) {
           image = await getRandomImage({ category, usage_context: usageContext });
+          if (image) {
+            availableImages = [image];
+          }
+        }
+        
+        // Check if we only have one available image
+        if (availableImages.length === 1) {
+          setSingleImageMode(true);
         }
         
         if (image) {
@@ -93,7 +136,7 @@ export function SmartImage({
     };
 
     fetchImage();
-  }, [category, usageContext, tags?.join(',')]);
+  }, [category, usageContext, tags?.join(','), singleImageMode, selectedImage]);
 
   if (loading) {
     return (
