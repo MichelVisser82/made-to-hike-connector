@@ -594,6 +594,24 @@ export function BulkImageUpload() {
                 </div>
 
                 <div>
+                  <Label className="text-xs">Location</Label>
+                  <Select
+                    value={imageData.metadata.location || 'none'}
+                    onValueChange={(value) => updateImageMetadata(index, 'location', value)}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No location</SelectItem>
+                      <SelectItem value="dolomites">Dolomites</SelectItem>
+                      <SelectItem value="scotland">Scotland</SelectItem>
+                      <SelectItem value="pyrenees">Pyrenees</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <Label className="text-xs">Tags</Label>
                   <Input
                     value={imageData.metadata.tags}
