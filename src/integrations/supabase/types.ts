@@ -331,6 +331,57 @@ export type Database = {
           },
         ]
       }
+      website_images: {
+        Row: {
+          alt_text: string | null
+          bucket_id: string
+          category: string
+          created_at: string
+          description: string | null
+          file_name: string
+          file_path: string
+          id: string
+          is_active: boolean | null
+          priority: number | null
+          tags: string[] | null
+          updated_at: string
+          uploaded_by: string | null
+          usage_context: string[] | null
+        }
+        Insert: {
+          alt_text?: string | null
+          bucket_id: string
+          category: string
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          tags?: string[] | null
+          updated_at?: string
+          uploaded_by?: string | null
+          usage_context?: string[] | null
+        }
+        Update: {
+          alt_text?: string | null
+          bucket_id?: string
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          tags?: string[] | null
+          updated_at?: string
+          uploaded_by?: string | null
+          usage_context?: string[] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
