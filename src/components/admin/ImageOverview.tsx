@@ -29,6 +29,9 @@ interface ExtendedWebsiteImage {
   updated_at: string;
   uploader_name: string;
   uploader_role: string;
+  image_width?: number;
+  image_height?: number;
+  file_size?: number;
 }
 
 export const ImageOverview = () => {
@@ -40,6 +43,7 @@ export const ImageOverview = () => {
   const [uploaderFilter, setUploaderFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [selectedImage, setSelectedImage] = useState<ExtendedWebsiteImage | null>(null);
+  const [imageDetails, setImageDetails] = useState<{width: number, height: number, size: number} | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     alt_text: '',
@@ -145,6 +149,7 @@ export const ImageOverview = () => {
 
   const handleImageClick = (image: ExtendedWebsiteImage) => {
     setSelectedImage(image);
+    setImageDetails(null); // Reset details
     setEditForm({
       alt_text: image.alt_text || '',
       description: image.description || '',
@@ -154,6 +159,29 @@ export const ImageOverview = () => {
       priority: image.priority || 5,
       is_active: image.is_active ?? true
     });
+
+    // Get image dimensions and file size
+    const img = new Image();
+    img.onload = () => {
+      setImageDetails({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        size: 0 // We'll estimate this from the image URL response
+      });
+      
+      // Try to get file size from response headers
+      fetch(getImageUrl(image), { method: 'HEAD' })
+        .then(response => {
+          const contentLength = response.headers.get('content-length');
+          if (contentLength) {
+            setImageDetails(prev => prev ? {...prev, size: parseInt(contentLength)} : null);
+          }
+        })
+        .catch(() => {
+          // Ignore errors, just won't show file size
+        });
+    };
+    img.src = getImageUrl(image);
   };
 
   const handleUpdateImage = async () => {
@@ -221,6 +249,14 @@ export const ImageOverview = () => {
 
   const getImageUrl = (image: ExtendedWebsiteImage) => {
     return supabase.storage.from(image.bucket_id).getPublicUrl(image.file_path).data.publicUrl;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   if (loading) {
@@ -423,6 +459,18 @@ export const ImageOverview = () => {
                               </Badge>
                             </div>
                           </div>
+
+                          {imageDetails && (
+                            <div>
+                              <Label className="text-sm font-medium">Image Details</Label>
+                              <div className="text-sm text-muted-foreground mt-1">
+                                <div>Dimensions: {imageDetails.width} × {imageDetails.height} pixels</div>
+                                {imageDetails.size > 0 && (
+                                  <div>File Size: {formatFileSize(imageDetails.size)}</div>
+                                )}
+                              </div>
+                            </div>
+                          )}
 
                           <div className="border-t pt-4">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">

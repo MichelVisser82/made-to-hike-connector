@@ -391,7 +391,7 @@ export function BulkImageUpload() {
               checked={optimize}
               onCheckedChange={setOptimize}
             />
-            <Label htmlFor="bulk-optimize">Auto-optimize images</Label>
+            <Label htmlFor="bulk-optimize">Auto-optimize images (includes HEIC conversion)</Label>
           </div>
 
           {isAnalyzing && (

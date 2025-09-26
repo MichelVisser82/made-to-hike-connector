@@ -44,6 +44,29 @@ export function ImageManager() {
     }
   };
 
+  const convertHEIC = async (file: File): Promise<File> => {
+    if (file.type !== 'image/heic' && !file.name.toLowerCase().endsWith('.heic')) {
+      return file;
+    }
+    
+    try {
+      const heic2any = (await import('heic2any')).default;
+      const convertedBlob = await heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.8
+      }) as Blob;
+      
+      return new File([convertedBlob], file.name.replace(/\.heic$/i, '.jpg'), {
+        type: 'image/jpeg'
+      });
+    } catch (error) {
+      console.error('HEIC conversion failed:', error);
+      toast.error(`Failed to convert HEIC image: ${file.name}`);
+      throw new Error('Failed to convert HEIC image');
+    }
+  };
+
   const handleUpload = async () => {
     if (selectedFiles.length === 0 || !uploadMetadata.category) {
       toast.error('Please select files and category');
@@ -62,7 +85,10 @@ export function ImageManager() {
       };
 
       for (const file of selectedFiles) {
-        const result = await uploadImage(file, metadata, uploadMetadata.optimize);
+        // Convert HEIC if needed
+        const processedFile = await convertHEIC(file);
+        
+        const result = await uploadImage(processedFile, metadata, uploadMetadata.optimize);
         
         if (result.optimization) {
           toast.success(
@@ -130,7 +156,7 @@ export function ImageManager() {
               id="files"
               type="file"
               multiple
-              accept="image/*"
+              accept="image/*,.heic,.HEIC"
               onChange={handleFileSelect}
             />
             {selectedFiles.length > 0 && (
@@ -196,7 +222,8 @@ export function ImageManager() {
                 <div className="text-sm">
                   <p className="font-medium text-blue-900">Optimization will:</p>
                   <ul className="text-blue-700 mt-1 space-y-1">
-                    <li>• Resize to optimal dimensions for category</li>
+                  <li>• Convert HEIC images to JPEG automatically</li>
+                  <li>• Resize to optimal dimensions for category</li>
                     <li>• Compress to reduce file size (60-90% smaller)</li>
                     <li>• Convert to JPEG format for best compatibility</li>
                     <li>• Preserve image quality while reducing load times</li>
