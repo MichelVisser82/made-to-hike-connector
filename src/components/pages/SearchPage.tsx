@@ -20,7 +20,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
       title: 'Dolomites High Alpine Circuit',
       guide_id: 'guide1',
       guide_name: 'Marco Alpine',
-      guide_avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+      guide_avatar: '', // Will use SmartImage component instead
       region: 'dolomites',
       difficulty: 'challenging',
       duration: '5 days',
@@ -31,7 +31,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
       highlights: ['Tre Cime di Lavaredo', 'Seceda Ridge', 'Alpe di Siusi'],
       includes: ['Professional guide', 'Accommodation', 'All meals', 'Safety equipment'],
       meeting_point: 'Bolzano Train Station',
-      images: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop'],
+      images: [], // Will use SmartImage component instead
       available_dates: ['2024-06-15', '2024-07-10', '2024-08-05'],
       rating: 4.9,
       reviews_count: 47,
@@ -42,7 +42,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
       title: 'Scottish Highlands Adventure',
       guide_id: 'guide2',
       guide_name: 'Sarah Mountain',
-      guide_avatar: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=100&h=100&fit=crop&crop=face',
+      guide_avatar: '', // Will use SmartImage component instead
       region: 'scotland',
       difficulty: 'moderate',
       duration: '3 days',
@@ -53,7 +53,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
       highlights: ['Ben Nevis Views', 'Glen Coe Valley', 'Loch Katrine'],
       includes: ['Expert guide', 'Transportation', 'Lunch daily', 'Safety gear'],
       meeting_point: 'Glasgow Central Station',
-      images: ['https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop'],
+      images: [], // Will use SmartImage component instead
       available_dates: ['2024-05-20', '2024-06-25', '2024-07-30'],
       rating: 4.8,
       reviews_count: 32,
@@ -155,7 +155,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
                     usageContext={tour.region}
                     tags={[tour.region, tour.difficulty, 'landscape', 'hiking']}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    fallbackSrc={tour.images[0]}
+                    fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop"
                     alt={`${tour.title} - ${tour.region} hiking tour`}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -175,7 +175,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
                         usageContext="avatar"
                         tags={['portrait', 'guide', 'professional']}
                         className="w-5 h-5 rounded-full object-cover"
-                        fallbackSrc={tour.guide_avatar}
+                        fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
                         alt={`${tour.guide_name} - Professional hiking guide`}
                       />
                       <span>by {tour.guide_name}</span>

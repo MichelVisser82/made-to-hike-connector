@@ -28,8 +28,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       tours: 47,
       difficulty: 'Easy - Expert',
       bestSeason: 'May - October',
-      description: 'Dramatic limestone peaks and alpine meadows',
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=500&fit=crop'
+      description: 'Dramatic limestone peaks and alpine meadows'
     },
     {
       id: 'pyrenees',
@@ -38,8 +37,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       tours: 32,
       difficulty: 'Moderate - Expert',
       bestSeason: 'June - September',
-      description: 'Pristine wilderness between France and Spain',
-      image: 'https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=800&h=500&fit=crop'
+      description: 'Pristine wilderness between France and Spain'
     },
     {
       id: 'scottish-highlands',
@@ -48,8 +46,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       tours: 28,
       difficulty: 'Easy - Challenging',
       bestSeason: 'April - October',
-      description: 'Rugged landscapes and ancient castles',
-      image: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=500&fit=crop'
+      description: 'Rugged landscapes and ancient castles'
     }
   ];
 
@@ -88,19 +85,32 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               Find Your Next Hiking Adventure
             </Button>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-8 mt-12 text-sm">
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                <span className="font-medium">4.9/5 Avg. Rating</span>
+            {/* Trust Indicators with Background */}
+            <div className="relative mt-12">
+              <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                <SmartImage
+                  category="statistics"
+                  usageContext="trust_indicators"
+                  tags={['hikers', 'group', 'celebration', 'success']}
+                  className="w-full h-full object-cover opacity-20"
+                  fallbackSrc="https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=200&fit=crop"
+                  alt="Group of successful hikers celebrating their mountain adventure"
+                />
+                <div className="absolute inset-0 bg-primary/10" />
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                <span className="font-medium">1,200+ Happy Hikers</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                <span className="font-medium">100% Verified Guides</span>
+              <div className="relative flex flex-wrap justify-center gap-8 py-8 text-sm">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500 fill-current" />
+                  <span className="font-medium">4.9/5 Avg. Rating</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  <span className="font-medium">1,200+ Happy Hikers</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <span className="font-medium">100% Verified Guides</span>
+                </div>
               </div>
             </div>
           </div>
@@ -126,9 +136,9 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                   <SmartImage
                     category="region"
                     usageContext={currentRegion.id}
-                    tags={[currentRegion.name.toLowerCase(), currentRegion.country.toLowerCase()]}
+                    tags={[currentRegion.name.toLowerCase(), currentRegion.country.toLowerCase(), 'landscape', 'mountains']}
                     className="w-full h-full object-cover"
-                    fallbackSrc={currentRegion.image}
+                    fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=500&fit=crop"
                     alt={`${currentRegion.name} mountain landscape - ${currentRegion.description}`}
                     priority="high"
                   />
@@ -445,12 +455,12 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
               <SmartImage
-                category="tour"
-                usageContext="dolomites"
-                tags={['dolomites', 'summit', 'adventure', 'dramatic']}
+                category="adventure"
+                usageContext="dolomites_summit"
+                tags={['dolomites', 'summit', 'tre_cime', 'dramatic', 'clouds']}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=750&fit=crop"
-                alt="Dramatic Dolomites summit with hikers enjoying panoramic alpine views"
+                alt="Dramatic Dolomites Tre Cime peaks rising above sea of clouds at sunrise"
                 priority="medium"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -462,12 +472,12 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
 
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
               <SmartImage
-                category="tour"
-                usageContext="scotland"
-                tags={['scotland', 'highlands', 'loch', 'misty']}
+                category="adventure"
+                usageContext="highland_mysteries"
+                tags={['scotland', 'glen_coe', 'boats', 'tropical', 'mystery']}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 fallbackSrc="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600&h=750&fit=crop"
-                alt="Misty Scottish Highlands with ancient loch reflecting dramatic mountain peaks"
+                alt="Traditional wooden boats in crystal clear tropical waters of Glen Coe area"
                 priority="medium"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -479,12 +489,12 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
 
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
               <SmartImage
-                category="tour"
-                usageContext="pyrenees"
-                tags={['pyrenees', 'alpine', 'meadow', 'wilderness']}
+                category="adventure"
+                usageContext="alpine_paradise"
+                tags={['pyrenees', 'alpine', 'meadows', 'wildflowers', 'peaks']}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 fallbackSrc="https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=600&h=750&fit=crop"
-                alt="Pristine Pyrenees alpine meadows with wildflowers and snow-capped peaks"
+                alt="Pristine Pyrenees alpine meadows blooming with wildflowers beneath snow-capped peaks"
                 priority="medium"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
