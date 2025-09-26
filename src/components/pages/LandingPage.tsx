@@ -465,11 +465,11 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
               <SmartImage
-                category="adventure"
-                usageContext="dolomites_summit"
-                tags={['dolomites', 'summit', 'tre_cime', 'dramatic', 'clouds']}
+                category="landscape"
+                usageContext="hero"
+                tags={['dolomites', 'limestone', 'peaks', 'alpine', 'dramatic']}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=750&fit=crop"
+                fallbackSrc=""
                 alt="Dramatic Dolomites Tre Cime peaks rising above sea of clouds at sunrise"
                 priority="medium"
               />
@@ -483,11 +483,11 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
               <SmartImage
                 category="adventure"
-                usageContext="highland_mysteries"
-                tags={['scotland', 'glen_coe', 'boats', 'tropical', 'mystery']}
+                usageContext="tours"
+                tags={['scotland', 'highlands', 'via ferrata', 'mountain trail', 'panoramic view']}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                fallbackSrc="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600&h=750&fit=crop"
-                alt="Traditional wooden boats in crystal clear tropical waters of Glen Coe area"
+                fallbackSrc=""
+                alt="Highland adventure trail with panoramic mountain views in Scotland"
                 priority="medium"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -499,12 +499,12 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
 
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden group cursor-pointer">
               <SmartImage
-                category="adventure"
-                usageContext="alpine_paradise"
-                tags={['pyrenees', 'alpine', 'meadows', 'wildflowers', 'peaks']}
+                category="mountains"
+                usageContext="background"
+                tags={['alpine', 'meadow', 'wilderness', 'peaks', 'panorama']}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                fallbackSrc="https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=600&h=750&fit=crop"
-                alt="Pristine Pyrenees alpine meadows blooming with wildflowers beneath snow-capped peaks"
+                fallbackSrc=""
+                alt="Pristine alpine meadows with wildflowers beneath mountain peaks"
                 priority="medium"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
