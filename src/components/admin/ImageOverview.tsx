@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Filter, Eye, Edit2, Trash2, User, Calendar } from 'lucide-react';
+import { Search, Filter, Eye, Edit2, Trash2, User, Calendar, CheckSquare, Square } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ExtendedWebsiteImage {
@@ -45,6 +46,8 @@ export const ImageOverview = () => {
   const [selectedImage, setSelectedImage] = useState<ExtendedWebsiteImage | null>(null);
   const [imageDetails, setImageDetails] = useState<{width: number, height: number, size: number} | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editForm, setEditForm] = useState({
     alt_text: '',
     description: '',
@@ -259,6 +262,100 @@ export const ImageOverview = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Bulk selection functions
+  const toggleImageSelection = (imageId: string) => {
+    setSelectedImages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(imageId)) {
+        newSet.delete(imageId);
+      } else {
+        newSet.add(imageId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllImages = () => {
+    if (selectedImages.size === filteredImages.length) {
+      // If all are selected, deselect all
+      setSelectedImages(new Set());
+    } else {
+      // Select all visible images
+      setSelectedImages(new Set(filteredImages.map(img => img.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedImages.size === 0) {
+      toast.error('No images selected');
+      return;
+    }
+
+    const selectedCount = selectedImages.size;
+    if (!confirm(`Are you sure you want to delete ${selectedCount} selected image(s)? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    let deletedCount = 0;
+    let errorCount = 0;
+
+    try {
+      for (const imageId of selectedImages) {
+        const image = extendedImages.find(img => img.id === imageId);
+        if (!image) continue;
+
+        try {
+          // Delete from storage
+          const { error: storageError } = await supabase.storage
+            .from(image.bucket_id)
+            .remove([image.file_path]);
+
+          if (storageError) {
+            console.error('Storage deletion error:', storageError);
+            errorCount++;
+            continue;
+          }
+
+          // Delete from database
+          const { error: dbError } = await supabase
+            .from('website_images')
+            .delete()
+            .eq('id', imageId);
+
+          if (dbError) {
+            console.error('Database deletion error:', dbError);
+            errorCount++;
+            continue;
+          }
+
+          deletedCount++;
+        } catch (error) {
+          console.error('Error deleting image:', error);
+          errorCount++;
+        }
+      }
+
+      if (deletedCount > 0) {
+        toast.success(`Successfully deleted ${deletedCount} image(s)`);
+        
+        // Clear selections and refresh images
+        setSelectedImages(new Set());
+        await fetchImages();
+      }
+
+      if (errorCount > 0) {
+        toast.error(`Failed to delete ${errorCount} image(s)`);
+      }
+
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      toast.error('Failed to delete images');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64">Loading images...</div>;
   }
@@ -267,9 +364,27 @@ export const ImageOverview = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Image Overview ({filteredImages.length} images)
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Image Overview ({filteredImages.length} images)
+            </div>
+            {selectedImages.size > 0 && (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">
+                  {selectedImages.size} selected
+                </Badge>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  {isDeleting ? 'Deleting...' : `Delete ${selectedImages.size}`}
+                </Button>
+              </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -338,13 +453,46 @@ export const ImageOverview = () => {
             </Button>
           </div>
 
+          {/* Bulk Actions */}
+          {filteredImages.length > 0 && (
+            <div className="flex items-center justify-between mb-4 p-3 bg-muted rounded-lg">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedImages.size === filteredImages.length && filteredImages.length > 0}
+                  onCheckedChange={selectAllImages}
+                />
+                <Label className="text-sm font-medium">
+                  {selectedImages.size === filteredImages.length && filteredImages.length > 0
+                    ? 'Deselect All'
+                    : 'Select All'
+                  } ({filteredImages.length} images)
+                </Label>
+              </div>
+              {selectedImages.size > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  {selectedImages.size} image{selectedImages.size === 1 ? '' : 's'} selected
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Image Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {filteredImages.map((image) => (
-              <Dialog key={image.id}>
-                <DialogTrigger asChild>
-                  <div
-                    className="relative group cursor-pointer rounded-lg overflow-hidden border hover:border-primary transition-colors"
+              <div key={image.id} className="relative">
+                {/* Selection Checkbox */}
+                <div className="absolute top-2 right-2 z-10">
+                  <Checkbox
+                    checked={selectedImages.has(image.id)}
+                    onCheckedChange={() => toggleImageSelection(image.id)}
+                    className="bg-white/80 backdrop-blur-sm"
+                  />
+                </div>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <div
+                      className="relative group cursor-pointer rounded-lg overflow-hidden border hover:border-primary transition-colors"
                     onClick={() => handleImageClick(image)}
                   >
                     <img
@@ -577,6 +725,7 @@ export const ImageOverview = () => {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
             ))}
           </div>
 
