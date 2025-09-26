@@ -48,6 +48,24 @@ export const ImageOverview = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editingSections, setEditingSections] = useState<{
+    altText: boolean;
+    description: boolean;
+    tags: boolean;
+    category: boolean;
+    usageContext: boolean;
+    priority: boolean;
+    status: boolean;
+  }>({
+    altText: false,
+    description: false,
+    tags: false,
+    category: false,
+    usageContext: false,
+    priority: false,
+    status: false,
+  });
+  const [savingSections, setSavingSections] = useState<Set<string>>(new Set());
   const [editForm, setEditForm] = useState({
     alt_text: '',
     description: '',
@@ -187,35 +205,70 @@ export const ImageOverview = () => {
     img.src = getImageUrl(image);
   };
 
-  const handleUpdateImage = async () => {
+  // Section-specific save functions
+  const saveSectionData = async (section: string, data: any) => {
     if (!selectedImage) return;
 
+    setSavingSections(prev => new Set([...prev, section]));
+    
     try {
-      const updates = {
-        alt_text: editForm.alt_text,
-        description: editForm.description,
-        tags: editForm.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        category: editForm.category,
-        usage_context: editForm.usage_context.split(',').map(ctx => ctx.trim()).filter(Boolean),
-        priority: editForm.priority,
-        is_active: editForm.is_active,
-        updated_at: new Date().toISOString()
-      };
-
       const { error } = await supabase
         .from('website_images')
-        .update(updates)
+        .update({ ...data, updated_at: new Date().toISOString() })
         .eq('id', selectedImage.id);
 
       if (error) throw error;
 
-      toast.success('Image updated successfully');
-      setIsEditing(false);
+      toast.success(`${section} updated successfully`);
+      setEditingSections(prev => ({ ...prev, [section]: false }));
       fetchImages();
+      
+      // Update the selected image to reflect changes
+      setSelectedImage(prev => prev ? { ...prev, ...data } : null);
     } catch (error) {
-      console.error('Error updating image:', error);
-      toast.error('Failed to update image');
+      console.error(`Error updating ${section}:`, error);
+      toast.error(`Failed to update ${section}`);
+    } finally {
+      setSavingSections(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(section);
+        return newSet;
+      });
     }
+  };
+
+  const handleSaveAltText = () => {
+    saveSectionData('altText', { alt_text: editForm.alt_text });
+  };
+
+  const handleSaveDescription = () => {
+    saveSectionData('description', { description: editForm.description });
+  };
+
+  const handleSaveTags = () => {
+    const tags = editForm.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+    saveSectionData('tags', { tags });
+  };
+
+  const handleSaveCategory = () => {
+    saveSectionData('category', { category: editForm.category });
+  };
+
+  const handleSaveUsageContext = () => {
+    const usage_context = editForm.usage_context.split(',').map(ctx => ctx.trim()).filter(Boolean);
+    saveSectionData('usageContext', { usage_context });
+  };
+
+  const handleSavePriority = () => {
+    saveSectionData('priority', { priority: editForm.priority });
+  };
+
+  const handleSaveStatus = () => {
+    saveSectionData('status', { is_active: editForm.is_active });
+  };
+
+  const toggleSectionEdit = (section: keyof typeof editingSections) => {
+    setEditingSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   const handleDeleteImage = async (imageId: string) => {
@@ -552,119 +605,23 @@ export const ImageOverview = () => {
                     </div>
 
                     <div className="space-y-4">
-                      {!isEditing ? (
-                        <>
-                          <div>
-                            <Label className="text-sm font-medium">Category</Label>
-                            <Badge className="ml-2">{image.category}</Badge>
-                          </div>
-
-                          <div>
-                            <Label className="text-sm font-medium">Alt Text</Label>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {image.alt_text || 'No alt text'}
-                            </p>
-                          </div>
-
-                          <div>
-                            <Label className="text-sm font-medium">Description</Label>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {image.description || 'No description'}
-                            </p>
-                          </div>
-
-                          <div>
-                            <Label className="text-sm font-medium">Tags</Label>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {image.tags.map(tag => (
-                                <Badge key={tag} variant="outline" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <Label className="text-sm font-medium">Usage Context</Label>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {image.usage_context?.map(ctx => (
-                                <Badge key={ctx} variant="secondary" className="text-xs">
-                                  {ctx}
-                                </Badge>
-                              )) || <span className="text-sm text-muted-foreground">None</span>}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-4">
-                            <div>
-                              <Label className="text-sm font-medium">Priority</Label>
-                              <p className="text-sm text-muted-foreground">{image.priority || 0}/10</p>
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium">Status</Label>
-                              <Badge variant={image.is_active ? "default" : "destructive"} className="ml-2">
-                                {image.is_active ? 'Active' : 'Inactive'}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          {imageDetails && (
-                            <div>
-                              <Label className="text-sm font-medium">Image Details</Label>
-                              <div className="text-sm text-muted-foreground mt-1">
-                                <div>Dimensions: {imageDetails.width} × {imageDetails.height} pixels</div>
-                                {imageDetails.size > 0 && (
-                                  <div>File Size: {formatFileSize(imageDetails.size)}</div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="border-t pt-4">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <User className="h-4 w-4" />
-                              <span>{image.uploader_name} ({image.uploader_role})</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>Uploaded {new Date(image.created_at).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="alt_text">Alt Text</Label>
-                            <Input
-                              id="alt_text"
-                              value={editForm.alt_text}
-                              onChange={(e) => setEditForm({...editForm, alt_text: e.target.value})}
-                              placeholder="Descriptive alt text for accessibility"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea
-                              id="description"
-                              value={editForm.description}
-                              onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                              placeholder="Detailed description"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="tags">Tags (comma-separated)</Label>
-                            <Input
-                              id="tags"
-                              value={editForm.tags}
-                              onChange={(e) => setEditForm({...editForm, tags: e.target.value})}
-                              placeholder="hiking, mountains, adventure"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="category">Category</Label>
+                      {/* Category Section */}
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-sm font-medium">Category</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleSectionEdit('category')}
+                            disabled={savingSections.has('category')}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {!editingSections.category ? (
+                          <Badge>{image.category}</Badge>
+                        ) : (
+                          <div className="space-y-2">
                             <Select value={editForm.category} onValueChange={(value) => setEditForm({...editForm, category: value})}>
                               <SelectTrigger>
                                 <SelectValue />
@@ -681,46 +638,246 @@ export const ImageOverview = () => {
                                 <SelectItem value="adventure">Adventure</SelectItem>
                               </SelectContent>
                             </Select>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={handleSaveCategory} disabled={savingSections.has('category')}>
+                                {savingSections.has('category') ? 'Saving...' : 'Save'}
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('category')}>
+                                Cancel
+                              </Button>
+                            </div>
                           </div>
+                        )}
+                      </div>
 
-                          <div>
-                            <Label htmlFor="usage_context">Usage Context (comma-separated)</Label>
+                      {/* Alt Text Section */}
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-sm font-medium">Alt Text</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleSectionEdit('altText')}
+                            disabled={savingSections.has('altText')}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {!editingSections.altText ? (
+                          <p className="text-sm text-muted-foreground">
+                            {image.alt_text || 'No alt text'}
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
                             <Input
-                              id="usage_context"
+                              value={editForm.alt_text}
+                              onChange={(e) => setEditForm({...editForm, alt_text: e.target.value})}
+                              placeholder="Descriptive alt text for accessibility"
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={handleSaveAltText} disabled={savingSections.has('altText')}>
+                                {savingSections.has('altText') ? 'Saving...' : 'Save'}
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('altText')}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Description Section */}
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-sm font-medium">Description</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleSectionEdit('description')}
+                            disabled={savingSections.has('description')}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {!editingSections.description ? (
+                          <p className="text-sm text-muted-foreground">
+                            {image.description || 'No description'}
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editForm.description}
+                              onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                              placeholder="Detailed description"
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={handleSaveDescription} disabled={savingSections.has('description')}>
+                                {savingSections.has('description') ? 'Saving...' : 'Save'}
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('description')}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Tags Section */}
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-sm font-medium">Tags</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleSectionEdit('tags')}
+                            disabled={savingSections.has('tags')}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {!editingSections.tags ? (
+                          <div className="flex flex-wrap gap-1">
+                            {image.tags.map(tag => (
+                              <Badge key={tag} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Input
+                              value={editForm.tags}
+                              onChange={(e) => setEditForm({...editForm, tags: e.target.value})}
+                              placeholder="hiking, mountains, adventure"
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={handleSaveTags} disabled={savingSections.has('tags')}>
+                                {savingSections.has('tags') ? 'Saving...' : 'Save'}
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('tags')}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Usage Context Section */}
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-sm font-medium">Usage Context</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleSectionEdit('usageContext')}
+                            disabled={savingSections.has('usageContext')}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {!editingSections.usageContext ? (
+                          <div className="flex flex-wrap gap-1">
+                            {image.usage_context?.map(ctx => (
+                              <Badge key={ctx} variant="secondary" className="text-xs">
+                                {ctx}
+                              </Badge>
+                            )) || <span className="text-sm text-muted-foreground">None</span>}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Input
                               value={editForm.usage_context}
                               onChange={(e) => setEditForm({...editForm, usage_context: e.target.value})}
                               placeholder="landing, tours, gallery"
                             />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={handleSaveUsageContext} disabled={savingSections.has('usageContext')}>
+                                {savingSections.has('usageContext') ? 'Saving...' : 'Save'}
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('usageContext')}>
+                                Cancel
+                              </Button>
+                            </div>
                           </div>
+                        )}
+                      </div>
 
-                          <div>
-                            <Label htmlFor="priority">Priority (1-10)</Label>
-                            <Input
-                              id="priority"
-                              type="number"
-                              min="1"
-                              max="10"
-                              value={editForm.priority}
-                              onChange={(e) => setEditForm({...editForm, priority: parseInt(e.target.value)})}
-                            />
+                      {/* Priority and Status Section */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <Label className="text-sm font-medium">Priority</Label>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => toggleSectionEdit('priority')}
+                              disabled={savingSections.has('priority')}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
                           </div>
-
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id="is_active"
-                              checked={editForm.is_active}
-                              onChange={(e) => setEditForm({...editForm, is_active: e.target.checked})}
-                            />
-                            <Label htmlFor="is_active">Active</Label>
-                          </div>
-
-                          <div className="flex gap-2">
-                            <Button onClick={handleUpdateImage}>Save Changes</Button>
-                            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-                          </div>
+                          {!editingSections.priority ? (
+                            <p className="text-sm text-muted-foreground">{image.priority || 0}/10</p>
+                          ) : (
+                            <div className="space-y-2">
+                              <Input
+                                type="number"
+                                min="1"
+                                max="10"
+                                value={editForm.priority}
+                                onChange={(e) => setEditForm({...editForm, priority: parseInt(e.target.value)})}
+                              />
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={handleSavePriority} disabled={savingSections.has('priority')}>
+                                  {savingSections.has('priority') ? 'Saving...' : 'Save'}
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('priority')}>
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
+
+                        <div className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <Label className="text-sm font-medium">Status</Label>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => toggleSectionEdit('status')}
+                              disabled={savingSections.has('status')}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {!editingSections.status ? (
+                            <Badge variant={image.is_active ? "default" : "destructive"}>
+                              {image.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id="is_active"
+                                  checked={editForm.is_active}
+                                  onChange={(e) => setEditForm({...editForm, is_active: e.target.checked})}
+                                />
+                                <Label htmlFor="is_active">Active</Label>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={handleSaveStatus} disabled={savingSections.has('status')}>
+                                  {savingSections.has('status') ? 'Saving...' : 'Save'}
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => toggleSectionEdit('status')}>
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </DialogContent>
