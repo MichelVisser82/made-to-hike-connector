@@ -141,6 +141,8 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                         ? ['location:dolomites'] 
                         : currentRegion.id === 'pyrenees'
                         ? ['location:pyrenees']
+                        : currentRegion.id === 'scottish-highlands'
+                        ? ['location:scotland']
                         : ['location:scotland']
                     }
                     className="w-full h-full object-cover"
