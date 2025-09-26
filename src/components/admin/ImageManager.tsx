@@ -67,6 +67,67 @@ export function ImageManager() {
     }
   };
 
+  const compressImage = (file: File, category: string): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        let { width, height } = img;
+        
+        // Define optimal sizes by category
+        const maxDimensions: Record<string, number> = {
+          hero: 1920,
+          landscape: 1600,
+          hiking: 1200,
+          portrait: 800,
+          detail: 800,
+          equipment: 600,
+          nature: 1200,
+          mountains: 1600,
+          trails: 1200,
+          adventure: 1200
+        };
+        
+        const maxDimension = maxDimensions[category] || 1200;
+        
+        // Resize if needed
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Image compression failed'));
+            return;
+          }
+          
+          const compressedFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+          
+          resolve(compressedFile);
+        }, 'image/jpeg', 0.85);
+      };
+      
+      img.onerror = () => reject(new Error('Image loading failed'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleUpload = async () => {
     if (selectedFiles.length === 0 || !uploadMetadata.category) {
       toast.error('Please select files and category');
@@ -86,9 +147,14 @@ export function ImageManager() {
 
       for (const file of selectedFiles) {
         // Convert HEIC if needed
-        const processedFile = await convertHEIC(file);
+        let processedFile = await convertHEIC(file);
         
-        const result = await uploadImage(processedFile, metadata, uploadMetadata.optimize);
+        // Apply compression if optimization is enabled
+        if (uploadMetadata.optimize) {
+          processedFile = await compressImage(processedFile, uploadMetadata.category);
+        }
+        
+        const result = await uploadImage(processedFile, metadata, false); // Don't double-optimize
         
         if (result.optimization) {
           toast.success(

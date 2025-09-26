@@ -85,17 +85,32 @@ export function BulkImageUpload() {
     }
   };
 
-  const compressImage = (file: File, maxSizeMB = 4): Promise<File> => {
+  const compressImage = (file: File, category: string): Promise<File> => {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
       
       img.onload = () => {
-        // Calculate new dimensions to keep under 4MB
         let { width, height } = img;
-        const maxDimension = 2048;
         
+        // Define optimal sizes by category
+        const maxDimensions: Record<string, number> = {
+          hero: 1920,
+          landscape: 1600,
+          hiking: 1200,
+          portrait: 800,
+          detail: 800,
+          equipment: 600,
+          nature: 1200,
+          mountains: 1600,
+          trails: 1200,
+          adventure: 1200
+        };
+        
+        const maxDimension = maxDimensions[category] || 1200;
+        
+        // Resize if needed
         if (width > maxDimension || height > maxDimension) {
           if (width > height) {
             height = (height * maxDimension) / width;
@@ -123,7 +138,7 @@ export function BulkImageUpload() {
           });
           
           resolve(compressedFile);
-        }, 'image/jpeg', 0.8);
+        }, 'image/jpeg', 0.85);
       };
       
       img.onerror = () => reject(new Error('Image loading failed'));
@@ -169,8 +184,8 @@ export function BulkImageUpload() {
       // Convert HEIC if needed
       let processedFile = await convertHEIC(file);
       
-      // Compress image to stay under 4MB
-      processedFile = await compressImage(processedFile);
+      // Compress image for analysis (using default category if not set yet)
+      processedFile = await compressImage(processedFile, 'landscape');
       
       const base64 = await fileToBase64(processedFile);
       
@@ -346,7 +361,13 @@ export function BulkImageUpload() {
           priority: parseInt(imageData.metadata.priority) || 0,
         };
 
-        await uploadImage(imageData.file, metadata, optimize);
+        // Process file for upload
+        let finalFile = await convertHEIC(imageData.file);
+        if (optimize) {
+          finalFile = await compressImage(finalFile, imageData.metadata.category);
+        }
+        
+        await uploadImage(finalFile, metadata, false); // Don't double-optimize
         successCount++;
       }
 
