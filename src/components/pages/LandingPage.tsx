@@ -60,7 +60,6 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
           category="hero"
           usageContext="landing"
           className="absolute inset-0 w-full h-full object-cover"
-          fallbackSrc="https://images.unsplash.com/photo-1464822759844-d150ad6d1904?w=1920&h=1080&fit=crop"
           alt="Hikers on mountain trail with dramatic alpine landscape"
           priority="high"
         />
@@ -93,7 +92,6 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                   usageContext="trust_indicators"
                   tags={['hikers', 'group', 'celebration', 'success']}
                   className="w-full h-full object-cover opacity-20"
-                  fallbackSrc="https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=200&fit=crop"
                   alt="Group of successful hikers celebrating their mountain adventure"
                 />
                 <div className="absolute inset-0 bg-primary/10" />
@@ -210,7 +208,6 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
             usageContext="teaching"
             tags={['guide', 'mountain', 'expert', 'teaching']}
             className="w-full h-full object-cover"
-            fallbackSrc="https://images.unsplash.com/photo-1551632811-561732d1e306?w=1920&h=800&fit=crop"
             alt="Professional mountain guide teaching hiking techniques to a group"
           />
           <div className="absolute inset-0 bg-black/60" />
@@ -386,7 +383,6 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                 usageContext="testimonial"
                 tags={['hiker', 'portrait', 'happy', 'dolomites']}
                 className="w-full h-48 object-cover"
-                fallbackSrc="https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=200&fit=crop"
                 alt="Happy female hiker Sarah enjoying her Dolomites adventure"
               />
               <div className="p-6">
@@ -409,7 +405,6 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                 usageContext="testimonial"
                 tags={['hiker', 'portrait', 'male', 'scotland']}
                 className="w-full h-48 object-cover"
-                fallbackSrc="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&h=200&fit=crop"
                 alt="Satisfied male hiker James after his Scottish Highlands tour"
               />
               <div className="p-6">
@@ -432,7 +427,6 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                 usageContext="testimonial"
                 tags={['hiker', 'portrait', 'group', 'pyrenees']}
                 className="w-full h-48 object-cover"
-                fallbackSrc="https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=200&fit=crop"
                 alt="Group of hikers celebrating their successful Pyrenees expedition"
               />
               <div className="p-6">
