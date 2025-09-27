@@ -186,7 +186,10 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                     key={region.id}
                     variant={selectedRegion === region.id ? "default" : "outline"}
                     className="w-full justify-start h-auto p-4"
-                    onClick={() => setSelectedRegion(region.id)}
+                    onClick={() => {
+                      setSelectedRegion(region.id);
+                      onNavigateToSearch({ region: region.id });
+                    }}
                   >
                     <div className="text-left">
                       <div className="font-semibold">{region.name}</div>
