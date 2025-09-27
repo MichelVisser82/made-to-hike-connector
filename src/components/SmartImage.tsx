@@ -60,9 +60,20 @@ export function SmartImage({
           }
         }
         
-        // Fallback to original logic for non-location requests
-        if (!image && !locationTag) {
+        // Multiple fallback levels to ensure we always get an image from database
+        if (!image) {
+          // First fallback: try category/context based selection
           image = await getRandomImage({ category, usage_context: usageContext });
+        }
+        
+        if (!image) {
+          // Second fallback: try just category
+          image = await getRandomImage({ category });
+        }
+        
+        if (!image) {
+          // Third fallback: get any random image from database
+          image = await getRandomImage({});
         }
         
         if (image) {
