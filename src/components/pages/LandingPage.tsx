@@ -188,7 +188,8 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                     className="w-full justify-start h-auto p-4"
                     onClick={() => {
                       setSelectedRegion(region.id);
-                      onNavigateToSearch({ region: region.id });
+                      const filterRegion = region.id === 'scottish-highlands' ? 'scotland' : region.id;
+                      onNavigateToSearch({ region: filterRegion });
                     }}
                   >
                     <div className="text-left">
