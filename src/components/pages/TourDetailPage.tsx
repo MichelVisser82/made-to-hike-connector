@@ -468,31 +468,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
           {/* Simplified Sidebar */}
           <div className="space-y-6">
-            <Card className="sticky top-8">
-              <CardHeader>
-                <CardTitle>Tour Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>{tour.currency === 'EUR' ? '€' : '£'}{tour.price} x 1 guest</span>
-                    <span>{tour.currency === 'EUR' ? '€' : '£'}{tour.price}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Service fee</span>
-                    <span>{tour.currency === 'EUR' ? '€' : '£'}{Math.round(tour.price * 0.05)}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-semibold">
-                    <span>Total</span>
-                    <span>
-                      {tour.currency === 'EUR' ? '€' : '£'}
-                      {tour.price + Math.round(tour.price * 0.05)}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Reviews & Testimonials */}
             <Card>
