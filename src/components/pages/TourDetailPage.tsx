@@ -29,27 +29,29 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         
-        {/* Hero Content */}
-        <div className="absolute inset-0 flex flex-col justify-end">
-          <div className="container mx-auto px-4 pb-8">
-            <Button
-              variant="ghost"
-              onClick={onBackToSearch}
-              className="mb-4 text-white hover:bg-white/10"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Search
-            </Button>
-            
+      {/* Hero Content */}
+      <div className="absolute inset-0">
+        <div className="container mx-auto px-4 h-full flex flex-col">
+          <Button
+            variant="ghost"
+            onClick={onBackToSearch}
+            className="mt-4 mb-4 text-white hover:bg-white/10 self-start"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Search
+          </Button>
+          
+          <div className="flex-1 flex items-end justify-between pb-8">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center gap-1 text-white/90">
-                  <Star className="h-4 w-4 text-accent fill-current" />
-                  <span className="text-sm">{tour.rating}</span>
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map((star) => (
+                    <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
+                  ))}
+                  <span className="text-sm text-white/90 ml-1">{tour.rating}</span>
                 </div>
-                <Badge variant="secondary" className="bg-white/10 text-white border-white/20">
-                  {tour.difficulty}
-                </Badge>
+                <span className="text-white/60">•</span>
+                <span className="text-sm text-white/90">43 reviews</span>
               </div>
               
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">{tour.title}</h1>
@@ -71,39 +73,72 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </div>
             </div>
             
-            {/* Action Buttons */}
-            <div className="absolute top-4 right-4 flex gap-2">
-              <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                <Heart className="h-4 w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </div>
+            {/* Guide Profile Card in Hero */}
+            <Card className="w-80 bg-white/95 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <SmartImage
+                    category="guide"
+                    usageContext="professional"
+                    tags={['portrait', 'guide', 'professional', 'certified']}
+                    className="w-12 h-12 rounded-full object-cover"
+                    fallbackSrc={tour.guide_avatar}
+                    alt={`${tour.guide_name} - Professional hiking guide`}
+                  />
+                  <div>
+                    <h3 className="font-semibold">{tour.guide_name}</h3>
+                    <p className="text-sm text-muted-foreground">Your Guide</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="text-sm">
+                    <div className="font-medium">From</div>
+                    <div className="text-2xl font-bold">
+                      {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
+                      <span className="text-sm font-normal text-muted-foreground"> / person</span>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => onBookTour(tour)}
+                    className="w-full bg-primary hover:bg-primary/90"
+                  >
+                    Reserve
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground">You won't be charged yet</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-3 space-y-8">
             {/* Features Grid */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 border rounded-lg">
-                <Mountain className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <div className="font-semibold text-sm">Epic Views</div>
-                <div className="text-xs text-muted-foreground">Stunning panoramas</div>
+            <div className="grid grid-cols-3 gap-6">
+              <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Mountain className="h-6 w-6 text-primary" />
+                </div>
+                <div className="font-semibold">Epic Scenery</div>
+                <div className="text-sm text-muted-foreground">Breathtaking mountain views and pristine landscapes</div>
               </div>
-              <div className="text-center p-4 border rounded-lg">
-                <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <div className="font-semibold text-sm">Small Groups</div>
-                <div className="text-xs text-muted-foreground">Max {tour.group_size} people</div>
+              <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Users className="h-6 w-6 text-primary" />
+                </div>
+                <div className="font-semibold">Small Groups</div>
+                <div className="text-sm text-muted-foreground">Intimate groups of max {tour.group_size} adventurers</div>
               </div>
-              <div className="text-center p-4 border rounded-lg">
-                <Shield className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <div className="font-semibold text-sm">Safety First</div>
-                <div className="text-xs text-muted-foreground">Certified guides</div>
+              <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Shield className="h-6 w-6 text-primary" />
+                </div>
+                <div className="font-semibold">100% Safety</div>
+                <div className="text-sm text-muted-foreground">Certified guides and safety equipment included</div>
               </div>
             </div>
 
@@ -133,8 +168,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 <CardTitle>Tour Photos</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className="col-span-2 md:col-span-1 row-span-2 aspect-square rounded-lg overflow-hidden">
+                <div className="flex gap-4">
+                  <div className="flex-1 aspect-video rounded-lg overflow-hidden">
                     <SmartImage
                       category="tour"
                       usageContext={tour.region}
@@ -144,82 +179,92 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       alt={`${tour.title} - Featured landscape view`}
                     />
                   </div>
-                  <div className="aspect-square rounded-lg overflow-hidden">
-                    <SmartImage
-                      category="tour"
-                      usageContext={tour.region}
-                      tags={[tour.region, 'trail', 'hiking']}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      fallbackSrc={tour.images[0]}
-                      alt={`${tour.title} - Trail views`}
-                    />
-                  </div>
-                  <div className="aspect-square rounded-lg overflow-hidden">
-                    <SmartImage
-                      category="tour"
-                      usageContext={tour.region}
-                      tags={[tour.region, 'summit', 'peak']}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      fallbackSrc={tour.images[0]}
-                      alt={`${tour.title} - Summit views`}
-                    />
-                  </div>
-                  <div className="aspect-square rounded-lg overflow-hidden">
-                    <SmartImage
-                      category="tour"
-                      usageContext={tour.region}
-                      tags={[tour.region, 'group', 'adventure']}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      fallbackSrc={tour.images[0]}
-                      alt={`${tour.title} - Group adventures`}
-                    />
-                  </div>
-                  <div className="aspect-square rounded-lg overflow-hidden">
-                    <SmartImage
-                      category="tour"
-                      usageContext={tour.region}
-                      tags={[tour.region, 'nature', 'wildlife']}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      fallbackSrc={tour.images[0]}
-                      alt={`${tour.title} - Nature and wildlife`}
-                    />
+                  <div className="flex flex-col gap-3 w-32">
+                    <div className="aspect-square rounded-lg overflow-hidden">
+                      <SmartImage
+                        category="tour"
+                        usageContext={tour.region}
+                        tags={[tour.region, 'trail', 'hiking']}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        fallbackSrc={tour.images[0]}
+                        alt={`${tour.title} - Trail views`}
+                      />
+                    </div>
+                    <div className="aspect-square rounded-lg overflow-hidden">
+                      <SmartImage
+                        category="tour"
+                        usageContext={tour.region}
+                        tags={[tour.region, 'summit', 'peak']}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        fallbackSrc={tour.images[0]}
+                        alt={`${tour.title} - Summit views`}
+                      />
+                    </div>
+                    <div className="aspect-square rounded-lg overflow-hidden">
+                      <SmartImage
+                        category="tour"
+                        usageContext={tour.region}
+                        tags={[tour.region, 'group', 'adventure']}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        fallbackSrc={tour.images[0]}
+                        alt={`${tour.title} - Group adventures`}
+                      />
+                    </div>
                   </div>
                 </div>
+                <p className="text-sm text-muted-foreground mt-4 text-center">
+                  See all photos from this amazing adventure
+                </p>
               </CardContent>
             </Card>
 
             {/* Fitness Requirements */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Dumbbell className="h-5 w-5" />
-                  Fitness Requirements
-                </CardTitle>
+                <CardTitle>Fitness Requirements</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <div className="font-medium">Fitness Level</div>
-                      <div className="text-sm text-muted-foreground">
-                        {tour.difficulty === 'easy' ? 'Suitable for beginners' : 
-                         tour.difficulty === 'moderate' ? 'Moderate fitness required' : 
-                         'High fitness level required'}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium mb-3">Required</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <span className="text-sm">Good overall fitness level</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <span className="text-sm">Able to walk for 6+ hours</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <span className="text-sm">Previous hiking experience</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <span className="text-sm">Comfortable with heights</span>
                       </div>
                     </div>
-                    <Badge variant={tour.difficulty === 'easy' ? 'secondary' : 
-                                  tour.difficulty === 'moderate' ? 'default' : 'destructive'}>
-                      {tour.difficulty}
-                    </Badge>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3">
-                      <Activity className="h-5 w-5 text-primary" />
-                      <span className="text-sm">Regular hiking experience recommended</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-primary" />
-                      <span className="text-sm">All fitness levels welcome</span>
+                  <div>
+                    <h4 className="font-medium mb-3">Provided</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                        <span className="text-sm">Professional hiking guide</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                        <span className="text-sm">Safety equipment included</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                        <span className="text-sm">Emergency first aid kit</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                        <span className="text-sm">Route guidance & navigation</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -229,17 +274,40 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* Route Map */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Route className="h-5 w-5" />
-                  Tour Route Map
-                </CardTitle>
+                <CardTitle>Tour Route Map</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-muted rounded-lg p-8 text-center">
-                  <Navigation className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <div className="font-medium mb-2">Interactive Route Map</div>
-                  <div className="text-sm text-muted-foreground">
-                    Detailed map showing the complete hiking route, waypoints, and key landmarks
+                <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-6 relative h-64">
+                  <div className="absolute inset-4 bg-green-100/50 rounded-lg">
+                    <div className="w-full h-full relative">
+                      {/* Route visualization */}
+                      <div className="absolute top-4 left-4 w-3 h-3 bg-green-600 rounded-full"></div>
+                      <div className="absolute top-4 left-4 w-32 h-1 bg-green-600 rounded-full transform rotate-12"></div>
+                      <div className="absolute top-8 left-16 w-3 h-3 bg-blue-600 rounded-full"></div>
+                      <div className="absolute top-8 left-16 w-24 h-1 bg-blue-600 rounded-full transform rotate-45"></div>
+                      <div className="absolute top-16 left-32 w-3 h-3 bg-orange-600 rounded-full"></div>
+                      <div className="absolute top-16 left-32 w-20 h-1 bg-orange-600 rounded-full transform rotate-12"></div>
+                      <div className="absolute top-20 right-16 w-3 h-3 bg-red-600 rounded-full"></div>
+                      
+                      {/* Legend */}
+                      <div className="absolute bottom-2 left-2 bg-white/80 rounded p-2 text-xs">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                          <span>Start Point</span>
+                        </div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                          <span>Viewpoint</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                          <span>Summit</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-4 right-4 text-sm text-muted-foreground">
+                    Distance: 12.5km • Elevation: +850m
                   </div>
                 </div>
               </CardContent>
@@ -373,17 +441,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           <div className="space-y-6">
             <Card className="sticky top-8">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">From</div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-4 w-4 text-muted-foreground" />
-                    <Share2 className="h-4 w-4 text-muted-foreground" />
+                <div className="text-center">
+                  <div className="text-sm text-muted-foreground mb-1">From</div>
+                  <div className="text-3xl font-bold">
+                    {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </div>
+                  <div className="text-sm text-muted-foreground">per person</div>
                 </div>
-                <div className="text-3xl font-bold">
-                  {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
-                </div>
-                <div className="text-sm text-muted-foreground">per person</div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
