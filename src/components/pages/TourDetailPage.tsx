@@ -143,9 +143,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-8">
+          <div className="space-y-8">
             {/* Features Grid */}
             <div className="grid grid-cols-3 gap-6">
               <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
@@ -466,83 +466,191 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
           </div>
 
-          {/* Simplified Sidebar */}
-          <div className="space-y-6">
-
-            {/* Reviews & Testimonials */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-accent fill-current" />
-                  Reviews & Testimonials
-                </CardTitle>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {/* Reviews & Testimonials - Bottom Section */}
+          <section className="py-12 bg-muted/30">
+            <div className="container mx-auto px-4">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold mb-2">Reviews & Testimonials</h2>
+                <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    {[1,2,3,4,5].map((star) => (
+                      <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
                   <span>{tour.rating} • {tour.reviews_count} reviews</span>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-l-4 border-primary pl-4">
-                  <p className="text-sm italic mb-2">
-                    "An absolutely incredible experience! The views were breathtaking and {tour.guide_name} was an amazing guide."
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-muted rounded-full"></div>
-                    <span className="text-xs text-muted-foreground">Sarah M. • 2 weeks ago</span>
-                  </div>
-                </div>
-                <div className="border-l-4 border-primary pl-4">
-                  <p className="text-sm italic mb-2">
-                    "Perfect for our fitness level. Well organized and safe throughout the entire journey."
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-muted rounded-full"></div>
-                    <span className="text-xs text-muted-foreground">Mike R. • 1 month ago</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+              
+              <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                <Card className="bg-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-1 mb-3">
+                      {[1,2,3,4,5].map((star) => (
+                        <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-sm italic mb-4">
+                      "An absolutely incredible experience! The views were breathtaking and our guide was knowledgeable and friendly."
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <SmartImage
+                        category="guide"
+                        usageContext="review"
+                        tags={['person', 'profile', 'reviewer']}
+                        className="w-8 h-8 rounded-full object-cover"
+                        fallbackSrc="/placeholder-avatar.jpg"
+                        alt="Reviewer profile"
+                      />
+                      <div>
+                        <div className="text-sm font-medium">Sarah M.</div>
+                        <div className="text-xs text-muted-foreground">March 2024</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-1 mb-3">
+                      {[1,2,3,4,5].map((star) => (
+                        <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-sm italic mb-4">
+                      "Perfect for adventurers! Well organized, safe, and the scenery was beyond our expectations."
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <SmartImage
+                        category="guide"
+                        usageContext="review"
+                        tags={['person', 'profile', 'reviewer']}
+                        className="w-8 h-8 rounded-full object-cover"
+                        fallbackSrc="/placeholder-avatar.jpg"
+                        alt="Reviewer profile"
+                      />
+                      <div>
+                        <div className="text-sm font-medium">James R.</div>
+                        <div className="text-xs text-muted-foreground">February 2024</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-1 mb-3">
+                      {[1,2,3,4,5].map((star) => (
+                        <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-sm italic mb-4">
+                      "Highly recommend! The guide's expertise made all the difference. Amazing photos and memories."
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <SmartImage
+                        category="guide"
+                        usageContext="review"
+                        tags={['person', 'profile', 'reviewer']}
+                        className="w-8 h-8 rounded-full object-cover"
+                        fallbackSrc="/placeholder-avatar.jpg"
+                        alt="Reviewer profile"
+                      />
+                      <div>
+                        <div className="text-sm font-medium">Emma L.</div>
+                        <div className="text-xs text-muted-foreground">January 2024</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </section>
 
-            {/* Other Tours in Area */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Other Tours in the Area</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex gap-3 p-2 border rounded-lg cursor-pointer hover:bg-muted/50">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden">
+          {/* Other Tours in the Area */}
+          <section className="py-12">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-bold text-center mb-8">Other Tours in the Area</h2>
+              <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                <Card className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow">
+                  <div className="relative aspect-[4/3]">
                     <SmartImage
                       category="tour"
-                      usageContext={tour.region}
-                      tags={[tour.region, 'alternative', 'nearby']}
-                      className="w-full h-full object-cover"
-                      fallbackSrc={tour.images[0]}
-                      alt="Alternative tour option"
+                      usageContext="scottish-highlands"
+                      tags={['mountains', 'landscape', 'glen', 'adventure']}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fallbackSrc="/placeholder-tour.jpg"
+                      alt="Ben Nevis Summit Challenge"
                     />
+                    <div className="absolute top-3 right-3">
+                      <Badge className="bg-white/90 text-primary font-medium">Popular</Badge>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">Beginner {tour.region.replace('-', ' ')} Hike</div>
-                    <div className="text-xs text-muted-foreground">From {tour.currency === 'EUR' ? '€' : '£'}{Math.round(tour.price * 0.7)}</div>
-                  </div>
-                </div>
-                <div className="flex gap-3 p-2 border rounded-lg cursor-pointer hover:bg-muted/50">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">Ben Nevis Summit Challenge</h3>
+                    <p className="text-sm text-muted-foreground mb-3">Conquer the UK's highest peak with expert guides</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-sm">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span>4.8 (127)</span>
+                      </div>
+                      <div className="text-sm font-medium">From £{Math.round(tour.price * 1.2)}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow">
+                  <div className="relative aspect-[4/3]">
                     <SmartImage
                       category="tour"
-                      usageContext={tour.region}
-                      tags={[tour.region, 'challenging', 'advanced']}
-                      className="w-full h-full object-cover"
-                      fallbackSrc={tour.images[0]}
-                      alt="Advanced tour option"
+                      usageContext="scottish-highlands"
+                      tags={['loch', 'castle', 'landscape', 'scenic']}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fallbackSrc="/placeholder-tour.jpg"
+                      alt="Loch Ness & Castle Tour"
                     />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">Advanced {tour.region.replace('-', ' ')} Trek</div>
-                    <div className="text-xs text-muted-foreground">From {tour.currency === 'EUR' ? '€' : '£'}{Math.round(tour.price * 1.3)}</div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">Loch Ness & Castle Tour</h3>
+                    <p className="text-sm text-muted-foreground mb-3">Explore mysterious waters and ancient castles</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-sm">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span>4.6 (89)</span>
+                      </div>
+                      <div className="text-sm font-medium">From £{Math.round(tour.price * 0.8)}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow">
+                  <div className="relative aspect-[4/3]">
+                    <SmartImage
+                      category="tour"
+                      usageContext="scottish-highlands"
+                      tags={['glen', 'waterfall', 'hiking', 'nature']}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fallbackSrc="/placeholder-tour.jpg"
+                      alt="Highland Glens Explorer"
+                    />
+                    <div className="absolute top-3 right-3">
+                      <Badge className="bg-white/90 text-primary font-medium">New</Badge>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">Highland Glens Explorer</h3>
+                    <p className="text-sm text-muted-foreground mb-3">Discover hidden waterfalls and ancient valleys</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-sm">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span>4.9 (45)</span>
+                      </div>
+                      <div className="text-sm font-medium">From £{Math.round(tour.price * 1.1)}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
