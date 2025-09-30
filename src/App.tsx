@@ -9,7 +9,6 @@ import NotFound from "./pages/NotFound";
 import TourPage from "./pages/TourPage";
 import GuidePage from "./pages/GuidePage";
 import GuideSignupPage from "./pages/GuideSignupPage";
-import GuideProfileEditPage from "./pages/GuideProfileEditPage";
 import { EmailTest } from "./components/EmailTest";
 import { Auth } from "./pages/Auth";
 import { VerifyEmail } from "./pages/VerifyEmail";
@@ -33,7 +32,6 @@ const App: React.FC = () => {
             <Route path="/tours/:slug" element={<TourPage />} />
             <Route path="/guides/:guideId" element={<GuidePage />} />
             <Route path="/guide/signup" element={<GuideSignupPage />} />
-            <Route path="/guide/profile/edit" element={<GuideProfileEditPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

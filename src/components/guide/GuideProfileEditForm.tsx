@@ -60,6 +60,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     display_name: '',
     location: '',
     bio: '',
+    experience_years: 0,
     specialties: [] as string[],
     guiding_areas: [] as string[],
     terrain_capabilities: [] as string[],
@@ -95,6 +96,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         display_name: profile.display_name || '',
         location: profile.location || '',
         bio: profile.bio || '',
+        experience_years: (profile as any).experience_years || 0,
         specialties: profile.specialties || [],
         guiding_areas: profile.guiding_areas || [],
         terrain_capabilities: profile.terrain_capabilities || [],
@@ -327,6 +329,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           display_name: formData.display_name,
           location: formData.location,
           bio: formData.bio,
+          experience_years: formData.experience_years,
           profile_image_url: profileImageUrl,
           hero_background_url: heroImageUrl,
           specialties: formData.specialties,
@@ -764,6 +767,22 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                 </Badge>
               ))}
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="experience_years">Years of Guiding Experience</Label>
+            <Input
+              id="experience_years"
+              type="number"
+              min="0"
+              max="50"
+              value={formData.experience_years}
+              onChange={(e) => setFormData({ ...formData, experience_years: parseInt(e.target.value) || 0 })}
+              placeholder="e.g., 5"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              This will be displayed on your public profile
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
