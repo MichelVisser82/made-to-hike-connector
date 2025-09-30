@@ -23,7 +23,7 @@ export function useGuideProfile(guideId: string | undefined) {
       } as unknown as GuideProfile;
     },
     enabled: !!guideId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fetch fresh data
   });
 }
 

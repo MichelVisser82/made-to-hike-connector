@@ -362,10 +362,13 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       if (error) throw error;
 
-      // Invalidate all guide-related queries to ensure fresh data everywhere
-      await queryClient.invalidateQueries({ queryKey: ['my-guide-profile'] });
-      await queryClient.invalidateQueries({ queryKey: ['guide-profile', user.id] });
-      await refetch();
+      // Aggressively invalidate ALL guide profile queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['my-guide-profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['guide-profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['guide-stats'] }),
+        refetch()
+      ]);
       
       toast({
         title: "Profile updated",
