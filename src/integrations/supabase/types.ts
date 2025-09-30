@@ -231,6 +231,8 @@ export type Database = {
           is_active: boolean
           itinerary: Json | null
           meeting_point: string
+          meta_description: string | null
+          meta_title: string | null
           pack_weight: number | null
           price: number
           rating: number | null
@@ -238,6 +240,7 @@ export type Database = {
           reviews_count: number | null
           service_fee: number | null
           short_description: string | null
+          slug: string | null
           terrain_types: string[] | null
           title: string
           updated_at: string
@@ -264,6 +267,8 @@ export type Database = {
           is_active?: boolean
           itinerary?: Json | null
           meeting_point: string
+          meta_description?: string | null
+          meta_title?: string | null
           pack_weight?: number | null
           price: number
           rating?: number | null
@@ -271,6 +276,7 @@ export type Database = {
           reviews_count?: number | null
           service_fee?: number | null
           short_description?: string | null
+          slug?: string | null
           terrain_types?: string[] | null
           title: string
           updated_at?: string
@@ -297,6 +303,8 @@ export type Database = {
           is_active?: boolean
           itinerary?: Json | null
           meeting_point?: string
+          meta_description?: string | null
+          meta_title?: string | null
           pack_weight?: number | null
           price?: number
           rating?: number | null
@@ -304,6 +312,7 @@ export type Database = {
           reviews_count?: number | null
           service_fee?: number | null
           short_description?: string | null
+          slug?: string | null
           terrain_types?: string[] | null
           title?: string
           updated_at?: string
@@ -456,6 +465,10 @@ export type Database = {
       add_admin_role_if_user_exists: {
         Args: { user_email: string }
         Returns: undefined
+      }
+      generate_tour_slug: {
+        Args: { tour_region: string; tour_title: string }
+        Returns: string
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
