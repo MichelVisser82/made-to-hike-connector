@@ -2,7 +2,7 @@ import { useGuideProfile } from '@/hooks/useGuideProfile';
 import { useGuideStats } from '@/hooks/useGuideStats';
 import { useGuideTours } from '@/hooks/useGuideTours';
 import { useGuideReviews } from '@/hooks/useGuideReviews';
-import { GuideProfilePage } from './GuideProfilePage';
+import { GuideProfileContent } from './GuideProfileContent';
 import { Loader2 } from 'lucide-react';
 
 interface GuideProfilePageWrapperProps {
@@ -20,7 +20,7 @@ export function GuideProfilePageWrapper({ guideId }: GuideProfilePageWrapperProp
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -28,14 +28,14 @@ export function GuideProfilePageWrapper({ guideId }: GuideProfilePageWrapperProp
 
   if (!guide || !stats) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <p className="text-lg text-muted-foreground mb-4">Guide profile not found</p>
       </div>
     );
   }
 
   return (
-    <GuideProfilePage
+    <GuideProfileContent
       guide={guide}
       stats={stats}
       tours={tours}
