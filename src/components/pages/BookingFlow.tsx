@@ -53,14 +53,25 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
   const { data: fetchedGuide, isLoading: isLoadingGuide } = useGuideProfile(guide ? undefined : tour.guide_id);
   const { data: fetchedStats, isLoading: isLoadingStats } = useGuideStats(stats ? undefined : tour.guide_id);
   
-  // Use props if available, otherwise use fetched data
+  // Three-level fallback system
   const guideData = guide || fetchedGuide;
   const statsData = stats || fetchedStats;
   const isLoading = isLoadingGuide || isLoadingStats;
   
-  console.log('BookingFlow - Guide Data:', guideData);
-  console.log('BookingFlow - Stats Data:', statsData);
-  console.log('BookingFlow - Certifications:', guideData?.certifications);
+  // Enhanced fallbacks using tour object as middle layer
+  const guideDisplayName = guide?.display_name || tour.guide_name || fetchedGuide?.display_name || 'Professional Guide';
+  const guideImage = guide?.profile_image_url || tour.guide_avatar || fetchedGuide?.profile_image_url;
+  const guideCertification = guide?.certifications?.[0]?.title || fetchedGuide?.certifications?.[0]?.title || 'Certified Professional';
+  
+  console.log('BookingFlow - Fallback levels:', {
+    propGuide: !!guide,
+    tourGuideId: tour.guide_id,
+    tourGuideName: tour.guide_name,
+    tourGuideAvatar: tour.guide_avatar,
+    fetchedGuide: !!fetchedGuide,
+    finalName: guideDisplayName,
+    finalCertification: guideCertification
+  });
   
   const selectedDateOption = mockDateOptions.find(d => d.date === selectedDate);
   const tourPrice = selectedDateOption?.price || tour.price;
@@ -106,26 +117,20 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
             <div className="flex items-start gap-4 pr-16">
               <Avatar className="h-20 w-20">
                 <AvatarImage 
-                  src={guideData?.profile_image_url || tour.guide_avatar || ''} 
-                  alt={guideData?.display_name || tour.guide_name} 
+                  src={guideImage || ''} 
+                  alt={guideDisplayName} 
                 />
                 <AvatarFallback>
-                  {(guideData?.display_name || tour.guide_name).split(' ').map(n => n[0]).join('')}
+                  {guideDisplayName.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold mb-1">
-                  {guideData?.display_name || tour.guide_name}
+                  {guideDisplayName}
                 </h3>
-                {guideData?.certifications && guideData.certifications.length > 0 ? (
-                  <p className="text-primary font-semibold mb-1">
-                    {typeof guideData.certifications[0] === 'string' 
-                      ? guideData.certifications[0] 
-                      : (guideData.certifications[0]?.title || 'Certified Professional')}
-                  </p>
-                ) : (
-                  <p className="text-primary font-semibold mb-1">Professional Guide</p>
-                )}
+                <p className="text-primary font-semibold mb-1">
+                  {guideCertification}
+                </p>
                 {(() => {
                   if (guideData?.active_since) {
                     const yearsExperience = new Date().getFullYear() - new Date(guideData.active_since).getFullYear();
