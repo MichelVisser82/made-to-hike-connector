@@ -153,14 +153,22 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
               <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <SmartImage
-                      category="guide"
-                      usageContext="professional"
-                      tags={['portrait', 'guide', 'professional', 'certified']}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
-                      fallbackSrc={tour.guide_avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'}
-                      alt={`${tour.guide_name || 'Professional Guide'} - Professional hiking guide`}
-                    />
+                    {guide?.profile_image_url || tour.guide_avatar ? (
+                      <img
+                        src={guide?.profile_image_url || tour.guide_avatar}
+                        alt={`${guide?.display_name || tour.guide_name || 'Professional Guide'} - Professional hiking guide`}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
+                      />
+                    ) : (
+                      <SmartImage
+                        category="guide"
+                        usageContext="professional"
+                        tags={['portrait', 'guide', 'professional', 'certified']}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
+                        fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                        alt={`${guide?.display_name || tour.guide_name || 'Professional Guide'} - Professional hiking guide`}
+                      />
+                    )}
                     <div>
                       <h3 className="font-semibold text-base">{tour.guide_name || 'Professional Guide'}</h3>
                       <p className="text-xs text-muted-foreground">Professional Guide</p>
