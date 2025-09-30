@@ -456,17 +456,15 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                           <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-                            {expandedItinerary[index] 
-                              ? item.shortDesc 
-                              : `${item.shortDesc.substring(0, 120)}...`
-                            }
+                            {item.shortDesc}
                           </p>
                           
-                          {expandedItinerary[index] && (
-                            <p className="text-sm text-muted-foreground leading-relaxed mt-3 animate-fade-in">
-                              {item.longDesc}
-                            </p>
-                          )}
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {expandedItinerary[index] 
+                              ? item.longDesc
+                              : `${item.longDesc.substring(0, 120)}...`
+                            }
+                          </p>
                           
                           <button
                             onClick={() => toggleItinerary(index)}
