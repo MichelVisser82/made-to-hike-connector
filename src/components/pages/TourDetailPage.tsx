@@ -15,6 +15,15 @@ interface TourDetailPageProps {
 }
 
 export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailPageProps) {
+  const [expandedTours, setExpandedTours] = useState<Record<number, boolean>>({});
+
+  const toggleExpanded = (index: number) => {
+    setExpandedTours(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -657,12 +666,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     badge: "New",
                     tags: ['glen', 'waterfall', 'hiking', 'nature']
                   }
-                ].map((otherTour, index) => {
-                  const [isExpanded, setIsExpanded] = useState(false);
-                  
-                  return (
-                    <Card key={index} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                      <div className="relative aspect-[3/2]">
+                ].map((otherTour, index) => (
+                  <Card key={index} className="overflow-hidden group hover:shadow-lg transition-shadow">
+                    <div className="relative aspect-[3/2]">
                         <SmartImage
                           category="tour"
                           usageContext="scottish-highlands"
@@ -685,17 +691,17 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                             {otherTour.shortDesc}
                           </p>
                           
-                          {isExpanded && (
+                          {expandedTours[index] && (
                             <p className="text-sm text-muted-foreground leading-relaxed mt-3">
                               {otherTour.longDesc}
                             </p>
                           )}
                           
                           <button
-                            onClick={() => setIsExpanded(!isExpanded)}
+                            onClick={() => toggleExpanded(index)}
                             className="text-sm text-primary hover:underline mt-2 font-medium"
                           >
-                            {isExpanded ? "Show less" : "Read more"}
+                            {expandedTours[index] ? "Show less" : "Read more"}
                           </button>
                         </div>
                         
@@ -709,8 +715,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         </div>
                       </CardContent>
                     </Card>
-                  );
-                })}
+                  ))}
               </div>
             </div>
           </section>
