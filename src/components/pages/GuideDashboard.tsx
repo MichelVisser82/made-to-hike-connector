@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface GuideDashboardProps {
   user: User;
-  onTourClick: (tourId: string) => void;
+  onTourClick: (tour: Tour) => void;
   onStartVerification: () => void;
   onCreateTour: (tourData?: Tour) => void;
   onEditTour: (tour: Tour) => void;
