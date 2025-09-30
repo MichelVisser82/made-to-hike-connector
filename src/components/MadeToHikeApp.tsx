@@ -13,10 +13,6 @@ import { PendingBookingFlow } from './pages/PendingBookingFlow';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { VerificationFlow } from './pages/VerificationFlow';
 import { TourCreationFlow } from './tour-creation/TourCreationFlow';
-import { DecisionManager } from './DecisionManager';
-import { WireframePreloader } from './WireframePreloader';
-import { WireframeNotification } from './WireframeNotification';
-import { WireframeDesign } from './WireframeDesign';
 import { GuideProfilePageWrapper } from './pages/GuideProfilePageWrapper';
 import { Footer } from './layout/Footer';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
@@ -40,7 +36,6 @@ function AppContent() {
     dateRange: '',
     maxPrice: ''
   });
-  const [wireframeDecisions, setWireframeDecisions] = useState<any>(null);
   const [pendingBookingEmail, setPendingBookingEmail] = useState<string | null>(null);
   const [viewingGuideId, setViewingGuideId] = useState<string | null>(null);
   
@@ -56,17 +51,6 @@ function AppContent() {
     verified: false
   } as User : null);
 
-  useEffect(() => {
-    // Load wireframe decisions
-    const savedDecisions = localStorage.getItem('madetohike-wireframe-decisions');
-    if (savedDecisions) {
-      try {
-        setWireframeDecisions(JSON.parse(savedDecisions));
-      } catch (e) {
-        console.error('Failed to load wireframe decisions:', e);
-      }
-    }
-  }, []);
 
   // Auto-redirect authenticated users to dashboard
   useEffect(() => {
@@ -149,14 +133,6 @@ function AppContent() {
     setCurrentPage('guide-profile');
   };
 
-  const handleApplyDecisions = (decisions: any) => {
-    setWireframeDecisions(decisions);
-    if (decisions) {
-      console.log('Applied wireframe decisions:', decisions);
-      // Here you would apply the decisions to customize the marketplace
-      // This could involve updating design tokens, feature flags, etc.
-    }
-  };
 
   const renderCurrentPage = () => {
     switch (currentPage) {
@@ -279,17 +255,6 @@ function AppContent() {
             }}
           />
         ) : null;
-      case 'settings':
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-3xl font-bold mb-8">Marketplace Settings</h1>
-              <DecisionManager onApplyDecisions={handleApplyDecisions} />
-            </div>
-          </div>
-        );
-      case 'wireframe':
-        return <WireframeDesign />;
       default:
         return null;
     }
@@ -297,9 +262,6 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Auto-load wireframe decisions */}
-      <WireframePreloader />
-
       {/* Global Navigation */}
       <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
@@ -327,20 +289,6 @@ function AppContent() {
                   Find Tours
                 </button>
               )}
-
-              <button
-                onClick={() => setCurrentPage('settings')}
-                className="text-sm hover:text-primary"
-              >
-                Settings
-              </button>
-
-              <button
-                onClick={() => setCurrentPage('wireframe')}
-                className="text-sm hover:text-primary"
-              >
-                Wireframes
-              </button>
 
               {user && user.role === 'admin' && (
                 <button
@@ -430,9 +378,6 @@ function AppContent() {
           tourTitle={selectedTour.title}
         />
       )}
-
-      {/* Wireframe Decisions Notification */}
-      <WireframeNotification />
 
       {/* Footer */}
       <Footer 
