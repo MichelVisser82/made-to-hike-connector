@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async';
+import { useEffect } from 'react';
 import type { Tour } from '@/types';
 
 interface StructuredDataProps {
@@ -88,17 +88,35 @@ export function StructuredData({ tour }: StructuredDataProps) {
     ]
   };
 
-  return (
-    <Helmet>
-      <script type="application/ld+json">
-        {JSON.stringify(touristTripSchema)}
-      </script>
-      <script type="application/ld+json">
-        {JSON.stringify(organizationSchema)}
-      </script>
-      <script type="application/ld+json">
-        {JSON.stringify(breadcrumbSchema)}
-      </script>
-    </Helmet>
-  );
+  useEffect(() => {
+    // Add structured data scripts to document head
+    const scripts = [
+      { id: 'schema-tourist-trip', data: touristTripSchema },
+      { id: 'schema-organization', data: organizationSchema },
+      { id: 'schema-breadcrumb', data: breadcrumbSchema }
+    ];
+
+    scripts.forEach(({ id, data }) => {
+      let script = document.getElementById(id) as HTMLScriptElement;
+      if (!script) {
+        script = document.createElement('script');
+        script.id = id;
+        script.type = 'application/ld+json';
+        document.head.appendChild(script);
+      }
+      script.textContent = JSON.stringify(data);
+    });
+
+    // Cleanup function
+    return () => {
+      scripts.forEach(({ id }) => {
+        const script = document.getElementById(id);
+        if (script) {
+          document.head.removeChild(script);
+        }
+      });
+    };
+  }, [touristTripSchema, organizationSchema, breadcrumbSchema]);
+
+  return null;
 }
