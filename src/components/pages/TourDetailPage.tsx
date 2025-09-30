@@ -133,7 +133,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
             
             {/* Guide Profile & Booking Card in Hero */}
-            <Card className="w-96 bg-white/95 backdrop-blur-sm absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
+            <Card className="w-96 bg-white/95 backdrop-blur-sm absolute top-1/2 right-8 -translate-y-1/2">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
