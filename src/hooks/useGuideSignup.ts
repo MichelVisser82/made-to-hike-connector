@@ -72,6 +72,9 @@ export function useGuideSignup() {
   const submitSignup = async () => {
     setIsSubmitting(true);
     try {
+      // Check if user is already logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
       // Convert images to base64 for edge function
       let profileImageBase64: string | undefined;
       const portfolioImagesBase64: string[] = [];
@@ -90,7 +93,8 @@ export function useGuideSignup() {
       // Call edge function to create guide account
       const { data, error } = await supabase.functions.invoke('guide-signup', {
         body: {
-          email: formData.email,
+          userId: user?.id, // Pass existing user ID if logged in
+          email: formData.email || user?.email,
           password: formData.password,
           guideData: {
             display_name: formData.display_name,

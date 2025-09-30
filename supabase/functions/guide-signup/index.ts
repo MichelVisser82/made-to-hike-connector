@@ -17,48 +17,73 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password, guideData } = await req.json();
+    const { email, password, guideData, userId: existingUserId } = await req.json();
 
-    if (!email || !password) {
-      throw new Error('Email and password are required');
+    let userId: string;
+
+    // If userId is provided, use existing user (already logged in scenario)
+    if (existingUserId) {
+      userId = existingUserId;
+    } else {
+      // Create new user
+      if (!email || !password) {
+        throw new Error('Email and password are required for new user creation');
+      }
+
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          name: guideData.display_name,
+          role: 'guide',
+        }
+      });
+
+      if (authError) {
+        // If user already exists, try to get their ID
+        if (authError.message?.includes('already been registered')) {
+          const { data: existingUser } = await supabase.auth.admin.listUsers();
+          const user = existingUser.users.find(u => u.email === email);
+          if (user) {
+            userId = user.id;
+          } else {
+            throw new Error('User exists but could not be found');
+          }
+        } else {
+          throw authError;
+        }
+      } else {
+        if (!authData.user) throw new Error('User creation failed');
+        userId = authData.user.id;
+      }
     }
 
-    // Create user with admin privileges
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        name: guideData.display_name,
-        role: 'guide',
-      }
-    });
-
-    if (authError) throw authError;
-    if (!authData.user) throw new Error('User creation failed');
-
-    const userId = authData.user.id;
-
-    // Create profile
+    // Create profile if it doesn't exist
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
+      .upsert({
         id: userId,
         email: email,
         name: guideData.display_name,
+      }, {
+        onConflict: 'id'
       });
 
     if (profileError) throw profileError;
 
-    // Assign guide role
+    // Assign guide role if not already assigned
     const { error: roleError } = await supabase
       .from('user_roles')
-      .insert({
+      .upsert({
         user_id: userId,
         role: 'guide',
+      }, {
+        onConflict: 'user_id,role'
       });
 
     if (roleError) throw roleError;
+
 
     // Upload images if provided
     let profileImageUrl: string | undefined;
@@ -99,10 +124,10 @@ serve(async (req) => {
       }
     }
 
-    // Create guide profile with admin privileges
+    // Create or update guide profile
     const { error: guideProfileError } = await supabase
       .from('guide_profiles')
-      .insert({
+      .upsert({
         user_id: userId,
         display_name: guideData.display_name,
         bio: guideData.bio,
@@ -123,6 +148,8 @@ serve(async (req) => {
         languages_spoken: guideData.languages_spoken || ['English'],
         profile_completed: true,
         verified: false,
+      }, {
+        onConflict: 'user_id'
       });
 
     if (guideProfileError) throw guideProfileError;
