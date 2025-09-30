@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, Heart, Share2, 
-         Mountain, Navigation, Dumbbell, Activity, Route } from 'lucide-react';
+         Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown } from 'lucide-react';
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 
@@ -16,6 +16,8 @@ interface TourDetailPageProps {
 
 export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailPageProps) {
   const [expandedItinerary, setExpandedItinerary] = useState<Record<number, boolean>>({});
+  const [showDateDropdown, setShowDateDropdown] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const toggleItinerary = (index: number) => {
     setExpandedItinerary(prev => ({
@@ -23,6 +25,48 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       [index]: !prev[index]
     }));
   };
+
+  // Mock date options with pricing and discounts
+  const dateOptions = [
+    {
+      date: '2025-10-15',
+      dateRange: 'Oct 15-19',
+      price: tour.price - 50,
+      originalPrice: tour.price,
+      discount: 'Early Bird',
+      spotsLeft: 3,
+      savings: 50
+    },
+    {
+      date: '2025-10-22',
+      dateRange: 'Oct 22-26',
+      price: tour.price - 30,
+      originalPrice: tour.price,
+      discount: 'Limited Spots',
+      spotsLeft: 2,
+      savings: 30
+    },
+    {
+      date: '2025-11-05',
+      dateRange: 'Nov 5-9',
+      price: tour.price,
+      originalPrice: null,
+      discount: null,
+      spotsLeft: 6,
+      savings: null
+    },
+    {
+      date: '2025-11-12',
+      dateRange: 'Nov 12-16',
+      price: tour.price,
+      originalPrice: null,
+      discount: null,
+      spotsLeft: 8,
+      savings: null
+    }
+  ];
+
+  const selectedDateOption = dateOptions.find(d => d.date === selectedDate);
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,66 +128,170 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
             
             {/* Guide Profile & Booking Card in Hero */}
-            <Card className="w-80 bg-white/95 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <SmartImage
-                    category="guide"
-                    usageContext="professional"
-                    tags={['portrait', 'guide', 'professional', 'certified']}
-                    className="w-12 h-12 rounded-full object-cover"
-                    fallbackSrc={tour.guide_avatar}
-                    alt={`${tour.guide_name} - Professional hiking guide`}
-                  />
-                  <div>
-                    <h3 className="font-semibold">{tour.guide_name}</h3>
-                    <p className="text-sm text-muted-foreground">Your Guide</p>
+            <Card className="w-96 bg-white/95 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <SmartImage
+                      category="guide"
+                      usageContext="professional"
+                      tags={['portrait', 'guide', 'professional', 'certified']}
+                      className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
+                      fallbackSrc={tour.guide_avatar}
+                      alt={`${tour.guide_name} - Professional hiking guide`}
+                    />
+                    <div>
+                      <h3 className="font-semibold text-base">{tour.guide_name}</h3>
+                      <p className="text-xs text-muted-foreground">Professional Guide</p>
+                      <div className="flex flex-col gap-0.5 mt-1">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Award className="h-3 w-3" />
+                          <span>IFMGA Certified</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">5+ years experience</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <Award className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Price Display */}
+                <div className="text-center py-3 border-y">
+                  <div className="text-sm text-muted-foreground mb-1">From</div>
+                  <div className="text-3xl font-bold">
+                    {tour.currency === 'EUR' ? '€' : '£'}{selectedDateOption?.price || tour.price}
+                    <span className="text-base font-normal text-muted-foreground"> / person</span>
                   </div>
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground mb-1">From</div>
-                    <div className="text-2xl font-bold">
-                      {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
-                      <span className="text-sm font-normal text-muted-foreground"> / person</span>
+                {/* Date Selection Dropdown */}
+                <div className="relative">
+                  <label className="block text-sm font-medium mb-2">Select a Date</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowDateDropdown(!showDateDropdown)}
+                    className="w-full px-4 py-3 border rounded-lg bg-background hover:border-primary transition-colors flex items-center justify-between text-left"
+                  >
+                    <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
+                      {selectedDate 
+                        ? dateOptions.find(d => d.date === selectedDate)?.dateRange 
+                        : "Choose available dates"}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showDateDropdown && (
+                    <div className="absolute z-50 w-full mt-2 bg-popover border rounded-lg shadow-lg max-h-80 overflow-auto">
+                      {dateOptions.map((option) => (
+                        <button
+                          key={option.date}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDate(option.date);
+                            setShowDateDropdown(false);
+                          }}
+                          className="w-full px-4 py-3 hover:bg-accent transition-colors border-b last:border-b-0 text-left"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm mb-1">{option.dateRange}</div>
+                              <div className="flex items-center gap-2">
+                                <Users className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">
+                                  {option.spotsLeft} {option.spotsLeft === 1 ? 'spot' : 'spots'} left
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              {option.discount && (
+                                <Badge variant="secondary" className="mb-1 text-xs px-2 py-0">
+                                  {option.discount}
+                                </Badge>
+                              )}
+                              <div className="flex flex-col">
+                                {option.originalPrice && (
+                                  <span className="text-xs text-muted-foreground line-through">
+                                    {tour.currency === 'EUR' ? '€' : '£'}{option.originalPrice}
+                                  </span>
+                                )}
+                                <span className="font-bold text-base">
+                                  {tour.currency === 'EUR' ? '€' : '£'}{option.price}
+                                </span>
+                                {option.savings && (
+                                  <span className="text-xs text-green-600">
+                                    Save {tour.currency === 'EUR' ? '€' : '£'}{option.savings}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Available Spots Indicator */}
+                {selectedDateOption && (
+                  <div className="bg-accent/50 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">
+                          {selectedDateOption.spotsLeft} of {tour.group_size} spots available
+                        </span>
+                      </div>
+                      {selectedDateOption.spotsLeft <= 3 && (
+                        <Badge variant="destructive" className="text-xs">
+                          Almost Full
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Choose Date</label>
-                    <select className="w-full px-3 py-2 border rounded-md bg-background">
-                      <option value="">Select available date</option>
-                      {tour.available_dates.map((date) => (
-                        <option key={date} value={date}>
-                          {new Date(date).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                )}
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Guests</label>
-                    <select className="w-full px-3 py-2 border rounded-md bg-background">
-                      {Array.from({ length: tour.group_size }, (_, i) => (
-                        <option key={i + 1} value={i + 1}>
-                          {i + 1} {i === 0 ? 'guest' : 'guests'}
-                        </option>
-                      ))}
-                    </select>
+                {/* Pricing Summary */}
+                {selectedDateOption && (
+                  <div className="space-y-2 py-3 border-y">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Tour price</span>
+                      <span className="font-medium">
+                        {tour.currency === 'EUR' ? '€' : '£'}{selectedDateOption.price}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-semibold">
+                      <span>Total</span>
+                      <span>
+                        {tour.currency === 'EUR' ? '€' : '£'}{selectedDateOption.price}
+                      </span>
+                    </div>
                   </div>
-                  
+                )}
+                
+                {/* Action Buttons */}
+                <div className="space-y-2">
                   <Button 
                     onClick={() => onBookTour(tour)}
-                    className="w-full bg-primary hover:bg-primary/90"
+                    disabled={!selectedDate}
+                    className="w-full h-11"
+                    size="lg"
                   >
-                    Reserve
+                    {selectedDate ? 'Book Now' : 'Select a Date to Book'}
                   </Button>
-                  <p className="text-xs text-center text-muted-foreground">You won't be charged yet</p>
+                  <Button 
+                    variant="outline"
+                    className="w-full h-11"
+                    size="lg"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Message Guide
+                  </Button>
+                  {selectedDate && (
+                    <p className="text-xs text-center text-muted-foreground">You won't be charged yet</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
