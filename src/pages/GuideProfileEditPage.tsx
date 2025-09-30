@@ -58,9 +58,11 @@ export default function GuideProfileEditPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Use upsert to handle both insert and update cases
       const { error } = await supabase
         .from('guide_profiles')
-        .update({
+        .upsert({
+          user_id: user.id,
           display_name: formData.display_name,
           bio: formData.bio,
           location: formData.location,
@@ -71,18 +73,20 @@ export default function GuideProfileEditPage() {
           instagram_url: formData.instagram_url,
           facebook_url: formData.facebook_url,
           website_url: formData.website_url,
-        })
-        .eq('user_id', user.id);
+          profile_completed: true,
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) throw error;
 
       toast({
-        title: "Profile Updated",
+        title: "Profile Saved",
         description: "Your changes have been saved successfully.",
       });
     } catch (error: any) {
       toast({
-        title: "Update Failed",
+        title: "Save Failed",
         description: error.message,
         variant: "destructive",
       });
