@@ -47,6 +47,11 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDateOptions, setShowDateOptions] = useState(false);
   
+  // Debug logging to verify guide data
+  console.log('BookingFlow - Guide Data:', guide);
+  console.log('BookingFlow - Stats Data:', stats);
+  console.log('BookingFlow - Certifications:', guide?.certifications);
+  
   const selectedDateOption = mockDateOptions.find(d => d.date === selectedDate);
   const tourPrice = selectedDateOption?.price || tour.price;
   const totalPrice = tourPrice;
@@ -92,24 +97,39 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
                 <h3 className="text-xl font-semibold mb-1">
                   {guide?.display_name || tour.guide_name}
                 </h3>
-                {guide?.certifications && guide.certifications.length > 0 && (
+                {guide?.certifications && guide.certifications.length > 0 ? (
                   <p className="text-primary font-semibold mb-1">
                     {typeof guide.certifications[0] === 'string' 
                       ? guide.certifications[0] 
-                      : guide.certifications[0].title || 'Certified'}
-                  </p>
-                )}
-                {guide?.active_since ? (
-                  <p className="text-sm text-muted-foreground">
-                    {new Date().getFullYear() - new Date(guide.active_since).getFullYear()}+ years experience
-                  </p>
-                ) : stats?.tours_completed ? (
-                  <p className="text-sm text-muted-foreground">
-                    {stats.tours_completed}+ tours completed
+                      : (guide.certifications[0]?.title || 'Certified Professional')}
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Experienced guide</p>
+                  <p className="text-primary font-semibold mb-1">Professional Guide</p>
                 )}
+                {(() => {
+                  if (guide?.active_since) {
+                    const yearsExperience = new Date().getFullYear() - new Date(guide.active_since).getFullYear();
+                    if (yearsExperience > 0) {
+                      return (
+                        <p className="text-sm text-muted-foreground">
+                          {yearsExperience}+ years experience
+                        </p>
+                      );
+                    }
+                  }
+                  if (stats?.tours_completed && stats.tours_completed > 0) {
+                    return (
+                      <p className="text-sm text-muted-foreground">
+                        {stats.tours_completed}+ tours completed
+                      </p>
+                    );
+                  }
+                  return (
+                    <p className="text-sm text-muted-foreground">
+                      Experienced professional
+                    </p>
+                  );
+                })()}
               </div>
             </div>
           </CardHeader>
