@@ -1,11 +1,18 @@
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
 import { Alert, AlertDescription } from '../ui/alert';
-import { CreditCard, Mail, Info } from 'lucide-react';
+import { Mail, MessageCircle, Award, ChevronDown } from 'lucide-react';
 import { type User, type Tour } from '../../types';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Badge } from '../ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 
 interface BookingFlowProps {
   tour: Tour;
@@ -14,11 +21,32 @@ interface BookingFlowProps {
   onCancel: () => void;
 }
 
+// Mock date options with pricing and availability
+interface DateOption {
+  date: string;
+  spotsLeft: number;
+  price: number;
+  originalPrice?: number;
+  discount?: string;
+  savings?: number;
+}
+
+const mockDateOptions: DateOption[] = [
+  { date: 'April 15-17, 2024', spotsLeft: 4, price: 450 },
+  { date: 'April 22-24, 2024', spotsLeft: 2, price: 480 },
+  { date: 'May 6-8, 2024', spotsLeft: 6, price: 405, originalPrice: 450, discount: 'Early Bird', savings: 45 },
+  { date: 'May 13-15, 2024', spotsLeft: 3, price: 450 },
+  { date: 'May 20-22, 2024', spotsLeft: 5, price: 427, originalPrice: 450, discount: 'Limited Spots', savings: 23 },
+];
+
 export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowProps) {
-  const [participants, setParticipants] = useState(1);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showDateOptions, setShowDateOptions] = useState(false);
   
-  const totalPrice = tour.price * participants;
+  const selectedDateOption = mockDateOptions.find(d => d.date === selectedDate);
+  const tourPrice = selectedDateOption?.price || tour.price;
+  const totalPrice = tourPrice;
   
   const handlePayment = async () => {
     setIsProcessing(true);
@@ -43,101 +71,154 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
         )}
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-6 w-6 text-primary" />
-              Complete Your Booking
-            </CardTitle>
+          <CardHeader className="relative pb-4">
+            <div className="absolute top-6 right-6 w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+              <Award className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex items-start gap-4 pr-16">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src="" alt={tour.guide_name} />
+                <AvatarFallback>{tour.guide_name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold mb-1">{tour.guide_name}</h3>
+                <p className="text-primary font-semibold mb-1">IFMGA Certified</p>
+                <p className="text-sm text-muted-foreground">5+ years experience</p>
+              </div>
+            </div>
           </CardHeader>
+          
           <CardContent className="space-y-6">
-            {/* Tour Summary */}
-            <div className="bg-muted/30 p-4 rounded-lg">
-              <h3 className="font-semibold mb-2">Tour Summary</h3>
-              <div className="space-y-1 text-sm">
-                <p><strong>Tour:</strong> {tour.title}</p>
-                <p><strong>Guide:</strong> {tour.guide_name}</p>
-                <p><strong>Duration:</strong> {tour.duration}</p>
-                <p><strong>Meeting Point:</strong> {tour.meeting_point}</p>
-                <p><strong>Price per person:</strong> {tour.currency === 'EUR' ? '€' : '£'}{tour.price}</p>
+            {/* Date Selection */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg">Select Date</h3>
+              <div className="relative">
+                <button
+                  onClick={() => setShowDateOptions(!showDateOptions)}
+                  className="w-full p-4 border rounded-lg text-left flex items-center justify-between hover:bg-muted/50 transition-colors"
+                >
+                  <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
+                    {selectedDate || "Choose your adventure dates"}
+                  </span>
+                  <ChevronDown className={`h-5 w-5 transition-transform ${showDateOptions ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {showDateOptions && (
+                  <div className="absolute z-50 w-full mt-2 bg-background border rounded-lg shadow-lg overflow-hidden">
+                    {mockDateOptions.map((option, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSelectedDate(option.date);
+                          setShowDateOptions(false);
+                        }}
+                        className="w-full p-4 hover:bg-muted/50 transition-colors border-b last:border-b-0 text-left"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="font-semibold mb-1">{option.date}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">{option.spotsLeft} spots left</span>
+                              {option.discount && (
+                                <Badge 
+                                  variant="secondary" 
+                                  className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200"
+                                >
+                                  {option.discount}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xl font-bold">
+                              {tour.currency === 'EUR' ? '€' : '£'}{option.price}
+                            </div>
+                            {option.originalPrice && (
+                              <>
+                                <div className="text-sm text-muted-foreground line-through">
+                                  {tour.currency === 'EUR' ? '€' : '£'}{option.originalPrice}
+                                </div>
+                                <div className="text-sm text-primary font-semibold">
+                                  Save {tour.currency === 'EUR' ? '€' : '£'}{option.savings}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Participants */}
-            <div className="space-y-2">
-              <Label htmlFor="participants">Number of Participants</Label>
-              <Input
-                id="participants"
-                type="number"
-                min="1"
-                max={tour.group_size}
-                value={participants}
-                onChange={(e) => setParticipants(Math.max(1, parseInt(e.target.value) || 1))}
-              />
-              <p className="text-sm text-muted-foreground">
-                Maximum group size: {tour.group_size} people
-              </p>
-            </div>
+            {/* Pricing Summary */}
+            {selectedDate && (
+              <Card className="bg-muted/30 border-0">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Tour price</span>
+                    <span className="text-2xl font-bold">
+                      {tour.currency === 'EUR' ? '€' : '£'}{tourPrice}
+                    </span>
+                  </div>
+                  <div className="border-t pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xl font-bold">Total</span>
+                      <span className="text-2xl font-bold text-primary">
+                        {tour.currency === 'EUR' ? '€' : '£'}{totalPrice}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Payment Details */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Payment Details</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cardNumber">Card Number</Label>
-                  <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expiryDate">Expiry Date</Label>
-                  <Input id="expiryDate" placeholder="MM/YY" />
-                </div>
+            {/* Spots Remaining */}
+            {selectedDateOption && (
+              <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
+                <p className="text-center">
+                  <span className="font-bold text-primary">{selectedDateOption.spotsLeft} spots remaining</span>
+                  <span className="text-muted-foreground"> (max {tour.group_size} hikers)</span>
+                </p>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cvv">CVV</Label>
-                  <Input id="cvv" placeholder="123" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cardName">Cardholder Name</Label>
-                  <Input id="cardName" placeholder="John Doe" />
-                </div>
-              </div>
-            </div>
+            )}
 
-            {/* Total */}
-            <div className="border-t pt-4">
-              <div className="flex justify-between items-center text-lg font-semibold">
-                <span>Total Amount:</span>
-                <span>{tour.currency === 'EUR' ? '€' : '£'}{totalPrice}</span>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-blue-600 mt-0.5" />
-                <div className="text-sm text-blue-700">
-                  <p className="font-semibold mb-1">Booking Terms:</p>
-                  <ul className="space-y-1 text-xs">
-                    <li>• Your booking will be confirmed after email verification</li>
-                    <li>• Full refund available up to 48 hours before the tour</li>
-                    <li>• Guide contact details will be shared 24 hours before the tour</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
+            {/* Action Buttons */}
+            <div className="space-y-3">
               <Button 
                 onClick={handlePayment} 
-                className="flex-1"
-                disabled={isProcessing}
+                className="w-full h-12 text-base"
+                disabled={isProcessing || !selectedDate}
               >
-                {isProcessing ? 'Processing...' : `Pay ${tour.currency === 'EUR' ? '€' : '£'}${totalPrice}`}
+                {isProcessing ? 'Processing...' : 'Book Now'}
               </Button>
-              <Button variant="outline" onClick={onCancel}>
-                Cancel
+              
+              <Button 
+                variant="outline" 
+                className="w-full h-12 text-base"
+                onClick={() => {/* Handle message guide */}}
+              >
+                <MessageCircle className="h-5 w-5 mr-2" />
+                Message Guide
               </Button>
+            </div>
+
+            {/* Tour Summary for Reference */}
+            <div className="pt-4 border-t">
+              <details className="group">
+                <summary className="cursor-pointer font-semibold mb-2 flex items-center justify-between">
+                  Tour Details
+                  <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="bg-muted/30 p-4 rounded-lg mt-2">
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Tour:</strong> {tour.title}</p>
+                    <p><strong>Duration:</strong> {tour.duration}</p>
+                    <p><strong>Meeting Point:</strong> {tour.meeting_point}</p>
+                  </div>
+                </div>
+              </details>
             </div>
           </CardContent>
         </Card>
