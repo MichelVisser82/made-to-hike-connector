@@ -248,6 +248,12 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
             >
               Admin Login
             </button>
+            <button 
+              onClick={() => window.location.href = '/auth?mode=guide'}
+              className="text-muted-foreground hover:text-green-600 transition-colors"
+            >
+              Guide Login
+            </button>
           </div>
         </div>
 

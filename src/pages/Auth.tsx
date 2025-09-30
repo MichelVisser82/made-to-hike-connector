@@ -14,7 +14,7 @@ export const Auth = () => {
   const mode = searchParams.get('mode') || 'signup';
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ 
-    email: mode === 'admin' ? 'michel@madetohike.com' : '', 
+    email: mode === 'admin' ? 'michel@madetohike.com' : mode === 'guide' ? 'guide@madetohike.com' : '', 
     password: '' 
   });
   const { toast } = useToast();
@@ -129,6 +129,64 @@ export const Auth = () => {
       </div>
     );
   }
+
+  if (mode === 'guide') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <Card className="border-green-600/20 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-green-600">🥾 Guide Access</CardTitle>
+              <CardDescription>
+                Quick access portal for verified guides
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="guide-email">Guide Email</Label>
+                  <Input
+                    id="guide-email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="guide-password">Guide Password</Label>
+                  <Input
+                    id="guide-password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter guide password"
+                  />
+                </div>
+
+                <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isLoading}>
+                  {isLoading ? 'Authenticating...' : 'Access Guide Dashboard'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          
+          <div className="text-center">
+            <Button variant="link" onClick={() => navigate('/')}>
+              Back to Main Site
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
 
   if (mode === 'signup') {
     return (
