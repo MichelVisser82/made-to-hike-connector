@@ -67,6 +67,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   ];
 
   const selectedDateOption = dateOptions.find(d => d.date === selectedDate);
+  
+  // Calculate lowest available price
+  const lowestPrice = Math.min(...dateOptions.map(d => d.price));
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,7 +98,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             Back to Search
           </Button>
           
-          <div className="flex-1 flex items-end justify-between pb-8">
+          <div className="flex-1 flex items-center justify-between pb-8 pt-8">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1">
@@ -162,7 +165,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 <div className="text-center py-3 border-y">
                   <div className="text-sm text-muted-foreground mb-1">From</div>
                   <div className="text-3xl font-bold">
-                    {tour.currency === 'EUR' ? '€' : '£'}{selectedDateOption?.price || tour.price}
+                    {tour.currency === 'EUR' ? '€' : '£'}{lowestPrice}
                     <span className="text-base font-normal text-muted-foreground"> / person</span>
                   </div>
                 </div>
@@ -184,7 +187,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   </button>
                   
                   {showDateDropdown && (
-                    <div className="absolute z-50 w-full mt-2 bg-popover border rounded-lg shadow-lg max-h-80 overflow-auto">
+                    <div className="absolute z-[100] w-full mt-2 bg-popover border rounded-lg shadow-lg max-h-80 overflow-auto">
                       {dateOptions.map((option) => (
                         <button
                           key={option.date}
