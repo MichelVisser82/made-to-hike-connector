@@ -327,12 +327,6 @@ function AppContent() {
                   >
                     Sign In
                   </Link>
-                  <Link
-                    to="/auth?mode=signup"
-                    className="text-sm hover:text-primary mr-2"
-                  >
-                    Sign Up
-                  </Link>
                   <button
                     onClick={() => navigate('/guide/signup')}
                     className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90"
