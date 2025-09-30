@@ -177,6 +177,7 @@ export type Database = {
       }
       tours: {
         Row: {
+          archived: boolean | null
           available_dates: string[]
           created_at: string
           currency: Database["public"]["Enums"]["currency"]
@@ -209,6 +210,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived?: boolean | null
           available_dates?: string[]
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
@@ -241,6 +243,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived?: boolean | null
           available_dates?: string[]
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]

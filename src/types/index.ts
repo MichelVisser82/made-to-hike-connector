@@ -40,6 +40,7 @@ export interface Tour {
   reviews_count: number;
   created_at: string;
   is_active: boolean;
+  archived?: boolean;
   pack_weight?: number;
   daily_hours?: string;
   terrain_types?: string[];

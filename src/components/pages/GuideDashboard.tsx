@@ -4,21 +4,35 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { type User, type Tour } from '../../types';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2, Archive, Copy, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SmartImage } from '../SmartImage';
 import { GuideImageLibrary } from '../guide/GuideImageLibrary';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface GuideDashboardProps {
   user: User;
   onTourClick: (tour: Tour) => void;
   onStartVerification: () => void;
-  onCreateTour: () => void;
+  onCreateTour: (tourData?: Tour) => void;
 }
 
 export function GuideDashboard({ user, onTourClick, onStartVerification, onCreateTour }: GuideDashboardProps) {
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchGuideTours();
@@ -44,6 +58,139 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
       setLoading(false);
     }
   };
+
+  const handleDeleteTour = async () => {
+    if (!selectedTour) return;
+
+    try {
+      const { error } = await supabase
+        .from('tours')
+        .delete()
+        .eq('id', selectedTour.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Tour deleted",
+        description: "The tour has been permanently deleted.",
+      });
+
+      fetchGuideTours();
+    } catch (error) {
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete tour. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setSelectedTour(null);
+    }
+  };
+
+  const handleUnpublishTour = async (tour: Tour) => {
+    try {
+      const { error } = await supabase
+        .from('tours')
+        .update({ is_active: false })
+        .eq('id', tour.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Tour unpublished",
+        description: "The tour is no longer visible in search results.",
+      });
+
+      fetchGuideTours();
+    } catch (error) {
+      toast({
+        title: "Unpublish failed",
+        description: "Failed to unpublish tour. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePublishTour = async (tour: Tour) => {
+    try {
+      const { error } = await supabase
+        .from('tours')
+        .update({ is_active: true })
+        .eq('id', tour.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Tour published",
+        description: "The tour is now visible in search results.",
+      });
+
+      fetchGuideTours();
+    } catch (error) {
+      toast({
+        title: "Publish failed",
+        description: "Failed to publish tour. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleArchiveTour = async (tour: Tour) => {
+    try {
+      const { error } = await supabase
+        .from('tours')
+        .update({ archived: true, is_active: false })
+        .eq('id', tour.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Tour archived",
+        description: "The tour has been moved to archived tours.",
+      });
+
+      fetchGuideTours();
+    } catch (error) {
+      toast({
+        title: "Archive failed",
+        description: "Failed to archive tour. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUnarchiveTour = async (tour: Tour) => {
+    try {
+      const { error } = await supabase
+        .from('tours')
+        .update({ archived: false })
+        .eq('id', tour.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Tour restored",
+        description: "The tour has been moved back to your active tours.",
+      });
+
+      fetchGuideTours();
+    } catch (error) {
+      toast({
+        title: "Restore failed",
+        description: "Failed to restore tour. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCopyTour = (tour: Tour) => {
+    // Pass the tour data to create a copy
+    onCreateTour(tour);
+  };
+
+  const activeTours = tours.filter(t => !t.archived);
+  const archivedTours = tours.filter(t => t.archived);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -80,12 +227,13 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
           </TabsList>
 
           <TabsContent value="tours">
-            <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-6">
+              {/* Active Tours */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Your Tours</CardTitle>
                   {user.verified && (
-                    <Button onClick={onCreateTour} size="sm">
+                    <Button onClick={() => onCreateTour()} size="sm">
                       <Plus className="w-4 h-4 mr-2" />
                       Create Tour
                     </Button>
@@ -94,11 +242,11 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                 <CardContent>
                   {loading ? (
                     <p className="text-muted-foreground">Loading your tours...</p>
-                  ) : tours.length === 0 ? (
+                  ) : activeTours.length === 0 ? (
                     <>
                       <p className="text-muted-foreground">No tours created yet.</p>
                       {user.verified && (
-                        <Button onClick={onCreateTour} className="mt-4" variant="outline">
+                        <Button onClick={() => onCreateTour()} className="mt-4" variant="outline">
                           <Plus className="w-4 h-4 mr-2" />
                           Create Your First Tour
                         </Button>
@@ -106,13 +254,15 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                     </>
                   ) : (
                     <div className="space-y-4">
-                      {tours.map((tour) => (
+                      {activeTours.map((tour) => (
                         <div
                           key={tour.id}
-                          onClick={() => onTourClick(tour)}
-                          className="flex gap-4 p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
+                          className="flex gap-4 p-4 border rounded-lg"
                         >
-                          <div className="w-24 h-24 rounded overflow-hidden flex-shrink-0">
+                          <div 
+                            className="w-24 h-24 rounded overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => onTourClick(tour)}
+                          >
                             {tour.hero_image ? (
                               <img src={tour.hero_image} alt={tour.title} className="w-full h-full object-cover" />
                             ) : tour.images[0] ? (
@@ -127,7 +277,10 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                               />
                             )}
                           </div>
-                          <div className="flex-1">
+                          <div 
+                            className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => onTourClick(tour)}
+                          >
                             <h4 className="font-semibold mb-1">{tour.title}</h4>
                             <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                               {tour.description}
@@ -135,15 +288,63 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                             <div className="flex gap-2 text-xs">
                               <Badge variant="secondary">{tour.difficulty}</Badge>
                               <Badge variant="outline">{tour.region}</Badge>
+                              <Badge variant={tour.is_active ? 'default' : 'secondary'}>
+                                {tour.is_active ? 'Published' : 'Unpublished'}
+                              </Badge>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="flex flex-col items-end justify-between">
                             <div className="font-bold text-lg">
                               {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                             </div>
-                            <Badge variant={tour.is_active ? 'default' : 'secondary'} className="mt-2">
-                              {tour.is_active ? 'Active' : 'Inactive'}
-                            </Badge>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCopyTour(tour)}
+                                title="Copy tour"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                              {tour.is_active ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleUnpublishTour(tour)}
+                                  title="Unpublish tour"
+                                >
+                                  <EyeOff className="w-4 h-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handlePublishTour(tour)}
+                                  title="Publish tour"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleArchiveTour(tour)}
+                                title="Archive tour"
+                              >
+                                <Archive className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  setSelectedTour(tour);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                title="Delete tour"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -151,6 +352,92 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                   )}
                 </CardContent>
               </Card>
+
+              {/* Archived Tours */}
+              {archivedTours.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Archived Tours</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {archivedTours.map((tour) => (
+                        <div
+                          key={tour.id}
+                          className="flex gap-4 p-4 border rounded-lg bg-muted/50"
+                        >
+                          <div 
+                            className="w-24 h-24 rounded overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => onTourClick(tour)}
+                          >
+                            {tour.hero_image ? (
+                              <img src={tour.hero_image} alt={tour.title} className="w-full h-full object-cover" />
+                            ) : tour.images[0] ? (
+                              <img src={tour.images[0]} alt={tour.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <SmartImage
+                                category="tour"
+                                usageContext={tour.region}
+                                tags={[tour.region, tour.difficulty]}
+                                className="w-full h-full object-cover"
+                                alt={tour.title}
+                              />
+                            )}
+                          </div>
+                          <div 
+                            className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => onTourClick(tour)}
+                          >
+                            <h4 className="font-semibold mb-1">{tour.title}</h4>
+                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                              {tour.description}
+                            </p>
+                            <div className="flex gap-2 text-xs">
+                              <Badge variant="secondary">{tour.difficulty}</Badge>
+                              <Badge variant="outline">{tour.region}</Badge>
+                              <Badge variant="secondary">Archived</Badge>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end justify-between">
+                            <div className="font-bold text-lg">
+                              {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCopyTour(tour)}
+                                title="Copy tour"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleUnarchiveTour(tour)}
+                                title="Restore tour"
+                              >
+                                <Archive className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  setSelectedTour(tour);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                title="Delete tour"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
@@ -169,6 +456,25 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Tour</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to permanently delete "{selectedTour?.title}"? This action cannot be undone.
+                All bookings and reviews associated with this tour will also be affected.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteTour} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

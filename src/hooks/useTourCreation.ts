@@ -60,21 +60,48 @@ export type TourFormData = z.infer<typeof tourSchema>;
 
 const STORAGE_KEY = 'tour_creation_draft';
 
-export function useTourCreation() {
+export function useTourCreation(initialData?: any) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<TourFormData>({
-    resolver: zodResolver(tourSchema),
-    mode: 'onChange',
-    defaultValues: {
+  const getDefaultValues = () => {
+    if (initialData) {
+      // Convert tour data to form data format
+      return {
+        title: initialData.title + ' (Copy)',
+        short_description: initialData.short_description,
+        description: initialData.description,
+        region: initialData.region,
+        meeting_point: initialData.meeting_point,
+        duration: initialData.duration,
+        difficulty: initialData.difficulty,
+        pack_weight: initialData.pack_weight || 10,
+        daily_hours: initialData.daily_hours || '',
+        terrain_types: initialData.terrain_types || [],
+        distance_km: initialData.distance_km,
+        elevation_gain_m: initialData.elevation_gain_m,
+        available_dates: initialData.available_dates?.map((d: string) => new Date(d)) || [],
+        hero_image: initialData.hero_image,
+        images: initialData.images || [],
+        highlights: initialData.highlights || [],
+        itinerary: initialData.itinerary || [],
+        includes: initialData.includes || [],
+        excluded_items: initialData.excluded_items || [],
+        price: initialData.price,
+        currency: initialData.currency,
+        service_fee: initialData.service_fee || 0,
+        group_size: initialData.group_size,
+      };
+    }
+
+    return {
       title: '',
       short_description: '',
       description: '',
-      region: 'dolomites',
+      region: 'dolomites' as const,
       meeting_point: '',
       duration: '',
-      difficulty: 'moderate',
+      difficulty: 'moderate' as const,
       pack_weight: 10,
       daily_hours: '',
       terrain_types: [],
@@ -87,10 +114,16 @@ export function useTourCreation() {
       includes: [],
       excluded_items: [],
       price: 0,
-      currency: 'EUR',
+      currency: 'EUR' as const,
       service_fee: 0,
       group_size: 8,
-    }
+    };
+  };
+
+  const form = useForm<TourFormData>({
+    resolver: zodResolver(tourSchema),
+    mode: 'onChange',
+    defaultValues: getDefaultValues(),
   });
 
   // Load draft from localStorage on mount

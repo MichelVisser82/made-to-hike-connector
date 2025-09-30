@@ -1,6 +1,7 @@
 import { TourCreationLayout } from './TourCreationLayout';
 import { useTourCreation } from '@/hooks/useTourCreation';
 import { FormProvider } from 'react-hook-form';
+import { type Tour } from '@/types';
 import Step1Welcome from './steps/Step1Welcome';
 import Step2BasicInfo from './steps/Step2BasicInfo';
 import Step3Location from './steps/Step3Location';
@@ -17,6 +18,7 @@ import Step12Review from './steps/Step12Review';
 interface TourCreationFlowProps {
   onComplete: () => void;
   onCancel: () => void;
+  initialData?: Tour;
 }
 
 const stepTitles = [
@@ -34,8 +36,8 @@ const stepTitles = [
   'Review & Publish',
 ];
 
-export function TourCreationFlow({ onComplete, onCancel }: TourCreationFlowProps) {
-  const { form, currentStep, nextStep, prevStep, goToStep, submitTour, isSubmitting, totalSteps } = useTourCreation();
+export function TourCreationFlow({ onComplete, onCancel, initialData }: TourCreationFlowProps) {
+  const { form, currentStep, nextStep, prevStep, goToStep, submitTour, isSubmitting, totalSteps } = useTourCreation(initialData);
 
   const handleBack = () => {
     if (currentStep === 1) {

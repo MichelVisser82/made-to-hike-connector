@@ -29,6 +29,7 @@ function AppContent() {
   const [showGuideSignupModal, setShowGuideSignupModal] = useState(false);
   const [showHikerRegistrationModal, setShowHikerRegistrationModal] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
+  const [tourToCopy, setTourToCopy] = useState<Tour | undefined>(undefined);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     region: '',
     difficulty: '',
@@ -125,7 +126,7 @@ function AppContent() {
     setCurrentPage('verification');
   };
 
-  const navigateToTourCreation = () => {
+  const navigateToTourCreation = (tourData?: Tour) => {
     if (!user || user.role !== 'guide') {
       return;
     }
@@ -133,6 +134,7 @@ function AppContent() {
       navigateToVerification();
       return;
     }
+    setTourToCopy(tourData);
     setCurrentPage('tour-creation');
   };
 
@@ -193,8 +195,15 @@ function AppContent() {
       case 'tour-creation':
         return user && user.role === 'guide' && user.verified ? (
           <TourCreationFlow
-            onComplete={() => setCurrentPage('guide-dashboard')}
-            onCancel={() => setCurrentPage('guide-dashboard')}
+            onComplete={() => {
+              setTourToCopy(undefined);
+              setCurrentPage('guide-dashboard');
+            }}
+            onCancel={() => {
+              setTourToCopy(undefined);
+              setCurrentPage('guide-dashboard');
+            }}
+            initialData={tourToCopy}
           />
         ) : null;
       case 'admin-dashboard':
