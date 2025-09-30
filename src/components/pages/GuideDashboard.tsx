@@ -9,6 +9,7 @@ import { Settings, Plus, Archive, Copy, Trash2, Pencil, Eye, EyeOff, User as Use
 import { supabase } from '@/integrations/supabase/client';
 import { SmartImage } from '../SmartImage';
 import { GuideImageLibrary } from '../guide/GuideImageLibrary';
+import { GuideProfileEditForm } from '../guide/GuideProfileEditForm';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -204,14 +205,6 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
             <p className="text-muted-foreground">Welcome, {user.name}</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate('/guide/profile/edit')}
-            >
-              <UserIcon className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
             <Badge variant={user.verified ? 'default' : 'secondary'}>
               {user.verified ? 'Verified' : 'Pending Verification'}
             </Badge>
@@ -235,6 +228,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
         <Tabs defaultValue="tours" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="tours">Your Tours</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="images">Image Library</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
           </TabsList>
@@ -466,6 +460,14 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                 </Card>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="profile">
+            <GuideProfileEditForm />
+          </TabsContent>
+
+          <TabsContent value="profile">
+            <GuideProfileEditForm />
           </TabsContent>
 
           <TabsContent value="images">

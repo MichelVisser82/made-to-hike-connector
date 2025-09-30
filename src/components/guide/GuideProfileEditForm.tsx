@@ -1,0 +1,586 @@
+import { useState, useEffect } from 'react';
+import { useMyGuideProfile } from '@/hooks/useGuideProfile';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { Label } from '../ui/label';
+import { Button } from '../ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Badge } from '../ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Loader2, Upload, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+const SPECIALTY_OPTIONS = [
+  'Alpine Hiking', 'Mountain Climbing', 'Glacier Trekking', 'Via Ferrata',
+  'Winter Hiking', 'Wildlife Tracking', 'Photography Tours', 'Multi-day Expeditions'
+];
+
+const TERRAIN_OPTIONS = [
+  'Mountain Trails', 'Glacier Routes', 'Forest Paths', 'Coastal Walks',
+  'Alpine Meadows', 'Rocky Terrain', 'Snow & Ice', 'Canyon Routes'
+];
+
+const GUIDING_AREAS = [
+  'Scottish Highlands', 'Lake District', 'Snowdonia', 'Peak District',
+  'Alps', 'Dolomites', 'Pyrenees', 'Carpathians', 'Scandinavian Mountains'
+];
+
+const LANGUAGES = [
+  'English', 'German', 'French', 'Italian', 'Spanish', 
+  'Dutch', 'Norwegian', 'Swedish', 'Polish', 'Czech'
+];
+
+export function GuideProfileEditForm() {
+  const { data: profile, isLoading, refetch } = useMyGuideProfile();
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [formData, setFormData] = useState({
+    display_name: '',
+    location: '',
+    bio: '',
+    specialties: [] as string[],
+    guiding_areas: [] as string[],
+    terrain_capabilities: [] as string[],
+    languages_spoken: [] as string[],
+    min_group_size: 1,
+    max_group_size: 8,
+    seasonal_availability: '',
+    upcoming_availability_start: '',
+    upcoming_availability_end: '',
+    daily_rate: '',
+    daily_rate_currency: 'EUR' as 'EUR' | 'GBP',
+    contact_email: '',
+    phone: '',
+    instagram_url: '',
+    facebook_url: '',
+    website_url: '',
+  });
+
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [heroImage, setHeroImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+  const [heroImagePreview, setHeroImagePreview] = useState<string>('');
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        display_name: profile.display_name || '',
+        location: profile.location || '',
+        bio: profile.bio || '',
+        specialties: profile.specialties || [],
+        guiding_areas: profile.guiding_areas || [],
+        terrain_capabilities: profile.terrain_capabilities || [],
+        languages_spoken: profile.languages_spoken || [],
+        min_group_size: profile.min_group_size || 1,
+        max_group_size: profile.max_group_size || 8,
+        seasonal_availability: profile.seasonal_availability || '',
+        upcoming_availability_start: profile.upcoming_availability_start || '',
+        upcoming_availability_end: profile.upcoming_availability_end || '',
+        daily_rate: profile.daily_rate?.toString() || '',
+        daily_rate_currency: profile.daily_rate_currency || 'EUR',
+        contact_email: profile.contact_email || '',
+        phone: profile.phone || '',
+        instagram_url: profile.instagram_url || '',
+        facebook_url: profile.facebook_url || '',
+        website_url: profile.website_url || '',
+      });
+      setProfileImagePreview(profile.profile_image_url || '');
+      setHeroImagePreview(profile.hero_background_url || '');
+    }
+  }, [profile]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'hero') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (type === 'profile') {
+        setProfileImage(file);
+        setProfileImagePreview(URL.createObjectURL(file));
+      } else {
+        setHeroImage(file);
+        setHeroImagePreview(URL.createObjectURL(file));
+      }
+    }
+  };
+
+  const uploadImage = async (file: File, bucket: string) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const toggleArrayItem = (array: string[], item: string) => {
+    return array.includes(item)
+      ? array.filter(i => i !== item)
+      : [...array, item];
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      let profileImageUrl = profile?.profile_image_url;
+      let heroImageUrl = profile?.hero_background_url;
+
+      if (profileImage) {
+        profileImageUrl = await uploadImage(profileImage, 'hero-images');
+      }
+
+      if (heroImage) {
+        heroImageUrl = await uploadImage(heroImage, 'hero-images');
+      }
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .upsert({
+          user_id: user.id,
+          display_name: formData.display_name,
+          location: formData.location,
+          bio: formData.bio,
+          profile_image_url: profileImageUrl,
+          hero_background_url: heroImageUrl,
+          specialties: formData.specialties,
+          guiding_areas: formData.guiding_areas,
+          terrain_capabilities: formData.terrain_capabilities,
+          languages_spoken: formData.languages_spoken,
+          min_group_size: formData.min_group_size,
+          max_group_size: formData.max_group_size,
+          seasonal_availability: formData.seasonal_availability,
+          upcoming_availability_start: formData.upcoming_availability_start || null,
+          upcoming_availability_end: formData.upcoming_availability_end || null,
+          daily_rate: formData.daily_rate ? parseFloat(formData.daily_rate) : null,
+          daily_rate_currency: formData.daily_rate_currency,
+          contact_email: formData.contact_email,
+          phone: formData.phone,
+          instagram_url: formData.instagram_url,
+          facebook_url: formData.facebook_url,
+          website_url: formData.website_url,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+
+      await refetch();
+      
+      toast({
+        title: "Profile updated",
+        description: "Your guide profile has been successfully updated.",
+      });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Tabs defaultValue="basic" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="basic">Basic</TabsTrigger>
+          <TabsTrigger value="images">Images</TabsTrigger>
+          <TabsTrigger value="professional">Professional</TabsTrigger>
+          <TabsTrigger value="availability">Availability</TabsTrigger>
+          <TabsTrigger value="contact">Contact</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basic">
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="display_name">Display Name *</Label>
+                <Input
+                  id="display_name"
+                  value={formData.display_name}
+                  onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
+                  placeholder="Your professional name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="e.g., Scottish Highlands"
+                />
+              </div>
+              <div>
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  placeholder="Tell hikers about yourself..."
+                  rows={6}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="images">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Images</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label>Profile Image</Label>
+                <div className="mt-2 flex items-start gap-4">
+                  {profileImagePreview && (
+                    <div className="relative">
+                      <img
+                        src={profileImagePreview}
+                        alt="Profile preview"
+                        className="h-24 w-24 rounded-full object-cover"
+                      />
+                      <button
+                        onClick={() => {
+                          setProfileImage(null);
+                          setProfileImagePreview('');
+                        }}
+                        className="absolute -top-2 -right-2 rounded-full bg-destructive p-1"
+                      >
+                        <X className="h-4 w-4 text-destructive-foreground" />
+                      </button>
+                    </div>
+                  )}
+                  <div>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageChange(e, 'profile')}
+                      className="mb-2"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Square image recommended, at least 400x400px
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Hero Background Image</Label>
+                <div className="mt-2 space-y-4">
+                  {heroImagePreview && (
+                    <div className="relative">
+                      <img
+                        src={heroImagePreview}
+                        alt="Hero preview"
+                        className="h-48 w-full rounded-lg object-cover"
+                      />
+                      <button
+                        onClick={() => {
+                          setHeroImage(null);
+                          setHeroImagePreview('');
+                        }}
+                        className="absolute top-2 right-2 rounded-full bg-destructive p-1"
+                      >
+                        <X className="h-4 w-4 text-destructive-foreground" />
+                      </button>
+                    </div>
+                  )}
+                  <div>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageChange(e, 'hero')}
+                      className="mb-2"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Wide landscape image recommended, at least 1920x600px
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="professional">
+          <Card>
+            <CardHeader>
+              <CardTitle>Professional Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label>Specialties</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {SPECIALTY_OPTIONS.map((specialty) => (
+                    <Badge
+                      key={specialty}
+                      variant={formData.specialties.includes(specialty) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => setFormData({
+                        ...formData,
+                        specialties: toggleArrayItem(formData.specialties, specialty)
+                      })}
+                    >
+                      {specialty}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label>Guiding Areas</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {GUIDING_AREAS.map((area) => (
+                    <Badge
+                      key={area}
+                      variant={formData.guiding_areas.includes(area) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => setFormData({
+                        ...formData,
+                        guiding_areas: toggleArrayItem(formData.guiding_areas, area)
+                      })}
+                    >
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label>Terrain Capabilities</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {TERRAIN_OPTIONS.map((terrain) => (
+                    <Badge
+                      key={terrain}
+                      variant={formData.terrain_capabilities.includes(terrain) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => setFormData({
+                        ...formData,
+                        terrain_capabilities: toggleArrayItem(formData.terrain_capabilities, terrain)
+                      })}
+                    >
+                      {terrain}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label>Languages Spoken</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {LANGUAGES.map((lang) => (
+                    <Badge
+                      key={lang}
+                      variant={formData.languages_spoken.includes(lang) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => setFormData({
+                        ...formData,
+                        languages_spoken: toggleArrayItem(formData.languages_spoken, lang)
+                      })}
+                    >
+                      {lang}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="min_group_size">Min Group Size</Label>
+                  <Input
+                    id="min_group_size"
+                    type="number"
+                    min="1"
+                    value={formData.min_group_size}
+                    onChange={(e) => setFormData({ ...formData, min_group_size: parseInt(e.target.value) || 1 })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="max_group_size">Max Group Size</Label>
+                  <Input
+                    id="max_group_size"
+                    type="number"
+                    min="1"
+                    value={formData.max_group_size}
+                    onChange={(e) => setFormData({ ...formData, max_group_size: parseInt(e.target.value) || 1 })}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="availability">
+          <Card>
+            <CardHeader>
+              <CardTitle>Availability & Pricing</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="seasonal_availability">Seasonal Availability</Label>
+                <Textarea
+                  id="seasonal_availability"
+                  value={formData.seasonal_availability}
+                  onChange={(e) => setFormData({ ...formData, seasonal_availability: e.target.value })}
+                  placeholder="Describe your seasonal availability..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="upcoming_availability_start">Available From</Label>
+                  <Input
+                    id="upcoming_availability_start"
+                    type="date"
+                    value={formData.upcoming_availability_start}
+                    onChange={(e) => setFormData({ ...formData, upcoming_availability_start: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="upcoming_availability_end">Available Until</Label>
+                  <Input
+                    id="upcoming_availability_end"
+                    type="date"
+                    value={formData.upcoming_availability_end}
+                    onChange={(e) => setFormData({ ...formData, upcoming_availability_end: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="daily_rate">Daily Rate</Label>
+                  <Input
+                    id="daily_rate"
+                    type="number"
+                    step="0.01"
+                    value={formData.daily_rate}
+                    onChange={(e) => setFormData({ ...formData, daily_rate: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="daily_rate_currency">Currency</Label>
+                  <Select
+                    value={formData.daily_rate_currency}
+                    onValueChange={(value: 'EUR' | 'GBP') => setFormData({ ...formData, daily_rate_currency: value })}
+                  >
+                    <SelectTrigger id="daily_rate_currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="contact">
+          <Card>
+            <CardHeader>
+              <CardTitle>Contact Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="contact_email">Contact Email</Label>
+                <Input
+                  id="contact_email"
+                  type="email"
+                  value={formData.contact_email}
+                  onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                  placeholder="your@email.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+44 123 456 7890"
+                />
+              </div>
+              <div>
+                <Label htmlFor="instagram_url">Instagram URL</Label>
+                <Input
+                  id="instagram_url"
+                  type="url"
+                  value={formData.instagram_url}
+                  onChange={(e) => setFormData({ ...formData, instagram_url: e.target.value })}
+                  placeholder="https://instagram.com/..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="facebook_url">Facebook URL</Label>
+                <Input
+                  id="facebook_url"
+                  type="url"
+                  value={formData.facebook_url}
+                  onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
+                  placeholder="https://facebook.com/..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="website_url">Website URL</Label>
+                <Input
+                  id="website_url"
+                  type="url"
+                  value={formData.website_url}
+                  onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={isSaving} size="lg">
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save Changes'
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
