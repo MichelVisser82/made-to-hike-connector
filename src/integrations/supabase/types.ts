@@ -175,6 +175,39 @@ export type Database = {
           },
         ]
       }
+      tour_step_templates: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          item_text: string
+          sort_order: number
+          step_name: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          item_text: string
+          sort_order?: number
+          step_name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          item_text?: string
+          sort_order?: number
+          step_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tours: {
         Row: {
           archived: boolean | null
