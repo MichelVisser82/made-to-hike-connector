@@ -73,7 +73,7 @@ export function Navigation({
                 )}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => user.role === 'guide' ? navigate('/guide/profile/edit') : onNavigateToDashboard()}
+                    onClick={onNavigateToDashboard}
                     className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                   >
                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">

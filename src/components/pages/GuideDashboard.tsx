@@ -36,6 +36,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
+  const [activeTab, setActiveTab] = useState('tours');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -205,6 +206,14 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
             <p className="text-muted-foreground">Welcome, {user.name}</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveTab('profile')}
+            >
+              <UserIcon className="w-4 h-4 mr-2" />
+              Edit Profile
+            </Button>
             <Badge variant={user.verified ? 'default' : 'secondary'}>
               {user.verified ? 'Verified' : 'Pending Verification'}
             </Badge>
@@ -225,7 +234,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
           </Card>
         )}
 
-        <Tabs defaultValue="tours" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="tours">Your Tours</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -460,10 +469,6 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                 </Card>
               )}
             </div>
-          </TabsContent>
-
-          <TabsContent value="profile">
-            <GuideProfileEditForm />
           </TabsContent>
 
           <TabsContent value="profile">
