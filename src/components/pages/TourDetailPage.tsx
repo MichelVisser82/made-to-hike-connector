@@ -634,37 +634,86 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </Card>
 
             {/* Meet Your Guide */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Meet Your Guide</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4">
-                  <SmartImage
-                    category="guide"
-                    usageContext="professional"
-                    tags={['portrait', 'guide', 'professional', 'certified']}
-                    className="w-20 h-20 rounded-full object-cover flex-shrink-0"
-                    fallbackSrc={tour.guide_avatar}
-                    alt={`${tour.guide_name} - Professional hiking guide`}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">{tour.guide_name}</h3>
-                      <Badge variant="outline" className="text-xs">Certified Guide</Badge>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                      <Shield className="h-4 w-4 text-primary" />
-                      <span>5+ years experience • First Aid Certified</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Expert local guide with extensive knowledge of {tour.region.replace('-', ' ')} trails and wildlife. 
-                      Passionate about sharing the natural beauty and cultural heritage of the region.
-                    </p>
+            <div className="space-y-8">
+              <h2 className="text-4xl font-bold">Meet Your Guide</h2>
+              
+              <div className="relative bg-background border rounded-lg p-8">
+                {/* Top right badge */}
+                <div className="absolute top-6 right-6">
+                  <div className="flex flex-col items-center gap-1 px-4 py-3 border-2 border-primary/20 rounded-lg bg-background">
+                    <Award className="h-6 w-6 text-primary" />
+                    <span className="text-xs font-medium text-primary">IFMGA Cert.</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Guide Image */}
+                  <div className="relative">
+                    <SmartImage
+                      category="guide"
+                      usageContext="professional"
+                      tags={['portrait', 'guide', 'professional', 'certified', 'hiking', 'mountains']}
+                      className="w-full h-[400px] rounded-lg object-cover"
+                      fallbackSrc={tour.guide_avatar}
+                      alt={`${tour.guide_name} - Professional hiking guide`}
+                    />
+                  </div>
+
+                  {/* Guide Info */}
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-3xl font-bold mb-2">{tour.guide_name}</h3>
+                      <p className="text-lg font-semibold text-green-600">IFMGA Certified</p>
+                    </div>
+
+                    <p className="text-muted-foreground leading-relaxed">
+                      Born and raised in the Highlands, I've been exploring these mountains for over 20 years. 
+                      As an IFMGA certified guide, I combine professional safety standards with deep local 
+                      knowledge and storytelling that brings Scotland's history alive.
+                    </p>
+
+                    {/* Certifications */}
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="px-3 py-1">IFMGA Certified</Badge>
+                      <Badge variant="outline" className="px-3 py-1">Wilderness First Aid</Badge>
+                      <Badge variant="outline" className="px-3 py-1">Mountain Leader Training</Badge>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 gap-6 pt-4">
+                      <div>
+                        <div className="text-3xl font-bold">150+</div>
+                        <div className="text-sm text-muted-foreground">Tours Led</div>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-bold">4.9</div>
+                        <div className="text-sm text-muted-foreground">Guide Rating</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold">English, Gaelic</div>
+                        <div className="text-sm text-muted-foreground">Languages</div>
+                      </div>
+                      <div>
+                        <Badge className="bg-green-600 hover:bg-green-700 text-white">Guide Owned</Badge>
+                      </div>
+                    </div>
+
+                    {/* Guide Owned Notice */}
+                    <div className="border-2 border-rose-200 rounded-lg p-4 bg-rose-50/50">
+                      <p className="text-rose-700 font-medium">
+                        This guide owns this tour - 100% of profits support local community
+                      </p>
+                    </div>
+
+                    {/* Ask Question Button */}
+                    <Button variant="outline" className="w-full md:w-auto" size="lg">
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Ask {tour.guide_name.split(' ')[0]} a question
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* What's Included / Not Included */}
             <div className="grid md:grid-cols-2 gap-6">
