@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Mail, MessageCircle, Award, ChevronDown } from 'lucide-react';
+import { Mail, MessageCircle, Award, ChevronDown, Loader2 } from 'lucide-react';
 import { type User, type Tour } from '../../types';
 import type { GuideProfile, GuideStats } from '@/types/guide';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -14,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { useGuideProfile } from '@/hooks/useGuideProfile';
+import { useGuideStats } from '@/hooks/useGuideStats';
 
 interface BookingFlowProps {
   tour: Tour;
@@ -47,10 +49,18 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDateOptions, setShowDateOptions] = useState(false);
   
-  // Debug logging to verify guide data
-  console.log('BookingFlow - Guide Data:', guide);
-  console.log('BookingFlow - Stats Data:', stats);
-  console.log('BookingFlow - Certifications:', guide?.certifications);
+  // Fetch guide data if not provided via props
+  const { data: fetchedGuide, isLoading: isLoadingGuide } = useGuideProfile(guide ? undefined : tour.guide_id);
+  const { data: fetchedStats, isLoading: isLoadingStats } = useGuideStats(stats ? undefined : tour.guide_id);
+  
+  // Use props if available, otherwise use fetched data
+  const guideData = guide || fetchedGuide;
+  const statsData = stats || fetchedStats;
+  const isLoading = isLoadingGuide || isLoadingStats;
+  
+  console.log('BookingFlow - Guide Data:', guideData);
+  console.log('BookingFlow - Stats Data:', statsData);
+  console.log('BookingFlow - Certifications:', guideData?.certifications);
   
   const selectedDateOption = mockDateOptions.find(d => d.date === selectedDate);
   const tourPrice = selectedDateOption?.price || tour.price;
@@ -65,6 +75,16 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
       onComplete();
     }, 2000);
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -86,29 +106,29 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
             <div className="flex items-start gap-4 pr-16">
               <Avatar className="h-20 w-20">
                 <AvatarImage 
-                  src={guide?.profile_image_url || tour.guide_avatar || ''} 
-                  alt={guide?.display_name || tour.guide_name} 
+                  src={guideData?.profile_image_url || tour.guide_avatar || ''} 
+                  alt={guideData?.display_name || tour.guide_name} 
                 />
                 <AvatarFallback>
-                  {(guide?.display_name || tour.guide_name).split(' ').map(n => n[0]).join('')}
+                  {(guideData?.display_name || tour.guide_name).split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold mb-1">
-                  {guide?.display_name || tour.guide_name}
+                  {guideData?.display_name || tour.guide_name}
                 </h3>
-                {guide?.certifications && guide.certifications.length > 0 ? (
+                {guideData?.certifications && guideData.certifications.length > 0 ? (
                   <p className="text-primary font-semibold mb-1">
-                    {typeof guide.certifications[0] === 'string' 
-                      ? guide.certifications[0] 
-                      : (guide.certifications[0]?.title || 'Certified Professional')}
+                    {typeof guideData.certifications[0] === 'string' 
+                      ? guideData.certifications[0] 
+                      : (guideData.certifications[0]?.title || 'Certified Professional')}
                   </p>
                 ) : (
                   <p className="text-primary font-semibold mb-1">Professional Guide</p>
                 )}
                 {(() => {
-                  if (guide?.active_since) {
-                    const yearsExperience = new Date().getFullYear() - new Date(guide.active_since).getFullYear();
+                  if (guideData?.active_since) {
+                    const yearsExperience = new Date().getFullYear() - new Date(guideData.active_since).getFullYear();
                     if (yearsExperience > 0) {
                       return (
                         <p className="text-sm text-muted-foreground">
@@ -117,10 +137,10 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
                       );
                     }
                   }
-                  if (stats?.tours_completed && stats.tours_completed > 0) {
+                  if (statsData?.tours_completed && statsData.tours_completed > 0) {
                     return (
                       <p className="text-sm text-muted-foreground">
-                        {stats.tours_completed}+ tours completed
+                        {statsData.tours_completed}+ tours completed
                       </p>
                     );
                   }
