@@ -42,7 +42,11 @@ const DIFFICULTY_OPTIONS = [
   { value: 'expert', label: 'Expert', description: 'Extreme conditions' },
 ];
 
-export function GuideProfileEditForm() {
+interface GuideProfileEditFormProps {
+  onNavigateToGuideProfile?: (guideId: string) => void;
+}
+
+export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileEditFormProps = {}) {
   const navigate = useNavigate();
   const { data: profile, isLoading, refetch } = useMyGuideProfile();
   const { user } = useAuth();
@@ -955,7 +959,13 @@ export function GuideProfileEditForm() {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => navigate(`/guides/${profile.user_id}`)}
+            onClick={() => {
+              if (onNavigateToGuideProfile) {
+                onNavigateToGuideProfile(profile.user_id);
+              } else {
+                navigate(`/guides/${profile.user_id}`);
+              }
+            }}
           >
             <Eye className="mr-2 h-4 w-4" />
             View Public Profile

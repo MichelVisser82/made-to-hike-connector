@@ -1,4 +1,4 @@
-export type Page = 'landing' | 'search' | 'tour-detail' | 'user-dashboard' | 'guide-dashboard' | 'admin-dashboard' | 'verification' | 'booking' | 'pending-booking' | 'settings' | 'wireframe' | 'about' | 'guides' | 'safety' | 'careers' | 'press' | 'blog' | 'privacy' | 'terms' | 'cookies' | 'contact' | 'tour-creation';
+export type Page = 'landing' | 'search' | 'tour-detail' | 'user-dashboard' | 'guide-dashboard' | 'admin-dashboard' | 'verification' | 'booking' | 'pending-booking' | 'settings' | 'wireframe' | 'about' | 'guides' | 'safety' | 'careers' | 'press' | 'blog' | 'privacy' | 'terms' | 'cookies' | 'contact' | 'tour-creation' | 'guide-profile' | 'guide-profile-edit';
 
 export interface User {
   id: string;

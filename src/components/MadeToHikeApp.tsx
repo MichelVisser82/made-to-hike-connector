@@ -17,6 +17,7 @@ import { DecisionManager } from './DecisionManager';
 import { WireframePreloader } from './WireframePreloader';
 import { WireframeNotification } from './WireframeNotification';
 import { WireframeDesign } from './WireframeDesign';
+import { GuideProfilePageWrapper } from './pages/GuideProfilePageWrapper';
 import { Footer } from './layout/Footer';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../hooks/useProfile';
@@ -41,6 +42,7 @@ function AppContent() {
   });
   const [wireframeDecisions, setWireframeDecisions] = useState<any>(null);
   const [pendingBookingEmail, setPendingBookingEmail] = useState<string | null>(null);
+  const [viewingGuideId, setViewingGuideId] = useState<string | null>(null);
   
   const { user: authUser, signOut, loading } = useAuth();
   const { profile } = useProfile();
@@ -142,6 +144,11 @@ function AppContent() {
     setCurrentPage('tour-creation');
   };
 
+  const navigateToGuideProfile = (guideId: string) => {
+    setViewingGuideId(guideId);
+    setCurrentPage('guide-profile');
+  };
+
   const handleApplyDecisions = (decisions: any) => {
     setWireframeDecisions(decisions);
     if (decisions) {
@@ -200,6 +207,14 @@ function AppContent() {
               setEditingTourId(tour.id);
               setCurrentPage('tour-creation');
             }}
+            onNavigateToGuideProfile={navigateToGuideProfile}
+          />
+        ) : null;
+      case 'guide-profile':
+        return viewingGuideId ? (
+          <GuideProfilePageWrapper 
+            guideId={viewingGuideId}
+            onNavigateBack={() => setCurrentPage('guide-dashboard')}
           />
         ) : null;
       case 'tour-creation':

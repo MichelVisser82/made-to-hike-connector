@@ -28,9 +28,10 @@ interface GuideDashboardProps {
   onStartVerification: () => void;
   onCreateTour: (tourData?: Tour) => void;
   onEditTour: (tour: Tour) => void;
+  onNavigateToGuideProfile?: (guideId: string) => void;
 }
 
-export function GuideDashboard({ user, onTourClick, onStartVerification, onCreateTour, onEditTour }: GuideDashboardProps) {
+export function GuideDashboard({ user, onTourClick, onStartVerification, onCreateTour, onEditTour, onNavigateToGuideProfile }: GuideDashboardProps) {
   const navigate = useNavigate();
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
@@ -472,7 +473,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
           </TabsContent>
 
           <TabsContent value="profile">
-            <GuideProfileEditForm />
+            <GuideProfileEditForm onNavigateToGuideProfile={onNavigateToGuideProfile} />
           </TabsContent>
 
           <TabsContent value="images">
