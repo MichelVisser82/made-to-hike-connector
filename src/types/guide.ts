@@ -18,6 +18,7 @@ export interface GuideProfile {
   specialties: string[];
   guiding_areas: string[];
   terrain_capabilities: string[];
+  difficulty_levels: string[];
   portfolio_images: string[];
   seasonal_availability?: string;
   upcoming_availability_start?: string;

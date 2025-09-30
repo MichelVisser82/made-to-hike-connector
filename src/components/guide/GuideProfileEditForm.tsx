@@ -9,9 +9,10 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Loader2, X, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Loader2, X, Mail, Lock, AlertCircle, Award, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '../ui/alert';
+import type { GuideCertification } from '@/types/guide';
 
 const SPECIALTY_OPTIONS = [
   'Alpine Hiking', 'Mountain Climbing', 'Glacier Trekking', 'Via Ferrata',
@@ -33,6 +34,13 @@ const LANGUAGES = [
   'Dutch', 'Norwegian', 'Swedish', 'Polish', 'Czech'
 ];
 
+const DIFFICULTY_OPTIONS = [
+  { value: 'beginner', label: 'Beginner', description: 'Easy trails for newcomers' },
+  { value: 'intermediate', label: 'Intermediate', description: 'Moderate difficulty' },
+  { value: 'advanced', label: 'Advanced', description: 'Challenging terrain' },
+  { value: 'expert', label: 'Expert', description: 'Extreme conditions' },
+];
+
 export function GuideProfileEditForm() {
   const { data: profile, isLoading, refetch } = useMyGuideProfile();
   const { user } = useAuth();
@@ -50,6 +58,9 @@ export function GuideProfileEditForm() {
     guiding_areas: [] as string[],
     terrain_capabilities: [] as string[],
     languages_spoken: [] as string[],
+    difficulty_levels: [] as string[],
+    certifications: [] as GuideCertification[],
+    portfolio_images: [] as string[],
     min_group_size: 1,
     max_group_size: 8,
     seasonal_availability: '',
@@ -67,6 +78,10 @@ export function GuideProfileEditForm() {
   const [heroImage, setHeroImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
   const [heroImagePreview, setHeroImagePreview] = useState<string>('');
+  const [portfolioFiles, setPortfolioFiles] = useState<File[]>([]);
+  const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>([]);
+  const [newCert, setNewCert] = useState({ title: '', description: '' });
+  const [isAddingCert, setIsAddingCert] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -78,6 +93,9 @@ export function GuideProfileEditForm() {
         guiding_areas: profile.guiding_areas || [],
         terrain_capabilities: profile.terrain_capabilities || [],
         languages_spoken: profile.languages_spoken || [],
+        difficulty_levels: (profile as any).difficulty_levels || [],
+        certifications: profile.certifications || [],
+        portfolio_images: profile.portfolio_images || [],
         min_group_size: profile.min_group_size || 1,
         max_group_size: profile.max_group_size || 8,
         seasonal_availability: profile.seasonal_availability || '',
@@ -92,6 +110,7 @@ export function GuideProfileEditForm() {
       });
       setProfileImagePreview(profile.profile_image_url || '');
       setHeroImagePreview(profile.hero_background_url || '');
+      setPortfolioPreviews(profile.portfolio_images || []);
     }
     if (user?.email) {
       setNewEmail(user.email);
@@ -133,6 +152,78 @@ export function GuideProfileEditForm() {
     return array.includes(item)
       ? array.filter(i => i !== item)
       : [...array, item];
+  };
+
+  const handlePortfolioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const totalImages = portfolioFiles.length + portfolioPreviews.length + files.length;
+    if (totalImages > 10) {
+      toast({
+        title: "Error",
+        description: "Maximum 10 portfolio images allowed",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newFiles = Array.from(files);
+    setPortfolioFiles([...portfolioFiles, ...newFiles]);
+
+    newFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPortfolioPreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removePortfolioImage = (index: number) => {
+    if (index < formData.portfolio_images.length) {
+      setFormData({
+        ...formData,
+        portfolio_images: formData.portfolio_images.filter((_, i) => i !== index),
+      });
+      setPortfolioPreviews((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      const fileIndex = index - formData.portfolio_images.length;
+      setPortfolioFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+      setPortfolioPreviews((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const addCertification = () => {
+    if (!newCert.title.trim() || !newCert.description.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all certification fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    setFormData({
+      ...formData,
+      certifications: [...formData.certifications, { ...newCert }],
+    });
+    setNewCert({ title: '', description: '' });
+    setIsAddingCert(false);
+    toast({
+      title: "Success",
+      description: "Certification added",
+    });
+  };
+
+  const removeCertification = (index: number) => {
+    setFormData({
+      ...formData,
+      certifications: formData.certifications.filter((_, i) => i !== index),
+    });
+    toast({
+      title: "Success",
+      description: "Certification removed",
+    });
   };
 
   const handleUpdateEmail = async () => {
@@ -208,6 +299,7 @@ export function GuideProfileEditForm() {
 
       let profileImageUrl = profile?.profile_image_url;
       let heroImageUrl = profile?.hero_background_url;
+      let portfolioUrls = [...formData.portfolio_images];
 
       if (profileImage) {
         profileImageUrl = await uploadImage(profileImage, 'hero-images');
@@ -215,6 +307,11 @@ export function GuideProfileEditForm() {
 
       if (heroImage) {
         heroImageUrl = await uploadImage(heroImage, 'hero-images');
+      }
+
+      for (const file of portfolioFiles) {
+        const url = await uploadImage(file, 'hero-images');
+        if (url) portfolioUrls.push(url);
       }
 
       const { error } = await supabase
@@ -230,6 +327,9 @@ export function GuideProfileEditForm() {
           guiding_areas: formData.guiding_areas,
           terrain_capabilities: formData.terrain_capabilities,
           languages_spoken: formData.languages_spoken,
+          difficulty_levels: formData.difficulty_levels,
+          certifications: formData.certifications,
+          portfolio_images: portfolioUrls,
           min_group_size: formData.min_group_size,
           max_group_size: formData.max_group_size,
           seasonal_availability: formData.seasonal_availability,
@@ -242,7 +342,7 @@ export function GuideProfileEditForm() {
           facebook_url: formData.facebook_url,
           website_url: formData.website_url,
           updated_at: new Date().toISOString(),
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -434,6 +534,147 @@ export function GuideProfileEditForm() {
                 </p>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Portfolio Images</CardTitle>
+          <CardDescription>Upload up to 10 images showcasing your guiding experience</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {portfolioPreviews.map((preview, index) => (
+              <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
+                <img src={preview} alt={`Portfolio ${index + 1}`} className="w-full h-full object-cover" />
+                <button
+                  onClick={() => removePortfolioImage(index)}
+                  className="absolute top-2 right-2 rounded-full bg-destructive p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="h-4 w-4 text-destructive-foreground" />
+                </button>
+              </div>
+            ))}
+          </div>
+          {portfolioPreviews.length < 10 && (
+            <div>
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePortfolioChange}
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                {portfolioPreviews.length} / 10 images uploaded
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Certifications</CardTitle>
+          <CardDescription>Your professional qualifications and certifications</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {formData.certifications.map((cert, index) => (
+            <Card key={index}>
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <Award className="w-5 h-5 text-primary mt-1" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold">{cert.title}</h4>
+                    <p className="text-sm text-muted-foreground">{cert.description}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeCertification(index)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {isAddingCert ? (
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <div>
+                  <Label>Certification Title</Label>
+                  <Input
+                    value={newCert.title}
+                    onChange={(e) => setNewCert({ ...newCert, title: e.target.value })}
+                    placeholder="e.g., Mountain Leader Award"
+                  />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea
+                    value={newCert.description}
+                    onChange={(e) => setNewCert({ ...newCert, description: e.target.value })}
+                    placeholder="Describe your certification..."
+                    rows={3}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" onClick={addCertification}>
+                    Add Certification
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsAddingCert(false);
+                      setNewCert({ title: '', description: '' });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Button type="button" variant="outline" onClick={() => setIsAddingCert(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Certification
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Difficulty Levels</CardTitle>
+          <CardDescription>Select the difficulty levels you can guide</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {DIFFICULTY_OPTIONS.map((option) => (
+              <Card
+                key={option.value}
+                className={`cursor-pointer transition-all ${
+                  formData.difficulty_levels.includes(option.value)
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:border-primary/50'
+                }`}
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    difficulty_levels: toggleArrayItem(formData.difficulty_levels, option.value),
+                  })
+                }
+              >
+                <CardContent className="p-4">
+                  <h4 className="font-semibold">{option.label}</h4>
+                  <p className="text-sm text-muted-foreground">{option.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </CardContent>
       </Card>
