@@ -44,6 +44,8 @@ export interface Tour {
   itinerary?: any;
   excluded_items?: string[];
   service_fee?: number;
+  distance_km?: number;
+  elevation_gain_m?: number;
 }
 
 export interface SearchFilters {

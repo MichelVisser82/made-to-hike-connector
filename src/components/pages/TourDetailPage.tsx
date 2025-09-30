@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, Heart, Share2, 
-         Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown } from 'lucide-react';
+         Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown, X } from 'lucide-react';
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 
@@ -378,7 +378,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         usageContext={tour.region}
                         tags={[tour.region, 'trail', 'hiking']}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        fallbackSrc={tour.images[0]}
+                        fallbackSrc={tour.images[1] || tour.images[0]}
                         alt={`${tour.title} - Trail views`}
                       />
                     </div>
@@ -388,7 +388,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         usageContext={tour.region}
                         tags={[tour.region, 'summit', 'peak']}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        fallbackSrc={tour.images[0]}
+                        fallbackSrc={tour.images[2] || tour.images[0]}
                         alt={`${tour.title} - Summit views`}
                       />
                     </div>
@@ -398,7 +398,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         usageContext={tour.region}
                         tags={[tour.region, 'group', 'adventure']}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        fallbackSrc={tour.images[0]}
+                        fallbackSrc={tour.images[3] || tour.images[0]}
                         alt={`${tour.title} - Group adventures`}
                       />
                     </div>
@@ -409,6 +409,25 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 </p>
               </CardContent>
             </Card>
+
+            {/* What's Excluded */}
+            {tour.excluded_items && tour.excluded_items.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>What's Not Included</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {tour.excluded_items.map((item, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 border rounded-lg bg-muted/30">
+                        <X className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Fitness Requirements */}
             <Card>
@@ -431,7 +450,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <Clock className="h-5 w-5 text-green-600" />
                       <h4 className="font-semibold text-lg">Daily Activity</h4>
                     </div>
-                    <p className="text-muted-foreground">6-8 hours walking, 8-10 miles, 2000ft elevation gain</p>
+                    <p className="text-muted-foreground">{tour.daily_hours || '6-8 hours'} of hiking</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -439,7 +458,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <Mountain className="h-5 w-5 text-green-600" />
                       <h4 className="font-semibold text-lg">Pack Weight</h4>
                     </div>
-                    <p className="text-muted-foreground">10-15 lbs (gear rental available)</p>
+                    <p className="text-muted-foreground">{tour.pack_weight || '10-15'}kg (gear rental available)</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -447,7 +466,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <MapPin className="h-5 w-5 text-green-600" />
                       <h4 className="font-semibold text-lg">Terrain</h4>
                     </div>
-                    <p className="text-muted-foreground">Mountain trails, some rocky sections, well-maintained paths</p>
+                    <p className="text-muted-foreground">{tour.terrain_types?.join(', ') || 'Mountain trails, well-maintained paths'}</p>
                   </div>
                 </div>
 
@@ -457,7 +476,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   
                   <div className="flex justify-center">
                     <Badge className="bg-red-900 hover:bg-red-900 text-white px-8 py-3 text-base font-semibold rounded-full">
-                      Level B - Moderate
+                      {tour.difficulty.charAt(0).toUpperCase() + tour.difficulty.slice(1)}
                     </Badge>
                   </div>
 
@@ -553,7 +572,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     </div>
                   </div>
                   <div className="absolute bottom-4 right-4 text-sm text-muted-foreground">
-                    Distance: 12.5km • Elevation: +850m
+                    Distance: {tour.distance_km || '12.5'}km • Elevation: +{tour.elevation_gain_m || '850'}m
                   </div>
                 </div>
               </CardContent>
@@ -566,32 +585,15 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {[
+                  {(tour.itinerary && Array.isArray(tour.itinerary) && tour.itinerary.length > 0 ? tour.itinerary : [
                     {
+                      day: 1,
                       title: "Meeting Point",
-                      shortDesc: "Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead.",
-                      longDesc: "We'll gather at the designated meeting point where your experienced guide will conduct a thorough safety briefing covering route conditions, weather expectations, and emergency procedures. You'll receive all necessary safety equipment and have the opportunity to ask questions. The guide will also review the day's objectives, expected timings, and key landmarks you'll encounter along the trail. This is a great time to meet your fellow hikers and ensure everyone is comfortable with the plan ahead.",
-                      tags: [tour.region, 'start', 'trailhead', 'preparation']
-                    },
-                    {
-                      title: "Alpine Ascent",
-                      shortDesc: "Navigate through stunning alpine meadows and rocky terrain as we steadily gain elevation toward the summit.",
-                      longDesc: "The journey begins with a gentle warm-up through ancient forests before opening up to breathtaking alpine meadows dotted with wildflowers. As we gain elevation, the landscape transforms dramatically - you'll traverse rocky switchbacks offering increasingly spectacular views of the surrounding peaks and valleys. Your guide will share fascinating insights about the local geology, flora, and fauna unique to this elevation. We'll maintain a comfortable pace with regular breaks to hydrate, refuel with energy snacks, and capture photos of the stunning vistas.",
-                      tags: [tour.region, 'alpine', 'ascent', 'hiking']
-                    },
-                    {
-                      title: "Summit Achievement",
-                      shortDesc: "Reach the magnificent peak and celebrate with panoramic 360-degree views that stretch across the entire region.",
-                      longDesc: "After hours of steady climbing, you'll experience the incredible feeling of standing on the summit. The panoramic views from the top are truly breathtaking - on clear days, you can see for miles across mountain ranges, valleys, and distant peaks. This is the perfect time to rest, enjoy a well-deserved summit snack, and take photos to commemorate your achievement. Your guide will point out notable landmarks and share stories about the mountain's history and significance. We'll spend quality time at the summit, allowing everyone to soak in the accomplishment and the stunning scenery before beginning our descent.",
-                      tags: [tour.region, 'summit', 'achievement', 'peak']
-                    },
-                    {
-                      title: "Return Journey",
-                      shortDesc: "Descend through scenic routes with different perspectives, concluding the adventure back at our starting point.",
-                      longDesc: "The descent offers an entirely different perspective of the landscape you climbed through earlier. We'll take a slightly different route when possible to maximize your experience and see new terrain. As we lose elevation, you'll notice how the environment changes - from stark alpine zones back through meadows and into the shelter of the forest. Your guide will ensure a safe, controlled descent with attention to tired legs and proper hiking technique. We'll conclude back at the meeting point where you can share stories of your adventure, exchange contact information with new friends, and celebrate your achievement together.",
-                      tags: [tour.region, 'descent', 'return', 'completion']
+                      activities: ["Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead"],
+                      accommodation: null,
+                      meals: null
                     }
-                  ].map((item, index) => (
+                  ]).map((item: any, index: number) => (
                     <div key={index} className="group">
                       <div className="flex flex-col md:flex-row gap-4">
                         <div className="md:w-64 w-full flex-shrink-0">
@@ -599,32 +601,52 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                             <SmartImage
                               category="tour"
                               usageContext={tour.region}
-                              tags={item.tags}
+                              tags={[tour.region, 'hiking', 'trail']}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              fallbackSrc={tour.images[0]}
+                              fallbackSrc={tour.images[Math.min(index, tour.images.length - 1)]}
                               alt={item.title}
                             />
                           </div>
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed mb-2 italic">
-                            {item.shortDesc}
-                          </p>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline">Day {item.day}</Badge>
+                            <h3 className="font-semibold text-lg">{item.title}</h3>
+                          </div>
+                          <div className="space-y-2">
+                            {item.activities?.map((activity: string, actIndex: number) => (
+                              <p key={actIndex} className="text-sm text-muted-foreground leading-relaxed">
+                                {expandedItinerary[index] 
+                                  ? activity
+                                  : actIndex === 0 ? (activity.length > 120 ? `${activity.substring(0, 120)}...` : activity) : null
+                                }
+                              </p>
+                            ))}
+                          </div>
                           
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {expandedItinerary[index] 
-                              ? item.longDesc
-                              : `${item.longDesc.substring(0, 120)}...`
-                            }
-                          </p>
+                          {item.activities && item.activities.length > 1 && (
+                            <button
+                              onClick={() => toggleItinerary(index)}
+                              className="text-sm text-primary hover:underline mt-2 font-medium transition-colors"
+                            >
+                              {expandedItinerary[index] ? "Show less" : "Read more"}
+                            </button>
+                          )}
                           
-                          <button
-                            onClick={() => toggleItinerary(index)}
-                            className="text-sm text-primary hover:underline mt-2 font-medium transition-colors"
-                          >
-                            {expandedItinerary[index] ? "Show less" : "Read more"}
-                          </button>
+                          {(item.accommodation || item.meals) && expandedItinerary[index] && (
+                            <div className="mt-3 pt-3 border-t space-y-1">
+                              {item.accommodation && (
+                                <p className="text-xs text-muted-foreground">
+                                  <span className="font-medium">Accommodation:</span> {item.accommodation}
+                                </p>
+                              )}
+                              {item.meals && (
+                                <p className="text-xs text-muted-foreground">
+                                  <span className="font-medium">Meals:</span> {item.meals}
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

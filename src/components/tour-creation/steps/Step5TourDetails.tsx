@@ -23,7 +23,7 @@ export default function Step5TourDetails({ onNext }: Step5TourDetailsProps) {
   const [customTerrain, setCustomTerrain] = useState('');
 
   const handleNext = async () => {
-    const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types']);
+    const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types', 'distance_km', 'elevation_gain_m']);
     if (isValid) onNext();
   };
 
@@ -83,6 +83,49 @@ export default function Step5TourDetails({ onNext }: Step5TourDetailsProps) {
                   <Input 
                     placeholder="e.g., 6-8 hours" 
                     {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="distance_km"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Distance (km)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0.1"
+                    step="0.1"
+                    placeholder="e.g., 12.5"
+                    {...field} 
+                    onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="elevation_gain_m"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Elevation Gain (m)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0"
+                    placeholder="e.g., 850"
+                    {...field} 
+                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                   />
                 </FormControl>
                 <FormMessage />

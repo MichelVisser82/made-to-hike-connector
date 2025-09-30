@@ -22,6 +22,8 @@ const tourSchema = z.object({
   pack_weight: z.number().min(1).max(50),
   daily_hours: z.string().min(1, 'Daily hours is required'),
   terrain_types: z.array(z.string()).min(1, 'Select at least one terrain type'),
+  distance_km: z.number().min(0.1).optional(),
+  elevation_gain_m: z.number().min(0).optional(),
   
   // Step 6: Available Dates
   available_dates: z.array(z.date()).min(1, 'Select at least one date'),
@@ -74,6 +76,8 @@ export function useTourCreation() {
       pack_weight: 10,
       daily_hours: '',
       terrain_types: [],
+      distance_km: undefined,
+      elevation_gain_m: undefined,
       available_dates: [],
       images: [],
       highlights: [],
@@ -151,6 +155,8 @@ export function useTourCreation() {
         pack_weight: data.pack_weight,
         daily_hours: data.daily_hours,
         terrain_types: data.terrain_types,
+        distance_km: data.distance_km,
+        elevation_gain_m: data.elevation_gain_m,
         available_dates: data.available_dates.map(d => d.toISOString().split('T')[0]),
         images: data.images,
         highlights: data.highlights,

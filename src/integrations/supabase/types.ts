@@ -183,7 +183,9 @@ export type Database = {
           daily_hours: string | null
           description: string
           difficulty: Database["public"]["Enums"]["difficulty"]
+          distance_km: number | null
           duration: string
+          elevation_gain_m: number | null
           excluded_items: string[] | null
           group_size: number
           guide_id: string
@@ -211,7 +213,9 @@ export type Database = {
           daily_hours?: string | null
           description: string
           difficulty: Database["public"]["Enums"]["difficulty"]
+          distance_km?: number | null
           duration: string
+          elevation_gain_m?: number | null
           excluded_items?: string[] | null
           group_size: number
           guide_id: string
@@ -239,7 +243,9 @@ export type Database = {
           daily_hours?: string | null
           description?: string
           difficulty?: Database["public"]["Enums"]["difficulty"]
+          distance_km?: number | null
           duration?: string
+          elevation_gain_m?: number | null
           excluded_items?: string[] | null
           group_size?: number
           guide_id?: string
