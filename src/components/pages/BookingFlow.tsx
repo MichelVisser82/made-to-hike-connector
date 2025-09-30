@@ -132,15 +132,19 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
                   {guideCertification}
                 </p>
                 {(() => {
-                  if (guideData?.active_since) {
-                    const yearsExperience = new Date().getFullYear() - new Date(guideData.active_since).getFullYear();
-                    if (yearsExperience > 0) {
-                      return (
-                        <p className="text-sm text-muted-foreground">
-                          {yearsExperience}+ years experience
-                        </p>
-                      );
-                    }
+                  // Use experience_years if available, fallback to calculating from active_since
+                  const yearsExperience = guideData?.experience_years ?? (
+                    guideData?.active_since 
+                      ? new Date().getFullYear() - new Date(guideData.active_since).getFullYear()
+                      : 0
+                  );
+                  
+                  if (yearsExperience > 0) {
+                    return (
+                      <p className="text-sm text-muted-foreground">
+                        {yearsExperience}+ years experience
+                      </p>
+                    );
                   }
                   if (statsData?.tours_completed && statsData.tours_completed > 0) {
                     return (

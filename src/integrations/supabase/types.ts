@@ -81,6 +81,7 @@ export type Database = {
           daily_rate_currency: Database["public"]["Enums"]["currency"] | null
           difficulty_levels: string[] | null
           display_name: string
+          experience_years: number | null
           facebook_url: string | null
           guiding_areas: string[] | null
           hero_background_url: string | null
@@ -114,6 +115,7 @@ export type Database = {
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
           difficulty_levels?: string[] | null
           display_name: string
+          experience_years?: number | null
           facebook_url?: string | null
           guiding_areas?: string[] | null
           hero_background_url?: string | null
@@ -147,6 +149,7 @@ export type Database = {
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
           difficulty_levels?: string[] | null
           display_name?: string
+          experience_years?: number | null
           facebook_url?: string | null
           guiding_areas?: string[] | null
           hero_background_url?: string | null

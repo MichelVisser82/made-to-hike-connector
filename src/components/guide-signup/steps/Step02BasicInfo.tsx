@@ -118,6 +118,21 @@ export function Step02BasicInfo({ data, updateData, onNext, onBack }: Step02Basi
             {errors.password && <p className="text-sm text-destructive mt-1">{errors.password}</p>}
           </div>
 
+          {/* Years of Experience */}
+          <div>
+            <Label htmlFor="experience_years">Years of Guiding Experience *</Label>
+            <Input
+              id="experience_years"
+              type="number"
+              min="0"
+              max="50"
+              value={data.experience_years || 0}
+              onChange={(e) => updateData({ experience_years: parseInt(e.target.value) || 0 })}
+              placeholder="e.g., 5"
+            />
+            {errors.experience_years && <p className="text-sm text-destructive mt-1">{errors.experience_years}</p>}
+          </div>
+
           {/* Navigation */}
           <div className="flex justify-between pt-4">
             <Button variant="outline" onClick={onBack}>Back</Button>

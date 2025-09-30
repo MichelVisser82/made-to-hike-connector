@@ -159,6 +159,7 @@ serve(async (req) => {
         bio: guideData.bio,
         location: guideData.location,
         profile_image_url: profileImageUrl,
+        experience_years: guideData.experience_years,
         certifications: guideData.certifications || [],
         specialties: guideData.specialties || [],
         guiding_areas: guideData.guiding_areas || [],

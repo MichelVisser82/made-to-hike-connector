@@ -13,6 +13,7 @@ export interface GuideProfile {
   bio?: string;
   location?: string;
   active_since?: string;
+  experience_years?: number;
   verified: boolean;
   certifications: GuideCertification[];
   specialties: string[];
@@ -45,6 +46,7 @@ export interface GuideSignupData {
   email: string;
   password: string;
   profile_image?: File;
+  experience_years: number;
   
   // Step 3: Location
   location: string;

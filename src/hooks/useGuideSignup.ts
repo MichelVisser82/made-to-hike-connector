@@ -29,6 +29,7 @@ export function useGuideSignup() {
     return stored ? JSON.parse(stored) : {
       min_group_size: 1,
       max_group_size: 10,
+      experience_years: 0,
       daily_rate_currency: 'EUR',
       specialties: [],
       difficulty_levels: [],
@@ -108,6 +109,7 @@ export function useGuideSignup() {
             display_name: formData.display_name,
             bio: formData.bio,
             location: formData.location,
+            experience_years: formData.experience_years,
             certifications: formData.certifications || [],
             specialties: formData.specialties || [],
             guiding_areas: formData.guiding_areas || [],

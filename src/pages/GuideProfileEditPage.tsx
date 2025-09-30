@@ -44,6 +44,7 @@ export default function GuideProfileEditPage() {
     display_name: '',
     bio: '',
     location: '',
+    experience_years: 0,
     seasonal_availability: '',
     daily_rate: 0,
     daily_rate_currency: 'EUR',
@@ -73,6 +74,7 @@ export default function GuideProfileEditPage() {
         display_name: profile.display_name || '',
         bio: profile.bio || '',
         location: profile.location || '',
+        experience_years: profile.experience_years || 0,
         seasonal_availability: profile.seasonal_availability || '',
         daily_rate: profile.daily_rate || 0,
         daily_rate_currency: profile.daily_rate_currency || 'EUR',
@@ -166,6 +168,7 @@ export default function GuideProfileEditPage() {
           display_name: formData.display_name,
           bio: formData.bio,
           location: formData.location,
+          experience_years: formData.experience_years,
           seasonal_availability: formData.seasonal_availability,
           daily_rate: formData.daily_rate,
           daily_rate_currency: formData.daily_rate_currency,
@@ -412,6 +415,20 @@ export default function GuideProfileEditPage() {
                         </Badge>
                       ))}
                     </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="experience_years">Years of Guiding Experience</Label>
+                    <Input
+                      id="experience_years"
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={formData.experience_years}
+                      onChange={(e) => setFormData({ ...formData, experience_years: parseInt(e.target.value) || 0 })}
+                      placeholder="e.g., 5"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">This will be displayed on your public profile</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
