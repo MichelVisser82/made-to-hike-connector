@@ -161,6 +161,7 @@ export function useTourCreation() {
         distance_km: data.distance_km,
         elevation_gain_m: data.elevation_gain_m,
         available_dates: data.available_dates.map(d => d.toISOString().split('T')[0]),
+        hero_image: data.hero_image,
         images: data.images,
         highlights: data.highlights,
         itinerary: data.itinerary,

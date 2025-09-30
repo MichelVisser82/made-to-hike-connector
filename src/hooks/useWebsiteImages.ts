@@ -24,6 +24,7 @@ export function useWebsiteImages() {
     usage_context?: string;
     tags?: string[];
     limit?: number;
+    guide_id?: string;
   }) => {
     try {
       setLoading(true);
@@ -44,6 +45,10 @@ export function useWebsiteImages() {
 
       if (filters?.tags && filters.tags.length > 0) {
         query = query.overlaps('tags', filters.tags);
+      }
+
+      if (filters?.guide_id) {
+        query = query.eq('uploaded_by', filters.guide_id);
       }
 
       if (filters?.limit) {
@@ -103,6 +108,10 @@ export function useWebsiteImages() {
   ) => {
     try {
       setLoading(true);
+      
+      // Get current user to set uploaded_by
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
       let processedFile = file;
       let optimizationInfo = null;
@@ -172,6 +181,7 @@ export function useWebsiteImages() {
           description: metadata.description,
           usage_context: metadata.usage_context || [],
           priority: metadata.priority || 0,
+          uploaded_by: user.id,
         })
         .select()
         .single();
@@ -196,6 +206,10 @@ export function useWebsiteImages() {
     fetchImages();
   }, []);
 
+  const getImagesByGuide = async (guide_id: string, limit = 10) => {
+    return fetchImages({ guide_id, limit });
+  };
+
   return {
     images,
     loading,
@@ -203,6 +217,7 @@ export function useWebsiteImages() {
     getImageUrl,
     getImagesByContext,
     getImagesByCategory,
+    getImagesByGuide,
     getRandomImage,
     uploadImage,
   };

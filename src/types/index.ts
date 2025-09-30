@@ -33,6 +33,7 @@ export interface Tour {
   highlights: string[];
   includes: string[];
   meeting_point: string;
+  hero_image?: string;
   images: string[];
   available_dates: string[];
   rating: number;

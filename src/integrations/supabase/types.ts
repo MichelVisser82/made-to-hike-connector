@@ -372,7 +372,7 @@ export type Database = {
           priority: number | null
           tags: string[] | null
           updated_at: string
-          uploaded_by: string | null
+          uploaded_by: string
           usage_context: string[] | null
         }
         Insert: {
@@ -388,7 +388,7 @@ export type Database = {
           priority?: number | null
           tags?: string[] | null
           updated_at?: string
-          uploaded_by?: string | null
+          uploaded_by: string
           usage_context?: string[] | null
         }
         Update: {
@@ -404,7 +404,7 @@ export type Database = {
           priority?: number | null
           tags?: string[] | null
           updated_at?: string
-          uploaded_by?: string | null
+          uploaded_by?: string
           usage_context?: string[] | null
         }
         Relationships: []

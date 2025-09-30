@@ -76,15 +76,28 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       {/* Hero Section */}
       <div className="relative h-[600px] md:h-[700px]">
         <div className="absolute inset-0 overflow-hidden">
-          <SmartImage
-            category="hero"
-            usageContext={tour.region}
-            tags={[tour.region, 'landscape', 'mountains', 'epic', 'wide']}
-            className="w-full h-full object-cover"
-            fallbackSrc={tour.images[0]}
-            alt={`${tour.title} - Epic landscape view of ${tour.region}`}
-            priority="high"
-          />
+          {tour.hero_image ? (
+            <img 
+              src={tour.hero_image} 
+              alt={`${tour.title} - Epic landscape view of ${tour.region}`}
+              className="w-full h-full object-cover"
+            />
+          ) : tour.images[0] ? (
+            <img 
+              src={tour.images[0]} 
+              alt={`${tour.title} - Tour view`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <SmartImage
+              category="hero"
+              usageContext={tour.region}
+              tags={[tour.region, 'landscape', 'mountains', 'epic', 'wide']}
+              className="w-full h-full object-cover"
+              alt={`${tour.title} - Epic landscape view of ${tour.region}`}
+              priority="high"
+            />
+          )}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
         

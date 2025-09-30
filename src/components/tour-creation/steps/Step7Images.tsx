@@ -20,19 +20,39 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
   const uploadImage = async (file: File, isHero: boolean = false) => {
     setUploading(true);
     try {
+      // Get current user (guide)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const bucket = isHero ? 'hero-images' : 'tour-images';
       
-      const { error: uploadError, data } = await supabase.storage
+      // Use guide-specific path: guides/{guide_id}/hero/ or guides/{guide_id}/tours/
+      const filePath = `guides/${user.id}/${isHero ? 'hero' : 'tours'}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file);
+        .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
-        .getPublicUrl(fileName);
+        .getPublicUrl(filePath);
+
+      // Track image in website_images table
+      await supabase
+        .from('website_images')
+        .insert({
+          file_name: file.name,
+          file_path: filePath,
+          bucket_id: bucket,
+          category: 'tour',
+          uploaded_by: user.id,
+          usage_context: isHero ? ['hero', 'tour'] : ['tour'],
+          is_active: true,
+        });
 
       return publicUrl;
     } catch (error) {
