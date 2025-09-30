@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -15,15 +14,6 @@ interface TourDetailPageProps {
 }
 
 export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailPageProps) {
-  const [expandedTours, setExpandedTours] = useState<Record<number, boolean>>({});
-
-  const toggleExpanded = (index: number) => {
-    setExpandedTours(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -634,88 +624,121 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           <section className="py-12">
             <div className="container mx-auto px-4">
               <h2 className="text-3xl font-bold text-center mb-8">Other Tours in the Area</h2>
-              <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 {[
                   {
-                    title: "Ben Nevis Summit Challenge",
-                    shortDesc: "Conquer the UK's highest peak with expert guides and enjoy breathtaking panoramic views from the summit.",
-                    longDesc: "This challenging yet rewarding hike takes you to the roof of Britain. Starting from the Glen Nevis visitor center, you'll ascend through diverse landscapes - from lush forests to rocky alpine terrain. Our experienced guides will share fascinating geological and historical insights while ensuring your safety throughout the climb. Weather permitting, the summit offers spectacular 360-degree views across the Scottish Highlands.",
-                    rating: "4.8",
-                    reviews: "127",
+                    id: '1',
+                    title: 'Ben Nevis Summit Challenge',
+                    guide_name: 'James Highland',
+                    region: 'Scotland',
+                    difficulty: 'challenging',
+                    duration: '4 days',
+                    group_size: 8,
                     price: Math.round(tour.price * 1.2),
-                    badge: "Popular",
-                    tags: ['mountains', 'landscape', 'glen', 'adventure']
+                    rating: 4.8,
+                    reviews_count: 127,
+                    tags: ['summit', 'peak', 'mountain', 'challenge']
                   },
                   {
-                    title: "Loch Ness & Castle Tour",
-                    shortDesc: "Explore mysterious waters and ancient castles steeped in legend and breathtaking Highland beauty.",
-                    longDesc: "Journey through the heart of the Scottish Highlands on this magical tour combining natural wonder and medieval history. Visit the iconic ruins of Urquhart Castle, perched dramatically on the shores of Loch Ness. Learn about the legendary monster while cruising the deep waters of the loch. The tour includes visits to picturesque Highland villages and opportunities to sample local whisky and traditional Scottish fare.",
-                    rating: "4.6",
-                    reviews: "89",
+                    id: '2',
+                    title: 'Loch Ness & Castle Tour',
+                    guide_name: 'Emma Scott',
+                    region: 'Scotland',
+                    difficulty: 'easy',
+                    duration: '2 days',
+                    group_size: 10,
                     price: Math.round(tour.price * 0.8),
-                    badge: null,
+                    rating: 4.6,
+                    reviews_count: 89,
                     tags: ['loch', 'castle', 'landscape', 'scenic']
                   },
                   {
-                    title: "Highland Glens Explorer",
-                    shortDesc: "Discover hidden waterfalls and ancient valleys through pristine wilderness and spectacular Scottish landscapes.",
-                    longDesc: "Venture off the beaten path to discover some of Scotland's most spectacular hidden gems. This tour takes you through ancient glens carved by glaciers, past cascading waterfalls, and into valleys rich with wildlife. You'll learn about Highland clan history, spot native red deer, and experience the raw beauty of untouched wilderness. Perfect for photographers and nature enthusiasts seeking authentic Highland experiences.",
-                    rating: "4.9",
-                    reviews: "45",
+                    id: '3',
+                    title: 'Highland Glens Explorer',
+                    guide_name: 'Sarah Mountain',
+                    region: 'Scotland',
+                    difficulty: 'moderate',
+                    duration: '3 days',
+                    group_size: 6,
                     price: Math.round(tour.price * 1.1),
-                    badge: "New",
+                    rating: 4.9,
+                    reviews_count: 45,
                     tags: ['glen', 'waterfall', 'hiking', 'nature']
                   }
-                ].map((otherTour, index) => (
-                  <Card key={index} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                    <div className="relative aspect-[3/2]">
-                        <SmartImage
-                          category="tour"
-                          usageContext="scottish-highlands"
-                          tags={otherTour.tags}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                          fallbackSrc="/placeholder-tour.jpg"
-                          alt={otherTour.title}
-                        />
-                        {otherTour.badge && (
-                          <div className="absolute top-3 right-3">
-                            <Badge className="bg-white/90 text-primary font-medium">{otherTour.badge}</Badge>
-                          </div>
-                        )}
+                ].map((otherTour) => (
+                  <Card key={otherTour.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                    <div className="aspect-[4/5] relative overflow-hidden">
+                      <SmartImage
+                        category="tour"
+                        usageContext="scottish-highlands"
+                        tags={otherTour.tags}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop"
+                        alt={`${otherTour.title} - Scottish Highlands hiking tour`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <Badge
+                        className="absolute top-4 left-4 bg-white/90 text-foreground hover:bg-white"
+                        variant="secondary"
+                      >
+                        {otherTour.difficulty}
+                      </Badge>
+                      <div className="absolute bottom-4 left-4 right-4 text-white">
+                        <h3 className="text-lg font-bold mb-1 group-hover:text-primary-foreground transition-colors">
+                          {otherTour.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm opacity-90">
+                          <SmartImage
+                            category="guide"
+                            usageContext="avatar"
+                            tags={['portrait', 'guide', 'professional']}
+                            className="w-5 h-5 rounded-full object-cover"
+                            fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                            alt={`${otherTour.guide_name} - Professional hiking guide`}
+                          />
+                          <span>by {otherTour.guide_name}</span>
+                        </div>
                       </div>
-                      <CardContent className="p-5">
-                        <h3 className="font-semibold text-lg mb-3">{otherTour.title}</h3>
-                        
-                        <div className="mb-4">
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {otherTour.shortDesc}
-                          </p>
-                          
-                          {expandedTours[index] && (
-                            <p className="text-sm text-muted-foreground leading-relaxed mt-3">
-                              {otherTour.longDesc}
-                            </p>
-                          )}
-                          
-                          <button
-                            onClick={() => toggleExpanded(index)}
-                            className="text-sm text-primary hover:underline mt-2 font-medium"
-                          >
-                            {expandedTours[index] ? "Show less" : "Read more"}
-                          </button>
+                    </div>
+                    
+                    <CardContent className="p-6">
+                      <div className="space-y-3 text-sm mb-6">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          <span>{otherTour.region}</span>
                         </div>
-                        
-                        <div className="flex items-center justify-between pt-3 border-t">
-                          <div className="flex items-center gap-1 text-sm">
-                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="font-medium">{otherTour.rating}</span>
-                            <span className="text-muted-foreground">({otherTour.reviews})</span>
-                          </div>
-                          <div className="text-base font-semibold">From £{otherTour.price}</div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-primary" />
+                          <span>{otherTour.duration}</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          <span>Max {otherTour.group_size} people</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Star className="h-4 w-4 text-accent fill-current" />
+                          <span>{otherTour.rating} ({otherTour.reviews_count} reviews)</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="text-xl font-bold text-primary">
+                          £{otherTour.price}
+                        </div>
+                        <Button 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Handle booking
+                          }}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          Book Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
           </section>
