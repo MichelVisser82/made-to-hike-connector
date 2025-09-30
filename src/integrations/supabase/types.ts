@@ -76,7 +76,6 @@ export type Database = {
           active_since: string | null
           bio: string | null
           certifications: Json | null
-          contact_email: string | null
           created_at: string
           daily_rate: number | null
           daily_rate_currency: Database["public"]["Enums"]["currency"] | null
@@ -109,7 +108,6 @@ export type Database = {
           active_since?: string | null
           bio?: string | null
           certifications?: Json | null
-          contact_email?: string | null
           created_at?: string
           daily_rate?: number | null
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
@@ -142,7 +140,6 @@ export type Database = {
           active_since?: string | null
           bio?: string | null
           certifications?: Json | null
-          contact_email?: string | null
           created_at?: string
           daily_rate?: number | null
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null

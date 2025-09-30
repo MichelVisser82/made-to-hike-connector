@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useMyGuideProfile } from '@/hooks/useGuideProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '../ui/alert';
 
 const SPECIALTY_OPTIONS = [
   'Alpine Hiking', 'Mountain Climbing', 'Glacier Trekking', 'Via Ferrata',
@@ -33,8 +35,12 @@ const LANGUAGES = [
 
 export function GuideProfileEditForm() {
   const { data: profile, isLoading, refetch } = useMyGuideProfile();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
 
   const [formData, setFormData] = useState({
     display_name: '',
@@ -51,7 +57,6 @@ export function GuideProfileEditForm() {
     upcoming_availability_end: '',
     daily_rate: '',
     daily_rate_currency: 'EUR' as 'EUR' | 'GBP',
-    contact_email: '',
     phone: '',
     instagram_url: '',
     facebook_url: '',
@@ -80,7 +85,6 @@ export function GuideProfileEditForm() {
         upcoming_availability_end: profile.upcoming_availability_end || '',
         daily_rate: profile.daily_rate?.toString() || '',
         daily_rate_currency: profile.daily_rate_currency || 'EUR',
-        contact_email: profile.contact_email || '',
         phone: profile.phone || '',
         instagram_url: profile.instagram_url || '',
         facebook_url: profile.facebook_url || '',
@@ -89,7 +93,10 @@ export function GuideProfileEditForm() {
       setProfileImagePreview(profile.profile_image_url || '');
       setHeroImagePreview(profile.hero_background_url || '');
     }
-  }, [profile]);
+    if (user?.email) {
+      setNewEmail(user.email);
+    }
+  }, [profile, user]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'hero') => {
     const file = e.target.files?.[0];
@@ -126,6 +133,71 @@ export function GuideProfileEditForm() {
     return array.includes(item)
       ? array.filter(i => i !== item)
       : [...array, item];
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!newEmail || newEmail === user?.email) {
+      toast({
+        title: "No change",
+        description: "Please enter a different email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUpdatingEmail(true);
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+
+      if (error) throw error;
+
+      // Also update the profiles table
+      await supabase
+        .from('profiles')
+        .update({ email: newEmail })
+        .eq('id', user?.id);
+
+      toast({
+        title: "Email update initiated",
+        description: "Please check both your old and new email addresses to confirm the change.",
+      });
+    } catch (error: any) {
+      console.error('Error updating email:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingEmail(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!user?.email) return;
+
+    try {
+      setIsResettingPassword(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Password reset email sent",
+        description: "Please check your email for instructions to reset your password.",
+      });
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send password reset email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
   };
 
   const handleSave = async () => {
@@ -165,7 +237,6 @@ export function GuideProfileEditForm() {
           upcoming_availability_end: formData.upcoming_availability_end || null,
           daily_rate: formData.daily_rate ? parseFloat(formData.daily_rate) : null,
           daily_rate_currency: formData.daily_rate_currency,
-          contact_email: formData.contact_email,
           phone: formData.phone,
           instagram_url: formData.instagram_url,
           facebook_url: formData.facebook_url,
@@ -203,6 +274,57 @@ export function GuideProfileEditForm() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Account Settings
+          </CardTitle>
+          <CardDescription>
+            Manage your account email and authentication
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="account_email">Account Email</Label>
+            <p className="text-sm text-muted-foreground mb-2">
+              This email is used for login and all account communications
+            </p>
+            <div className="flex gap-2">
+              <Input
+                id="account_email"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="your@email.com"
+              />
+              <Button
+                onClick={handleUpdateEmail}
+                disabled={isUpdatingEmail || newEmail === user?.email}
+                variant="outline"
+              >
+                {isUpdatingEmail ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  'Update Email'
+                )}
+              </Button>
+            </div>
+            {newEmail !== user?.email && (
+              <Alert className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Changing your email will require verification. You'll receive confirmation emails at both addresses.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Basic Information</CardTitle>
@@ -493,18 +615,11 @@ export function GuideProfileEditForm() {
       <Card>
         <CardHeader>
           <CardTitle>Contact Information</CardTitle>
+          <CardDescription>
+            Your account email ({user?.email}) will be used for bookings and inquiries
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="contact_email">Contact Email</Label>
-            <Input
-              id="contact_email"
-              type="email"
-              value={formData.contact_email}
-              onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-              placeholder="your@email.com"
-            />
-          </div>
           <div>
             <Label htmlFor="phone">Phone</Label>
             <Input
@@ -544,6 +659,40 @@ export function GuideProfileEditForm() {
               onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
               placeholder="https://..."
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            Security & Password
+          </CardTitle>
+          <CardDescription>
+            Manage your account password and security settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Password</Label>
+            <p className="text-sm text-muted-foreground mb-2">
+              Click the button below to receive a password reset link via email
+            </p>
+            <Button
+              onClick={handleResetPassword}
+              disabled={isResettingPassword}
+              variant="outline"
+            >
+              {isResettingPassword ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                'Change Password'
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
