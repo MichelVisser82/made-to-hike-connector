@@ -49,6 +49,9 @@ export interface Tour {
   service_fee?: number;
   distance_km?: number;
   elevation_gain_m?: number;
+  slug?: string;
+  meta_title?: string;
+  meta_description?: string;
 }
 
 export interface SearchFilters {
