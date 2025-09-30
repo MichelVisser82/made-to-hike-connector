@@ -321,31 +321,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </CardContent>
             </Card>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-3 gap-6">
-              <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Mountain className="h-6 w-6 text-primary" />
-                </div>
-                <div className="font-semibold">Epic Scenery</div>
-                <div className="text-sm text-muted-foreground">Breathtaking mountain views and pristine landscapes</div>
-              </div>
-              <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Users className="h-6 w-6 text-primary" />
-                </div>
-                <div className="font-semibold">Small Groups</div>
-                <div className="text-sm text-muted-foreground">Intimate groups of max {tour.group_size} adventurers</div>
-              </div>
-              <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Shield className="h-6 w-6 text-primary" />
-                </div>
-                <div className="font-semibold">100% Safety</div>
-                <div className="text-sm text-muted-foreground">Certified guides and safety equipment included</div>
-              </div>
-            </div>
-
             {/* Tour Highlights */}
             <Card>
               <CardHeader>
