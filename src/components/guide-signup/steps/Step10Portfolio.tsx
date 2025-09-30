@@ -161,16 +161,9 @@ export function Step10Portfolio({ data, updateData, onNext, onBack }: Step10Port
   };
 
   const handleNext = () => {
-    // Store metadata along with files
-    const imagesWithMetadata = images.map(img => ({
-      file: img.file,
-      metadata: img.metadata,
-      suggestions: img.suggestions
-    }));
-    
+    // Store files with their metadata for later processing during signup
     updateData({ 
-      portfolio_images: images.map(img => img.file),
-      portfolio_metadata: imagesWithMetadata 
+      portfolio_images: images.map(img => img.file)
     });
     
     onNext();
