@@ -135,18 +135,18 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* Guide Profile & Booking Card in Hero */}
             <Card className="w-96 bg-white/95 backdrop-blur-sm absolute top-1/2 right-8 -translate-y-1/2">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <SmartImage
                       category="guide"
                       usageContext="professional"
                       tags={['portrait', 'guide', 'professional', 'certified']}
                       className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
-                      fallbackSrc={tour.guide_avatar}
-                      alt={`${tour.guide_name} - Professional hiking guide`}
+                      fallbackSrc={tour.guide_avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'}
+                      alt={`${tour.guide_name || 'Professional Guide'} - Professional hiking guide`}
                     />
                     <div>
-                      <h3 className="font-semibold text-base">{tour.guide_name}</h3>
+                      <h3 className="font-semibold text-base">{tour.guide_name || 'Professional Guide'}</h3>
                       <p className="text-xs text-muted-foreground">Professional Guide</p>
                       <div className="flex flex-col gap-0.5 mt-1">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -708,7 +708,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     {/* Ask Question Button */}
                     <Button variant="outline" className="w-full md:w-auto" size="lg">
                       <MessageCircle className="mr-2 h-4 w-4" />
-                      Ask {tour.guide_name.split(' ')[0]} a question
+                      Ask {tour.guide_name?.split(' ')[0] || 'Guide'} a question
                     </Button>
                   </div>
                 </div>
