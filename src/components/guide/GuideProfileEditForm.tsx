@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMyGuideProfile } from '@/hooks/useGuideProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -42,6 +43,7 @@ const DIFFICULTY_OPTIONS = [
 ];
 
 export function GuideProfileEditForm() {
+  const navigate = useNavigate();
   const { data: profile, isLoading, refetch } = useMyGuideProfile();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -953,7 +955,7 @@ export function GuideProfileEditForm() {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => window.open(`/guides/${profile.user_id}`, '_blank')}
+            onClick={() => navigate(`/guides/${profile.user_id}`)}
           >
             <Eye className="mr-2 h-4 w-4" />
             View Public Profile
