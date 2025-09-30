@@ -1,3 +1,4 @@
+import { MainLayout } from '../layout/MainLayout';
 import { GuideHeroSection } from '../guide/GuideHeroSection';
 import { ProfessionalExpertise } from '../guide/ProfessionalExpertise';
 import { GuideStatsCards } from '../guide/GuideStatsCards';
@@ -21,49 +22,51 @@ interface GuideProfilePageProps {
 
 export function GuideProfilePage({ guide, stats, tours, reviews }: GuideProfilePageProps) {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <GuideHeroSection guide={guide} stats={stats} />
+    <MainLayout>
+      <div className="bg-background">
+        {/* Hero Section */}
+        <GuideHeroSection guide={guide} stats={stats} />
 
-      {/* Content Container */}
-      <div className="container mx-auto px-4">
-        {/* Professional Expertise */}
-        <ProfessionalExpertise certifications={guide.certifications} />
+        {/* Content Container */}
+        <div className="container mx-auto px-4">
+          {/* Professional Expertise */}
+          <ProfessionalExpertise certifications={guide.certifications} />
 
-        {/* Stats Cards */}
-        <GuideStatsCards stats={stats} />
+          {/* Stats Cards */}
+          <GuideStatsCards stats={stats} />
 
-        {/* Specialties */}
-        <GuideSpecialties specialties={guide.specialties} />
+          {/* Specialties */}
+          <GuideSpecialties specialties={guide.specialties} />
 
-        {/* Guiding Areas */}
-        <GuidingAreasGrid areas={guide.guiding_areas} />
+          {/* Guiding Areas */}
+          <GuidingAreasGrid areas={guide.guiding_areas} />
 
-        {/* Terrain Capabilities */}
-        <GuideSpecialties 
-          specialties={guide.terrain_capabilities} 
-          title="Terrain Capabilities" 
-        />
+          {/* Terrain Capabilities */}
+          <GuideSpecialties 
+            specialties={guide.terrain_capabilities} 
+            title="Terrain Capabilities" 
+          />
 
-        {/* Active Tours */}
-        <GuideActiveTours tours={tours} guideId={guide.user_id} />
+          {/* Active Tours */}
+          <GuideActiveTours tours={tours} guideId={guide.user_id} />
 
-        {/* Reviews */}
-        <GuideReviewsSection 
-          reviews={reviews} 
-          averageRating={stats.average_rating}
-          totalReviews={reviews.length}
-        />
+          {/* Reviews */}
+          <GuideReviewsSection 
+            reviews={reviews} 
+            averageRating={stats.average_rating}
+            totalReviews={reviews.length}
+          />
 
-        {/* Portfolio Gallery */}
-        <GuidePortfolioGallery images={guide.portfolio_images} />
+          {/* Portfolio Gallery */}
+          <GuidePortfolioGallery images={guide.portfolio_images} />
 
-        {/* Availability */}
-        <GuideAvailabilityCard guide={guide} />
+          {/* Availability */}
+          <GuideAvailabilityCard guide={guide} />
+        </div>
+
+        {/* Footer CTA */}
+        <GuideFooterCTA guide={guide} />
       </div>
-
-      {/* Footer CTA */}
-      <GuideFooterCTA guide={guide} />
-    </div>
+    </MainLayout>
   );
 }
