@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -625,83 +626,91 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             <div className="container mx-auto px-4">
               <h2 className="text-3xl font-bold text-center mb-8">Other Tours in the Area</h2>
               <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                <Card className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow">
-                  <div className="relative aspect-[4/3]">
-                    <SmartImage
-                      category="tour"
-                      usageContext="scottish-highlands"
-                      tags={['mountains', 'landscape', 'glen', 'adventure']}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      fallbackSrc="/placeholder-tour.jpg"
-                      alt="Ben Nevis Summit Challenge"
-                    />
-                    <div className="absolute top-3 right-3">
-                      <Badge className="bg-white/90 text-primary font-medium">Popular</Badge>
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">Ben Nevis Summit Challenge</h3>
-                    <p className="text-sm text-muted-foreground mb-3">Conquer the UK's highest peak with expert guides</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span>4.8 (127)</span>
+                {[
+                  {
+                    title: "Ben Nevis Summit Challenge",
+                    shortDesc: "Conquer the UK's highest peak with expert guides and enjoy breathtaking panoramic views from the summit.",
+                    longDesc: "This challenging yet rewarding hike takes you to the roof of Britain. Starting from the Glen Nevis visitor center, you'll ascend through diverse landscapes - from lush forests to rocky alpine terrain. Our experienced guides will share fascinating geological and historical insights while ensuring your safety throughout the climb. Weather permitting, the summit offers spectacular 360-degree views across the Scottish Highlands.",
+                    rating: "4.8",
+                    reviews: "127",
+                    price: Math.round(tour.price * 1.2),
+                    badge: "Popular",
+                    tags: ['mountains', 'landscape', 'glen', 'adventure']
+                  },
+                  {
+                    title: "Loch Ness & Castle Tour",
+                    shortDesc: "Explore mysterious waters and ancient castles steeped in legend and breathtaking Highland beauty.",
+                    longDesc: "Journey through the heart of the Scottish Highlands on this magical tour combining natural wonder and medieval history. Visit the iconic ruins of Urquhart Castle, perched dramatically on the shores of Loch Ness. Learn about the legendary monster while cruising the deep waters of the loch. The tour includes visits to picturesque Highland villages and opportunities to sample local whisky and traditional Scottish fare.",
+                    rating: "4.6",
+                    reviews: "89",
+                    price: Math.round(tour.price * 0.8),
+                    badge: null,
+                    tags: ['loch', 'castle', 'landscape', 'scenic']
+                  },
+                  {
+                    title: "Highland Glens Explorer",
+                    shortDesc: "Discover hidden waterfalls and ancient valleys through pristine wilderness and spectacular Scottish landscapes.",
+                    longDesc: "Venture off the beaten path to discover some of Scotland's most spectacular hidden gems. This tour takes you through ancient glens carved by glaciers, past cascading waterfalls, and into valleys rich with wildlife. You'll learn about Highland clan history, spot native red deer, and experience the raw beauty of untouched wilderness. Perfect for photographers and nature enthusiasts seeking authentic Highland experiences.",
+                    rating: "4.9",
+                    reviews: "45",
+                    price: Math.round(tour.price * 1.1),
+                    badge: "New",
+                    tags: ['glen', 'waterfall', 'hiking', 'nature']
+                  }
+                ].map((otherTour, index) => {
+                  const [isExpanded, setIsExpanded] = useState(false);
+                  
+                  return (
+                    <Card key={index} className="overflow-hidden group hover:shadow-lg transition-shadow">
+                      <div className="relative aspect-[3/2]">
+                        <SmartImage
+                          category="tour"
+                          usageContext="scottish-highlands"
+                          tags={otherTour.tags}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                          fallbackSrc="/placeholder-tour.jpg"
+                          alt={otherTour.title}
+                        />
+                        {otherTour.badge && (
+                          <div className="absolute top-3 right-3">
+                            <Badge className="bg-white/90 text-primary font-medium">{otherTour.badge}</Badge>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-sm font-medium">From £{Math.round(tour.price * 1.2)}</div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow">
-                  <div className="relative aspect-[4/3]">
-                    <SmartImage
-                      category="tour"
-                      usageContext="scottish-highlands"
-                      tags={['loch', 'castle', 'landscape', 'scenic']}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      fallbackSrc="/placeholder-tour.jpg"
-                      alt="Loch Ness & Castle Tour"
-                    />
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">Loch Ness & Castle Tour</h3>
-                    <p className="text-sm text-muted-foreground mb-3">Explore mysterious waters and ancient castles</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span>4.6 (89)</span>
-                      </div>
-                      <div className="text-sm font-medium">From £{Math.round(tour.price * 0.8)}</div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow">
-                  <div className="relative aspect-[4/3]">
-                    <SmartImage
-                      category="tour"
-                      usageContext="scottish-highlands"
-                      tags={['glen', 'waterfall', 'hiking', 'nature']}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      fallbackSrc="/placeholder-tour.jpg"
-                      alt="Highland Glens Explorer"
-                    />
-                    <div className="absolute top-3 right-3">
-                      <Badge className="bg-white/90 text-primary font-medium">New</Badge>
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">Highland Glens Explorer</h3>
-                    <p className="text-sm text-muted-foreground mb-3">Discover hidden waterfalls and ancient valleys</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span>4.9 (45)</span>
-                      </div>
-                      <div className="text-sm font-medium">From £{Math.round(tour.price * 1.1)}</div>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <CardContent className="p-5">
+                        <h3 className="font-semibold text-lg mb-3">{otherTour.title}</h3>
+                        
+                        <div className="mb-4">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {otherTour.shortDesc}
+                          </p>
+                          
+                          {isExpanded && (
+                            <p className="text-sm text-muted-foreground leading-relaxed mt-3">
+                              {otherTour.longDesc}
+                            </p>
+                          )}
+                          
+                          <button
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="text-sm text-primary hover:underline mt-2 font-medium"
+                          >
+                            {isExpanded ? "Show less" : "Read more"}
+                          </button>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <span className="font-medium">{otherTour.rating}</span>
+                            <span className="text-muted-foreground">({otherTour.reviews})</span>
+                          </div>
+                          <div className="text-base font-semibold">From £{otherTour.price}</div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           </section>
