@@ -180,9 +180,11 @@ export type Database = {
           available_dates: string[]
           created_at: string
           currency: Database["public"]["Enums"]["currency"]
+          daily_hours: string | null
           description: string
           difficulty: Database["public"]["Enums"]["difficulty"]
           duration: string
+          excluded_items: string[] | null
           group_size: number
           guide_id: string
           highlights: string[]
@@ -190,11 +192,15 @@ export type Database = {
           images: string[]
           includes: string[]
           is_active: boolean
+          itinerary: Json | null
           meeting_point: string
+          pack_weight: number | null
           price: number
           rating: number | null
           region: Database["public"]["Enums"]["region"]
           reviews_count: number | null
+          service_fee: number | null
+          terrain_types: string[] | null
           title: string
           updated_at: string
         }
@@ -202,9 +208,11 @@ export type Database = {
           available_dates?: string[]
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
+          daily_hours?: string | null
           description: string
           difficulty: Database["public"]["Enums"]["difficulty"]
           duration: string
+          excluded_items?: string[] | null
           group_size: number
           guide_id: string
           highlights?: string[]
@@ -212,11 +220,15 @@ export type Database = {
           images?: string[]
           includes?: string[]
           is_active?: boolean
+          itinerary?: Json | null
           meeting_point: string
+          pack_weight?: number | null
           price: number
           rating?: number | null
           region: Database["public"]["Enums"]["region"]
           reviews_count?: number | null
+          service_fee?: number | null
+          terrain_types?: string[] | null
           title: string
           updated_at?: string
         }
@@ -224,9 +236,11 @@ export type Database = {
           available_dates?: string[]
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
+          daily_hours?: string | null
           description?: string
           difficulty?: Database["public"]["Enums"]["difficulty"]
           duration?: string
+          excluded_items?: string[] | null
           group_size?: number
           guide_id?: string
           highlights?: string[]
@@ -234,11 +248,15 @@ export type Database = {
           images?: string[]
           includes?: string[]
           is_active?: boolean
+          itinerary?: Json | null
           meeting_point?: string
+          pack_weight?: number | null
           price?: number
           rating?: number | null
           region?: Database["public"]["Enums"]["region"]
           reviews_count?: number | null
+          service_fee?: number | null
+          terrain_types?: string[] | null
           title?: string
           updated_at?: string
         }

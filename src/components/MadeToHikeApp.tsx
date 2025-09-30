@@ -12,6 +12,7 @@ import { BookingFlow } from './pages/BookingFlow';
 import { PendingBookingFlow } from './pages/PendingBookingFlow';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { VerificationFlow } from './pages/VerificationFlow';
+import { TourCreationFlow } from './tour-creation/TourCreationFlow';
 import { DecisionManager } from './DecisionManager';
 import { WireframePreloader } from './WireframePreloader';
 import { WireframeNotification } from './WireframeNotification';
@@ -124,6 +125,17 @@ function AppContent() {
     setCurrentPage('verification');
   };
 
+  const navigateToTourCreation = () => {
+    if (!user || user.role !== 'guide') {
+      return;
+    }
+    if (!user.verified) {
+      navigateToVerification();
+      return;
+    }
+    setCurrentPage('tour-creation');
+  };
+
   const handleApplyDecisions = (decisions: any) => {
     setWireframeDecisions(decisions);
     if (decisions) {
@@ -175,6 +187,14 @@ function AppContent() {
             user={user}
             onTourClick={navigateToTour}
             onStartVerification={navigateToVerification}
+            onCreateTour={navigateToTourCreation}
+          />
+        ) : null;
+      case 'tour-creation':
+        return user && user.role === 'guide' && user.verified ? (
+          <TourCreationFlow
+            onComplete={() => setCurrentPage('guide-dashboard')}
+            onCancel={() => setCurrentPage('guide-dashboard')}
           />
         ) : null;
       case 'admin-dashboard':

@@ -2,14 +2,16 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { type User, type Tour } from '../../types';
+import { Plus } from 'lucide-react';
 
 interface GuideDashboardProps {
   user: User;
   onTourClick: (tour: Tour) => void;
   onStartVerification: () => void;
+  onCreateTour: () => void;
 }
 
-export function GuideDashboard({ user, onStartVerification }: GuideDashboardProps) {
+export function GuideDashboard({ user, onStartVerification, onCreateTour }: GuideDashboardProps) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -39,11 +41,23 @@ export function GuideDashboard({ user, onStartVerification }: GuideDashboardProp
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Your Tours</CardTitle>
+              {user.verified && (
+                <Button onClick={onCreateTour} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Tour
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">No tours created yet.</p>
+              {user.verified && (
+                <Button onClick={onCreateTour} className="mt-4" variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Tour
+                </Button>
+              )}
             </CardContent>
           </Card>
 
