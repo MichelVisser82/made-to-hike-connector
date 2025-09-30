@@ -236,6 +236,14 @@ function AppContent() {
               role: (authUser!.user_metadata?.role || 'hiker') as 'hiker' | 'guide' | 'admin',
               verified: !!authUser!.email_confirmed_at
             } as User}
+            guide={(() => {
+              const stored = sessionStorage.getItem('currentGuideProfile');
+              return stored ? JSON.parse(stored) : undefined;
+            })()}
+            stats={(() => {
+              const stored = sessionStorage.getItem('currentGuideStats');
+              return stored ? JSON.parse(stored) : undefined;
+            })()}
             onComplete={() => setCurrentPage('user-dashboard')}
             onCancel={() => setCurrentPage('tour-detail')}
           />

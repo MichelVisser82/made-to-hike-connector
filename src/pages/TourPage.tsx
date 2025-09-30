@@ -50,8 +50,14 @@ export default function TourPage() {
         guide={guide}
         stats={stats}
         onBookTour={(selectedTour) => {
+          // Store guide data in session storage for booking flow
+          if (guide) {
+            sessionStorage.setItem('currentGuideProfile', JSON.stringify(guide));
+          }
+          if (stats) {
+            sessionStorage.setItem('currentGuideStats', JSON.stringify(stats));
+          }
           console.log('Booking tour:', selectedTour.id);
-          // Handle booking navigation
           navigate('/booking', { state: { tour: selectedTour } });
         }}
         onBackToSearch={() => navigate('/')}

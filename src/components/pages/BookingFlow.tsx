@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Mail, MessageCircle, Award, ChevronDown } from 'lucide-react';
 import { type User, type Tour } from '../../types';
+import type { GuideProfile, GuideStats } from '@/types/guide';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import {
@@ -17,6 +18,8 @@ import {
 interface BookingFlowProps {
   tour: Tour;
   user: User;
+  guide?: GuideProfile;
+  stats?: GuideStats;
   onComplete: () => void;
   onCancel: () => void;
 }
@@ -39,7 +42,7 @@ const mockDateOptions: DateOption[] = [
   { date: 'May 20-22, 2024', spotsLeft: 5, price: 427, originalPrice: 450, discount: 'Limited Spots', savings: 23 },
 ];
 
-export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowProps) {
+export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: BookingFlowProps) {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDateOptions, setShowDateOptions] = useState(false);
@@ -77,13 +80,36 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
             </div>
             <div className="flex items-start gap-4 pr-16">
               <Avatar className="h-20 w-20">
-                <AvatarImage src="" alt={tour.guide_name} />
-                <AvatarFallback>{tour.guide_name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                <AvatarImage 
+                  src={guide?.profile_image_url || tour.guide_avatar || ''} 
+                  alt={guide?.display_name || tour.guide_name} 
+                />
+                <AvatarFallback>
+                  {(guide?.display_name || tour.guide_name).split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-1">{tour.guide_name}</h3>
-                <p className="text-primary font-semibold mb-1">IFMGA Certified</p>
-                <p className="text-sm text-muted-foreground">5+ years experience</p>
+                <h3 className="text-xl font-semibold mb-1">
+                  {guide?.display_name || tour.guide_name}
+                </h3>
+                {guide?.certifications && guide.certifications.length > 0 && (
+                  <p className="text-primary font-semibold mb-1">
+                    {typeof guide.certifications[0] === 'string' 
+                      ? guide.certifications[0] 
+                      : guide.certifications[0].title || 'Certified'}
+                  </p>
+                )}
+                {guide?.active_since ? (
+                  <p className="text-sm text-muted-foreground">
+                    {new Date().getFullYear() - new Date(guide.active_since).getFullYear()}+ years experience
+                  </p>
+                ) : stats?.tours_completed ? (
+                  <p className="text-sm text-muted-foreground">
+                    {stats.tours_completed}+ tours completed
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Experienced guide</p>
+                )}
               </div>
             </div>
           </CardHeader>
