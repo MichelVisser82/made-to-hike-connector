@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
@@ -49,22 +49,26 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDateOptions, setShowDateOptions] = useState(false);
   
-  // Fetch guide data if not provided via props
-  const { data: fetchedGuide, isLoading: isLoadingGuide } = useGuideProfile(guide ? undefined : tour.guide_id);
-  const { data: fetchedStats, isLoading: isLoadingStats } = useGuideStats(stats ? undefined : tour.guide_id);
+  // ALWAYS fetch guide data fresh - ignore any stale props
+  const { data: fetchedGuide, isLoading: isLoadingGuide, refetch: refetchGuide } = useGuideProfile(tour.guide_id);
+  const { data: fetchedStats, isLoading: isLoadingStats } = useGuideStats(tour.guide_id);
   
-  // Three-level fallback system
-  const guideData = guide || fetchedGuide;
-  const statsData = stats || fetchedStats;
+  // Force refetch on mount to ensure fresh data
+  useEffect(() => {
+    refetchGuide();
+  }, [refetchGuide]);
+  
+  // Use fetched data, never props
+  const guideData = fetchedGuide;
+  const statsData = fetchedStats;
   const isLoading = isLoadingGuide || isLoadingStats;
   
-  // Enhanced fallbacks using tour object as middle layer
-  const guideDisplayName = guide?.display_name || tour.guide_display_name || fetchedGuide?.display_name || 'Professional Guide';
-  const guideImage = guide?.profile_image_url || tour.guide_avatar_url || fetchedGuide?.profile_image_url;
-  const guideCertification = guide?.certifications?.[0]?.title || fetchedGuide?.certifications?.[0]?.title || 'Certified Professional';
+  // Enhanced fallbacks using tour object as middle layer for name/image only
+  const guideDisplayName = tour.guide_display_name || fetchedGuide?.display_name || 'Professional Guide';
+  const guideImage = tour.guide_avatar_url || fetchedGuide?.profile_image_url;
+  const guideCertification = fetchedGuide?.certifications?.[0]?.title || 'Certified Professional';
   
   console.log('BookingFlow - Guide data:', {
-    propGuide: !!guide,
     tourGuideId: tour.guide_id,
     tourGuideDisplayName: tour.guide_display_name,
     tourGuideAvatarUrl: tour.guide_avatar_url,
