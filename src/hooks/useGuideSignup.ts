@@ -6,6 +6,18 @@ import type { GuideSignupData } from '@/types/guide';
 
 const STORAGE_KEY = 'guide_signup_data';
 
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+  });
+};
+
 export function useGuideSignup() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,83 +72,49 @@ export function useGuideSignup() {
   const submitSignup = async () => {
     setIsSubmitting(true);
     try {
-      // Step 1: Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email!,
-        password: formData.password!,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            name: formData.display_name,
-            role: 'guide',
-          },
-        },
-      });
-
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('User creation failed');
-
-      // Step 2: Upload images if any
-      let profileImageUrl: string | undefined;
-      const portfolioUrls: string[] = [];
+      // Convert images to base64 for edge function
+      let profileImageBase64: string | undefined;
+      const portfolioImagesBase64: string[] = [];
 
       if (formData.profile_image) {
-        const fileName = `${authData.user.id}/profile-${Date.now()}.jpg`;
-        const { error: uploadError } = await supabase.storage
-          .from('hero-images')
-          .upload(fileName, formData.profile_image);
-
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('hero-images')
-            .getPublicUrl(fileName);
-          profileImageUrl = publicUrl;
-        }
+        profileImageBase64 = await fileToBase64(formData.profile_image);
       }
 
       if (formData.portfolio_images && formData.portfolio_images.length > 0) {
         for (const image of formData.portfolio_images) {
-          const fileName = `${authData.user.id}/portfolio-${Date.now()}-${Math.random()}.jpg`;
-          const { error: uploadError } = await supabase.storage
-            .from('tour-images')
-            .upload(fileName, image);
-
-          if (!uploadError) {
-            const { data: { publicUrl } } = supabase.storage
-              .from('tour-images')
-              .getPublicUrl(fileName);
-            portfolioUrls.push(publicUrl);
-          }
+          const base64 = await fileToBase64(image);
+          portfolioImagesBase64.push(base64);
         }
       }
 
-      // Step 3: Create guide profile
-      const { error: profileError } = await supabase
-        .from('guide_profiles')
-        .insert([{
-          user_id: authData.user.id,
-          display_name: formData.display_name!,
-          bio: formData.bio,
-          location: formData.location,
-          profile_image_url: profileImageUrl,
-          certifications: formData.certifications || [],
-          specialties: formData.specialties || [],
-          guiding_areas: formData.guiding_areas || [],
-          terrain_capabilities: formData.terrain_capabilities || [],
-          portfolio_images: portfolioUrls,
-          seasonal_availability: formData.seasonal_availability,
-          upcoming_availability_start: formData.upcoming_availability_start,
-          upcoming_availability_end: formData.upcoming_availability_end,
-          daily_rate: formData.daily_rate,
-          daily_rate_currency: formData.daily_rate_currency,
-          max_group_size: formData.max_group_size,
-          min_group_size: formData.min_group_size,
-          languages_spoken: formData.languages_spoken || ['English'],
-          profile_completed: true,
-          verified: false,
-        }] as any);
+      // Call edge function to create guide account
+      const { data, error } = await supabase.functions.invoke('guide-signup', {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          guideData: {
+            display_name: formData.display_name,
+            bio: formData.bio,
+            location: formData.location,
+            certifications: formData.certifications || [],
+            specialties: formData.specialties || [],
+            guiding_areas: formData.guiding_areas || [],
+            terrain_capabilities: formData.terrain_capabilities || [],
+            seasonal_availability: formData.seasonal_availability,
+            upcoming_availability_start: formData.upcoming_availability_start,
+            upcoming_availability_end: formData.upcoming_availability_end,
+            daily_rate: formData.daily_rate,
+            daily_rate_currency: formData.daily_rate_currency,
+            max_group_size: formData.max_group_size,
+            min_group_size: formData.min_group_size,
+            languages_spoken: formData.languages_spoken || ['English'],
+            profile_image_base64: profileImageBase64,
+            portfolio_images_base64: portfolioImagesBase64,
+          },
+        },
+      });
 
-      if (profileError) throw profileError;
+      if (error) throw error;
 
       localStorage.removeItem(STORAGE_KEY);
 
