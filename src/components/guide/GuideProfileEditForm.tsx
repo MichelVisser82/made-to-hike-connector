@@ -9,7 +9,7 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Loader2, X, Mail, Lock, AlertCircle, Award, Plus } from 'lucide-react';
+import { Loader2, X, Mail, Lock, AlertCircle, Award, Plus, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '../ui/alert';
 import type { GuideCertification } from '@/types/guide';
@@ -938,7 +938,7 @@ export function GuideProfileEditForm() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row gap-4 justify-end">
         <Button onClick={handleSave} disabled={isSaving} size="lg">
           {isSaving ? (
             <>
@@ -949,6 +949,16 @@ export function GuideProfileEditForm() {
             'Save Changes'
           )}
         </Button>
+        {profile && (
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => window.open(`/guides/${profile.user_id}`, '_blank')}
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            View Public Profile
+          </Button>
+        )}
       </div>
     </div>
   );
