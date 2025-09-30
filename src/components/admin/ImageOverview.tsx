@@ -124,9 +124,10 @@ export const ImageOverview = () => {
 
           if (rolesData.data) {
             rolesData.data.forEach(role => {
-              if (uploaderInfo[role.user_id]) {
-                uploaderInfo[role.user_id].role = role.role;
+              if (!uploaderInfo[role.user_id]) {
+                uploaderInfo[role.user_id] = {};
               }
+              uploaderInfo[role.user_id].role = role.role;
             });
           }
         }
