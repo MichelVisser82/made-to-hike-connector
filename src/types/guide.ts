@@ -1,0 +1,96 @@
+export interface GuideCertification {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface GuideProfile {
+  id: string;
+  user_id: string;
+  display_name: string;
+  profile_image_url?: string;
+  hero_background_url?: string;
+  bio?: string;
+  location?: string;
+  active_since?: string;
+  verified: boolean;
+  certifications: GuideCertification[];
+  specialties: string[];
+  guiding_areas: string[];
+  terrain_capabilities: string[];
+  portfolio_images: string[];
+  seasonal_availability?: string;
+  upcoming_availability_start?: string;
+  upcoming_availability_end?: string;
+  daily_rate?: number;
+  daily_rate_currency: 'EUR' | 'GBP';
+  contact_email?: string;
+  phone?: string;
+  instagram_url?: string;
+  facebook_url?: string;
+  website_url?: string;
+  max_group_size?: number;
+  min_group_size: number;
+  languages_spoken: string[];
+  profile_completed: boolean;
+  onboarding_step: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GuideSignupData {
+  // Step 2: Basic Info
+  display_name: string;
+  email: string;
+  password: string;
+  profile_image?: File;
+  
+  // Step 3: Location
+  location: string;
+  
+  // Step 4: Specialties
+  specialties: string[];
+  
+  // Step 5: Difficulty Levels
+  difficulty_levels: string[];
+  
+  // Step 6: Certifications
+  certifications: GuideCertification[];
+  
+  // Step 7: Group Preferences
+  min_group_size: number;
+  max_group_size: number;
+  
+  // Step 8: Day Rates
+  daily_rate: number;
+  daily_rate_currency: 'EUR' | 'GBP';
+  
+  // Step 9: Availability
+  seasonal_availability: string;
+  upcoming_availability_start?: string;
+  upcoming_availability_end?: string;
+  
+  // Step 10: Portfolio
+  portfolio_images: File[];
+  
+  // Step 11: Guiding Areas
+  guiding_areas: string[];
+  
+  // Step 12: Terrain Capabilities
+  terrain_capabilities: string[];
+  
+  // Step 13: Bio
+  bio: string;
+  
+  // Step 14: Languages
+  languages_spoken: string[];
+  
+  // Step 15: Terms
+  terms_accepted: boolean;
+}
+
+export interface GuideStats {
+  tours_completed: number;
+  average_rating: number;
+  total_hikers: number;
+}

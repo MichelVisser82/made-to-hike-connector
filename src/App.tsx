@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import TourPage from "./pages/TourPage";
+import GuidePage from "./pages/GuidePage";
 import { EmailTest } from "./components/EmailTest";
 import { Auth } from "./pages/Auth";
 import { VerifyEmail } from "./pages/VerifyEmail";
@@ -28,6 +29,7 @@ const App: React.FC = () => {
             <Route path="/email-test" element={<EmailTest />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/tours/:slug" element={<TourPage />} />
+            <Route path="/guides/:guideId" element={<GuidePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

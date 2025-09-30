@@ -71,6 +71,108 @@ export type Database = {
           },
         ]
       }
+      guide_profiles: {
+        Row: {
+          active_since: string | null
+          bio: string | null
+          certifications: Json | null
+          contact_email: string | null
+          created_at: string
+          daily_rate: number | null
+          daily_rate_currency: Database["public"]["Enums"]["currency"] | null
+          display_name: string
+          facebook_url: string | null
+          guiding_areas: string[] | null
+          hero_background_url: string | null
+          id: string
+          instagram_url: string | null
+          languages_spoken: string[] | null
+          location: string | null
+          max_group_size: number | null
+          min_group_size: number | null
+          onboarding_step: number | null
+          phone: string | null
+          portfolio_images: string[] | null
+          profile_completed: boolean | null
+          profile_image_url: string | null
+          seasonal_availability: string | null
+          specialties: string[] | null
+          terrain_capabilities: string[] | null
+          upcoming_availability_end: string | null
+          upcoming_availability_start: string | null
+          updated_at: string
+          user_id: string
+          verified: boolean | null
+          website_url: string | null
+        }
+        Insert: {
+          active_since?: string | null
+          bio?: string | null
+          certifications?: Json | null
+          contact_email?: string | null
+          created_at?: string
+          daily_rate?: number | null
+          daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
+          display_name: string
+          facebook_url?: string | null
+          guiding_areas?: string[] | null
+          hero_background_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          languages_spoken?: string[] | null
+          location?: string | null
+          max_group_size?: number | null
+          min_group_size?: number | null
+          onboarding_step?: number | null
+          phone?: string | null
+          portfolio_images?: string[] | null
+          profile_completed?: boolean | null
+          profile_image_url?: string | null
+          seasonal_availability?: string | null
+          specialties?: string[] | null
+          terrain_capabilities?: string[] | null
+          upcoming_availability_end?: string | null
+          upcoming_availability_start?: string | null
+          updated_at?: string
+          user_id: string
+          verified?: boolean | null
+          website_url?: string | null
+        }
+        Update: {
+          active_since?: string | null
+          bio?: string | null
+          certifications?: Json | null
+          contact_email?: string | null
+          created_at?: string
+          daily_rate?: number | null
+          daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
+          display_name?: string
+          facebook_url?: string | null
+          guiding_areas?: string[] | null
+          hero_background_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          languages_spoken?: string[] | null
+          location?: string | null
+          max_group_size?: number | null
+          min_group_size?: number | null
+          onboarding_step?: number | null
+          phone?: string | null
+          portfolio_images?: string[] | null
+          profile_completed?: boolean | null
+          profile_image_url?: string | null
+          seasonal_availability?: string | null
+          specialties?: string[] | null
+          terrain_capabilities?: string[] | null
+          upcoming_availability_end?: string | null
+          upcoming_availability_start?: string | null
+          updated_at?: string
+          user_id?: string
+          verified?: boolean | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       kv_store_158bb0c0: {
         Row: {
           key: string
@@ -222,6 +324,8 @@ export type Database = {
           elevation_gain_m: number | null
           excluded_items: string[] | null
           group_size: number
+          guide_avatar_url: string | null
+          guide_display_name: string | null
           guide_id: string
           hero_image: string | null
           highlights: string[]
@@ -258,6 +362,8 @@ export type Database = {
           elevation_gain_m?: number | null
           excluded_items?: string[] | null
           group_size: number
+          guide_avatar_url?: string | null
+          guide_display_name?: string | null
           guide_id: string
           hero_image?: string | null
           highlights?: string[]
@@ -294,6 +400,8 @@ export type Database = {
           elevation_gain_m?: number | null
           excluded_items?: string[] | null
           group_size?: number
+          guide_avatar_url?: string | null
+          guide_display_name?: string | null
           guide_id?: string
           hero_image?: string | null
           highlights?: string[]
