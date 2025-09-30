@@ -74,17 +74,19 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative h-96 md:h-[500px] overflow-hidden">
-        <SmartImage
-          category="hero"
-          usageContext={tour.region}
-          tags={[tour.region, 'landscape', 'mountains', 'epic', 'wide']}
-          className="w-full h-full object-cover"
-          fallbackSrc={tour.images[0]}
-          alt={`${tour.title} - Epic landscape view of ${tour.region}`}
-          priority="high"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      <div className="relative h-96 md:h-[500px]">
+        <div className="absolute inset-0 overflow-hidden">
+          <SmartImage
+            category="hero"
+            usageContext={tour.region}
+            tags={[tour.region, 'landscape', 'mountains', 'epic', 'wide']}
+            className="w-full h-full object-cover"
+            fallbackSrc={tour.images[0]}
+            alt={`${tour.title} - Epic landscape view of ${tour.region}`}
+            priority="high"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
         
       {/* Hero Content */}
       <div className="absolute inset-0">
@@ -92,13 +94,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           <Button
             variant="ghost"
             onClick={onBackToSearch}
-            className="mt-4 mb-4 text-white hover:bg-white/10 self-start"
+            className="mt-4 text-white hover:bg-white/10 self-start"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Search
           </Button>
           
-          <div className="flex-1 flex items-center justify-between pb-8 pt-8">
+          <div className="flex-1 flex items-start justify-between relative">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1">
@@ -131,7 +133,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
             
             {/* Guide Profile & Booking Card in Hero */}
-            <Card className="w-96 bg-white/95 backdrop-blur-sm">
+            <Card className="w-96 bg-white/95 backdrop-blur-sm absolute top-1/2 -translate-y-1/2 right-0">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
