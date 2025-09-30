@@ -63,12 +63,16 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
   const guideImage = guide?.profile_image_url || tour.guide_avatar_url || fetchedGuide?.profile_image_url;
   const guideCertification = guide?.certifications?.[0]?.title || fetchedGuide?.certifications?.[0]?.title || 'Certified Professional';
   
-  console.log('BookingFlow - Fallback levels:', {
+  console.log('BookingFlow - Guide data:', {
     propGuide: !!guide,
     tourGuideId: tour.guide_id,
     tourGuideDisplayName: tour.guide_display_name,
     tourGuideAvatarUrl: tour.guide_avatar_url,
     fetchedGuide: !!fetchedGuide,
+    fetchedGuideData: fetchedGuide,
+    guideDataExperienceYears: guideData?.experience_years,
+    guideDataActiveSince: guideData?.active_since,
+    guideDataCertifications: guideData?.certifications,
     finalName: guideDisplayName,
     finalCertification: guideCertification
   });

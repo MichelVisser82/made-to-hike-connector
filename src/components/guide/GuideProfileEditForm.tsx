@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMyGuideProfile } from '@/hooks/useGuideProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +49,7 @@ interface GuideProfileEditFormProps {
 
 export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileEditFormProps = {}) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: profile, isLoading, refetch } = useMyGuideProfile();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -322,6 +324,9 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         if (url) portfolioUrls.push(url);
       }
 
+      console.log('Saving guide profile with experience_years:', formData.experience_years);
+      console.log('Saving certifications:', formData.certifications);
+
       const { error } = await supabase
         .from('guide_profiles')
         .upsert({
@@ -357,6 +362,9 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       if (error) throw error;
 
+      // Invalidate all guide-related queries to ensure fresh data everywhere
+      await queryClient.invalidateQueries({ queryKey: ['my-guide-profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['guide-profile', user.id] });
       await refetch();
       
       toast({
