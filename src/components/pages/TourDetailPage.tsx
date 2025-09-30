@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, Heart, Share2, 
-         Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown, X } from 'lucide-react';
+         Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown, X, XCircle } from 'lucide-react';
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 
@@ -746,7 +746,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     <ul className="space-y-2 text-sm text-muted-foreground">
                       {tour.excluded_items.map((item, index) => (
                         <li key={index} className="flex items-center gap-2">
-                          <div className="w-4 h-4 border rounded-full flex-shrink-0" />
+                          <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
