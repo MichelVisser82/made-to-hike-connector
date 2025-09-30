@@ -456,7 +456,10 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                           <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-                            {item.shortDesc}
+                            {expandedItinerary[index] 
+                              ? item.shortDesc 
+                              : `${item.shortDesc.substring(0, 120)}...`
+                            }
                           </p>
                           
                           {expandedItinerary[index] && (
