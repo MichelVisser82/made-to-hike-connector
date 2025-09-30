@@ -77,7 +77,7 @@ export function useGuideSignup() {
       
       // Convert images to base64 for edge function
       let profileImageBase64: string | undefined;
-      const portfolioImagesBase64: string[] = [];
+      const portfolioImagesBase64: Array<{ base64: string; metadata: any }> = [];
 
       if (formData.profile_image) {
         profileImageBase64 = await fileToBase64(formData.profile_image);
@@ -86,7 +86,15 @@ export function useGuideSignup() {
       if (formData.portfolio_images && formData.portfolio_images.length > 0) {
         for (const image of formData.portfolio_images) {
           const base64 = await fileToBase64(image);
-          portfolioImagesBase64.push(base64);
+          // For now, include basic metadata - will be enhanced with AI suggestions
+          portfolioImagesBase64.push({
+            base64,
+            metadata: {
+              alt_text: '',
+              description: '',
+              tags: []
+            }
+          });
         }
       }
 
