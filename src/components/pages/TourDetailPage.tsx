@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -14,6 +15,15 @@ interface TourDetailPageProps {
 }
 
 export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailPageProps) {
+  const [expandedItinerary, setExpandedItinerary] = useState<Record<number, boolean>>({});
+
+  const toggleItinerary = (index: number) => {
+    setExpandedItinerary(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -402,41 +412,69 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 <CardTitle>Detailed Itinerary</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                      <SmartImage
-                        category="tour"
-                        usageContext={tour.region}
-                        tags={[tour.region, 'start', 'trailhead']}
-                        className="w-full h-full object-cover"
-                        fallbackSrc={tour.images[0]}
-                        alt="Tour starting point"
-                      />
+                <div className="space-y-6">
+                  {[
+                    {
+                      title: "Meeting Point",
+                      shortDesc: "Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead.",
+                      longDesc: "We'll gather at the designated meeting point where your experienced guide will conduct a thorough safety briefing covering route conditions, weather expectations, and emergency procedures. You'll receive all necessary safety equipment and have the opportunity to ask questions. The guide will also review the day's objectives, expected timings, and key landmarks you'll encounter along the trail. This is a great time to meet your fellow hikers and ensure everyone is comfortable with the plan ahead.",
+                      tags: [tour.region, 'start', 'trailhead', 'preparation']
+                    },
+                    {
+                      title: "Alpine Ascent",
+                      shortDesc: "Navigate through stunning alpine meadows and rocky terrain as we steadily gain elevation toward the summit.",
+                      longDesc: "The journey begins with a gentle warm-up through ancient forests before opening up to breathtaking alpine meadows dotted with wildflowers. As we gain elevation, the landscape transforms dramatically - you'll traverse rocky switchbacks offering increasingly spectacular views of the surrounding peaks and valleys. Your guide will share fascinating insights about the local geology, flora, and fauna unique to this elevation. We'll maintain a comfortable pace with regular breaks to hydrate, refuel with energy snacks, and capture photos of the stunning vistas.",
+                      tags: [tour.region, 'alpine', 'ascent', 'hiking']
+                    },
+                    {
+                      title: "Summit Achievement",
+                      shortDesc: "Reach the magnificent peak and celebrate with panoramic 360-degree views that stretch across the entire region.",
+                      longDesc: "After hours of steady climbing, you'll experience the incredible feeling of standing on the summit. The panoramic views from the top are truly breathtaking - on clear days, you can see for miles across mountain ranges, valleys, and distant peaks. This is the perfect time to rest, enjoy a well-deserved summit snack, and take photos to commemorate your achievement. Your guide will point out notable landmarks and share stories about the mountain's history and significance. We'll spend quality time at the summit, allowing everyone to soak in the accomplishment and the stunning scenery before beginning our descent.",
+                      tags: [tour.region, 'summit', 'achievement', 'peak']
+                    },
+                    {
+                      title: "Return Journey",
+                      shortDesc: "Descend through scenic routes with different perspectives, concluding the adventure back at our starting point.",
+                      longDesc: "The descent offers an entirely different perspective of the landscape you climbed through earlier. We'll take a slightly different route when possible to maximize your experience and see new terrain. As we lose elevation, you'll notice how the environment changes - from stark alpine zones back through meadows and into the shelter of the forest. Your guide will ensure a safe, controlled descent with attention to tired legs and proper hiking technique. We'll conclude back at the meeting point where you can share stories of your adventure, exchange contact information with new friends, and celebrate your achievement together.",
+                      tags: [tour.region, 'descent', 'return', 'completion']
+                    }
+                  ].map((item, index) => (
+                    <div key={index} className="group">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="md:w-64 w-full flex-shrink-0">
+                          <div className="aspect-[3/2] rounded-lg overflow-hidden">
+                            <SmartImage
+                              category="tour"
+                              usageContext={tour.region}
+                              tags={item.tags}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              fallbackSrc={tour.images[0]}
+                              alt={item.title}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                            {item.shortDesc}
+                          </p>
+                          
+                          {expandedItinerary[index] && (
+                            <p className="text-sm text-muted-foreground leading-relaxed mt-3 animate-fade-in">
+                              {item.longDesc}
+                            </p>
+                          )}
+                          
+                          <button
+                            onClick={() => toggleItinerary(index)}
+                            className="text-sm text-primary hover:underline mt-2 font-medium transition-colors"
+                          >
+                            {expandedItinerary[index] ? "Show less" : "Read more"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium">Meeting Point</div>
-                      <div className="text-sm text-muted-foreground">{tour.meeting_point}</div>
-                      <div className="text-sm text-muted-foreground">Begin your adventure with a safety briefing and equipment check</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                      <SmartImage
-                        category="tour"
-                        usageContext={tour.region}
-                        tags={[tour.region, 'summit', 'achievement']}
-                        className="w-full h-full object-cover"
-                        fallbackSrc={tour.images[0]}
-                        alt="Summit achievement"
-                      />
-                    </div>
-                    <div>
-                      <div className="font-medium">Summit Achievement</div>
-                      <div className="text-sm text-muted-foreground">Reach the peak and enjoy panoramic views</div>
-                      <div className="text-sm text-muted-foreground">Photo opportunities and well-deserved rest at the summit</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
