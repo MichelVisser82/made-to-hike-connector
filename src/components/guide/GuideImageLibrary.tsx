@@ -57,6 +57,8 @@ export function GuideImageLibrary() {
     category: '',
     priority: '0',
   });
+  const [aiSuggestionsForEdit, setAiSuggestionsForEdit] = useState<any>(null);
+  const [isAnalyzingForEdit, setIsAnalyzingForEdit] = useState(false);
 
   const categories = [
     'hero', 'landscape', 'hiking', 'portrait', 'detail', 
@@ -434,6 +436,84 @@ export function GuideImageLibrary() {
     }
   };
 
+  const analyzeExistingImage = async (image: any) => {
+    if (!image) return;
+    
+    setIsAnalyzingForEdit(true);
+    setAiSuggestionsForEdit(null);
+    
+    try {
+      // Download the image from storage
+      const imageUrl = getImageUrl(image);
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], image.file_name, { type: blob.type });
+      
+      // Extract GPS data if available
+      const gpsData = await extractGPSData(file);
+      
+      // Compress for analysis
+      const compressedFile = await compressImage(file, image.category || 'tour');
+      const base64 = await fileToBase64(compressedFile);
+      
+      // Call AI analysis
+      const { data, error } = await supabase.functions.invoke('analyze-image-metadata', {
+        body: {
+          imageBase64: base64,
+          filename: image.file_name,
+          gpsData
+        }
+      });
+
+      if (error) throw error;
+
+      const suggestions = data.suggestions;
+      const aiLocation = suggestions.location || 
+                         (suggestions.gps?.location) || 
+                         (gpsData && getLocationFromGPS(gpsData.latitude, gpsData.longitude));
+      
+      const cleanTags = suggestions.tags.filter((tag: string) => !tag.startsWith('location:'));
+      
+      setAiSuggestionsForEdit({
+        ...suggestions,
+        tags: cleanTags,
+        location: aiLocation,
+        gps: suggestions.gps || gpsData
+      });
+      
+      toast({
+        title: "AI analysis complete",
+        description: "Metadata suggestions generated",
+      });
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      toast({
+        title: "Analysis failed",
+        description: "Failed to generate AI suggestions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzingForEdit(false);
+    }
+  };
+
+  const applyAISuggestionsToEdit = () => {
+    if (!aiSuggestionsForEdit) return;
+    
+    setEditMetadata({
+      alt_text: aiSuggestionsForEdit.alt_text || '',
+      description: aiSuggestionsForEdit.description || '',
+      tags: aiSuggestionsForEdit.tags.join(', '),
+      category: aiSuggestionsForEdit.category || 'tour',
+      priority: aiSuggestionsForEdit.priority?.toString() || '5',
+    });
+    
+    toast({
+      title: "AI suggestions applied",
+      description: "Metadata fields updated with AI suggestions",
+    });
+  };
+
   const openEditDialog = (image: any) => {
     setEditingImage(image);
     setEditMetadata({
@@ -443,6 +523,7 @@ export function GuideImageLibrary() {
       category: image.category || 'tour',
       priority: image.priority?.toString() || '0',
     });
+    setAiSuggestionsForEdit(null);
   };
 
   const handleSaveEdit = async () => {
@@ -688,11 +769,89 @@ export function GuideImageLibrary() {
       </Card>
 
       <Dialog open={!!editingImage} onOpenChange={(open) => !open && setEditingImage(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Image Metadata</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => analyzeExistingImage(editingImage)}
+                disabled={isAnalyzingForEdit}
+              >
+                {isAnalyzingForEdit ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate AI Suggestions
+                  </>
+                )}
+              </Button>
+              {aiSuggestionsForEdit && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={applyAISuggestionsToEdit}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Apply All AI Suggestions
+                </Button>
+              )}
+            </div>
+
+            {aiSuggestionsForEdit && (
+              <div className="p-3 rounded-lg border bg-muted/30 space-y-2">
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  AI Suggestions
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Category:</span>{' '}
+                    <Badge variant="secondary" className="text-xs">{aiSuggestionsForEdit.category}</Badge>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Priority:</span>{' '}
+                    <Badge variant="secondary" className="text-xs">{aiSuggestionsForEdit.priority}</Badge>
+                  </div>
+                  {aiSuggestionsForEdit.location && (
+                    <div className="col-span-2">
+                      <span className="text-muted-foreground">Location:</span>{' '}
+                      <Badge variant="secondary" className="text-xs">
+                        <MapPin className="w-2 h-2 mr-1" />
+                        {aiSuggestionsForEdit.location}
+                      </Badge>
+                    </div>
+                  )}
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Tags:</span>{' '}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {aiSuggestionsForEdit.tags.map((tag: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          <Tag className="w-2 h-2 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Alt Text:</span>
+                    <p className="text-xs mt-1 text-foreground">{aiSuggestionsForEdit.alt_text}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Description:</span>
+                    <p className="text-xs mt-1 text-foreground">{aiSuggestionsForEdit.description}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <Label>Category</Label>
               <Select
