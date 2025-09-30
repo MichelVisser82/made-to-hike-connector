@@ -8,16 +8,24 @@ import { useToast } from '@/hooks/use-toast';
 
 export function GuideImageLibrary() {
   const [guideId, setGuideId] = useState<string | null>(null);
-  const { images, loading, fetchImages, getImageUrl, uploadImage } = useWebsiteImages();
+  const [guideImages, setGuideImages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { fetchImages, getImageUrl, uploadImage } = useWebsiteImages();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchGuideImages = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setGuideId(user.id);
-        await fetchImages({ guide_id: user.id });
+      setLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setGuideId(user.id);
+          const images = await fetchImages({ guide_id: user.id });
+          setGuideImages(images);
+        }
+      } finally {
+        setLoading(false);
       }
     };
     fetchGuideImages();
@@ -43,7 +51,8 @@ export function GuideImageLibrary() {
 
       // Refresh images
       if (guideId) {
-        await fetchImages({ guide_id: guideId });
+        const images = await fetchImages({ guide_id: guideId });
+        setGuideImages(images);
       }
     } catch (error) {
       toast({
@@ -72,7 +81,8 @@ export function GuideImageLibrary() {
 
       // Refresh images
       if (guideId) {
-        await fetchImages({ guide_id: guideId });
+        const images = await fetchImages({ guide_id: guideId });
+        setGuideImages(images);
       }
     } catch (error) {
       toast({
@@ -120,7 +130,7 @@ export function GuideImageLibrary() {
         </div>
       </CardHeader>
       <CardContent>
-        {images.length === 0 ? (
+        {guideImages.length === 0 ? (
           <div className="text-center py-12">
             <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
             <p className="text-muted-foreground mb-4">No images in your library yet</p>
@@ -143,7 +153,7 @@ export function GuideImageLibrary() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {images.map((image) => (
+            {guideImages.map((image) => (
               <div key={image.id} className="relative group">
                 <div className="aspect-video rounded-lg overflow-hidden border">
                   <img
