@@ -124,7 +124,7 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
     }
   };
 
-  const compressImage = (file: File): Promise<File> => {
+  const compressImage = (file: File, isHero: boolean): Promise<File> => {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -132,7 +132,7 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
       
       img.onload = () => {
         let { width, height } = img;
-        const maxDimension = 1600;
+        const maxDimension = isHero ? 1920 : 1600;
         
         if (width > maxDimension || height > maxDimension) {
           if (width > height) {
@@ -181,9 +181,9 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
     });
   };
 
-  const analyzeImage = async (file: File, gpsData: any) => {
+  const analyzeImage = async (file: File, gpsData: any, isHero: boolean) => {
     try {
-      const compressedFile = await compressImage(file);
+      const compressedFile = await compressImage(file, isHero);
       const base64 = await fileToBase64(compressedFile);
       
       const { data, error } = await supabase.functions.invoke('analyze-image-metadata', {
@@ -286,7 +286,7 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
     const startIndex = images.length;
     for (let i = 0; i < processedImages.length; i++) {
       const imageData = processedImages[i];
-      const suggestions = await analyzeImage(imageData.file, imageData.gpsData);
+      const suggestions = await analyzeImage(imageData.file, imageData.gpsData, imageData.isHero);
       
       if (suggestions) {
         setImages(prev => prev.map((img, idx) => 
@@ -361,7 +361,7 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
     try {
       for (let i = 0; i < images.length; i++) {
         const imageData = images[i];
-        const compressedFile = await compressImage(imageData.file);
+        const compressedFile = await compressImage(imageData.file, imageData.isHero);
         
         const metadata = {
           alt_text: imageData.metadata.alt_text,

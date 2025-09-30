@@ -84,10 +84,8 @@ serve(async (req) => {
 
     if (roleError) throw roleError;
 
-
-    // Upload images if provided
+    // Upload profile image if provided
     let profileImageUrl: string | undefined;
-    const portfolioUrls: string[] = [];
 
     if (guideData.profile_image_base64) {
       const buffer = Uint8Array.from(atob(guideData.profile_image_base64), c => c.charCodeAt(0));
@@ -105,26 +103,54 @@ serve(async (req) => {
       }
     }
 
+    // Process portfolio images: upload to storage and insert into website_images table
+    const portfolioImageIds: string[] = [];
+
     if (guideData.portfolio_images_base64 && guideData.portfolio_images_base64.length > 0) {
       for (let i = 0; i < guideData.portfolio_images_base64.length; i++) {
-        const base64 = guideData.portfolio_images_base64[i];
+        const imageData = guideData.portfolio_images_base64[i];
+        const base64 = imageData.base64;
+        const metadata = imageData.metadata || {};
+        
         const buffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
         const fileName = `${userId}/portfolio-${Date.now()}-${i}.jpg`;
+        const filePath = `guides/${userId}/portfolio/${fileName}`;
         
         const { error: uploadError } = await supabase.storage
           .from('tour-images')
-          .upload(fileName, buffer, { contentType: 'image/jpeg' });
+          .upload(filePath, buffer, { contentType: 'image/jpeg' });
 
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('tour-images')
-            .getPublicUrl(fileName);
-          portfolioUrls.push(publicUrl);
+        if (uploadError) {
+          console.error('Portfolio upload error:', uploadError);
+          continue;
+        }
+
+        // Insert into website_images table
+        const { data: imageRecord, error: imageError } = await supabase
+          .from('website_images')
+          .insert({
+            file_name: fileName,
+            file_path: filePath,
+            bucket_id: 'tour-images',
+            category: 'portfolio',
+            uploaded_by: userId,
+            usage_context: ['portfolio', 'guide'],
+            alt_text: metadata.alt_text || `Portfolio image ${i + 1}`,
+            description: metadata.description || '',
+            tags: metadata.tags || [],
+            priority: 5,
+            is_active: true,
+          })
+          .select('id')
+          .single();
+
+        if (!imageError && imageRecord) {
+          portfolioImageIds.push(imageRecord.id);
         }
       }
     }
 
-    // Create or update guide profile
+    // Create or update guide profile with portfolio image IDs
     const { error: guideProfileError } = await supabase
       .from('guide_profiles')
       .upsert({
@@ -137,7 +163,7 @@ serve(async (req) => {
         specialties: guideData.specialties || [],
         guiding_areas: guideData.guiding_areas || [],
         terrain_capabilities: guideData.terrain_capabilities || [],
-        portfolio_images: portfolioUrls,
+        portfolio_images: portfolioImageIds,
         seasonal_availability: guideData.seasonal_availability,
         upcoming_availability_start: guideData.upcoming_availability_start,
         upcoming_availability_end: guideData.upcoming_availability_end,
