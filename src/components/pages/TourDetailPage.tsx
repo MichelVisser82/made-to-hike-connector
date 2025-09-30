@@ -410,24 +410,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </CardContent>
             </Card>
 
-            {/* What's Excluded */}
-            {tour.excluded_items && tour.excluded_items.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>What's Not Included</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {tour.excluded_items.map((item, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 border rounded-lg bg-muted/30">
-                        <X className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Fitness Requirements */}
             <Card>
@@ -760,24 +742,18 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   <CardTitle className="text-lg">Not Included</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <div className="w-4 h-4 border rounded-full flex-shrink-0" />
-                      <span>Personal hiking boots</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <div className="w-4 h-4 border rounded-full flex-shrink-0" />
-                      <span>Travel insurance</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <div className="w-4 h-4 border rounded-full flex-shrink-0" />
-                      <span>Personal expenses</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <div className="w-4 h-4 border rounded-full flex-shrink-0" />
-                      <span>Transportation to meeting point</span>
-                    </li>
-                  </ul>
+                  {tour.excluded_items && tour.excluded_items.length > 0 ? (
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      {tour.excluded_items.map((item, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <div className="w-4 h-4 border rounded-full flex-shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">All standard items are included.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
