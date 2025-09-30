@@ -29,6 +29,7 @@ interface ExtendedWebsiteImage {
   created_at: string;
   updated_at: string;
   uploader_name: string;
+  uploader_email: string;
   uploader_role: string;
   image_width?: number;
   image_height?: number;
@@ -108,16 +109,16 @@ export const ImageOverview = () => {
         // Fetch uploader info separately for images that have uploaded_by
         const uploaderIds = [...new Set(imageData?.filter(img => img.uploaded_by).map(img => img.uploaded_by))];
         
-        let uploaderInfo: Record<string, { name?: string; role?: string }> = {};
+        let uploaderInfo: Record<string, { name?: string; email?: string; role?: string }> = {};
         if (uploaderIds.length > 0) {
           const [profilesData, rolesData] = await Promise.all([
-            supabase.from('profiles').select('id, name').in('id', uploaderIds),
+            supabase.from('profiles').select('id, name, email').in('id', uploaderIds),
             supabase.from('user_roles').select('user_id, role').in('user_id', uploaderIds)
           ]);
 
           if (profilesData.data) {
             profilesData.data.forEach(profile => {
-              uploaderInfo[profile.id] = { name: profile.name };
+              uploaderInfo[profile.id] = { name: profile.name, email: profile.email };
             });
           }
 
@@ -133,6 +134,7 @@ export const ImageOverview = () => {
         const extended = imageData?.map(img => ({
           ...img,
           uploader_name: img.uploaded_by ? uploaderInfo[img.uploaded_by]?.name || 'Unknown' : 'System',
+          uploader_email: img.uploaded_by ? uploaderInfo[img.uploaded_by]?.email || 'unknown@system' : 'system@admin',
           uploader_role: img.uploaded_by ? uploaderInfo[img.uploaded_by]?.role || 'unknown' : 'admin'
         } as ExtendedWebsiteImage)) || [];
 
@@ -142,7 +144,8 @@ export const ImageOverview = () => {
         console.error('Error fetching extended images:', error);
         const fallbackImages = images.map(img => ({ 
           ...img, 
-          uploader_name: 'Unknown', 
+          uploader_name: 'Unknown',
+          uploader_email: 'unknown@system',
           uploader_role: 'unknown' 
         } as ExtendedWebsiteImage));
         setExtendedImages(fallbackImages);
@@ -176,7 +179,7 @@ export const ImageOverview = () => {
     }
 
     if (uploaderFilter !== 'all') {
-      filtered = filtered.filter(img => img.uploaded_by === uploaderFilter);
+      filtered = filtered.filter(img => img.uploader_email === uploaderFilter);
     }
 
     if (roleFilter !== 'all') {
@@ -329,11 +332,12 @@ export const ImageOverview = () => {
   };
 
   const getUniqueRoles = () => {
-    return [...new Set(extendedImages.map(img => img.uploader_role).filter(Boolean))];
+    // Return all available roles statically
+    return ['admin', 'guide'];
   };
 
   const getUniqueUploaders = () => {
-    return [...new Set(extendedImages.map(img => img.uploader_name).filter(Boolean))];
+    return [...new Set(extendedImages.map(img => img.uploader_email).filter(Boolean))];
   };
 
   const getImageUrl = (image: ExtendedWebsiteImage) => {
@@ -520,9 +524,9 @@ export const ImageOverview = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Users</SelectItem>
-                {getUniqueUploaders().map(name => (
-                  <SelectItem key={name} value={name}>
-                    {name}
+                {getUniqueUploaders().map(email => (
+                  <SelectItem key={email} value={email}>
+                    {email}
                   </SelectItem>
                 ))}
               </SelectContent>
