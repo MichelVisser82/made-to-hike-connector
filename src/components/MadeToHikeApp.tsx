@@ -30,6 +30,8 @@ function AppContent() {
   const [showHikerRegistrationModal, setShowHikerRegistrationModal] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [tourToCopy, setTourToCopy] = useState<Tour | undefined>(undefined);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingTourId, setEditingTourId] = useState<string | undefined>(undefined);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     region: '',
     difficulty: '',
@@ -126,7 +128,7 @@ function AppContent() {
     setCurrentPage('verification');
   };
 
-  const navigateToTourCreation = (tourData?: Tour) => {
+  const navigateToTourCreation = (tourData?: Tour, isEditMode?: boolean) => {
     if (!user || user.role !== 'guide') {
       return;
     }
@@ -135,6 +137,7 @@ function AppContent() {
       return;
     }
     setTourToCopy(tourData);
+    setIsEditMode(isEditMode || false);
     setCurrentPage('tour-creation');
   };
 
@@ -190,6 +193,12 @@ function AppContent() {
             onTourClick={navigateToTour}
             onStartVerification={navigateToVerification}
             onCreateTour={navigateToTourCreation}
+            onEditTour={(tour) => {
+              setTourToCopy(tour);
+              setIsEditMode(true);
+              setEditingTourId(tour.id);
+              setCurrentPage('tour-creation');
+            }}
           />
         ) : null;
       case 'tour-creation':
@@ -197,13 +206,19 @@ function AppContent() {
           <TourCreationFlow
             onComplete={() => {
               setTourToCopy(undefined);
+              setIsEditMode(false);
+              setEditingTourId(undefined);
               setCurrentPage('guide-dashboard');
             }}
             onCancel={() => {
               setTourToCopy(undefined);
+              setIsEditMode(false);
+              setEditingTourId(undefined);
               setCurrentPage('guide-dashboard');
             }}
             initialData={tourToCopy}
+            editMode={isEditMode}
+            tourId={editingTourId}
           />
         ) : null;
       case 'admin-dashboard':

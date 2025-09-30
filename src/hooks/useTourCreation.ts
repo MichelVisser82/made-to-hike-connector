@@ -58,9 +58,16 @@ const tourSchema = z.object({
 
 export type TourFormData = z.infer<typeof tourSchema>;
 
+interface UseTourCreationOptions {
+  initialData?: any;
+  editMode?: boolean;
+  tourId?: string;
+}
+
 const STORAGE_KEY = 'tour_creation_draft';
 
-export function useTourCreation(initialData?: any) {
+export function useTourCreation(options?: UseTourCreationOptions) {
+  const { initialData, editMode = false, tourId } = options || {};
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -68,7 +75,7 @@ export function useTourCreation(initialData?: any) {
     if (initialData) {
       // Convert tour data to form data format
       return {
-        title: initialData.title + ' (Copy)',
+        title: editMode ? initialData.title : initialData.title + ' (Copy)',
         short_description: initialData.short_description,
         description: initialData.description,
         region: initialData.region,
@@ -126,8 +133,10 @@ export function useTourCreation(initialData?: any) {
     defaultValues: getDefaultValues(),
   });
 
-  // Load draft from localStorage on mount
+  // Load draft from localStorage on mount (skip in edit mode)
   useEffect(() => {
+    if (editMode) return; // Don't load drafts when editing existing tour
+    
     const draft = localStorage.getItem(STORAGE_KEY);
     if (draft) {
       try {
@@ -141,15 +150,17 @@ export function useTourCreation(initialData?: any) {
         console.error('Failed to load draft:', e);
       }
     }
-  }, [form]);
+  }, [form, editMode]);
 
-  // Auto-save draft
+  // Auto-save draft (skip in edit mode)
   useEffect(() => {
+    if (editMode) return; // Don't auto-save when editing existing tour
+    
     const subscription = form.watch((value) => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, editMode]);
 
   const nextStep = () => {
     if (currentStep < 12) {
@@ -176,59 +187,80 @@ export function useTourCreation(initialData?: any) {
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to submit a tour",
+          variant: "destructive",
+        });
+        return { success: false };
+      }
 
-      // Convert dates to strings for database
-      const tourData = {
+      // Format the data for submission
+      const tourData: any = {
+        ...data,
         guide_id: user.id,
-        title: data.title,
-        short_description: data.short_description,
-        description: data.description,
-        region: data.region,
-        meeting_point: data.meeting_point,
-        duration: data.duration,
-        difficulty: data.difficulty,
-        pack_weight: data.pack_weight,
-        daily_hours: data.daily_hours,
-        terrain_types: data.terrain_types,
-        distance_km: data.distance_km,
-        elevation_gain_m: data.elevation_gain_m,
-        available_dates: data.available_dates.map(d => d.toISOString().split('T')[0]),
-        hero_image: data.hero_image,
-        images: data.images,
-        highlights: data.highlights,
-        itinerary: data.itinerary,
-        includes: data.includes,
-        excluded_items: data.excluded_items,
-        price: data.price,
-        currency: data.currency,
-        service_fee: data.service_fee,
-        group_size: data.group_size,
-        is_active: true,
-        rating: 0,
-        reviews_count: 0,
+        available_dates: data.available_dates?.map(date => 
+          typeof date === 'string' ? date : date.toISOString().split('T')[0]
+        ) || [],
       };
 
-      const { error } = await supabase
-        .from('tours')
-        .insert([tourData]);
+      if (editMode && tourId) {
+        // UPDATE existing tour
+        const { error } = await supabase
+          .from('tours')
+          .update(tourData)
+          .eq('id', tourId)
+          .eq('guide_id', user.id); // Ensure guide can only update their own tours
 
-      if (error) throw error;
+        if (error) {
+          console.error('Error updating tour:', error);
+          toast({
+            title: "Error",
+            description: "Failed to update tour. Please try again.",
+            variant: "destructive",
+          });
+          return { success: false };
+        }
 
-      // Clear draft on successful submission
-      localStorage.removeItem(STORAGE_KEY);
-      
-      toast({
-        title: "Tour created successfully!",
-        description: "Your tour is now live and visible to hikers.",
-      });
+        toast({
+          title: "Success",
+          description: "Tour updated successfully!",
+        });
+        
+        return { success: true };
+      } else {
+        // INSERT new tour
+        const { error } = await supabase
+          .from('tours')
+          .insert([tourData]);
 
-      return { success: true };
+        if (error) {
+          console.error('Error creating tour:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create tour. Please try again.",
+            variant: "destructive",
+          });
+          return { success: false };
+        }
+
+        // Clear draft from local storage on successful submission
+        localStorage.removeItem(STORAGE_KEY);
+
+        toast({
+          title: "Success",
+          description: "Tour published successfully!",
+        });
+        
+        return { success: true };
+      }
     } catch (error) {
-      console.error('Error creating tour:', error);
+      console.error('Error submitting tour:', error);
       toast({
-        title: "Failed to create tour",
-        description: error instanceof Error ? error.message : "Please try again",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
       return { success: false };
@@ -246,5 +278,6 @@ export function useTourCreation(initialData?: any) {
     submitTour,
     isSubmitting,
     totalSteps: 12,
+    editMode,
   };
 }

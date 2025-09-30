@@ -10,9 +10,10 @@ interface Step12ReviewProps {
   onSubmit: () => void;
   onEdit: (step: number) => void;
   isSubmitting: boolean;
+  editMode?: boolean;
 }
 
-export default function Step12Review({ onSubmit, onEdit, isSubmitting }: Step12ReviewProps) {
+export default function Step12Review({ onSubmit, onEdit, isSubmitting, editMode = false }: Step12ReviewProps) {
   const form = useFormContext<TourFormData>();
   const data = form.getValues();
 
@@ -162,7 +163,7 @@ export default function Step12Review({ onSubmit, onEdit, isSubmitting }: Step12R
           disabled={isSubmitting}
           className="px-8"
         >
-          {isSubmitting ? 'Publishing...' : 'Publish Tour'}
+          {isSubmitting ? (editMode ? 'Updating...' : 'Publishing...') : (editMode ? 'Update Tour' : 'Publish Tour')}
         </Button>
       </div>
     </div>

@@ -19,6 +19,8 @@ interface TourCreationFlowProps {
   onComplete: () => void;
   onCancel: () => void;
   initialData?: Tour;
+  editMode?: boolean;
+  tourId?: string;
 }
 
 const stepTitles = [
@@ -36,8 +38,12 @@ const stepTitles = [
   'Review & Publish',
 ];
 
-export function TourCreationFlow({ onComplete, onCancel, initialData }: TourCreationFlowProps) {
-  const { form, currentStep, nextStep, prevStep, goToStep, submitTour, isSubmitting, totalSteps } = useTourCreation(initialData);
+export function TourCreationFlow({ onComplete, onCancel, initialData, editMode = false, tourId }: TourCreationFlowProps) {
+  const { form, currentStep, nextStep, prevStep, goToStep, submitTour, isSubmitting, totalSteps, editMode: isEditMode } = useTourCreation({ 
+    initialData, 
+    editMode, 
+    tourId 
+  });
 
   const handleBack = () => {
     if (currentStep === 1) {
@@ -81,7 +87,7 @@ export function TourCreationFlow({ onComplete, onCancel, initialData }: TourCrea
       case 11:
         return <Step11Pricing {...stepProps} />;
       case 12:
-        return <Step12Review onSubmit={handleSubmit} onEdit={goToStep} isSubmitting={isSubmitting} />;
+        return <Step12Review onSubmit={handleSubmit} onEdit={goToStep} isSubmitting={isSubmitting} editMode={isEditMode} />;
       default:
         return null;
     }
@@ -94,6 +100,8 @@ export function TourCreationFlow({ onComplete, onCancel, initialData }: TourCrea
         totalSteps={totalSteps}
         onBack={handleBack}
         title={stepTitles[currentStep - 1]}
+        editMode={isEditMode}
+        tourTitle={initialData?.title}
       >
         {renderStep()}
       </TourCreationLayout>

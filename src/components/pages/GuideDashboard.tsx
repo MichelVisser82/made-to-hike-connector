@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { type User, type Tour } from '../../types';
-import { Plus, Trash2, Archive, Copy, EyeOff } from 'lucide-react';
+import { Settings, Plus, Archive, Copy, Trash2, Pencil, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SmartImage } from '../SmartImage';
 import { GuideImageLibrary } from '../guide/GuideImageLibrary';
@@ -22,12 +22,13 @@ import { useToast } from '@/hooks/use-toast';
 
 interface GuideDashboardProps {
   user: User;
-  onTourClick: (tour: Tour) => void;
+  onTourClick: (tourId: string) => void;
   onStartVerification: () => void;
   onCreateTour: (tourData?: Tour) => void;
+  onEditTour: (tour: Tour) => void;
 }
 
-export function GuideDashboard({ user, onTourClick, onStartVerification, onCreateTour }: GuideDashboardProps) {
+export function GuideDashboard({ user, onTourClick, onStartVerification, onCreateTour, onEditTour }: GuideDashboardProps) {
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -299,9 +300,23 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                             </div>
                             <div className="flex gap-2">
                               <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEditTour(tour);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
+                              </Button>
+                              <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleCopyTour(tour)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyTour(tour);
+                                }}
                                 title="Copy tour"
                               >
                                 <Copy className="w-4 h-4" />

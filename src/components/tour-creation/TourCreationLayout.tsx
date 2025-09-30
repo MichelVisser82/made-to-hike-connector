@@ -9,6 +9,8 @@ interface TourCreationLayoutProps {
   totalSteps: number;
   onBack: () => void;
   title: string;
+  editMode?: boolean;
+  tourTitle?: string;
 }
 
 export function TourCreationLayout({
@@ -17,6 +19,8 @@ export function TourCreationLayout({
   totalSteps,
   onBack,
   title,
+  editMode = false,
+  tourTitle,
 }: TourCreationLayoutProps) {
   const progress = (currentStep / totalSteps) * 100;
 
@@ -35,7 +39,14 @@ export function TourCreationLayout({
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-xl font-semibold">{title}</h1>
+              <h1 className="text-xl font-semibold">
+                {editMode ? 'Edit Tour' : 'Create Tour'}
+              </h1>
+              {editMode && tourTitle && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Editing: {tourTitle}
+                </p>
+              )}
               <p className="text-sm text-muted-foreground mt-1">
                 Step {currentStep} of {totalSteps}
               </p>
