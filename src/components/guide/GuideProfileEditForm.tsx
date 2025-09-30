@@ -351,7 +351,9 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           facebook_url: formData.facebook_url,
           website_url: formData.website_url,
           updated_at: new Date().toISOString(),
-        } as any);
+        } as any, {
+          onConflict: 'user_id'
+        });
 
       if (error) throw error;
 
