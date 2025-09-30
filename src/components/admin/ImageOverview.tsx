@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -328,18 +328,20 @@ export const ImageOverview = () => {
     }
   };
 
-  const getUniqueCategories = () => {
+  // Memoize unique values to ensure they update when extendedImages changes
+  const uniqueCategories = useMemo(() => {
     return [...new Set(extendedImages.map(img => img.category).filter(Boolean))];
-  };
+  }, [extendedImages]);
 
-  const getUniqueRoles = () => {
-    // Return all available roles statically
+  const uniqueRoles = useMemo(() => {
     return ['admin', 'guide'];
-  };
+  }, []);
 
-  const getUniqueUploaders = () => {
-    return [...new Set(extendedImages.map(img => img.uploader_email).filter(Boolean))];
-  };
+  const uniqueUploaders = useMemo(() => {
+    const uploaders = [...new Set(extendedImages.map(img => img.uploader_email).filter(Boolean))];
+    console.log('Unique uploaders calculated:', uploaders);
+    return uploaders;
+  }, [extendedImages]);
 
   const getImageUrl = (image: ExtendedWebsiteImage) => {
     return supabase.storage.from(image.bucket_id).getPublicUrl(image.file_path).data.publicUrl;
@@ -497,7 +499,7 @@ export const ImageOverview = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {getUniqueCategories().map(category => (
+                {uniqueCategories.map(category => (
                   <SelectItem key={category} value={category}>
                     {category}
                   </SelectItem>
@@ -511,7 +513,7 @@ export const ImageOverview = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
-                {getUniqueRoles().map(role => (
+                {uniqueRoles.map(role => (
                   <SelectItem key={role} value={role}>
                     {role.charAt(0).toUpperCase() + role.slice(1)}
                   </SelectItem>
@@ -525,11 +527,15 @@ export const ImageOverview = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Users</SelectItem>
-                {getUniqueUploaders().map(email => (
-                  <SelectItem key={email} value={email}>
-                    {email}
-                  </SelectItem>
-                ))}
+                {uniqueUploaders.length === 0 ? (
+                  <SelectItem value="loading" disabled>Loading uploaders...</SelectItem>
+                ) : (
+                  uniqueUploaders.map(email => (
+                    <SelectItem key={email} value={email}>
+                      {email}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
 
