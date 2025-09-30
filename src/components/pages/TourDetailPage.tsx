@@ -250,50 +250,104 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* Fitness Requirements */}
             <Card>
               <CardHeader>
-                <CardTitle>Fitness Requirements</CardTitle>
+                <CardTitle className="text-3xl font-bold">Fitness Requirements</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-medium mb-3">Required</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        <span className="text-sm">Good overall fitness level</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        <span className="text-sm">Able to walk for 6+ hours</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        <span className="text-sm">Previous hiking experience</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        <span className="text-sm">Comfortable with heights</span>
-                      </div>
+              <CardContent className="space-y-8">
+                {/* Grid with 4 requirement items */}
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Users className="h-5 w-5 text-green-600" />
+                      <h4 className="font-semibold text-lg">Experience Needed</h4>
                     </div>
+                    <p className="text-muted-foreground">Beginner-friendly with regular hiking experience</p>
                   </div>
-                  <div>
-                    <h4 className="font-medium mb-3">Provided</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                        <span className="text-sm">Professional hiking guide</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                        <span className="text-sm">Safety equipment included</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                        <span className="text-sm">Emergency first aid kit</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                        <span className="text-sm">Route guidance & navigation</span>
-                      </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="h-5 w-5 text-green-600" />
+                      <h4 className="font-semibold text-lg">Daily Activity</h4>
+                    </div>
+                    <p className="text-muted-foreground">6-8 hours walking, 8-10 miles, 2000ft elevation gain</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Mountain className="h-5 w-5 text-green-600" />
+                      <h4 className="font-semibold text-lg">Pack Weight</h4>
+                    </div>
+                    <p className="text-muted-foreground">10-15 lbs (gear rental available)</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-3">
+                      <MapPin className="h-5 w-5 text-green-600" />
+                      <h4 className="font-semibold text-lg">Terrain</h4>
+                    </div>
+                    <p className="text-muted-foreground">Mountain trails, some rocky sections, well-maintained paths</p>
+                  </div>
+                </div>
+
+                {/* Difficulty Level Section */}
+                <div className="space-y-6 pt-8 border-t">
+                  <h4 className="font-semibold text-xl">Difficulty Level</h4>
+                  
+                  <div className="flex justify-center">
+                    <Badge className="bg-red-900 hover:bg-red-900 text-white px-8 py-3 text-base font-semibold rounded-full">
+                      Level B - Moderate
+                    </Badge>
+                  </div>
+
+                  {/* Terrain Illustration */}
+                  <div className="relative w-full h-64 bg-gradient-to-r from-sky-200 via-sky-100 to-slate-300 rounded-lg overflow-hidden">
+                    {/* Sky elements */}
+                    <div className="absolute top-8 left-20 w-20 h-12 bg-white rounded-full opacity-80" />
+                    <div className="absolute top-12 right-32 w-16 h-10 bg-white rounded-full opacity-80" />
+                    <div className="absolute top-6 right-12 w-12 h-8 bg-yellow-400 rounded-full" />
+                    
+                    {/* Terrain layers */}
+                    <svg className="absolute bottom-0 w-full h-40" viewBox="0 0 1200 160" preserveAspectRatio="none">
+                      {/* Flat terrain - A */}
+                      <path d="M 0,120 L 300,120 L 300,160 L 0,160 Z" fill="#84cc16" />
+                      {/* Rolling hills - B */}
+                      <path d="M 300,120 Q 350,100 400,90 Q 450,80 500,85 Q 550,90 600,100 L 600,160 L 300,160 Z" fill="#a3e635" />
+                      {/* Mountain - C */}
+                      <path d="M 600,100 L 750,40 L 900,70 L 900,160 L 600,160 Z" fill="#92400e" />
+                      {/* Alpine - D */}
+                      <path d="M 900,70 L 1050,30 L 1200,50 L 1200,160 L 900,160 Z" fill="#64748b" />
+                    </svg>
+                    
+                    {/* Trees on mountain */}
+                    <div className="absolute bottom-16 left-[52%] flex gap-2">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="w-2 h-6 bg-green-800" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+                      ))}
+                    </div>
+
+                    {/* Level markers */}
+                    <div className="absolute bottom-24 left-[12%] w-10 h-10 bg-green-700 rounded-full border-4 border-white flex items-center justify-center text-white font-bold">A</div>
+                    <div className="absolute bottom-32 left-[38%] w-10 h-10 bg-red-900 rounded-full border-4 border-white flex items-center justify-center text-white font-bold">B</div>
+                    <div className="absolute bottom-36 left-[63%] w-10 h-10 bg-orange-700 rounded-full border-4 border-white flex items-center justify-center text-white font-bold">C</div>
+                    <div className="absolute top-12 right-[8%] w-10 h-10 bg-red-900 rounded-full border-4 border-white flex items-center justify-center text-white font-bold">D</div>
+                  </div>
+
+                  {/* Legend */}
+                  <div className="grid grid-cols-4 gap-4 text-center text-sm">
+                    <div>
+                      <div className="font-semibold text-muted-foreground">A - Easy</div>
+                      <div className="text-muted-foreground">Flat terrain</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-red-900">B - Moderate</div>
+                      <div className="text-muted-foreground">Rolling hills</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-muted-foreground">C - Challenging</div>
+                      <div className="text-muted-foreground">Mountain trails</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-muted-foreground">D - Expert</div>
+                      <div className="text-muted-foreground">Alpine terrain</div>
                     </div>
                   </div>
                 </div>
