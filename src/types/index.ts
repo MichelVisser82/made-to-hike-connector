@@ -20,8 +20,8 @@ export interface Tour {
   id: string;
   title: string;
   guide_id: string;
-  guide_name: string;
-  guide_avatar: string;
+  guide_name?: string;
+  guide_avatar?: string;
   region: 'dolomites' | 'pyrenees' | 'scotland';
   difficulty: 'easy' | 'moderate' | 'challenging' | 'expert';
   duration: string;
@@ -37,6 +37,13 @@ export interface Tour {
   rating: number;
   reviews_count: number;
   created_at: string;
+  is_active: boolean;
+  pack_weight?: number;
+  daily_hours?: string;
+  terrain_types?: string[];
+  itinerary?: any;
+  excluded_items?: string[];
+  service_fee?: number;
 }
 
 export interface SearchFilters {

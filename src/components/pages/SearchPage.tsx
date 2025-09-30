@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Star, MapPin, Users, Clock, ArrowLeft } from 'lucide-react';
 import { SmartImage } from '../SmartImage';
 import { type Tour, type SearchFilters } from '../../types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchPageProps {
   filters: SearchFilters;
@@ -13,53 +15,33 @@ interface SearchPageProps {
 }
 
 export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }: SearchPageProps) {
-  // Mock tours data
-  const tours: Tour[] = [
-    {
-      id: '1',
-      title: 'Dolomites High Alpine Circuit',
-      guide_id: 'guide1',
-      guide_name: 'Marco Alpine',
-      guide_avatar: '', // Will use SmartImage component instead
-      region: 'dolomites',
-      difficulty: 'challenging',
-      duration: '5 days',
-      group_size: 8,
-      price: 890,
-      currency: 'EUR',
-      description: 'Experience the dramatic limestone peaks of the Dolomites on this challenging multi-day trek through UNESCO World Heritage landscapes.',
-      highlights: ['Tre Cime di Lavaredo', 'Seceda Ridge', 'Alpe di Siusi'],
-      includes: ['Professional guide', 'Accommodation', 'All meals', 'Safety equipment'],
-      meeting_point: 'Bolzano Train Station',
-      images: [], // Will use SmartImage component instead
-      available_dates: ['2024-06-15', '2024-07-10', '2024-08-05'],
-      rating: 4.9,
-      reviews_count: 47,
-      created_at: '2024-01-15'
-    },
-    {
-      id: '2',
-      title: 'Scottish Highlands Adventure',
-      guide_id: 'guide2',
-      guide_name: 'Sarah Mountain',
-      guide_avatar: '', // Will use SmartImage component instead
-      region: 'scotland',
-      difficulty: 'moderate',
-      duration: '3 days',
-      group_size: 6,
-      price: 450,
-      currency: 'GBP',
-      description: 'Discover the rugged beauty of the Scottish Highlands with breathtaking lochs, ancient castles, and dramatic mountain vistas.',
-      highlights: ['Ben Nevis Views', 'Glen Coe Valley', 'Loch Katrine'],
-      includes: ['Expert guide', 'Transportation', 'Lunch daily', 'Safety gear'],
-      meeting_point: 'Glasgow Central Station',
-      images: [], // Will use SmartImage component instead
-      available_dates: ['2024-05-20', '2024-06-25', '2024-07-30'],
-      rating: 4.8,
-      reviews_count: 32,
-      created_at: '2024-01-10'
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTours();
+  }, []);
+
+  const fetchTours = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('tours')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        setTours(data as Tour[]);
+      }
+    } catch (error) {
+      console.error('Error fetching tours:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const filteredTours = tours.filter(tour => {
     if (filters.region && tour.region !== filters.region.toLowerCase()) return false;
@@ -140,7 +122,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
         {/* Results */}
         <div className="mb-6">
           <p className="text-muted-foreground">
-            Showing {filteredTours.length} tour{filteredTours.length !== 1 ? 's' : ''}
+            {loading ? 'Loading tours...' : `Showing ${filteredTours.length} tour${filteredTours.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 
@@ -170,15 +152,19 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
                       {tour.title}
                     </h3>
                     <div className="flex items-center gap-2 text-sm opacity-90">
-                      <SmartImage
-                        category="guide"
-                        usageContext="avatar"
-                        tags={['portrait', 'guide', 'professional']}
-                        className="w-5 h-5 rounded-full object-cover"
-                        fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-                        alt={`${tour.guide_name} - Professional hiking guide`}
-                      />
-                      <span>by {tour.guide_name}</span>
+                      {tour.guide_name && (
+                        <>
+                          <SmartImage
+                            category="guide"
+                            usageContext="avatar"
+                            tags={['portrait', 'guide', 'professional']}
+                            className="w-5 h-5 rounded-full object-cover"
+                            fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                            alt={`${tour.guide_name} - Professional hiking guide`}
+                          />
+                          <span>by {tour.guide_name}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
