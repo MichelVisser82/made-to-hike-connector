@@ -21,14 +21,62 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const STEP_OPTIONS = [
-  { value: 'step10', label: 'Step 10: Inclusions & Exclusions' },
-  { value: 'step8', label: 'Step 8: Highlights' },
-  { value: 'step5', label: 'Step 5: Tour Details' },
+  { 
+    value: 'step3', 
+    label: 'Step 3: Location - Regions',
+    categories: ['region'],
+    description: 'Manage available regions for tours'
+  },
+  { 
+    value: 'step4-difficulty', 
+    label: 'Step 4: Difficulty Levels',
+    categories: ['difficulty'],
+    description: 'Manage difficulty level options and descriptions'
+  },
+  { 
+    value: 'step4-duration', 
+    label: 'Step 4: Duration Options',
+    categories: ['duration'],
+    description: 'Manage available tour duration options'
+  },
+  { 
+    value: 'step5', 
+    label: 'Step 5: Terrain Types',
+    categories: ['terrain'],
+    description: 'Manage common terrain type options'
+  },
+  { 
+    value: 'step8', 
+    label: 'Step 8: Highlights',
+    categories: ['highlight'],
+    description: 'Manage standard tour highlights for guides to select'
+  },
+  { 
+    value: 'step9', 
+    label: 'Step 9: Itinerary Templates',
+    categories: ['activity', 'accommodation', 'meal'],
+    description: 'Manage standard activities, accommodations, and meal options'
+  },
+  { 
+    value: 'step10', 
+    label: 'Step 10: Inclusions & Exclusions',
+    categories: ['included', 'excluded'],
+    description: 'Manage what is included or excluded in tours'
+  },
+  { 
+    value: 'step11', 
+    label: 'Step 11: Currency Options',
+    categories: ['currency'],
+    description: 'Manage available currency options'
+  },
 ];
 
 export function TourTemplateManager() {
   const [selectedStep, setSelectedStep] = useState<string>('step10');
   const [selectedCategory, setSelectedCategory] = useState<string>('included');
+  
+  const currentStepOption = STEP_OPTIONS.find(opt => opt.value === selectedStep);
+  const categories = currentStepOption?.categories || [];
   const [newItemText, setNewItemText] = useState('');
   const [editingItem, setEditingItem] = useState<{ id: string; text: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -110,7 +158,16 @@ export function TourTemplateManager() {
           {/* Step Selector */}
           <div className="space-y-2">
             <Label>Select Step</Label>
-            <Select value={selectedStep} onValueChange={setSelectedStep}>
+            <Select 
+              value={selectedStep} 
+              onValueChange={(value) => {
+                setSelectedStep(value);
+                const newStep = STEP_OPTIONS.find(opt => opt.value === value);
+                if (newStep && newStep.categories.length > 0) {
+                  setSelectedCategory(newStep.categories[0]);
+                }
+              }}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -122,22 +179,28 @@ export function TourTemplateManager() {
                 ))}
               </SelectContent>
             </Select>
+            {currentStepOption && (
+              <p className="text-sm text-muted-foreground">
+                {currentStepOption.description}
+              </p>
+            )}
           </div>
 
-          {/* Category Tabs */}
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="included" className="flex items-center gap-2">
-                <Check className="h-4 w-4" />
-                Included
-              </TabsTrigger>
-              <TabsTrigger value="excluded" className="flex items-center gap-2">
-                <X className="h-4 w-4" />
-                Excluded
-              </TabsTrigger>
-            </TabsList>
+          {/* Category Tabs - Dynamic based on step */}
+          {categories.length > 1 ? (
+            <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+              <TabsList className={`grid w-full grid-cols-${categories.length}`}>
+                {categories.map(category => (
+                  <TabsTrigger key={category} value={category} className="flex items-center gap-2 capitalize">
+                    {category === 'included' && <Check className="h-4 w-4" />}
+                    {category === 'excluded' && <X className="h-4 w-4" />}
+                    {category === 'highlight' && <Plus className="h-4 w-4" />}
+                    {category}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-            <TabsContent value={selectedCategory} className="space-y-4 mt-4">
+              <TabsContent value={selectedCategory} className="space-y-4 mt-4">
               {/* Add New Item */}
               <div className="flex gap-2">
                 <Input
@@ -253,8 +316,128 @@ export function TourTemplateManager() {
                   ))}
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+            </Tabs>
+          ) : (
+            /* Single category - no tabs needed */
+            <div className="space-y-4 mt-4">
+              {/* Add New Item */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder={`Add new ${categories[0]}...`}
+                  value={newItemText}
+                  onChange={(e) => setNewItemText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddItem())}
+                />
+                <Button onClick={handleAddItem} disabled={!newItemText.trim()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add
+                </Button>
+              </div>
+
+              {/* Items List */}
+              {isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+              ) : filteredTemplates.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No items yet. Add your first {categories[0]} above.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredTemplates.map((template, index) => (
+                    <div
+                      key={template.id}
+                      className="flex items-center gap-3 p-3 rounded-lg border bg-card"
+                    >
+                      {/* Reorder Buttons */}
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => moveItem(index, 'up')}
+                          disabled={index === 0}
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* Item Content */}
+                      <div className="flex-1">
+                        {editingItem?.id === template.id ? (
+                          <Input
+                            value={editingItem.text}
+                            onChange={(e) =>
+                              setEditingItem({ ...editingItem, text: e.target.value })
+                            }
+                            onKeyPress={(e) =>
+                              e.key === 'Enter' && (e.preventDefault(), handleUpdateItem())
+                            }
+                            autoFocus
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className={!template.is_active ? 'text-muted-foreground line-through' : ''}>
+                              {template.item_text}
+                            </span>
+                            {!template.is_active && (
+                              <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={template.is_active}
+                          onCheckedChange={() => handleToggleActive(template.id, template.is_active)}
+                        />
+                        
+                        {editingItem?.id === template.id ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={handleUpdateItem}
+                            >
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditingItem(null)}
+                            >
+                              <X className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                setEditingItem({ id: template.id, text: template.item_text })
+                              }
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteConfirm(template.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
