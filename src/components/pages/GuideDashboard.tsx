@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { type User, type Tour } from '../../types';
 import { Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SmartImage } from '../SmartImage';
+import { GuideImageLibrary } from '../guide/GuideImageLibrary';
 
 interface GuideDashboardProps {
   user: User;
@@ -70,81 +72,103 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Your Tours</CardTitle>
-              {user.verified && (
-                <Button onClick={onCreateTour} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Tour
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <p className="text-muted-foreground">Loading your tours...</p>
-              ) : tours.length === 0 ? (
-                <>
-                  <p className="text-muted-foreground">No tours created yet.</p>
+        <Tabs defaultValue="tours" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="tours">Your Tours</TabsTrigger>
+            <TabsTrigger value="images">Image Library</TabsTrigger>
+            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="tours">
+            <div className="grid grid-cols-1 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Your Tours</CardTitle>
                   {user.verified && (
-                    <Button onClick={onCreateTour} className="mt-4" variant="outline">
+                    <Button onClick={onCreateTour} size="sm">
                       <Plus className="w-4 h-4 mr-2" />
-                      Create Your First Tour
+                      Create Tour
                     </Button>
                   )}
-                </>
-              ) : (
-                <div className="space-y-4">
-                  {tours.map((tour) => (
-                    <div
-                      key={tour.id}
-                      onClick={() => onTourClick(tour)}
-                      className="flex gap-4 p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-                    >
-                      <div className="w-24 h-24 rounded overflow-hidden flex-shrink-0">
-                        <SmartImage
-                          category="tour"
-                          usageContext={tour.region}
-                          tags={[tour.region, tour.difficulty]}
-                          className="w-full h-full object-cover"
-                          alt={tour.title}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold mb-1">{tour.title}</h4>
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                          {tour.description}
-                        </p>
-                        <div className="flex gap-2 text-xs">
-                          <Badge variant="secondary">{tour.difficulty}</Badge>
-                          <Badge variant="outline">{tour.region}</Badge>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <p className="text-muted-foreground">Loading your tours...</p>
+                  ) : tours.length === 0 ? (
+                    <>
+                      <p className="text-muted-foreground">No tours created yet.</p>
+                      {user.verified && (
+                        <Button onClick={onCreateTour} className="mt-4" variant="outline">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Your First Tour
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      {tours.map((tour) => (
+                        <div
+                          key={tour.id}
+                          onClick={() => onTourClick(tour)}
+                          className="flex gap-4 p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
+                        >
+                          <div className="w-24 h-24 rounded overflow-hidden flex-shrink-0">
+                            {tour.hero_image ? (
+                              <img src={tour.hero_image} alt={tour.title} className="w-full h-full object-cover" />
+                            ) : tour.images[0] ? (
+                              <img src={tour.images[0]} alt={tour.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <SmartImage
+                                category="tour"
+                                usageContext={tour.region}
+                                tags={[tour.region, tour.difficulty]}
+                                className="w-full h-full object-cover"
+                                alt={tour.title}
+                              />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold mb-1">{tour.title}</h4>
+                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                              {tour.description}
+                            </p>
+                            <div className="flex gap-2 text-xs">
+                              <Badge variant="secondary">{tour.difficulty}</Badge>
+                              <Badge variant="outline">{tour.region}</Badge>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-lg">
+                              {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
+                            </div>
+                            <Badge variant={tour.is_active ? 'default' : 'secondary'} className="mt-2">
+                              {tour.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-lg">
-                          {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
-                        </div>
-                        <Badge variant={tour.is_active ? 'default' : 'secondary'} className="mt-2">
-                          {tour.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Bookings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">No bookings yet.</p>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="images">
+            <GuideImageLibrary />
+          </TabsContent>
+
+          <TabsContent value="bookings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Bookings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">No bookings yet.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

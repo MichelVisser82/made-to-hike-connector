@@ -189,6 +189,7 @@ export type Database = {
           excluded_items: string[] | null
           group_size: number
           guide_id: string
+          hero_image: string | null
           highlights: string[]
           id: string
           images: string[]
@@ -220,6 +221,7 @@ export type Database = {
           excluded_items?: string[] | null
           group_size: number
           guide_id: string
+          hero_image?: string | null
           highlights?: string[]
           id?: string
           images?: string[]
@@ -251,6 +253,7 @@ export type Database = {
           excluded_items?: string[] | null
           group_size?: number
           guide_id?: string
+          hero_image?: string | null
           highlights?: string[]
           id?: string
           images?: string[]
