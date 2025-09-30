@@ -106,8 +106,12 @@ export const ImageOverview = () => {
 
         if (error) throw error;
 
+        console.log('📸 Raw image data fetched:', imageData?.length, 'images');
+        console.log('📸 Sample image data:', imageData?.[0]);
+
         // Fetch uploader info separately for images that have uploaded_by
         const uploaderIds = [...new Set(imageData?.filter(img => img.uploaded_by).map(img => img.uploaded_by))];
+        console.log('👤 Unique uploader IDs:', uploaderIds);
         
         let uploaderInfo: Record<string, { name?: string; email?: string; role?: string }> = {};
         if (uploaderIds.length > 0) {
@@ -115,6 +119,18 @@ export const ImageOverview = () => {
             supabase.from('profiles').select('id, name, email').in('id', uploaderIds),
             supabase.from('user_roles').select('user_id, role').in('user_id', uploaderIds)
           ]);
+
+          console.log('👤 Profiles fetched:', profilesData.data?.length, 'profiles');
+          console.log('👤 Profile data:', profilesData.data);
+          console.log('👤 Roles fetched:', rolesData.data?.length, 'roles');
+          console.log('👤 Role data:', rolesData.data);
+
+          if (profilesData.error) {
+            console.error('❌ Error fetching profiles:', profilesData.error);
+          }
+          if (rolesData.error) {
+            console.error('❌ Error fetching roles:', rolesData.error);
+          }
 
           if (profilesData.data) {
             profilesData.data.forEach(profile => {
@@ -130,14 +146,30 @@ export const ImageOverview = () => {
               uploaderInfo[role.user_id].role = role.role;
             });
           }
+
+          console.log('📊 Final uploader info object:', uploaderInfo);
         }
 
-        const extended = imageData?.map(img => ({
-          ...img,
-          uploader_name: img.uploaded_by ? uploaderInfo[img.uploaded_by]?.name || 'Unknown' : 'System',
-          uploader_email: img.uploaded_by ? uploaderInfo[img.uploaded_by]?.email || 'unknown@system' : 'system@admin',
-          uploader_role: img.uploaded_by ? uploaderInfo[img.uploaded_by]?.role || 'unknown' : 'admin'
-        } as ExtendedWebsiteImage)) || [];
+        const extended = imageData?.map(img => {
+          const info = img.uploaded_by ? uploaderInfo[img.uploaded_by] : null;
+          const extendedImage = {
+            ...img,
+            uploader_name: info?.name || (img.uploaded_by ? 'Unknown' : 'System'),
+            uploader_email: info?.email || (img.uploaded_by ? 'unknown@system' : 'system@admin'),
+            uploader_role: info?.role || (img.uploaded_by ? 'unknown' : 'admin')
+          } as ExtendedWebsiteImage;
+          
+          // Log any images with unknown uploader to debug
+          if (img.uploaded_by && !info?.email) {
+            console.warn('⚠️ Missing email for uploader:', img.uploaded_by, 'in image:', img.file_name);
+          }
+          
+          return extendedImage;
+        }) || [];
+
+        console.log('✅ Extended images created:', extended.length);
+        console.log('✅ Sample extended image:', extended[0]);
+        console.log('✅ Unique emails in extended images:', [...new Set(extended.map(img => img.uploader_email))]);
 
         setExtendedImages(extended);
         setFilteredImages(extended);
