@@ -643,6 +643,41 @@ export const ImageOverview = () => {
                     </div>
 
                     <div className="space-y-4">
+                      {/* Image Information Section */}
+                      <div className="border rounded-lg p-4 bg-muted/30">
+                        <Label className="text-sm font-medium mb-3 block">Image Information</Label>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Dimensions:</span>
+                            <p className="font-medium">
+                              {imageDetails ? `${imageDetails.width} × ${imageDetails.height}px` : 'Loading...'}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">File Size:</span>
+                            <p className="font-medium">
+                              {imageDetails && imageDetails.size > 0 ? formatFileSize(imageDetails.size) : 'N/A'}
+                            </p>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground">File Name:</span>
+                            <p className="font-medium break-all">{image.file_name}</p>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground">Uploaded:</span>
+                            <p className="font-medium">
+                              {new Date(image.created_at).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Category Section */}
                       <div className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
