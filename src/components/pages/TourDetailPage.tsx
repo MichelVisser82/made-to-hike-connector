@@ -455,7 +455,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-2 italic">
                             {item.shortDesc}
                           </p>
                           
