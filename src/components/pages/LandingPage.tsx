@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -17,6 +18,7 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNavigateToDashboard }: LandingPageProps) {
+  const navigate = useNavigate();
   const [selectedRegion, setSelectedRegion] = useState('dolomites');
   const { getRandomImage, getImagesByContext } = useWebsiteImages();
 
@@ -223,7 +225,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               Turn your passion for hiking into income. Join our community of hand-selected, certified mountain guides.
             </p>
             {!user && (
-              <Button size="lg" onClick={onShowGuideSignup} className="bg-primary hover:bg-primary/90">
+              <Button size="lg" onClick={() => navigate('/guide/signup')} className="bg-primary hover:bg-primary/90">
                 Become a Guide
               </Button>
             )}
@@ -539,7 +541,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               <Button 
                 size="lg" 
                 variant="outline"
-                onClick={onShowGuideSignup}
+                onClick={() => navigate('/guide/signup')}
                 className="border-white text-white hover:bg-white hover:text-primary"
               >
                 Become a Guide

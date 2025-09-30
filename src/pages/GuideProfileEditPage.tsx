@@ -16,11 +16,35 @@ export default function GuideProfileEditPage() {
   const { toast } = useToast();
   const { data: profile, isLoading } = useMyGuideProfile();
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<any>({
+    display_name: '',
+    bio: '',
+    location: '',
+    seasonal_availability: '',
+    daily_rate: 0,
+    daily_rate_currency: 'EUR',
+    contact_email: '',
+    phone: '',
+    instagram_url: '',
+    facebook_url: '',
+    website_url: '',
+  });
 
   useEffect(() => {
     if (profile) {
-      setFormData(profile);
+      setFormData({
+        display_name: profile.display_name || '',
+        bio: profile.bio || '',
+        location: profile.location || '',
+        seasonal_availability: profile.seasonal_availability || '',
+        daily_rate: profile.daily_rate || 0,
+        daily_rate_currency: profile.daily_rate_currency || 'EUR',
+        contact_email: profile.contact_email || '',
+        phone: profile.phone || '',
+        instagram_url: profile.instagram_url || '',
+        facebook_url: profile.facebook_url || '',
+        website_url: profile.website_url || '',
+      });
     }
   }, [profile]);
 
@@ -76,14 +100,15 @@ export default function GuideProfileEditPage() {
   }
 
   if (!profile) {
+    // Check if user is a guide but doesn't have a profile yet
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
-        <h1 className="text-4xl font-bold">Profile Not Found</h1>
+        <h1 className="text-4xl font-bold">Complete Your Profile</h1>
         <p className="text-muted-foreground text-center max-w-md">
-          You need to create a guide profile first.
+          You need to complete your guide profile to start offering tours.
         </p>
         <Button onClick={() => navigate('/guide/signup')}>
-          Create Profile
+          Complete Profile Setup
         </Button>
       </div>
     );

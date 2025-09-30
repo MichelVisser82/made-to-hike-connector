@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { type User, type Tour } from '../../types';
-import { Settings, Plus, Archive, Copy, Trash2, Pencil, Eye, EyeOff } from 'lucide-react';
+import { Settings, Plus, Archive, Copy, Trash2, Pencil, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SmartImage } from '../SmartImage';
 import { GuideImageLibrary } from '../guide/GuideImageLibrary';
@@ -29,6 +30,7 @@ interface GuideDashboardProps {
 }
 
 export function GuideDashboard({ user, onTourClick, onStartVerification, onCreateTour, onEditTour }: GuideDashboardProps) {
+  const navigate = useNavigate();
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -201,9 +203,19 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
             <h1 className="text-3xl font-bold mb-2">Guide Dashboard</h1>
             <p className="text-muted-foreground">Welcome, {user.name}</p>
           </div>
-          <Badge variant={user.verified ? 'default' : 'secondary'}>
-            {user.verified ? 'Verified' : 'Pending Verification'}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/guide/profile/edit')}
+            >
+              <UserIcon className="w-4 h-4 mr-2" />
+              Edit Profile
+            </Button>
+            <Badge variant={user.verified ? 'default' : 'secondary'}>
+              {user.verified ? 'Verified' : 'Pending Verification'}
+            </Badge>
+          </div>
         </div>
 
         {!user.verified && (

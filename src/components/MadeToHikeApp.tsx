@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
 import { SearchPage } from './pages/SearchPage';
 import { TourDetailPage } from './pages/TourDetailPage';
@@ -24,6 +24,7 @@ import { type Page, type User, type Tour, type SearchFilters } from '../types';
 import { Toaster } from './ui/sonner';
 
 function AppContent() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState<Page>('landing');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showGuideSignupModal, setShowGuideSignupModal] = useState(false);
@@ -370,7 +371,7 @@ function AppContent() {
                     Sign Up
                   </Link>
                   <button
-                    onClick={() => setShowGuideSignupModal(true)}
+                    onClick={() => navigate('/guide/signup')}
                     className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90"
                   >
                     Become a Guide
