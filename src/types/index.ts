@@ -28,6 +28,7 @@ export interface Tour {
   group_size: number;
   price: number;
   currency: 'EUR' | 'GBP';
+  short_description: string;
   description: string;
   highlights: string[];
   includes: string[];

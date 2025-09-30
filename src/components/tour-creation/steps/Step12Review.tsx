@@ -28,7 +28,16 @@ export default function Step12Review({ onSubmit, onEdit, isSubmitting }: Step12R
         <CardContent className="space-y-2">
           <div>
             <div className="font-semibold">{data.title}</div>
-            <p className="text-sm text-muted-foreground mt-1">{data.description}</p>
+            <div className="space-y-2 mt-2">
+              <div>
+                <div className="text-sm text-muted-foreground">Short Description</div>
+                <p className="text-sm">{data.short_description}</p>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Full Description</div>
+                <p className="text-sm text-muted-foreground">{data.description}</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

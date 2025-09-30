@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 const tourSchema = z.object({
   // Step 2: Basic Info
   title: z.string().min(5, 'Title must be at least 5 characters').max(100),
+  short_description: z.string().min(10, 'Short description must be at least 10 characters').max(140, 'Short description must be 140 characters or less'),
   description: z.string().min(50, 'Description must be at least 50 characters').max(2000),
   
   // Step 3: Location
@@ -68,6 +69,7 @@ export function useTourCreation() {
     mode: 'onChange',
     defaultValues: {
       title: '',
+      short_description: '',
       description: '',
       region: 'dolomites',
       meeting_point: '',
@@ -147,6 +149,7 @@ export function useTourCreation() {
       const tourData = {
         guide_id: user.id,
         title: data.title,
+        short_description: data.short_description,
         description: data.description,
         region: data.region,
         meeting_point: data.meeting_point,

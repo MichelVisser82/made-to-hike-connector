@@ -114,7 +114,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </div>
               
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">{tour.title}</h1>
-              <p className="text-lg text-white/90 mb-4">{tour.description}</p>
+              <p className="text-lg text-white/90 mb-4">{tour.short_description}</p>
               
               <div className="flex items-center gap-6 text-white/80">
                 <div className="flex items-center gap-1">
@@ -309,6 +309,18 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
         <div className="grid grid-cols-1 gap-8">
           {/* Main Content */}
           <div className="space-y-8">
+            {/* About This Tour Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>About This Tour</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {tour.description}
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Features Grid */}
             <div className="grid grid-cols-3 gap-6">
               <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">

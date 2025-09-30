@@ -15,7 +15,7 @@ export default function Step2BasicInfo({ onNext }: Step2BasicInfoProps) {
   const form = useFormContext<TourFormData>();
 
   const handleNext = async () => {
-    const isValid = await form.trigger(['title', 'description']);
+    const isValid = await form.trigger(['title', 'short_description', 'description']);
     if (isValid) onNext();
   };
 
@@ -44,10 +44,32 @@ export default function Step2BasicInfo({ onNext }: Step2BasicInfoProps) {
 
         <FormField
           control={form.control}
+          name="short_description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Short Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Brief description that will appear over the hero image (max 140 characters)"
+                  rows={3}
+                  maxLength={140}
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+              <p className="text-sm text-muted-foreground">
+                {field.value.length}/140 characters
+              </p>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Full Description</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Describe your tour in detail. What makes it special? What will hikers experience?"

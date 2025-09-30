@@ -202,6 +202,7 @@ export type Database = {
           region: Database["public"]["Enums"]["region"]
           reviews_count: number | null
           service_fee: number | null
+          short_description: string | null
           terrain_types: string[] | null
           title: string
           updated_at: string
@@ -232,6 +233,7 @@ export type Database = {
           region: Database["public"]["Enums"]["region"]
           reviews_count?: number | null
           service_fee?: number | null
+          short_description?: string | null
           terrain_types?: string[] | null
           title: string
           updated_at?: string
@@ -262,6 +264,7 @@ export type Database = {
           region?: Database["public"]["Enums"]["region"]
           reviews_count?: number | null
           service_fee?: number | null
+          short_description?: string | null
           terrain_types?: string[] | null
           title?: string
           updated_at?: string
