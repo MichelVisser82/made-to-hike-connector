@@ -59,15 +59,15 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
   const isLoading = isLoadingGuide || isLoadingStats;
   
   // Enhanced fallbacks using tour object as middle layer
-  const guideDisplayName = guide?.display_name || tour.guide_name || fetchedGuide?.display_name || 'Professional Guide';
-  const guideImage = guide?.profile_image_url || tour.guide_avatar || fetchedGuide?.profile_image_url;
+  const guideDisplayName = guide?.display_name || tour.guide_display_name || fetchedGuide?.display_name || 'Professional Guide';
+  const guideImage = guide?.profile_image_url || tour.guide_avatar_url || fetchedGuide?.profile_image_url;
   const guideCertification = guide?.certifications?.[0]?.title || fetchedGuide?.certifications?.[0]?.title || 'Certified Professional';
   
   console.log('BookingFlow - Fallback levels:', {
     propGuide: !!guide,
     tourGuideId: tour.guide_id,
-    tourGuideName: tour.guide_name,
-    tourGuideAvatar: tour.guide_avatar,
+    tourGuideDisplayName: tour.guide_display_name,
+    tourGuideAvatarUrl: tour.guide_avatar_url,
     fetchedGuide: !!fetchedGuide,
     finalName: guideDisplayName,
     finalCertification: guideCertification

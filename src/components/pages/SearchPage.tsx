@@ -152,7 +152,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
                       {tour.title}
                     </h3>
                     <div className="flex items-center gap-2 text-sm opacity-90">
-                      {tour.guide_name && (
+                      {tour.guide_display_name && (
                         <>
                           <SmartImage
                             category="guide"
@@ -160,9 +160,9 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
                             tags={['portrait', 'guide', 'professional']}
                             className="w-5 h-5 rounded-full object-cover"
                             fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-                            alt={`${tour.guide_name} - Professional hiking guide`}
+                            alt={`${tour.guide_display_name} - Professional hiking guide`}
                           />
-                          <span>by {tour.guide_name}</span>
+                          <span>by {tour.guide_display_name}</span>
                         </>
                       )}
                     </div>

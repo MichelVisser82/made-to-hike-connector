@@ -153,10 +153,10 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
               <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    {guide?.profile_image_url || tour.guide_avatar ? (
+                    {guide?.profile_image_url || tour.guide_avatar_url ? (
                       <img
-                        src={guide?.profile_image_url || tour.guide_avatar}
-                        alt={`${guide?.display_name || tour.guide_name || 'Professional Guide'} - Professional hiking guide`}
+                        src={guide?.profile_image_url || tour.guide_avatar_url}
+                        alt={`${guide?.display_name || tour.guide_display_name || 'Professional Guide'} - Professional hiking guide`}
                         className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
                       />
                     ) : (
@@ -166,11 +166,11 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
                         tags={['portrait', 'guide', 'professional', 'certified']}
                         className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
                         fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-                        alt={`${guide?.display_name || tour.guide_name || 'Professional Guide'} - Professional hiking guide`}
+                        alt={`${guide?.display_name || tour.guide_display_name || 'Professional Guide'} - Professional hiking guide`}
                       />
                     )}
                     <div>
-                      <h3 className="font-semibold text-base">{tour.guide_name || 'Professional Guide'}</h3>
+                      <h3 className="font-semibold text-base">{tour.guide_display_name || 'Professional Guide'}</h3>
                       <p className="text-xs text-muted-foreground">Professional Guide</p>
                       <div className="flex flex-col gap-0.5 mt-1">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -662,10 +662,10 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
                         alt={`${guide.display_name} - Professional hiking guide`}
                         className="w-full h-full object-cover"
                       />
-                    ) : tour.guide_avatar ? (
+                    ) : tour.guide_avatar_url ? (
                       <img 
-                        src={tour.guide_avatar} 
-                        alt={`${tour.guide_name} - Professional hiking guide`}
+                        src={tour.guide_avatar_url} 
+                        alt={`${tour.guide_display_name} - Professional hiking guide`}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -685,7 +685,7 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
                     <div className="mb-4">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-3xl font-bold">
-                          {guide?.display_name || tour.guide_name || 'Professional Guide'}
+                          {guide?.display_name || tour.guide_display_name || 'Professional Guide'}
                         </h3>
                         {guide?.certifications && guide.certifications.length > 0 && (
                           <Badge className="bg-primary text-primary-foreground text-sm px-3 py-1">
@@ -759,7 +759,7 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
                     {/* Ask Question Button */}
                     <Button variant="default" size="lg" className="w-full">
                       <MessageCircle className="mr-2 h-5 w-5" />
-                      Ask {guide?.display_name?.split(' ')[0] || tour.guide_name?.split(' ')[0] || 'Guide'} a question
+                      Ask {guide?.display_name?.split(' ')[0] || tour.guide_display_name?.split(' ')[0] || 'Guide'} a question
                     </Button>
                   </div>
                 </div>
