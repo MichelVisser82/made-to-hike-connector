@@ -7,14 +7,17 @@ import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, H
          Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown, X, XCircle } from 'lucide-react';
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
+import type { GuideProfile, GuideStats } from '@/types/guide';
 
 interface TourDetailPageProps {
   tour: Tour;
+  guide?: GuideProfile;
+  stats?: GuideStats;
   onBookTour: (tour: Tour) => void;
   onBackToSearch: () => void;
 }
 
-export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailPageProps) {
+export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch }: TourDetailPageProps) {
   const [expandedItinerary, setExpandedItinerary] = useState<Record<number, boolean>>({});
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -643,12 +646,14 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               
               <div className="relative bg-background border rounded-lg p-8">
                 {/* Top right badge */}
-                <div className="absolute top-6 right-6">
-                  <div className="flex flex-col items-center gap-1 px-4 py-3 border-2 border-primary/20 rounded-lg bg-background">
-                    <Award className="h-6 w-6 text-primary" />
-                    <span className="text-xs font-medium text-primary">IFMGA Cert.</span>
+                {guide?.verified && (
+                  <div className="absolute top-6 right-6">
+                    <div className="flex flex-col items-center gap-1 px-4 py-3 border-2 border-primary/20 rounded-lg bg-background">
+                      <Award className="h-6 w-6 text-primary" />
+                      <span className="text-xs font-medium text-primary">Verified</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Guide Image */}
@@ -658,61 +663,90 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       usageContext="professional"
                       tags={['portrait', 'guide', 'professional', 'certified', 'hiking', 'mountains']}
                       className="w-full h-[400px] rounded-lg object-cover"
-                      fallbackSrc={tour.guide_avatar}
-                      alt={`${tour.guide_name} - Professional hiking guide`}
+                      fallbackSrc={guide?.profile_image_url || tour.guide_avatar}
+                      alt={`${guide?.display_name || tour.guide_name} - Professional hiking guide`}
                     />
                   </div>
 
                   {/* Guide Info */}
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-3xl font-bold mb-2">{tour.guide_name}</h3>
-                      <p className="text-lg font-semibold text-green-600">IFMGA Certified</p>
+                      <h3 className="text-3xl font-bold mb-2">{guide?.display_name || tour.guide_name}</h3>
+                      {guide?.location && (
+                        <p className="text-lg text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {guide.location}
+                        </p>
+                      )}
                     </div>
 
-                    <p className="text-muted-foreground leading-relaxed">
-                      Born and raised in the Highlands, I've been exploring these mountains for over 20 years. 
-                      As an IFMGA certified guide, I combine professional safety standards with deep local 
-                      knowledge and storytelling that brings Scotland's history alive.
-                    </p>
+                    {guide?.bio ? (
+                      <p className="text-muted-foreground leading-relaxed">
+                        {guide.bio}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground leading-relaxed">
+                        Professional mountain guide with extensive experience leading tours in this region.
+                      </p>
+                    )}
 
                     {/* Certifications */}
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline" className="px-3 py-1">IFMGA Certified</Badge>
-                      <Badge variant="outline" className="px-3 py-1">Wilderness First Aid</Badge>
-                      <Badge variant="outline" className="px-3 py-1">Mountain Leader Training</Badge>
-                    </div>
+                    {guide?.certifications && Array.isArray(guide.certifications) && guide.certifications.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {guide.certifications.map((cert: any, index: number) => (
+                          <Badge key={index} variant="outline" className="px-3 py-1">
+                            {cert.title || cert}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-6 pt-4">
-                      <div>
-                        <div className="text-3xl font-bold">150+</div>
-                        <div className="text-sm text-muted-foreground">Tours Led</div>
+                    {stats && (
+                      <div className="grid grid-cols-2 gap-6 pt-4">
+                        <div>
+                          <div className="text-3xl font-bold">{stats.tours_completed}+</div>
+                          <div className="text-sm text-muted-foreground">Tours Led</div>
+                        </div>
+                        <div>
+                          <div className="text-3xl font-bold">{stats.average_rating.toFixed(1)}</div>
+                          <div className="text-sm text-muted-foreground">Guide Rating</div>
+                        </div>
+                        {guide?.languages_spoken && guide.languages_spoken.length > 0 && (
+                          <div>
+                            <div className="text-lg font-semibold">{guide.languages_spoken.join(', ')}</div>
+                            <div className="text-sm text-muted-foreground">Languages</div>
+                          </div>
+                        )}
+                        {guide?.active_since && (
+                          <div>
+                            <div className="text-lg font-semibold">
+                              {new Date().getFullYear() - new Date(guide.active_since).getFullYear()}+ years
+                            </div>
+                            <div className="text-sm text-muted-foreground">Experience</div>
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <div className="text-3xl font-bold">4.9</div>
-                        <div className="text-sm text-muted-foreground">Guide Rating</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-semibold">English, Gaelic</div>
-                        <div className="text-sm text-muted-foreground">Languages</div>
-                      </div>
-                      <div>
-                        <Badge className="bg-green-600 hover:bg-green-700 text-white">Guide Owned</Badge>
-                      </div>
-                    </div>
+                    )}
 
-                    {/* Guide Owned Notice */}
-                    <div className="border-2 border-rose-200 rounded-lg p-4 bg-rose-50/50">
-                      <p className="text-rose-700 font-medium">
-                        This guide owns this tour - 100% of profits support local community
-                      </p>
-                    </div>
+                    {/* Specialties */}
+                    {guide?.specialties && guide.specialties.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2">Specialties</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {guide.specialties.map((specialty: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {specialty}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Ask Question Button */}
                     <Button variant="outline" className="w-full md:w-auto" size="lg">
                       <MessageCircle className="mr-2 h-4 w-4" />
-                      Ask {tour.guide_name?.split(' ')[0] || 'Guide'} a question
+                      Ask {guide?.display_name?.split(' ')[0] || tour.guide_name?.split(' ')[0] || 'Guide'} a question
                     </Button>
                   </div>
                 </div>
