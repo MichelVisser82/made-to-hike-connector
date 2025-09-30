@@ -100,8 +100,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             Back to Search
           </Button>
           
-          <div className="flex-1 flex items-start justify-between relative pr-[420px]">
-            <div className="max-w-2xl pt-16">
+          <div className="flex-1 flex items-center justify-start relative">
+            <div className="max-w-xl mr-auto">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map((star) => (
@@ -133,7 +133,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
             
             {/* Guide Profile & Booking Card in Hero */}
-            <Card className="w-96 bg-white/95 backdrop-blur-sm absolute top-1/2 -translate-y-1/2 right-0">
+            <Card className="w-96 bg-white/95 backdrop-blur-sm absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
