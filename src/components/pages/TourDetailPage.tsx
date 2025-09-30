@@ -74,7 +74,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative h-96 md:h-[500px]">
+      <div className="relative h-[600px] md:h-[700px]">
         <div className="absolute inset-0 overflow-hidden">
           <SmartImage
             category="hero"
@@ -100,8 +100,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             Back to Search
           </Button>
           
-          <div className="flex-1 flex items-start justify-between relative">
-            <div className="max-w-2xl">
+          <div className="flex-1 flex items-start justify-between relative pr-[420px]">
+            <div className="max-w-2xl pt-16">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map((star) => (
