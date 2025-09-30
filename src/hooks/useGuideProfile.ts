@@ -8,6 +8,8 @@ export function useGuideProfile(guideId: string | undefined) {
     queryFn: async () => {
       if (!guideId) throw new Error('Guide ID is required');
 
+      console.log('useGuideProfile - Fetching for guideId:', guideId);
+
       const { data, error } = await supabase
         .from('guide_profiles')
         .select('*')
@@ -17,13 +19,20 @@ export function useGuideProfile(guideId: string | undefined) {
       if (error) throw error;
       if (!data) throw new Error('Guide profile not found');
 
+      console.log('useGuideProfile - Fetched data:', {
+        experience_years: data.experience_years,
+        certifications: data.certifications
+      });
+
       return {
         ...data,
         certifications: Array.isArray(data.certifications) ? data.certifications : [],
       } as unknown as GuideProfile;
     },
     enabled: !!guideId,
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
   });
 }
 
