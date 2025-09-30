@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 import { Badge } from '@/components/ui/badge';
@@ -40,111 +41,128 @@ export default function Step8Highlights({ onNext }: Step8HighlightsProps) {
 
   const addHighlight = () => {
     if (newHighlight.trim()) {
-      if (highlights.length < 10) {
-        form.setValue('highlights', [...highlights, newHighlight.trim()]);
+      const current = form.getValues('highlights') || [];
+      if (current.length < 10) {
+        form.setValue('highlights', [...current, newHighlight.trim()]);
         setNewHighlight('');
       }
     }
   };
 
-  const removeHighlight = (index: number) => {
-    form.setValue('highlights', highlights.filter((_: string, i: number) => i !== index));
+  const removeHighlight = (highlight: string) => {
+    const current = form.getValues('highlights') || [];
+    form.setValue('highlights', current.filter((h: string) => h !== highlight));
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Tour Highlights</CardTitle>
-        <CardDescription>
-          Select standard highlights or add custom ones that make your tour special
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Standard Highlights */}
-        {standardHighlights.length > 0 && (
-          <div className="space-y-3">
-            <FormLabel className="text-sm font-medium">Standard Highlights</FormLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {standardHighlights.map((item) => {
-                const isSelected = highlights.includes(item.item_text);
-                return (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-2 rounded-lg border bg-card p-3 hover:bg-accent/50 transition-colors"
-                  >
-                    <Checkbox
-                      id={`highlight-${item.id}`}
-                      checked={isSelected}
-                      onCheckedChange={(checked) =>
-                        toggleStandardHighlight(item.item_text, checked as boolean)
-                      }
-                      disabled={!isSelected && highlights.length >= 10}
-                    />
-                    <FormLabel
-                      htmlFor={`highlight-${item.id}`}
-                      className="cursor-pointer text-sm font-normal flex-1"
-                    >
-                      {item.item_text}
-                    </FormLabel>
+        <FormField
+          control={form.control}
+          name="highlights"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>What makes your tour special?</FormLabel>
+              
+              {/* Standard Items */}
+              {standardHighlights.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  <Label className="text-sm font-medium">Standard Highlights</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {standardHighlights.map((item) => {
+                      const isSelected = highlights.includes(item.item_text);
+                      const canAdd = highlights.length < 10;
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-2 rounded-lg border bg-card p-3 hover:bg-accent/50 transition-colors"
+                        >
+                          <Checkbox
+                            id={`highlight-${item.id}`}
+                            checked={isSelected}
+                            disabled={!isSelected && !canAdd}
+                            onCheckedChange={(checked) =>
+                              toggleStandardHighlight(item.item_text, checked as boolean)
+                            }
+                          />
+                          <Label
+                            htmlFor={`highlight-${item.id}`}
+                            className="cursor-pointer text-sm font-normal"
+                          >
+                            {item.item_text}
+                          </Label>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                </div>
+              )}
 
-        {/* Custom Highlight Input */}
-        <div className="space-y-2">
-          <FormLabel>Add Custom Highlight</FormLabel>
-          <div className="flex gap-2">
-            <Input
-              placeholder="e.g., Stunning sunrise views from mountain peaks"
-              value={newHighlight}
-              onChange={(e) => setNewHighlight(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addHighlight();
-                }
-              }}
-            />
-            <Button 
-              type="button" 
-              onClick={addHighlight}
-              size="icon"
-              variant="outline"
-              disabled={!newHighlight.trim() || highlights.length >= 10}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+              {/* Selected highlights display */}
+              {field.value && field.value.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  <Label className="text-sm font-medium">Selected Highlights ({field.value.length})</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {field.value.map((highlight, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="flex items-center gap-1 pl-3 pr-2 py-1.5"
+                      >
+                        <Check className="h-3 w-3" />
+                        {highlight}
+                        <button
+                          type="button"
+                          onClick={() => removeHighlight(highlight)}
+                          className="ml-1 hover:bg-accent rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {/* Selected Highlights Display */}
-        {highlights.length > 0 && (
-          <div className="space-y-2">
-            <FormLabel className="text-sm font-medium">Selected Highlights ({highlights.length}/10)</FormLabel>
-            <div className="flex flex-wrap gap-2">
-              {highlights.map((highlight: string, index: number) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="flex items-center gap-1 pl-3 pr-2 py-1.5 bg-primary/10 text-primary border-primary/20"
-                >
-                  <Check className="h-3 w-3" />
-                  {highlight}
-                  <button
-                    type="button"
-                    onClick={() => removeHighlight(index)}
-                    className="ml-1 hover:bg-primary/20 rounded-full p-0.5"
+              {/* Add custom highlight */}
+              <div className="space-y-2">
+                <Label>Add Custom Highlight</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="e.g., Stunning sunrise views from mountain peaks"
+                    value={newHighlight}
+                    onChange={(e) => setNewHighlight(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addHighlight();
+                      }
+                    }}
+                  />
+                  <Button 
+                    type="button" 
+                    onClick={addHighlight}
+                    disabled={!newHighlight.trim() || (field.value?.length || 0) >= 10}
+                    size="icon"
+                    variant="outline"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{field.value?.length || 0} / 10 highlights</span>
+                <span>Add 3-10 highlights</span>
+              </div>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex justify-end">
           <Button onClick={handleNext}>Continue</Button>
