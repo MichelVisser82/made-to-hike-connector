@@ -43,7 +43,7 @@
     --cert-sage-foreground: 0 0% 100%;
     --cert-burgundy: 338 81% 29%;
     --cert-burgundy-foreground: 0 0% 100%;
-    --cert-neutral: 210 40% 96.1%;
+    --cert-neutral: 30 33% 95%;
     --cert-neutral-foreground: 338 81% 29%;
 
     --destructive: 0 84.2% 60.2%;
@@ -92,8 +92,8 @@
     --cert-sage-foreground: 0 0% 100%;
     --cert-burgundy: 338 81% 29%;
     --cert-burgundy-foreground: 0 0% 100%;
-    --cert-neutral: 217.2 32.6% 17.5%;
-    --cert-neutral-foreground: 338 81% 29%;
+    --cert-neutral: 30 20% 25%;
+    --cert-neutral-foreground: 338 81% 60%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;

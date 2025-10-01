@@ -177,13 +177,13 @@ export function CertificationHoverCard({ certification, children }: Certificatio
       <HoverCardTrigger asChild>
         <span className="inline-block">{children}</span>
       </HoverCardTrigger>
-      <HoverCardContent className="w-[240px] p-4 bg-cert-neutral border-border">
+      <HoverCardContent className="w-[240px] p-4 bg-cert-neutral text-cert-neutral-foreground border shadow-sm">
         <div className="space-y-2.5">
           {/* Header */}
           <div className="flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-cert-neutral-foreground" />
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-sm leading-tight text-cert-neutral-foreground">
+              <h4 className="font-bold text-sm leading-tight">
                 {metadata?.abbreviation || certification.title}
               </h4>
               <p className="text-xs text-muted-foreground mt-0.5">
