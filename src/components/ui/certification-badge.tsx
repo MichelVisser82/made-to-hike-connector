@@ -102,9 +102,9 @@ function CertificationBadge({
       return 'bg-cert-neutral text-cert-neutral-foreground';
     }, [lowerTitle]);
 
-    return (
+    const badgeElement = (
       <div className={cn(
-        "inline-flex items-start gap-3 px-4 py-3 rounded-lg border shadow-sm",
+        "inline-flex items-start gap-3 px-4 py-3 rounded-lg border shadow-sm cursor-pointer",
         colorClass,
         lowerTitle.includes('iml') || lowerTitle.includes('ifmga') ? 'border-transparent' : 'border-cert-neutral-foreground/20'
       )}>
@@ -119,6 +119,12 @@ function CertificationBadge({
         </div>
       </div>
     );
+
+    return showTooltip ? (
+      <CertificationHoverCard certification={certification}>
+        {badgeElement}
+      </CertificationHoverCard>
+    ) : badgeElement;
   }
   
   // Card mode: Full certification card with all details
