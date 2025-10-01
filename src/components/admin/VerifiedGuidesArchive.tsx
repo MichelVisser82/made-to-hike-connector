@@ -60,18 +60,29 @@ export function VerifiedGuidesArchive() {
 
   const getDocumentUrl = async (documentPath: string): Promise<string> => {
     try {
-      if (documentPath.startsWith('http')) {
+      // Check if it's already a full URL
+      if (documentPath.startsWith('http://') || documentPath.startsWith('https://')) {
         return documentPath;
-      } else {
-        const { data, error } = await supabase.storage
-          .from('guide-documents')
-          .createSignedUrl(documentPath, 3600);
-        
-        if (error) throw error;
-        return data?.signedUrl || '';
       }
+      
+      // It's a storage path in guide-documents bucket
+      const { data, error } = await supabase.storage
+        .from('guide-documents')
+        .createSignedUrl(documentPath, 3600); // 1 hour expiry
+      
+      if (error) {
+        console.error('Error creating signed URL for:', documentPath, error);
+        throw error;
+      }
+      
+      if (!data?.signedUrl) {
+        console.error('No signed URL returned for:', documentPath);
+        return '';
+      }
+      
+      return data.signedUrl;
     } catch (error) {
-      console.error('Error getting document URL:', error);
+      console.error('Error getting document URL for:', documentPath, error);
       return '';
     }
   };
@@ -90,14 +101,27 @@ export function VerifiedGuidesArchive() {
       const certifications = selectedGuide.certifications || [];
       const urls: Record<string, string> = {};
       
-      for (const cert of certifications) {
+      // Load all document URLs in parallel for better performance
+      const urlPromises = certifications.map(async (cert: any) => {
         if (cert.certificateDocument && typeof cert.certificateDocument === 'string') {
-          const url = await getDocumentUrl(cert.certificateDocument);
-          if (url) {
-            urls[cert.certificateDocument] = url;
+          try {
+            const url = await getDocumentUrl(cert.certificateDocument);
+            if (url) {
+              return { path: cert.certificateDocument, url };
+            }
+          } catch (error) {
+            console.error('Error loading document URL:', error, cert.certificateDocument);
           }
         }
-      }
+        return null;
+      });
+      
+      const results = await Promise.all(urlPromises);
+      results.forEach(result => {
+        if (result) {
+          urls[result.path] = result.url;
+        }
+      });
       
       setDocumentUrls(urls);
     };
@@ -285,8 +309,11 @@ export function VerifiedGuidesArchive() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {selectedGuide.certifications.map((cert: any, index: number) => {
                       const documentUrl = cert.certificateDocument && documentUrls[cert.certificateDocument];
-                      const isPdf = documentUrl?.toLowerCase().includes('.pdf') || 
-                                   cert.certificateDocument?.toLowerCase().endsWith('.pdf');
+                      
+                      // Check file type case-insensitively
+                      const docPath = cert.certificateDocument?.toLowerCase() || '';
+                      const isPdf = docPath.endsWith('.pdf');
+                      const isImage = docPath.match(/\.(jpg|jpeg|png|webp|gif)$/);
                       
                       return (
                         <div
@@ -315,6 +342,11 @@ export function VerifiedGuidesArchive() {
                                 Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
                               </p>
                             )}
+                            {cert.verifiedDate && (
+                              <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                                ✓ Verified: {formatDistanceToNow(new Date(cert.verifiedDate))} ago
+                              </p>
+                            )}
                           </div>
                           
                           {/* Certificate Thumbnail */}
@@ -332,17 +364,26 @@ export function VerifiedGuidesArchive() {
                                   {isPdf ? (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900">
                                       <FileText className="h-8 w-8 text-red-600 dark:text-red-400" />
+                                      <p className="text-[8px] text-red-800 dark:text-red-300 mt-1 font-semibold">PDF</p>
                                     </div>
-                                  ) : (
+                                  ) : isImage ? (
                                     <img 
                                       src={documentUrl} 
                                       alt={cert.title}
                                       className="absolute inset-0 w-full h-full object-cover"
+                                      onError={(e) => {
+                                        console.error('Image load error:', cert.certificateDocument);
+                                        e.currentTarget.style.display = 'none';
+                                      }}
                                     />
+                                  ) : (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
+                                      <FileText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                                    </div>
                                   )}
                                 </>
                               ) : (
-                                <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
                                   <FileText className="h-6 w-6 text-muted-foreground animate-pulse" />
                                 </div>
                               )}
@@ -451,17 +492,24 @@ export function VerifiedGuidesArchive() {
           </DialogHeader>
           {selectedDocument && (
             <div className="mt-4">
-              {selectedDocument.url.toLowerCase().includes('.pdf') ? (
+              {selectedDocument.url.toLowerCase().endsWith('.pdf') ? (
                 <iframe
                   src={selectedDocument.url}
                   className="w-full h-[70vh] border border-border rounded"
                   title={selectedDocument.title}
+                  onError={() => {
+                    console.error('Failed to load PDF:', selectedDocument.url);
+                  }}
                 />
               ) : (
                 <img
                   src={selectedDocument.url}
                   alt={selectedDocument.title}
                   className="w-full h-auto max-h-[70vh] object-contain rounded"
+                  onError={(e) => {
+                    console.error('Failed to load image:', selectedDocument.url);
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23999"%3EImage failed to load%3C/text%3E%3C/svg%3E';
+                  }}
                 />
               )}
             </div>
