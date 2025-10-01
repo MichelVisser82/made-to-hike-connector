@@ -47,6 +47,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        cert: {
+          sage: "hsl(var(--cert-sage))",
+          "sage-foreground": "hsl(var(--cert-sage-foreground))",
+          burgundy: "hsl(var(--cert-burgundy))",
+          "burgundy-foreground": "hsl(var(--cert-burgundy-foreground))",
+          neutral: "hsl(var(--cert-neutral))",
+          "neutral-foreground": "hsl(var(--cert-neutral-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
