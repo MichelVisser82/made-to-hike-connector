@@ -112,7 +112,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => window.location.href = '/certifications'}
+                  onClick={() => onNavigate('certifications')}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
                   <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />

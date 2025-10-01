@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Shield, Award, Clock, CheckCircle2, AlertTriangle, Users, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -149,11 +150,24 @@ const firstAidCertifications: FirstAidCertification[] = [
 
 export function CertificationsContent() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-background py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
+    <>
+      <Helmet>
+        <title>Mountain Guide Certifications: A Quick Reference Guide | MadeToHike</title>
+        <meta 
+          name="description" 
+          content="Complete guide to mountain guide certifications. Learn the difference between IFMGA and UIMLA certifications, verify credentials, and choose the right certified guide for your adventure." 
+        />
+        <meta 
+          name="keywords" 
+          content="mountain guide certifications, IFMGA, UIMLA, IML, guide qualifications, mountain safety, certified guides, alpine certifications, wilderness first aid" 
+        />
+        <link rel="canonical" href="https://madetohike.com/certifications" />
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        {/* Hero Section */}
+        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background py-16 md:py-24">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
             <Badge variant="secondary" className="mb-4">
               <Clock className="w-3 h-3 mr-1" />
               Read time: 3 minutes
@@ -161,12 +175,12 @@ export function CertificationsContent() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               Mountain Guide Certifications: A Quick Reference Guide
             </h1>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12 max-w-5xl">
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-12 max-w-5xl">
         {/* Why Certifications Matter */}
         <section className="mb-16">
           <Card>
@@ -558,7 +572,8 @@ export function CertificationsContent() {
             </CardContent>
           </Card>
         </section>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

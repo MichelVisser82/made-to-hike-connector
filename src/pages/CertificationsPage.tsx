@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { CertificationsContent } from '@/components/pages/CertificationsContent';
 
 export default function CertificationsPage() {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Redirect to home with certifications page state for consistent layout
+    navigate('/?page=certifications', { replace: true });
+  }, [navigate]);
+
   return (
     <>
       <Helmet>
@@ -18,9 +24,9 @@ export default function CertificationsPage() {
         />
         <link rel="canonical" href="https://madetohike.com/certifications" />
       </Helmet>
-      <MainLayout>
-        <CertificationsContent />
-      </MainLayout>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Redirecting...</p>
+      </div>
     </>
   );
 }
