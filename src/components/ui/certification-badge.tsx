@@ -67,11 +67,16 @@ function CertificationBadge({
   
   // Simple mode: Just abbreviation with checkmark (with rich hover card)
   if (displayMode === 'simple') {
+    // Determine color scheme class based on certification
+    const colorClass = React.useMemo(() => {
+      const lowerTitle = certification.title.toLowerCase();
+      if (lowerTitle.includes('iml')) return 'bg-cert-sage text-cert-sage-foreground';
+      if (lowerTitle.includes('ifmga')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
+      return 'bg-cert-neutral text-cert-neutral-foreground';
+    }, [certification.title]);
+
     const badgeElement = (
-      <div
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-white cursor-pointer"
-        style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
-      >
+      <div className={cn("inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer", colorClass)}>
         <CheckCircle2 className="w-4 h-4" />
         <span>{metadata?.abbreviation || certification.title}</span>
       </div>
@@ -86,11 +91,15 @@ function CertificationBadge({
   
   // Detailed mode: Badge with title and subtitle
   if (displayMode === 'detailed') {
+    const colorClass = React.useMemo(() => {
+      const lowerTitle = certification.title.toLowerCase();
+      if (lowerTitle.includes('iml')) return 'bg-cert-sage text-cert-sage-foreground';
+      if (lowerTitle.includes('ifmga')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
+      return 'bg-cert-neutral text-cert-neutral-foreground';
+    }, [certification.title]);
+
     return (
-      <div
-        className="inline-flex items-start gap-3 px-4 py-3 rounded-lg text-white"
-        style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
-      >
+      <div className={cn("inline-flex items-start gap-3 px-4 py-3 rounded-lg", colorClass)}>
         <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-base">
@@ -106,12 +115,16 @@ function CertificationBadge({
   
   // Card mode: Full certification card with all details
   if (displayMode === 'card') {
+    const colorClass = React.useMemo(() => {
+      const lowerTitle = certification.title.toLowerCase();
+      if (lowerTitle.includes('iml')) return 'bg-cert-sage text-cert-sage-foreground';
+      if (lowerTitle.includes('ifmga')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
+      return 'bg-cert-neutral text-cert-neutral-foreground';
+    }, [certification.title]);
+
     return (
-      <Card 
-        className="overflow-hidden border-0"
-        style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
-      >
-        <CardContent className="p-6 text-white space-y-4">
+      <Card className={cn("overflow-hidden border-0", colorClass)}>
+        <CardContent className="p-6 space-y-4">
           {/* Header */}
           <div className="flex items-start gap-3">
             <CheckCircle2 className="w-6 h-6 flex-shrink-0 mt-0.5" />

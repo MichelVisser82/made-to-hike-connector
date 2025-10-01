@@ -40,11 +40,8 @@ export function CertificationHoverCard({ certification, children }: Certificatio
         <HoverCardTrigger asChild>
           <span className="inline-block">{children}</span>
         </HoverCardTrigger>
-        <HoverCardContent 
-          className="w-[280px] p-0 overflow-hidden border-0" 
-          style={{ backgroundColor: '#8FA68E' }}
-        >
-          <div className="p-4 text-white space-y-3">
+        <HoverCardContent className="w-[280px] p-0 overflow-hidden border-0 bg-cert-sage text-cert-sage-foreground">
+          <div className="p-4 space-y-3">
             {/* Header */}
             <div className="flex items-start gap-2">
               <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -109,11 +106,8 @@ export function CertificationHoverCard({ certification, children }: Certificatio
         <HoverCardTrigger asChild>
           <span className="inline-block">{children}</span>
         </HoverCardTrigger>
-        <HoverCardContent 
-          className="w-[320px] p-0 overflow-hidden border-0" 
-          style={{ backgroundColor: '#881337' }}
-        >
-          <div className="p-5 text-white space-y-4">
+        <HoverCardContent className="w-[320px] p-0 overflow-hidden border-0 bg-cert-burgundy text-cert-burgundy-foreground">
+          <div className="p-5 space-y-4">
             {/* Header */}
             <div className="flex items-start gap-3">
               <Award className="w-6 h-6 flex-shrink-0 mt-0.5" />
@@ -183,13 +177,13 @@ export function CertificationHoverCard({ certification, children }: Certificatio
       <HoverCardTrigger asChild>
         <span className="inline-block">{children}</span>
       </HoverCardTrigger>
-      <HoverCardContent className="w-[240px] p-4 bg-card border-border">
+      <HoverCardContent className="w-[240px] p-4 bg-cert-neutral border-border">
         <div className="space-y-2.5">
           {/* Header */}
           <div className="flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#881337' }} />
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-cert-neutral-foreground" />
             <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-sm leading-tight" style={{ color: '#881337' }}>
+              <h4 className="font-bold text-sm leading-tight text-cert-neutral-foreground">
                 {metadata?.abbreviation || certification.title}
               </h4>
               <p className="text-xs text-muted-foreground mt-0.5">
