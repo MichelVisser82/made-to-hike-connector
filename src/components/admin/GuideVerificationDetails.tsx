@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -7,6 +7,7 @@ import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { Alert, AlertDescription } from '../ui/alert';
 import { CertificationBadge } from '../ui/certification-badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { useGuideVerifications, useUpdateVerificationStatus } from '@/hooks/useGuideVerifications';
 import { ArrowLeft, CheckCircle2, XCircle, FileText, ExternalLink, AlertCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,8 @@ interface GuideVerificationDetailsProps {
 
 export function GuideVerificationDetails({ verificationId, onBack }: GuideVerificationDetailsProps) {
   const [adminNotes, setAdminNotes] = useState('');
+  const [selectedDocument, setSelectedDocument] = useState<{ url: string; title: string } | null>(null);
+  const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
   const { data: verifications } = useGuideVerifications();
   const updateStatus = useUpdateVerificationStatus();
 
@@ -47,11 +50,11 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
     });
   };
 
-  const viewDocument = async (documentPath: string) => {
+  const getDocumentUrl = async (documentPath: string): Promise<string> => {
     try {
       // Check if it's a storage path or a full URL
       if (documentPath.startsWith('http')) {
-        window.open(documentPath, '_blank');
+        return documentPath;
       } else {
         // It's a storage path in guide-documents bucket
         const { data, error } = await supabase.storage
@@ -59,14 +62,43 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
           .createSignedUrl(documentPath, 3600);
         
         if (error) throw error;
-        if (data?.signedUrl) {
-          window.open(data.signedUrl, '_blank');
-        }
+        return data?.signedUrl || '';
       }
     } catch (error) {
-      console.error('Error viewing document:', error);
+      console.error('Error getting document URL:', error);
+      return '';
     }
   };
+
+  const openDocumentModal = async (documentPath: string, title: string) => {
+    const url = await getDocumentUrl(documentPath);
+    if (url) {
+      setSelectedDocument({ url, title });
+    }
+  };
+
+  // Load document URLs for previews
+  useEffect(() => {
+    const loadDocumentUrls = async () => {
+      if (!verification) return;
+      
+      const certifications = verification.guide_profile?.certifications || [];
+      const urls: Record<string, string> = {};
+      
+      for (const cert of certifications) {
+        if (cert.certificateDocument && typeof cert.certificateDocument === 'string') {
+          const url = await getDocumentUrl(cert.certificateDocument);
+          if (url) {
+            urls[cert.certificateDocument] = url;
+          }
+        }
+      }
+      
+      setDocumentUrls(urls);
+    };
+    
+    loadDocumentUrls();
+  }, [verification]);
 
   if (!verification) {
     return (
@@ -189,24 +221,44 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                 {certifications.map((cert: any, index: number) => {
                   if (!cert.certificateDocument) return null;
                   
+                  const documentUrl = documentUrls[cert.certificateDocument];
+                  const isPdf = documentUrl?.toLowerCase().includes('.pdf') || 
+                               cert.certificateDocument?.toLowerCase().endsWith('.pdf');
+                  
                   return (
                     <div
                       key={index}
                       className="relative group cursor-pointer rounded-lg overflow-hidden border border-border bg-muted aspect-[3/4]"
                       onClick={() => {
                         if (typeof cert.certificateDocument === 'string') {
-                          viewDocument(cert.certificateDocument);
+                          openDocumentModal(cert.certificateDocument, cert.title);
                         }
                       }}
                     >
-                      {/* Certificate preview placeholder */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-                        <FileText className="h-12 w-12 text-muted-foreground mb-2" />
-                        <p className="text-sm font-medium line-clamp-2">{cert.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {cert.certificateNumber || 'Certificate'}
-                        </p>
-                      </div>
+                      {/* Certificate preview */}
+                      {documentUrl ? (
+                        <>
+                          {isPdf ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900">
+                              <FileText className="h-16 w-16 text-red-600 dark:text-red-400 mb-2" />
+                              <p className="text-sm font-medium line-clamp-2 text-foreground">{cert.title}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {cert.certificateNumber || 'PDF Document'}
+                              </p>
+                            </div>
+                          ) : (
+                            <img 
+                              src={documentUrl} 
+                              alt={cert.title}
+                              className="absolute inset-0 w-full h-full object-cover"
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <FileText className="h-12 w-12 text-muted-foreground animate-pulse" />
+                        </div>
+                      )}
                       
                       {/* Hover overlay with eye icon */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -232,11 +284,11 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                     key={index}
                     variant="outline"
                     className="justify-start gap-2"
-                    onClick={() => viewDocument(doc)}
+                    onClick={() => openDocumentModal(doc, `Document ${index + 1}`)}
                   >
                     <FileText className="h-4 w-4" />
                     Document {index + 1}
-                    <ExternalLink className="h-3 w-3 ml-auto" />
+                    <Eye className="h-3 w-3 ml-auto" />
                   </Button>
                 ))}
               </div>
@@ -290,6 +342,32 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
           )}
         </CardContent>
       </Card>
+
+      {/* Document Viewer Modal */}
+      <Dialog open={!!selectedDocument} onOpenChange={(open) => !open && setSelectedDocument(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedDocument?.title}</DialogTitle>
+          </DialogHeader>
+          {selectedDocument && (
+            <div className="mt-4">
+              {selectedDocument.url.toLowerCase().includes('.pdf') ? (
+                <iframe
+                  src={selectedDocument.url}
+                  className="w-full h-[70vh] border rounded"
+                  title={selectedDocument.title}
+                />
+              ) : (
+                <img
+                  src={selectedDocument.url}
+                  alt={selectedDocument.title}
+                  className="w-full h-auto rounded"
+                />
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
