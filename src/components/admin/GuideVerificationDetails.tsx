@@ -12,6 +12,8 @@ import { useGuideVerifications, useUpdateVerificationStatus } from '@/hooks/useG
 import { ArrowLeft, CheckCircle2, XCircle, FileText, ExternalLink, AlertCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface GuideVerificationDetailsProps {
   verificationId: string;
@@ -22,25 +24,42 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
   const [adminNotes, setAdminNotes] = useState('');
   const [selectedDocument, setSelectedDocument] = useState<{ url: string; title: string } | null>(null);
   const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
+  const [verifyingIndex, setVerifyingIndex] = useState<number | null>(null);
   const { data: verifications } = useGuideVerifications();
   const updateStatus = useUpdateVerificationStatus();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const verification = verifications?.find(v => v.id === verificationId);
 
   const handleVerifyCertification = async (certIndex: number) => {
     if (!verification?.user_id) return;
     
+    const certifications = verification.guide_profile?.certifications || [];
+    const cert = certifications[certIndex];
+    
+    // Prevent duplicate verification
+    if (cert.verifiedDate) {
+      toast({
+        title: 'Already Verified',
+        description: 'This certification has already been verified.',
+        variant: 'default',
+      });
+      return;
+    }
+    
+    setVerifyingIndex(certIndex);
+    
     try {
-      const certifications = verification.guide_profile?.certifications || [];
-      const updatedCerts = certifications.map((cert, idx) => {
+      const updatedCerts = certifications.map((c, idx) => {
         if (idx === certIndex) {
           return {
-            ...cert,
+            ...c,
             verifiedDate: new Date().toISOString(),
             verifiedBy: 'admin'
           };
         }
-        return cert;
+        return c;
       });
 
       const { error } = await supabase
@@ -53,10 +72,22 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
 
       if (error) throw error;
 
-      // Refetch to update UI
-      window.location.reload();
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ['guide-verifications'] });
+
+      toast({
+        title: 'Certification Verified',
+        description: `${cert.title} has been successfully verified.`,
+      });
     } catch (error) {
       console.error('Error verifying certification:', error);
+      toast({
+        title: 'Verification Failed',
+        description: 'Failed to verify certification. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setVerifyingIndex(null);
     }
   };
 
@@ -279,10 +310,11 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                                 <Button
                                   size="sm"
                                   onClick={() => handleVerifyCertification(index)}
+                                  disabled={verifyingIndex === index}
                                   className="gap-2 whitespace-nowrap"
                                 >
                                   <CheckCircle2 className="h-3 w-3" />
-                                  Verify Now
+                                  {verifyingIndex === index ? 'Verifying...' : 'Verify Now'}
                                 </Button>
                               </>
                             ) : (
