@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppNavigation } from './AppNavigation';
 import { Footer } from './Footer';
 
@@ -7,8 +8,11 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
+  const navigate = useNavigate();
+
   const handleNavigate = (page: string) => {
-    window.location.href = `/?page=${page}`;
+    window.scrollTo(0, 0);
+    navigate(`/?page=${page}`);
   };
 
   const handleNavigateToSearch = (filters?: any) => {
@@ -18,7 +22,8 @@ export function MainLayout({ children }: MainLayoutProps) {
         if (value) params.set(key, value as string);
       });
     }
-    window.location.href = `/?${params.toString()}`;
+    window.scrollTo(0, 0);
+    navigate(`/?${params.toString()}`);
   };
 
   return (

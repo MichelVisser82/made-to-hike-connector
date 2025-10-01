@@ -82,6 +82,7 @@ function AppContent() {
   };
 
   const navigateToSearch = (filters = {}) => {
+    window.scrollTo(0, 0);
     setSearchFilters({ ...searchFilters, ...filters });
     setCurrentPage('search');
   };
@@ -313,7 +314,10 @@ function AppContent() {
 
       {/* Footer */}
       <Footer 
-        onNavigate={(page: string) => setCurrentPage(page as Page)}
+        onNavigate={(page: string) => {
+          window.scrollTo(0, 0);
+          setCurrentPage(page as Page);
+        }}
         onNavigateToSearch={navigateToSearch}
       />
 
