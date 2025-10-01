@@ -52,13 +52,20 @@ export function AppNavigation({
     }
   };
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.scrollTo(0, 0);
+    navigate('/', { replace: true });
+  };
+
   return (
     <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="flex items-center gap-2 hover:opacity-80"
+          <a
+            href="/"
+            onClick={handleLogoClick}
+            className="flex items-center gap-2 hover:opacity-80 cursor-pointer"
           >
             <svg className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
               <path d="M14,6L10.25,11L14,16L15.5,14.5L13.25,11L15.5,7.5L14,6M9.5,6L8,7.5L10.25,11L8,14.5L9.5,16L13.25,11L9.5,6Z"/>
@@ -68,7 +75,7 @@ export function AppNavigation({
               <div className="text-lg font-semibold">MadeToHike</div>
               <div className="text-xs text-muted-foreground">Guided Adventures</div>
             </div>
-          </Link>
+          </a>
 
           <div className="flex items-center gap-4">
             {currentPage !== 'search' && (

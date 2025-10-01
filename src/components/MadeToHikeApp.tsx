@@ -59,12 +59,8 @@ function AppContent() {
   } as User : null);
 
 
-  // Auto-redirect authenticated users to dashboard
-  useEffect(() => {
-    if (!loading && user && currentPage === 'landing') {
-      navigateToDashboard();
-    }
-  }, [user, loading, currentPage]);
+  // Note: Removed auto-redirect to allow users to return to landing page via logo
+  // Users can access their dashboard via the Dashboard button in navigation
 
   const handleGuideSignup = (userData: User) => {
     setShowGuideSignupModal(false);
