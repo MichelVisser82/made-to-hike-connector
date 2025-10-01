@@ -2,7 +2,7 @@ import * as React from "react";
 import { CheckCircle2, Clock, Globe, Award } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import type { GuideCertification } from "@/types/guide";
-import { getCertificationMetadata } from "@/constants/certificationMetadata";
+import { getCertificationMetadata, getCountryFromCertifyingBody } from "@/constants/certificationMetadata";
 
 interface CertificationHoverCardProps {
   certification: GuideCertification;
@@ -32,6 +32,7 @@ function getCertificationColorScheme(title: string): 'sage' | 'burgundy' | 'neut
 export function CertificationHoverCard({ certification, children }: CertificationHoverCardProps) {
   const metadata = getCertificationMetadata(certification.title);
   const colorScheme = getCertificationColorScheme(certification.title);
+  const country = getCountryFromCertifyingBody(certification.certifyingBody);
 
   // Sage Green Theme (IML)
   if (colorScheme === 'sage') {
@@ -46,11 +47,16 @@ export function CertificationHoverCard({ certification, children }: Certificatio
             <div className="flex items-start gap-2">
               <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-base leading-tight">
-                  {metadata?.abbreviation || certification.title}
-                </h4>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-bold text-base leading-tight">
+                    {metadata?.abbreviation || certification.title}
+                  </h4>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm">
+                    {country}
+                  </span>
+                </div>
                 <p className="text-sm opacity-90 mt-0.5">
-                  {metadata?.fullTitle || certification.certifyingBody}
+                  {metadata?.fullTitle || certification.title}
                 </p>
               </div>
             </div>
@@ -93,6 +99,11 @@ export function CertificationHoverCard({ certification, children }: Certificatio
                 )}
               </div>
             )}
+
+            {/* Certifying Body */}
+            <div className="pt-2 border-t border-white/20 text-xs">
+              <span className="font-bold">{certification.certifyingBody}</span>
+            </div>
           </div>
         </HoverCardContent>
       </HoverCard>
@@ -112,11 +123,16 @@ export function CertificationHoverCard({ certification, children }: Certificatio
             <div className="flex items-start gap-3">
               <Award className="w-6 h-6 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-lg leading-tight">
-                  {metadata?.abbreviation || certification.title}
-                </h4>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-bold text-lg leading-tight">
+                    {metadata?.abbreviation || certification.title}
+                  </h4>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/25 backdrop-blur-sm">
+                    {country}
+                  </span>
+                </div>
                 <p className="text-sm opacity-95 mt-1">
-                  {metadata?.fullTitle || certification.certifyingBody}
+                  {metadata?.fullTitle || certification.title}
                 </p>
               </div>
             </div>
@@ -165,6 +181,11 @@ export function CertificationHoverCard({ certification, children }: Certificatio
                 )}
               </div>
             )}
+
+            {/* Certifying Body */}
+            <div className="pt-3 border-t border-white/25 text-sm">
+              <span className="font-bold">{certification.certifyingBody}</span>
+            </div>
           </div>
         </HoverCardContent>
       </HoverCard>
@@ -183,11 +204,16 @@ export function CertificationHoverCard({ certification, children }: Certificatio
           <div className="flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-sm leading-tight">
-                {metadata?.abbreviation || certification.title}
-              </h4>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h4 className="font-bold text-sm leading-tight">
+                  {metadata?.abbreviation || certification.title}
+                </h4>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-secondary text-secondary-foreground">
+                  {country}
+                </span>
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {metadata?.fullTitle || certification.certifyingBody}
+                {metadata?.fullTitle || certification.title}
               </p>
             </div>
           </div>
@@ -230,6 +256,11 @@ export function CertificationHoverCard({ certification, children }: Certificatio
               )}
             </div>
           )}
+
+          {/* Certifying Body */}
+          <div className="pt-2 border-t text-xs">
+            <span className="font-bold text-foreground">{certification.certifyingBody}</span>
+          </div>
         </div>
       </HoverCardContent>
     </HoverCard>

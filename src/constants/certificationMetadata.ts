@@ -13,6 +13,93 @@ export interface CertificationMetadata {
   badgeColor: string;
 }
 
+/**
+ * Extract country from certifying body name
+ */
+export function getCountryFromCertifyingBody(certifyingBody: string): string {
+  const body = certifyingBody.toLowerCase();
+  
+  // UK organizations
+  if (body.includes('mountain training uk') || body.includes('mountain training scotland') || 
+      body.includes('mountain training england') || body.includes('mountain training wales') ||
+      body.includes('mountain training ireland')) {
+    return 'United Kingdom';
+  }
+  
+  // French organizations
+  if (body.includes('ensa') || body.includes('french') || body.includes('france')) {
+    return 'France';
+  }
+  
+  // Swiss organizations
+  if (body.includes('swiss') || body.includes('switzerland')) {
+    return 'Switzerland';
+  }
+  
+  // Austrian organizations
+  if (body.includes('austrian') || body.includes('austria')) {
+    return 'Austria';
+  }
+  
+  // German organizations
+  if (body.includes('german') || body.includes('germany')) {
+    return 'Germany';
+  }
+  
+  // Italian organizations
+  if (body.includes('italian') || body.includes('italy')) {
+    return 'Italy';
+  }
+  
+  // Spanish organizations
+  if (body.includes('spanish') || body.includes('spain')) {
+    return 'Spain';
+  }
+  
+  // International organizations
+  if (body.includes('ifmga') || body.includes('international')) {
+    return 'International';
+  }
+  
+  // US organizations
+  if (body.includes('american') || body.includes('usa') || body.includes('united states')) {
+    return 'United States';
+  }
+  
+  // Canadian organizations
+  if (body.includes('canadian') || body.includes('canada')) {
+    return 'Canada';
+  }
+  
+  // Norwegian organizations
+  if (body.includes('norwegian') || body.includes('norway')) {
+    return 'Norway';
+  }
+  
+  // Swedish organizations
+  if (body.includes('swedish') || body.includes('sweden')) {
+    return 'Sweden';
+  }
+  
+  // New Zealand organizations
+  if (body.includes('new zealand')) {
+    return 'New Zealand';
+  }
+  
+  // Australian organizations
+  if (body.includes('australian') || body.includes('australia')) {
+    return 'Australia';
+  }
+  
+  // Multiple or various
+  if (body.includes('various') || body.includes('multiple')) {
+    return 'Various';
+  }
+  
+  // Default fallback
+  return 'International';
+}
+
 export const CERTIFICATION_METADATA: Record<string, CertificationMetadata> = {
   'International Mountain Leader': {
     abbreviation: 'IML',
