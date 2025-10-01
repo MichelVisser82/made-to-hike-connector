@@ -11,18 +11,18 @@ interface CertificationHoverCardProps {
 
 /**
  * Determine color scheme based on simplified classification:
- * - IML: Sage Green (#8FA68E)
- * - IFMGA: Burgundy (#881337)  
+ * - IML: Sage Green
+ * - IFMGA: Burgundy  
  * - All Others: Light Neutral with Burgundy Text
  */
 function getCertificationColorScheme(title: string): 'sage' | 'burgundy' | 'neutral' {
   const lowerTitle = title.toLowerCase();
   
-  if (lowerTitle.includes('iml')) {
+  if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) {
     return 'sage';
   }
   
-  if (lowerTitle.includes('ifmga')) {
+  if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) {
     return 'burgundy';
   }
   
@@ -41,10 +41,10 @@ export function CertificationHoverCard({ certification, children }: Certificatio
         <HoverCardTrigger asChild>
           <span className="inline-block">{children}</span>
         </HoverCardTrigger>
-        <HoverCardContent className="w-[280px] p-0 overflow-hidden border-0 bg-cert-sage text-cert-sage-foreground">
+        <HoverCardContent className="w-[300px] p-0 overflow-hidden border-0 bg-cert-sage text-cert-sage-foreground">
           <div className="p-4 space-y-3">
             {/* Header */}
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-2.5">
               <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -71,7 +71,7 @@ export function CertificationHoverCard({ certification, children }: Certificatio
             {/* Activity Types */}
             {metadata?.activityTypes && metadata.activityTypes.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {metadata.activityTypes.slice(0, 3).map((activity, idx) => (
+                {metadata.activityTypes.map((activity, idx) => (
                   <span 
                     key={idx}
                     className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm"
@@ -117,21 +117,21 @@ export function CertificationHoverCard({ certification, children }: Certificatio
         <HoverCardTrigger asChild>
           <span className="inline-block">{children}</span>
         </HoverCardTrigger>
-        <HoverCardContent className="w-[320px] p-0 overflow-hidden border-0 bg-cert-burgundy text-cert-burgundy-foreground">
-          <div className="p-5 space-y-4">
+        <HoverCardContent className="w-[300px] p-0 overflow-hidden border-0 bg-cert-burgundy text-cert-burgundy-foreground">
+          <div className="p-4 space-y-3">
             {/* Header */}
-            <div className="flex items-start gap-3">
-              <Award className="w-6 h-6 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2.5">
+              <Award className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-bold text-lg leading-tight">
+                  <h4 className="font-bold text-base leading-tight">
                     {metadata?.abbreviation || certification.title}
                   </h4>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/25 backdrop-blur-sm">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm">
                     {country}
                   </span>
                 </div>
-                <p className="text-sm opacity-95 mt-1">
+                <p className="text-sm opacity-90 mt-0.5">
                   {metadata?.fullTitle || certification.title}
                 </p>
               </div>
@@ -139,18 +139,18 @@ export function CertificationHoverCard({ certification, children }: Certificatio
 
             {/* Description */}
             {metadata?.qualificationDescription && (
-              <p className="text-sm leading-relaxed opacity-95">
+              <p className="text-xs leading-relaxed opacity-95">
                 {metadata.qualificationDescription}
               </p>
             )}
 
             {/* Activity Types */}
             {metadata?.activityTypes && metadata.activityTypes.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {metadata.activityTypes.map((activity, idx) => (
                   <span 
                     key={idx}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/25 backdrop-blur-sm"
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm"
                   >
                     {activity}
                   </span>
@@ -160,30 +160,24 @@ export function CertificationHoverCard({ certification, children }: Certificatio
 
             {/* Stats */}
             {(metadata?.trainingHours || metadata?.recognitionCountries) && (
-              <div className="flex items-center gap-5 pt-3 border-t border-white/25 text-sm">
+              <div className="flex items-center gap-4 pt-2 border-t border-white/20 text-xs">
                 {metadata?.trainingHours && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <div>
-                      <span className="font-bold">{metadata.trainingHours}h</span>
-                      <span className="opacity-90 ml-1">training</span>
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span><strong>{metadata.trainingHours}h</strong> training</span>
                   </div>
                 )}
                 {metadata?.recognitionCountries && (
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4" />
-                    <div>
-                      <span className="font-bold">{metadata.recognitionCountries}+</span>
-                      <span className="opacity-90 ml-1">countries</span>
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5" />
+                    <span><strong>{metadata.recognitionCountries}+</strong> countries</span>
                   </div>
                 )}
               </div>
             )}
 
             {/* Certifying Body */}
-            <div className="pt-3 border-t border-white/25 text-sm">
+            <div className="pt-2 border-t border-white/20 text-xs">
               <span className="font-bold">{certification.certifyingBody}</span>
             </div>
           </div>
@@ -198,21 +192,21 @@ export function CertificationHoverCard({ certification, children }: Certificatio
       <HoverCardTrigger asChild>
         <span className="inline-block">{children}</span>
       </HoverCardTrigger>
-      <HoverCardContent className="w-[240px] p-4 bg-cert-neutral text-cert-neutral-foreground border shadow-sm">
-        <div className="space-y-2.5">
+      <HoverCardContent className="w-[300px] p-0 overflow-hidden border shadow-sm bg-cert-neutral text-cert-neutral-foreground">
+        <div className="p-4 space-y-3">
           {/* Header */}
-          <div className="flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h4 className="font-bold text-sm leading-tight">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-bold text-base leading-tight">
                   {metadata?.abbreviation || certification.title}
                 </h4>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-secondary text-secondary-foreground">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cert-burgundy/10 text-cert-neutral-foreground">
                   {country}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-sm opacity-75 mt-0.5">
                 {metadata?.fullTitle || certification.title}
               </p>
             </div>
@@ -220,18 +214,18 @@ export function CertificationHoverCard({ certification, children }: Certificatio
 
           {/* Description */}
           {metadata?.qualificationDescription && (
-            <p className="text-xs leading-relaxed text-muted-foreground">
+            <p className="text-xs leading-relaxed opacity-75">
               {metadata.qualificationDescription}
             </p>
           )}
 
           {/* Activity Types */}
           {metadata?.activityTypes && metadata.activityTypes.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {metadata.activityTypes.slice(0, 3).map((activity, idx) => (
+            <div className="flex flex-wrap gap-1.5">
+              {metadata.activityTypes.map((activity, idx) => (
                 <span 
                   key={idx}
-                  className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-secondary text-secondary-foreground"
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cert-burgundy/10 text-cert-neutral-foreground"
                 >
                   {activity}
                 </span>
@@ -241,25 +235,25 @@ export function CertificationHoverCard({ certification, children }: Certificatio
 
           {/* Stats */}
           {(metadata?.trainingHours || metadata?.recognitionCountries) && (
-            <div className="flex items-center gap-3 pt-2 border-t text-xs text-muted-foreground">
+            <div className="flex items-center gap-4 pt-2 border-t border-cert-neutral-foreground/20 text-xs">
               {metadata?.trainingHours && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span><strong className="text-foreground">{metadata.trainingHours}h</strong></span>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span><strong>{metadata.trainingHours}h</strong> training</span>
                 </div>
               )}
               {metadata?.recognitionCountries && (
-                <div className="flex items-center gap-1">
-                  <Globe className="w-3 h-3" />
-                  <span><strong className="text-foreground">{metadata.recognitionCountries}+</strong></span>
+                <div className="flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5" />
+                  <span><strong>{metadata.recognitionCountries}+</strong> countries</span>
                 </div>
               )}
             </div>
           )}
 
           {/* Certifying Body */}
-          <div className="pt-2 border-t text-xs">
-            <span className="font-bold text-foreground">{certification.certifyingBody}</span>
+          <div className="pt-2 border-t border-cert-neutral-foreground/20 text-xs">
+            <span className="font-bold">{certification.certifyingBody}</span>
           </div>
         </div>
       </HoverCardContent>
