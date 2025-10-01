@@ -275,7 +275,6 @@ function AppContent() {
       <AppNavigation 
         onDashboardClick={navigateToDashboard}
         onSearchClick={() => navigateToSearch()}
-        showAdminPanel={!!user && user.role === 'admin'}
         currentPage={currentPage}
       />
 

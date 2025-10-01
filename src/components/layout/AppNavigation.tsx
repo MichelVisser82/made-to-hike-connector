@@ -6,14 +6,12 @@ import { type User } from '@/types';
 interface AppNavigationProps {
   onDashboardClick?: () => void;
   onSearchClick?: () => void;
-  showAdminPanel?: boolean;
   currentPage?: string;
 }
 
 export function AppNavigation({ 
   onDashboardClick, 
   onSearchClick,
-  showAdminPanel = false,
   currentPage 
 }: AppNavigationProps) {
   const navigate = useNavigate();
@@ -79,15 +77,6 @@ export function AppNavigation({
                 className="text-sm hover:text-primary"
               >
                 Find Tours
-              </button>
-            )}
-
-            {user && user.role === 'admin' && showAdminPanel && (
-              <button
-                onClick={() => navigate('/admin')}
-                className="text-sm hover:text-primary"
-              >
-                Admin Panel
               </button>
             )}
 
