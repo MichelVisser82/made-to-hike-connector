@@ -9,6 +9,8 @@ import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
 import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
+import { CertificationBadge } from '../ui/certification-badge';
+import { getPrimaryCertification } from '@/utils/guideDataUtils';
 
 interface TourDetailPageProps {
   tour: Tour;
@@ -23,6 +25,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   
   // Use unified hook for consistent guide data
   const { guideInfo, isLoadingProfessional, guideProfile } = useEnhancedGuideInfo(tour);
+  
+  // Get primary certification for large badge display
+  const primaryCert = guideProfile?.certifications ? getPrimaryCertification(guideProfile.certifications) : null;
 
   const toggleItinerary = (index: number) => {
     setExpandedItinerary(prev => ({
@@ -652,16 +657,18 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   <div className="p-8 flex flex-col">
                     {/* Name with Certification Badge */}
                     <div className="mb-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-3xl font-bold">
-                          {guideInfo.displayName}
-                        </h3>
-                        {guideInfo.certificationTitle && (
-                          <Badge className="bg-primary text-primary-foreground text-sm px-3 py-1">
-                            {guideInfo.certificationTitle}
-                          </Badge>
-                        )}
-                      </div>
+                      <h3 className="text-3xl font-bold mb-3">
+                        {guideInfo.displayName}
+                      </h3>
+                      {/* Large Certification Badge - Card Display Mode */}
+                      {primaryCert && (
+                        <CertificationBadge
+                          certification={primaryCert}
+                          displayMode="card"
+                          showTooltip={false}
+                          isGuideVerified={guideProfile?.verified ?? false}
+                        />
+                      )}
                       {guideInfo.location && (
                         <p className="text-muted-foreground flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
