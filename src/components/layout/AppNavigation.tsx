@@ -6,12 +6,14 @@ import { type User } from '@/types';
 interface AppNavigationProps {
   onDashboardClick?: () => void;
   onSearchClick?: () => void;
+  onLogoClick?: () => void;
   currentPage?: string;
 }
 
 export function AppNavigation({ 
   onDashboardClick, 
   onSearchClick,
+  onLogoClick,
   currentPage 
 }: AppNavigationProps) {
   const navigate = useNavigate();
@@ -55,7 +57,11 @@ export function AppNavigation({
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     window.scrollTo(0, 0);
-    navigate('/', { replace: true });
+    if (onLogoClick) {
+      onLogoClick();
+    } else {
+      navigate('/', { replace: true });
+    }
   };
 
   return (

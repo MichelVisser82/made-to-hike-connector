@@ -272,6 +272,10 @@ function AppContent() {
       <AppNavigation 
         onDashboardClick={navigateToDashboard}
         onSearchClick={() => navigateToSearch()}
+        onLogoClick={() => {
+          window.scrollTo(0, 0);
+          setCurrentPage('landing');
+        }}
         currentPage={currentPage}
       />
 
