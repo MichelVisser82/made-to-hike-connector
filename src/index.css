@@ -39,7 +39,7 @@
     --trust-blue: 217 91% 60%;
 
     /* Certification badge colors */
-    --cert-sage: 119 12% 60%;
+    --cert-sage: 135 30% 40%;
     --cert-sage-foreground: 0 0% 100%;
     --cert-burgundy: 342 75% 30%;
     --cert-burgundy-foreground: 0 0% 100%;
@@ -88,9 +88,9 @@
     --primary-glow: 142 76% 55%;
 
     /* Certification badge colors - dark mode */
-    --cert-sage: 119 12% 60%;
+    --cert-sage: 135 30% 45%;
     --cert-sage-foreground: 0 0% 100%;
-    --cert-burgundy: 342 75% 30%;
+    --cert-burgundy: 342 75% 35%;
     --cert-burgundy-foreground: 0 0% 100%;
     --cert-neutral: 30 20% 25%;
     --cert-neutral-foreground: 342 75% 60%;
