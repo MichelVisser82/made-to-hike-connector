@@ -77,11 +77,11 @@ export function GuideInfoDisplay({
             <p className="text-sm font-semibold text-white drop-shadow-lg">
               {guideInfo.displayName}
             </p>
-            {/* Primary Certification Badge - Detailed mode for tour cards */}
+            {/* Primary Certification Badge - Simple mode for tour cards */}
             {primaryCert && (
               <CertificationBadge 
                 certification={primaryCert}
-                displayMode="detailed"
+                displayMode="simple"
                 showTooltip={true}
                 isGuideVerified={isGuideVerified}
               />
