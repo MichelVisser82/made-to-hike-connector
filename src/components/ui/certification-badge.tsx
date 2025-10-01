@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
+import { CertificationHoverCard } from "@/components/ui/certification-hover-card";
 import type { GuideCertification } from "@/types/guide";
 import { getCertificationMetadata } from "@/constants/certificationMetadata";
 
@@ -64,29 +65,23 @@ function CertificationBadge({
 }: CertificationBadgeProps) {
   const metadata = getCertificationMetadata(certification.title);
   
-  // Simple mode: Just abbreviation with checkmark
+  // Simple mode: Just abbreviation with checkmark (with rich hover card)
   if (displayMode === 'simple') {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-white"
-              style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{metadata?.abbreviation || certification.title}</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="font-semibold">{certification.title}</div>
-            <div className="text-sm text-muted-foreground mt-1">
-              {certification.certifyingBody}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+    const badgeElement = (
+      <div
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-white cursor-pointer"
+        style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
+      >
+        <CheckCircle2 className="w-4 h-4" />
+        <span>{metadata?.abbreviation || certification.title}</span>
+      </div>
     );
+
+    return showTooltip ? (
+      <CertificationHoverCard certification={certification}>
+        {badgeElement}
+      </CertificationHoverCard>
+    ) : badgeElement;
   }
   
   // Detailed mode: Badge with title and subtitle
@@ -274,55 +269,18 @@ function CertificationBadge({
     </div>
   );
 
-  if (!showTooltip) {
+  // Small & Medium badges: Use rich hover card
+  // Large badges: No tooltip by default
+  const shouldShowTooltip = showTooltip && (size === 'mini' || size === 'compact');
+  
+  if (!shouldShowTooltip) {
     return badgeContent;
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {badgeContent}
-        </TooltipTrigger>
-        <TooltipContent className="max-w-xs">
-          <div className="space-y-2">
-            <div className="font-semibold">{certification.title}</div>
-            <div className="text-sm text-muted-foreground">
-              {certification.certifyingBody}
-            </div>
-            {certification.certificateNumber && (
-              <div className="text-xs text-muted-foreground">
-                Certificate #: {certification.certificateNumber}
-              </div>
-            )}
-            {certification.expiryDate && (
-              <div className="text-xs text-muted-foreground">
-                Expires: {new Date(certification.expiryDate).toLocaleDateString()}
-              </div>
-            )}
-            {certification.verificationPriority && (
-              <div className="text-xs text-muted-foreground">
-                Priority {certification.verificationPriority} Certification
-              </div>
-            )}
-            {certification.description && (
-              <div className="text-sm mt-2">{certification.description}</div>
-            )}
-            {isGuideVerified && (
-              <div className="flex items-center gap-1 text-xs text-emerald-600 mt-2">
-                <CheckCircle2 className="w-3 h-3" />
-                Verified Guide
-              </div>
-            )}
-            {certification.isPrimary && (
-              <div className="text-xs font-medium text-primary mt-2">
-                ★ Primary Certification
-              </div>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <CertificationHoverCard certification={certification}>
+      {badgeContent}
+    </CertificationHoverCard>
   );
 }
 
