@@ -70,15 +70,15 @@ function CertificationBadge({
     // Determine color scheme class and icon based on certification
     const lowerTitle = certification.title.toLowerCase();
     const colorClass = React.useMemo(() => {
-      if (lowerTitle.includes('iml')) return 'bg-cert-sage text-cert-sage-foreground';
-      if (lowerTitle.includes('ifmga')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
+      if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return 'bg-cert-sage text-cert-sage-foreground';
+      if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
       return 'bg-cert-neutral text-cert-neutral-foreground';
     }, [lowerTitle]);
 
     // Choose icon based on certification type
     const LeftIcon = React.useMemo(() => {
-      if (lowerTitle.includes('iml')) return Mountain;
-      if (lowerTitle.includes('ifmga')) return Award;
+      if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return Mountain;
+      if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return Award;
       return Shield;
     }, [lowerTitle]);
 
@@ -105,15 +105,15 @@ function CertificationBadge({
   if (displayMode === 'detailed') {
     const lowerTitle = certification.title.toLowerCase();
     const colorClass = React.useMemo(() => {
-      if (lowerTitle.includes('iml')) return 'bg-cert-sage text-cert-sage-foreground';
-      if (lowerTitle.includes('ifmga')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
+      if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return 'bg-cert-sage text-cert-sage-foreground';
+      if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
       return 'bg-cert-neutral text-cert-neutral-foreground';
     }, [lowerTitle]);
 
     // Choose icon based on certification type
     const LeftIcon = React.useMemo(() => {
-      if (lowerTitle.includes('iml')) return Mountain;
-      if (lowerTitle.includes('ifmga')) return Award;
+      if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return Mountain;
+      if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return Award;
       return Shield;
     }, [lowerTitle]);
 
@@ -154,8 +154,8 @@ function CertificationBadge({
   if (displayMode === 'card') {
     const lowerTitle = certification.title.toLowerCase();
     const colorClass = React.useMemo(() => {
-      if (lowerTitle.includes('iml')) return 'bg-cert-sage text-cert-sage-foreground';
-      if (lowerTitle.includes('ifmga')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
+      if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return 'bg-cert-sage text-cert-sage-foreground';
+      if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
       return 'bg-cert-neutral text-cert-neutral-foreground';
     }, [lowerTitle]);
 
