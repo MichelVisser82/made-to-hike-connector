@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Award, Shield, CheckCircle2, Users, Globe, Clock, Mountain } from "lucide-react";
+import { Award, Shield, CheckCircle2, Users, Globe, Clock, Mountain, Siren, HeartPulse, Heart, Activity, Cross } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -69,24 +69,49 @@ function CertificationBadge({
   if (displayMode === 'simple') {
     // Determine color scheme class and icon based on certification
     const lowerTitle = certification.title.toLowerCase();
+    const isMedical = lowerTitle.includes('wemt') || lowerTitle.includes('wfr') || lowerTitle.includes('wfa') || 
+                      lowerTitle.includes('cpr') || lowerTitle.includes('aed') || lowerTitle.includes('faw') || 
+                      lowerTitle.includes('efaw') || lowerTitle.includes('first aid') || 
+                      lowerTitle.includes('wilderness emergency') || lowerTitle.includes('medical technician');
+    
     const colorClass = React.useMemo(() => {
+      if (isMedical) {
+        // Medical certifications
+        if (lowerTitle.includes('wemt') || lowerTitle.includes('wilderness emergency medical')) return 'bg-cert-emergency-red-dark text-cert-medical-foreground';
+        if (lowerTitle.includes('wfr') || lowerTitle.includes('first responder')) return 'bg-cert-emergency-red text-cert-medical-foreground';
+        if (lowerTitle.includes('wfa') || (lowerTitle.includes('wilderness') && lowerTitle.includes('first aid'))) return 'bg-cert-medical-blue text-cert-medical-foreground';
+        if (lowerTitle.includes('cpr') || lowerTitle.includes('aed')) return 'bg-cert-safety-teal text-cert-medical-foreground';
+        if (lowerTitle.includes('faw') && !lowerTitle.includes('efaw')) return 'bg-cert-medical-orange text-cert-medical-foreground';
+        if (lowerTitle.includes('efaw') || lowerTitle.includes('emergency first aid at work')) return 'bg-cert-medical-blue-light text-cert-medical-foreground';
+        return 'bg-cert-medical-blue text-cert-medical-foreground';
+      }
+      // Mountain guide certifications
       if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return 'bg-cert-sage text-cert-sage-foreground';
       if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
       return 'bg-cert-neutral text-cert-neutral-foreground';
-    }, [lowerTitle]);
+    }, [lowerTitle, isMedical]);
 
     // Choose icon based on certification type
     const LeftIcon = React.useMemo(() => {
+      if (isMedical) {
+        if (lowerTitle.includes('wemt') || lowerTitle.includes('wilderness emergency medical')) return Siren;
+        if (lowerTitle.includes('wfr') || lowerTitle.includes('first responder')) return HeartPulse;
+        if (lowerTitle.includes('wfa') || (lowerTitle.includes('wilderness') && lowerTitle.includes('first aid'))) return Heart;
+        if (lowerTitle.includes('cpr') || lowerTitle.includes('aed')) return Activity;
+        if (lowerTitle.includes('faw')) return Cross;
+        if (lowerTitle.includes('efaw')) return Heart;
+        return Heart;
+      }
       if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return Mountain;
       if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return Award;
       return Shield;
-    }, [lowerTitle]);
+    }, [lowerTitle, isMedical]);
 
     const badgeElement = (
       <div className={cn(
         "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold cursor-pointer border shadow-sm",
         colorClass,
-        lowerTitle.includes('iml') || lowerTitle.includes('ifmga') ? 'border-transparent' : 'border-cert-neutral-foreground/20'
+        (lowerTitle.includes('iml') || lowerTitle.includes('ifmga') || isMedical) ? 'border-transparent' : 'border-cert-neutral-foreground/20'
       )}>
         <LeftIcon className="w-4 h-4 flex-shrink-0" />
         <span className="flex-1">{metadata?.abbreviation || certification.title}</span>
@@ -104,24 +129,47 @@ function CertificationBadge({
   // Detailed mode: Icon with background left, two lines of text center, checkmark right
   if (displayMode === 'detailed') {
     const lowerTitle = certification.title.toLowerCase();
+    const isMedical = lowerTitle.includes('wemt') || lowerTitle.includes('wfr') || lowerTitle.includes('wfa') || 
+                      lowerTitle.includes('cpr') || lowerTitle.includes('aed') || lowerTitle.includes('faw') || 
+                      lowerTitle.includes('efaw') || lowerTitle.includes('first aid') || 
+                      lowerTitle.includes('wilderness emergency') || lowerTitle.includes('medical technician');
+    
     const colorClass = React.useMemo(() => {
+      if (isMedical) {
+        if (lowerTitle.includes('wemt') || lowerTitle.includes('wilderness emergency medical')) return 'bg-cert-emergency-red-dark text-cert-medical-foreground';
+        if (lowerTitle.includes('wfr') || lowerTitle.includes('first responder')) return 'bg-cert-emergency-red text-cert-medical-foreground';
+        if (lowerTitle.includes('wfa') || (lowerTitle.includes('wilderness') && lowerTitle.includes('first aid'))) return 'bg-cert-medical-blue text-cert-medical-foreground';
+        if (lowerTitle.includes('cpr') || lowerTitle.includes('aed')) return 'bg-cert-safety-teal text-cert-medical-foreground';
+        if (lowerTitle.includes('faw') && !lowerTitle.includes('efaw')) return 'bg-cert-medical-orange text-cert-medical-foreground';
+        if (lowerTitle.includes('efaw') || lowerTitle.includes('emergency first aid at work')) return 'bg-cert-medical-blue-light text-cert-medical-foreground';
+        return 'bg-cert-medical-blue text-cert-medical-foreground';
+      }
       if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return 'bg-cert-sage text-cert-sage-foreground';
       if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
       return 'bg-cert-neutral text-cert-neutral-foreground';
-    }, [lowerTitle]);
+    }, [lowerTitle, isMedical]);
 
     // Choose icon based on certification type
     const LeftIcon = React.useMemo(() => {
+      if (isMedical) {
+        if (lowerTitle.includes('wemt') || lowerTitle.includes('wilderness emergency medical')) return Siren;
+        if (lowerTitle.includes('wfr') || lowerTitle.includes('first responder')) return HeartPulse;
+        if (lowerTitle.includes('wfa') || (lowerTitle.includes('wilderness') && lowerTitle.includes('first aid'))) return Heart;
+        if (lowerTitle.includes('cpr') || lowerTitle.includes('aed')) return Activity;
+        if (lowerTitle.includes('faw')) return Cross;
+        if (lowerTitle.includes('efaw')) return Heart;
+        return Heart;
+      }
       if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return Mountain;
       if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return Award;
       return Shield;
-    }, [lowerTitle]);
+    }, [lowerTitle, isMedical]);
 
     const badgeElement = (
       <div className={cn(
         "inline-flex items-center gap-2.5 px-3 py-2 rounded-xl border shadow-sm cursor-pointer w-full",
         colorClass,
-        lowerTitle.includes('iml') || lowerTitle.includes('ifmga') ? 'border-transparent' : 'border-cert-neutral-foreground/20'
+        (lowerTitle.includes('iml') || lowerTitle.includes('ifmga') || isMedical) ? 'border-transparent' : 'border-cert-neutral-foreground/20'
       )}>
         {/* Icon with darker background circle */}
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black/20 flex items-center justify-center">
@@ -153,17 +201,31 @@ function CertificationBadge({
   // Card mode: Full certification card with all details
   if (displayMode === 'card') {
     const lowerTitle = certification.title.toLowerCase();
+    const isMedical = lowerTitle.includes('wemt') || lowerTitle.includes('wfr') || lowerTitle.includes('wfa') || 
+                      lowerTitle.includes('cpr') || lowerTitle.includes('aed') || lowerTitle.includes('faw') || 
+                      lowerTitle.includes('efaw') || lowerTitle.includes('first aid') || 
+                      lowerTitle.includes('wilderness emergency') || lowerTitle.includes('medical technician');
+    
     const colorClass = React.useMemo(() => {
+      if (isMedical) {
+        if (lowerTitle.includes('wemt') || lowerTitle.includes('wilderness emergency medical')) return 'bg-cert-emergency-red-dark text-cert-medical-foreground';
+        if (lowerTitle.includes('wfr') || lowerTitle.includes('first responder')) return 'bg-cert-emergency-red text-cert-medical-foreground';
+        if (lowerTitle.includes('wfa') || (lowerTitle.includes('wilderness') && lowerTitle.includes('first aid'))) return 'bg-cert-medical-blue text-cert-medical-foreground';
+        if (lowerTitle.includes('cpr') || lowerTitle.includes('aed')) return 'bg-cert-safety-teal text-cert-medical-foreground';
+        if (lowerTitle.includes('faw') && !lowerTitle.includes('efaw')) return 'bg-cert-medical-orange text-cert-medical-foreground';
+        if (lowerTitle.includes('efaw') || lowerTitle.includes('emergency first aid at work')) return 'bg-cert-medical-blue-light text-cert-medical-foreground';
+        return 'bg-cert-medical-blue text-cert-medical-foreground';
+      }
       if (lowerTitle.includes('iml') || lowerTitle.includes('international mountain leader')) return 'bg-cert-sage text-cert-sage-foreground';
       if (lowerTitle.includes('ifmga') || lowerTitle.includes('mountain guide')) return 'bg-cert-burgundy text-cert-burgundy-foreground';
       return 'bg-cert-neutral text-cert-neutral-foreground';
-    }, [lowerTitle]);
+    }, [lowerTitle, isMedical]);
 
     return (
       <Card className={cn(
         "overflow-hidden border shadow-sm",
         colorClass,
-        lowerTitle.includes('iml') || lowerTitle.includes('ifmga') ? 'border-transparent' : 'border-cert-neutral-foreground/20'
+        (lowerTitle.includes('iml') || lowerTitle.includes('ifmga') || isMedical) ? 'border-transparent' : 'border-cert-neutral-foreground/20'
       )}>
         <CardContent className="p-6 space-y-4">
           {/* Header */}
@@ -201,8 +263,8 @@ function CertificationBadge({
           )}
 
           {/* Stats Row */}
-          {(metadata?.trainingHours || metadata?.recognitionCountries) && (
-            <div className="flex items-center gap-6 pt-2 border-t border-white/20">
+          {(metadata?.trainingHours || metadata?.recognitionCountries || metadata?.recertificationYears) && (
+            <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-white/20">
               {metadata?.trainingHours && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
@@ -218,6 +280,15 @@ function CertificationBadge({
                   <div className="text-sm">
                     <span className="font-semibold">{metadata.recognitionCountries}+</span>
                     <span className="opacity-75 ml-1">countries</span>
+                  </div>
+                </div>
+              )}
+              {metadata?.recertificationYears && (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <div className="text-sm">
+                    <span className="opacity-75">Recert every</span>
+                    <span className="font-semibold ml-1">{metadata.recertificationYears}yr</span>
                   </div>
                 </div>
               )}

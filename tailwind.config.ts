@@ -54,6 +54,13 @@ export default {
           "burgundy-foreground": "hsl(var(--cert-burgundy-foreground))",
           neutral: "hsl(var(--cert-neutral))",
           "neutral-foreground": "hsl(var(--cert-neutral-foreground))",
+          "emergency-red": "hsl(var(--cert-emergency-red))",
+          "emergency-red-dark": "hsl(var(--cert-emergency-red-dark))",
+          "medical-blue": "hsl(var(--cert-medical-blue))",
+          "medical-blue-light": "hsl(var(--cert-medical-blue-light))",
+          "safety-teal": "hsl(var(--cert-safety-teal))",
+          "medical-orange": "hsl(var(--cert-medical-orange))",
+          "medical-foreground": "hsl(var(--cert-medical-foreground))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

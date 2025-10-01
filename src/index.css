@@ -45,6 +45,15 @@
     --cert-burgundy-foreground: 0 0% 100%;
     --cert-neutral: 30 33% 95%;
     --cert-neutral-foreground: 342 75% 30%;
+    
+    /* Medical certification colors */
+    --cert-emergency-red: 0 84% 47%;
+    --cert-emergency-red-dark: 0 83% 43%;
+    --cert-medical-blue: 217 91% 60%;
+    --cert-medical-blue-light: 217 91% 65%;
+    --cert-safety-teal: 173 80% 40%;
+    --cert-medical-orange: 17 88% 48%;
+    --cert-medical-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -94,6 +103,15 @@
     --cert-burgundy-foreground: 0 0% 100%;
     --cert-neutral: 30 20% 25%;
     --cert-neutral-foreground: 342 75% 60%;
+    
+    /* Medical certification colors - dark mode */
+    --cert-emergency-red: 0 84% 52%;
+    --cert-emergency-red-dark: 0 83% 48%;
+    --cert-medical-blue: 217 91% 65%;
+    --cert-medical-blue-light: 217 91% 70%;
+    --cert-safety-teal: 173 80% 45%;
+    --cert-medical-orange: 17 88% 53%;
+    --cert-medical-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
