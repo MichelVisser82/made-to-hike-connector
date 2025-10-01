@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SmartImage } from '@/components/SmartImage';
 
 interface CountryCertification {
   country: string;
@@ -164,52 +165,70 @@ export function CertificationsContent() {
         <link rel="canonical" href="https://madetohike.com/certifications" />
       </Helmet>
       <div className="min-h-screen bg-background">
-        {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background py-16 md:py-24">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="secondary" className="mb-4">
-              <Clock className="w-3 h-3 mr-1" />
-              Read time: 3 minutes
-            </Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Mountain Guide Certifications: A Quick Reference Guide
-            </h1>
+        {/* Hero Section with Background Image */}
+        <section className="relative h-[400px] md:h-[500px] overflow-hidden">
+          <SmartImage 
+            category="hero"
+            usageContext="certifications"
+            tags={['mountains', 'guides', 'adventure']}
+            className="absolute inset-0 w-full h-full object-cover"
+            alt="Mountain guide in alpine terrain"
+            priority="high"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+          
+          <div className="relative h-full container mx-auto px-4 flex items-center justify-center">
+            <div className="max-w-4xl text-center">
+              <Badge variant="secondary" className="mb-4 bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                <Clock className="w-3 h-3 mr-1" />
+                3 min read
+              </Badge>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+                Mountain Guide Certifications: A Quick Reference Guide
+              </h1>
             </div>
           </div>
         </section>
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 py-12 max-w-5xl">
+        <div className="container mx-auto px-4 py-16 max-w-4xl">
         {/* Why Certifications Matter */}
-        <section className="mb-16">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-6 h-6 text-primary" />
-                Why Certifications Matter
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-lg max-w-none">
-              <p className="text-muted-foreground mb-4">
-                In most countries, anyone can call themselves a "mountain guide." Certifications prove that a guide has:
-              </p>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>Completed 3-5 years of rigorous training</li>
-                <li>Passed demanding practical and theoretical exams</li>
-                <li>Demonstrated competence in navigation, first aid, and risk assessment</li>
-                <li>Committed to ongoing professional development</li>
-              </ul>
-              <p className="text-muted-foreground mt-4 italic">
-                Think of it as the difference between a licensed doctor and someone who read medical articles online.
-              </p>
-            </CardContent>
-          </Card>
+        <section className="mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 flex items-center gap-3">
+            <Shield className="w-8 h-8 text-primary" />
+            Why Certifications Matter
+          </h2>
+          <div className="prose prose-lg max-w-none">
+            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+              In most countries, anyone can call themselves a "mountain guide." Certifications prove that a guide has:
+            </p>
+            <ul className="space-y-3 text-muted-foreground text-lg mb-6">
+              <li className="flex items-start gap-3">
+                <span className="text-primary mt-1.5">•</span>
+                <span>Completed 3-5 years of rigorous training</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-primary mt-1.5">•</span>
+                <span>Passed demanding practical and theoretical exams</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-primary mt-1.5">•</span>
+                <span>Demonstrated competence in navigation, first aid, and risk assessment</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-primary mt-1.5">•</span>
+                <span>Committed to ongoing professional development</span>
+              </li>
+            </ul>
+            <p className="text-lg text-muted-foreground italic border-l-4 border-primary pl-6 py-2">
+              Think of it as the difference between a licensed doctor and someone who read medical articles online.
+            </p>
+          </div>
         </section>
 
         {/* The Two International Standards */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">The Two International Standards</h2>
+        <section className="mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">The Two International Standards</h2>
           
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             {/* IFMGA */}
@@ -261,27 +280,27 @@ export function CertificationsContent() {
         </section>
 
         {/* Country-by-Country Quick Reference */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Country-by-Country Quick Reference</h2>
-          <Card>
+        <section className="mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">Country-by-Country Quick Reference</h2>
+          <Card className="overflow-hidden">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-bold">Country</TableHead>
-                      <TableHead className="font-bold">Technical Mountaineering</TableHead>
-                      <TableHead className="font-bold">Hiking/Trekking</TableHead>
-                      <TableHead className="font-bold">Organization</TableHead>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-bold text-base py-4">Country</TableHead>
+                      <TableHead className="font-bold text-base py-4">Technical Mountaineering</TableHead>
+                      <TableHead className="font-bold text-base py-4">Hiking/Trekking</TableHead>
+                      <TableHead className="font-bold text-base py-4">Organization</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {countryCertifications.map((cert, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{cert.country}</TableCell>
-                        <TableCell>{cert.technical}</TableCell>
-                        <TableCell>{cert.hiking}</TableCell>
-                        <TableCell>{cert.organization}</TableCell>
+                      <TableRow key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
+                        <TableCell className="font-semibold py-4">{cert.country}</TableCell>
+                        <TableCell className="py-4">{cert.technical}</TableCell>
+                        <TableCell className="py-4">{cert.hiking}</TableCell>
+                        <TableCell className="py-4 text-muted-foreground">{cert.organization}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -292,35 +311,35 @@ export function CertificationsContent() {
         </section>
 
         {/* Outdoor First Aid Certifications */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Outdoor First Aid Certifications</h2>
-          <Card>
+        <section className="mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">Outdoor First Aid Certifications</h2>
+          <Card className="overflow-hidden">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-bold">Certification</TableHead>
-                      <TableHead className="font-bold">Duration</TableHead>
-                      <TableHead className="font-bold">Renewal</TableHead>
-                      <TableHead className="font-bold">Best For</TableHead>
-                      <TableHead className="font-bold">Recognition</TableHead>
+                    <TableRow className="bg-accent/20">
+                      <TableHead className="font-bold text-base py-4">Certification</TableHead>
+                      <TableHead className="font-bold text-base py-4">Duration</TableHead>
+                      <TableHead className="font-bold text-base py-4">Renewal</TableHead>
+                      <TableHead className="font-bold text-base py-4">Best For</TableHead>
+                      <TableHead className="font-bold text-base py-4">Recognition</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {firstAidCertifications.map((cert, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{cert.name}</TableCell>
-                        <TableCell>{cert.duration}</TableCell>
-                        <TableCell>{cert.renewal}</TableCell>
-                        <TableCell>{cert.bestFor}</TableCell>
-                        <TableCell>{cert.recognition}</TableCell>
+                      <TableRow key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-accent/10'}>
+                        <TableCell className="font-semibold py-4">{cert.name}</TableCell>
+                        <TableCell className="py-4">{cert.duration}</TableCell>
+                        <TableCell className="py-4">{cert.renewal}</TableCell>
+                        <TableCell className="py-4">{cert.bestFor}</TableCell>
+                        <TableCell className="py-4 text-muted-foreground">{cert.recognition}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-              <div className="p-6 pt-4">
+              <div className="px-6 py-4 bg-muted/20 border-t">
                 <p className="text-sm text-muted-foreground italic">
                   Note: IFMGA and UIMLA require current wilderness first aid as part of certification maintenance.
                 </p>
@@ -330,8 +349,8 @@ export function CertificationsContent() {
         </section>
 
         {/* Your 5-Minute Verification Checklist */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Your 5-Minute Verification Checklist</h2>
+        <section className="mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">Your 5-Minute Verification Checklist</h2>
           
           <div className="grid md:grid-cols-3 gap-6">
             {/* Must-Haves */}
@@ -439,8 +458,8 @@ export function CertificationsContent() {
         </section>
 
         {/* Member Organizations: What They Mean */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Member Organizations: What They Mean</h2>
+        <section className="mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">Member Organizations: What They Mean</h2>
           
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
@@ -485,46 +504,58 @@ export function CertificationsContent() {
         </section>
 
         {/* Verify Certifications Online */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Verify Certifications Online</h2>
-          <Card>
-            <CardContent className="pt-6">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="font-semibold">IFMGA:</span>
-                  <a href="https://ifmga.net" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                    https://ifmga.net
-                  </a>
+        <section className="mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">Verify Certifications Online</h2>
+          <Card className="bg-muted/30">
+            <CardContent className="pt-8 pb-8">
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-base">IFMGA:</span>{' '}
+                    <a href="https://ifmga.net" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      https://ifmga.net
+                    </a>
+                  </div>
                 </li>
-                <li className="flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="font-semibold">UIMLA:</span>
-                  <a href="https://uimla.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                    https://uimla.org
-                  </a>
+                <li className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-base">UIMLA:</span>{' '}
+                    <a href="https://uimla.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      https://uimla.org
+                    </a>
+                  </div>
                 </li>
-                <li className="flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="font-semibold">Netherlands:</span>
-                  <a href="https://nlaiml.org/iml/zoek-een-iml/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                    https://nlaiml.org/iml/zoek-een-iml/
-                  </a>
+                <li className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-base">Netherlands:</span>{' '}
+                    <a href="https://nlaiml.org/iml/zoek-een-iml/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      https://nlaiml.org/iml/zoek-een-iml/
+                    </a>
+                  </div>
                 </li>
-                <li className="flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="font-semibold">UK:</span>
-                  <span className="text-muted-foreground">Mountain Training UK + AMI member directory</span>
+                <li className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-base">UK:</span>{' '}
+                    <span className="text-muted-foreground">Mountain Training UK + AMI member directory</span>
+                  </div>
                 </li>
-                <li className="flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="font-semibold">France:</span>
-                  <span className="text-muted-foreground">SNGM member directory</span>
+                <li className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-base">France:</span>{' '}
+                    <span className="text-muted-foreground">SNGM member directory</span>
+                  </div>
                 </li>
-                <li className="flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="font-semibold">Other countries:</span>
-                  <span className="text-muted-foreground">Check national association websites</span>
+                <li className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-base">Other countries:</span>{' '}
+                    <span className="text-muted-foreground">Check national association websites</span>
+                  </div>
                 </li>
               </ul>
             </CardContent>
@@ -533,44 +564,43 @@ export function CertificationsContent() {
 
         {/* The Bottom Line */}
         <section className="mb-16">
-          <Card className="bg-primary/5 border-primary/20">
-            <CardHeader>
-              <CardTitle>The Bottom Line</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="font-semibold mb-3">Match the certification to your activity:</p>
-              <ul className="space-y-2 mb-4">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">→</span>
-                  <span><span className="font-semibold">Technical terrain</span> (glaciers, ropes, climbing) → IFMGA only</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">→</span>
-                  <span><span className="font-semibold">Hiking/trekking</span> (non-technical mountain trails) → UIMLA/IML/equivalent</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">→</span>
-                  <span><span className="font-semibold">Winter conditions</span> → Check for winter-specific qualifications</span>
-                </li>
-              </ul>
-              <p className="font-semibold">Always verify credentials, ask for proof, and trust your instincts.</p>
-            </CardContent>
-          </Card>
+          <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl p-8 md:p-12 border border-primary/20">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">The Bottom Line</h2>
+            <p className="text-lg font-semibold mb-6">Match the certification to your activity:</p>
+            <ul className="space-y-4 mb-8">
+              <li className="flex items-start gap-3">
+                <span className="text-primary text-xl mt-1">→</span>
+                <span className="text-lg"><span className="font-semibold">Technical terrain</span> (glaciers, ropes, climbing) → IFMGA only</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-primary text-xl mt-1">→</span>
+                <span className="text-lg"><span className="font-semibold">Hiking/trekking</span> (non-technical mountain trails) → UIMLA/IML/equivalent</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-primary text-xl mt-1">→</span>
+                <span className="text-lg"><span className="font-semibold">Winter conditions</span> → Check for winter-specific qualifications</span>
+              </li>
+            </ul>
+            <p className="text-lg font-semibold text-primary">Always verify credentials, ask for proof, and trust your instincts.</p>
+          </div>
         </section>
 
         {/* About MadeToHike */}
-        <section className="mb-12">
-          <Card className="border-primary">
-            <CardContent className="pt-6 text-center">
-              <p className="text-lg mb-4">
-                <span className="font-bold">About MadeToHike:</span> Europe's premier marketplace for certified mountain guides. 
-                Every guide verified, every certification checked.
-              </p>
-              <Button size="lg" className="gap-2">
-                Find your perfect adventure at madetohike.com 🥾⛰️
-              </Button>
-            </CardContent>
-          </Card>
+        <section className="mb-16">
+          <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-2xl p-8 md:p-12 text-center text-white shadow-lg">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">About MadeToHike</h2>
+            <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
+              Europe's premier marketplace for certified mountain guides. 
+              Every guide verified, every certification checked.
+            </p>
+            <Button 
+              size="lg" 
+              variant="secondary"
+              className="gap-2 bg-white text-primary hover:bg-white/90 font-semibold"
+            >
+              Find your perfect adventure at madetohike.com 🥾⛰️
+            </Button>
+          </div>
         </section>
         </div>
       </div>
