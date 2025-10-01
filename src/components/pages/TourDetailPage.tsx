@@ -162,7 +162,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   guideInfo={guideInfo}
                   isLoadingProfessional={isLoadingProfessional}
                   showBadge={true}
-                  size="sm"
+                  size="md"
                   certifications={guideProfile?.certifications}
                   isGuideVerified={guideProfile?.verified ?? false}
                 />
