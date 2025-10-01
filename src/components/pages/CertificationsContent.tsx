@@ -318,6 +318,51 @@ export function CertificationsContent() {
         {/* Country-by-Country Quick Reference */}
         <section className="mb-20">
           <h2 className="text-3xl md:text-4xl font-bold mb-8">Country-by-Country Quick Reference</h2>
+          
+          {/* Example Regional Certifications */}
+          <div className="flex flex-wrap gap-3 mb-8">
+            <CertificationBadge 
+              certification={{
+                certificationType: 'custom',
+                title: 'Mountain Leader',
+                certifyingBody: 'Mountain Training UK',
+                expiryDate: undefined
+              }}
+              size="mini"
+              showTooltip={true}
+            />
+            <CertificationBadge 
+              certification={{
+                certificationType: 'custom',
+                title: 'Guida di Media Montagna',
+                certifyingBody: 'Collegio Nazionale Guide Alpine Italiane',
+                expiryDate: undefined
+              }}
+              size="mini"
+              showTooltip={true}
+            />
+            <CertificationBadge 
+              certification={{
+                certificationType: 'custom',
+                title: 'Accompagnateur en Moyenne Montagne',
+                certifyingBody: 'SNAM France',
+                expiryDate: undefined
+              }}
+              size="mini"
+              showTooltip={true}
+            />
+            <CertificationBadge 
+              certification={{
+                certificationType: 'custom',
+                title: 'Wanderleiter',
+                certifyingBody: 'Schweizer Bergführerverband',
+                expiryDate: undefined
+              }}
+              size="mini"
+              showTooltip={true}
+            />
+          </div>
+
           <Card className="overflow-hidden">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
