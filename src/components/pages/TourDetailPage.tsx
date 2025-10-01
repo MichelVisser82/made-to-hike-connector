@@ -669,6 +669,24 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                           isGuideVerified={guideProfile?.verified ?? false}
                         />
                       )}
+                      
+                      {/* Additional Certifications - Small Badges */}
+                      {guideProfile?.certifications && guideProfile.certifications.length > 1 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {guideProfile.certifications
+                            .filter(cert => !cert.isPrimary)
+                            .map((cert, index) => (
+                              <CertificationBadge
+                                key={index}
+                                certification={cert}
+                                size="mini"
+                                showTooltip
+                                isGuideVerified={guideProfile?.verified ?? false}
+                              />
+                            ))}
+                        </div>
+                      )}
+                      
                       {guideInfo.location && (
                         <p className="text-muted-foreground flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
