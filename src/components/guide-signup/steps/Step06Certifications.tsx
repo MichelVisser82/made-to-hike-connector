@@ -82,12 +82,6 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
       return;
     }
     
-    // Validate file size (10MB max before optimization)
-    if (file.size > 10 * 1024 * 1024) {
-      setFileError('File size must be less than 10MB');
-      return;
-    }
-    
     setNewCert({ ...newCert, certificateDocument: file });
   };
 
@@ -491,7 +485,7 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
                           <p className="text-sm text-destructive mt-1">{fileError}</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
-                          Max 5MB. Accepted formats: PDF, JPG, PNG
+                          Accepted formats: PDF, JPG, PNG
                         </p>
                       </div>
                     </div>

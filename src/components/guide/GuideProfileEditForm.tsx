@@ -255,12 +255,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setFileError('File size must be less than 5MB');
-      return;
-    }
-
     setFileError('');
     setCertFile(file);
     setNewCert({ ...newCert, certificateDocument: file });
@@ -1041,7 +1035,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                           className="cursor-pointer"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                          Upload your certificate (PDF or image, max 5MB)
+                          Upload your certificate (PDF or image)
                         </p>
                         {certFile && (
                           <div className="flex items-center gap-2 mt-2 text-xs text-green-600">
