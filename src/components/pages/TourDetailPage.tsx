@@ -7,20 +7,22 @@ import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, H
          Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown, X, XCircle } from 'lucide-react';
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
-import type { GuideProfile, GuideStats } from '@/types/guide';
+import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
+import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 
 interface TourDetailPageProps {
   tour: Tour;
-  guide?: GuideProfile;
-  stats?: GuideStats;
   onBookTour: (tour: Tour) => void;
   onBackToSearch: () => void;
 }
 
-export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch }: TourDetailPageProps) {
+export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailPageProps) {
   const [expandedItinerary, setExpandedItinerary] = useState<Record<number, boolean>>({});
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  
+  // Use unified hook for consistent guide data
+  const { guideInfo, isLoadingProfessional } = useEnhancedGuideInfo(tour);
 
   const toggleItinerary = (index: number) => {
     setExpandedItinerary(prev => ({
@@ -151,44 +153,12 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
             {/* Guide Profile & Booking Card in Hero */}
             <Card className="w-96 bg-white/95 backdrop-blur-sm absolute top-1/2 right-8 -translate-y-1/2">
               <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    {guide?.profile_image_url || tour.guide_avatar_url ? (
-                      <img
-                        src={guide?.profile_image_url || tour.guide_avatar_url}
-                        alt={`${guide?.display_name || tour.guide_display_name || 'Professional Guide'} - Professional hiking guide`}
-                        className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
-                      />
-                    ) : (
-                      <SmartImage
-                        category="guide"
-                        usageContext="professional"
-                        tags={['portrait', 'guide', 'professional', 'certified']}
-                        className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
-                        fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-                        alt={`${guide?.display_name || tour.guide_display_name || 'Professional Guide'} - Professional hiking guide`}
-                      />
-                    )}
-                    <div>
-                      <h3 className="font-semibold text-base">{tour.guide_display_name || 'Professional Guide'}</h3>
-                      <p className="text-xs text-muted-foreground">Professional Guide</p>
-                      <div className="flex flex-col gap-0.5 mt-1">
-                        {guide?.certifications && guide.certifications.length > 0 && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Award className="h-3 w-3" />
-                            <span>{guide.certifications[0].title}</span>
-                          </div>
-                        )}
-                        {guide?.experience_years && (
-                          <div className="text-xs text-muted-foreground">{guide.experience_years}+ years experience</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <Award className="h-8 w-8 text-primary" />
-                  </div>
-                </div>
+                <GuideInfoDisplay 
+                  guideInfo={guideInfo}
+                  isLoadingProfessional={isLoadingProfessional}
+                  showBadge={true}
+                  size="sm"
+                />
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Price Display */}
@@ -660,16 +630,10 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
                 <div className="grid md:grid-cols-[400px,1fr] gap-0">
                   {/* Guide Image - Left Side */}
                   <div className="relative h-[500px]">
-                    {guide?.profile_image_url ? (
+                    {guideInfo.avatarUrl ? (
                       <img 
-                        src={guide.profile_image_url} 
-                        alt={`${guide.display_name} - Professional hiking guide`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : tour.guide_avatar_url ? (
-                      <img 
-                        src={tour.guide_avatar_url} 
-                        alt={`${tour.guide_display_name} - Professional hiking guide`}
+                        src={guideInfo.avatarUrl} 
+                        alt={`${guideInfo.displayName} - Professional hiking guide`}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -689,58 +653,45 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
                     <div className="mb-4">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-3xl font-bold">
-                          {guide?.display_name || tour.guide_display_name || 'Professional Guide'}
+                          {guideInfo.displayName}
                         </h3>
-                        {guide?.certifications && guide.certifications.length > 0 && (
+                        {guideInfo.certificationTitle && (
                           <Badge className="bg-primary text-primary-foreground text-sm px-3 py-1">
-                            {typeof guide.certifications[0] === 'string' 
-                              ? guide.certifications[0] 
-                              : guide.certifications[0].title || 'Certified'}
+                            {guideInfo.certificationTitle}
                           </Badge>
                         )}
                       </div>
-                      {guide?.location && (
+                      {guideInfo.location && (
                         <p className="text-muted-foreground flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
-                          {guide.location}
+                          {guideInfo.location}
                         </p>
                       )}
                     </div>
 
                     {/* Bio */}
                     <p className="text-muted-foreground leading-relaxed mb-6">
-                      {guide?.bio || `Professional mountain guide with extensive experience leading tours in ${tour.region.replace('-', ' ')}. Passionate about sharing the beauty and adventure of the mountains with hikers of all levels.`}
+                      {guideInfo.bio || `Professional mountain guide with extensive experience leading tours in ${tour.region.replace('-', ' ')}. Passionate about sharing the beauty and adventure of the mountains with hikers of all levels.`}
                     </p>
-
-                    {/* Certification Badges */}
-                    {guide?.certifications && guide.certifications.length > 1 && (
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {guide.certifications.slice(1).map((cert: any, index: number) => (
-                          <Badge key={index} variant="outline" className="text-sm px-3 py-1">
-                            {typeof cert === 'string' ? cert : cert.title || 'Certified'}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
 
                     {/* Stats Section */}
                     <div className="space-y-3 mb-6 pb-6 border-b">
-                      {stats && (
-                        <>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-bold">{stats.tours_completed}+</span>
-                            <span className="text-muted-foreground">Tours Led</span>
-                          </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-bold">{stats.average_rating.toFixed(1)}</span>
-                            <span className="text-muted-foreground">Guide Rating</span>
-                          </div>
-                        </>
-                      )}
-                      {guide?.languages_spoken && guide.languages_spoken.length > 0 && (
+                      {guideInfo.toursCompleted > 0 && (
                         <div className="flex items-baseline gap-2">
-                          <span className="font-semibold">{guide.languages_spoken.join(', ')}</span>
-                          <span className="text-muted-foreground">Languages</span>
+                          <span className="text-2xl font-bold">{guideInfo.toursCompleted}+</span>
+                          <span className="text-muted-foreground">Tours Led</span>
+                        </div>
+                      )}
+                      {guideInfo.averageRating > 0 && (
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold">{guideInfo.averageRating.toFixed(1)}</span>
+                          <span className="text-muted-foreground">Guide Rating</span>
+                        </div>
+                      )}
+                      {guideInfo.experienceYears && (
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold">{guideInfo.experienceYears}+</span>
+                          <span className="text-muted-foreground">Years Experience</span>
                         </div>
                       )}
                     </div>
@@ -763,7 +714,7 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
                     {/* Ask Question Button */}
                     <Button variant="default" size="lg" className="w-full">
                       <MessageCircle className="mr-2 h-5 w-5" />
-                      Ask {guide?.display_name?.split(' ')[0] || tour.guide_display_name?.split(' ')[0] || 'Guide'} a question
+                      Ask {guideInfo.displayName.split(' ')[0]} a question
                     </Button>
                   </div>
                 </div>

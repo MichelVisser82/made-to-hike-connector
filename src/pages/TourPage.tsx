@@ -1,7 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTourBySlug } from '@/hooks/useTourBySlug';
-import { useGuideProfile } from '@/hooks/useGuideProfile';
-import { useGuideStats } from '@/hooks/useGuideStats';
 import { TourDetailPage } from '@/components/pages/TourDetailPage';
 import { TourSEO } from '@/components/seo/TourSEO';
 import { StructuredData } from '@/components/seo/StructuredData';
@@ -11,10 +9,8 @@ export default function TourPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { data: tour, isLoading: tourLoading, error } = useTourBySlug(slug);
-  const { data: guide, isLoading: guideLoading } = useGuideProfile(tour?.guide_id);
-  const { data: stats, isLoading: statsLoading } = useGuideStats(tour?.guide_id);
 
-  const isLoading = tourLoading || guideLoading || statsLoading;
+  const isLoading = tourLoading;
 
   if (isLoading) {
     return (
@@ -47,16 +43,7 @@ export default function TourPage() {
       <StructuredData tour={tour} />
       <TourDetailPage
         tour={tour}
-        guide={guide}
-        stats={stats}
         onBookTour={(selectedTour) => {
-          // Store guide data in session storage for booking flow
-          if (guide) {
-            sessionStorage.setItem('currentGuideProfile', JSON.stringify(guide));
-          }
-          if (stats) {
-            sessionStorage.setItem('currentGuideStats', JSON.stringify(stats));
-          }
           console.log('Booking tour:', selectedTour.id);
           navigate('/booking', { state: { tour: selectedTour } });
         }}
