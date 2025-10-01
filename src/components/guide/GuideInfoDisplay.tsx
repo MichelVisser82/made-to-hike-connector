@@ -94,13 +94,7 @@ export function GuideInfoDisplay({
 
   return (
     <div className="relative">
-      {showBadge && (
-        <div className={`absolute top-0 right-0 ${badgeSizes[size]} bg-muted rounded-full flex items-center justify-center`}>
-          <Award className={`${iconSizes[size]} text-primary`} />
-        </div>
-      )}
-      
-      <div className={`flex items-start gap-4 ${showBadge ? 'pr-12' : ''}`}>
+      <div className="flex items-start gap-4">
         <Avatar className={avatarSizes[size]}>
           <AvatarImage 
             src={guideInfo.avatarUrl || ''} 
