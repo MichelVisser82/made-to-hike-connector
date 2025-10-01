@@ -75,7 +75,7 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
       </div>
 
       {/* Content Section */}
-      <div className="h-24 flex-shrink-0 px-4 py-4 flex flex-col justify-between">
+      <div className="h-24 flex-shrink-0 px-4 py-4 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3" />
