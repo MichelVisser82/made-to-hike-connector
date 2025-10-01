@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { ImageManager } from '../admin/ImageManager';
 import { ImageOverview } from '../admin/ImageOverview';
 import { TourTemplateManager } from '../admin/TourTemplateManager';
+import { GuideVerificationManager } from '../admin/GuideVerificationManager';
 import { type User } from '../../types';
 
 interface AdminDashboardProps {
@@ -74,14 +75,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
           </TabsContent>
 
           <TabsContent value="verifications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Guide Verifications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Guide verification management will be implemented here.</p>
-              </CardContent>
-            </Card>
+            <GuideVerificationManager />
           </TabsContent>
 
           <TabsContent value="bookings" className="space-y-6">
