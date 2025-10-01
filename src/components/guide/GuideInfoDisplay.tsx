@@ -8,6 +8,7 @@ interface GuideInfoDisplayProps {
   isLoadingProfessional?: boolean;
   showBadge?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'overlay';
 }
 
 /**
@@ -18,7 +19,8 @@ export function GuideInfoDisplay({
   guideInfo, 
   isLoadingProfessional = false,
   showBadge = true,
-  size = 'md'
+  size = 'md',
+  variant = 'default'
 }: GuideInfoDisplayProps) {
   const avatarSizes = {
     sm: 'h-12 w-12',
@@ -43,6 +45,41 @@ export function GuideInfoDisplay({
     md: 'text-xl',
     lg: 'text-2xl',
   };
+
+  // Overlay variant for image overlays
+  if (variant === 'overlay') {
+    return (
+      <div className="flex items-center gap-2">
+        <Avatar className="h-8 w-8 border-2 border-white/50">
+          <AvatarImage 
+            src={guideInfo.avatarUrl || ''} 
+            alt={guideInfo.displayName} 
+          />
+          <AvatarFallback className="bg-white/20 text-white text-xs">
+            {guideInfo.displayName.split(' ').map(n => n[0]).join('')}
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="flex-1">
+          {isLoadingProfessional ? (
+            <div className="flex items-center gap-2 text-xs text-white/90">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Loading...
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm font-semibold text-white drop-shadow-lg">
+                {guideInfo.displayName}
+              </p>
+              <p className="text-xs text-white/90 drop-shadow-lg">
+                {getCertificationDisplayText(guideInfo)}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
