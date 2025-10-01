@@ -1,7 +1,11 @@
 export interface GuideCertification {
-  title: string;
-  description: string;
-  icon?: string;
+  title: string; // Certification Name
+  certifyingBody: string; // Certifying Organization
+  certificateNumber?: string; // Certificate ID/Number
+  description?: string; // Optional description
+  verificationStatus?: 'pending' | 'verified' | 'rejected'; // Admin-only
+  verificationDocuments?: string[]; // Admin-only file references
+  icon?: string; // Optional icon
 }
 
 export interface GuideProfile {

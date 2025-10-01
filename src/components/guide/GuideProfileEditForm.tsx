@@ -89,7 +89,13 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [heroImagePreview, setHeroImagePreview] = useState<string>('');
   const [portfolioFiles, setPortfolioFiles] = useState<File[]>([]);
   const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>([]);
-  const [newCert, setNewCert] = useState({ title: '', description: '' });
+  const [newCert, setNewCert] = useState<GuideCertification>({ 
+    title: '', 
+    certifyingBody: '', 
+    certificateNumber: '',
+    description: '',
+    verificationStatus: 'pending'
+  });
   const [isAddingCert, setIsAddingCert] = useState(false);
 
   useEffect(() => {
@@ -205,10 +211,10 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   };
 
   const addCertification = () => {
-    if (!newCert.title.trim() || !newCert.description.trim()) {
+    if (!newCert.title.trim() || !newCert.certifyingBody.trim()) {
       toast({
         title: "Error",
-        description: "Please fill in all certification fields",
+        description: "Please fill in certification name and certifying body",
         variant: "destructive",
       });
       return;
@@ -217,7 +223,13 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       ...formData,
       certifications: [...formData.certifications, { ...newCert }],
     });
-    setNewCert({ title: '', description: '' });
+    setNewCert({ 
+      title: '', 
+      certifyingBody: '', 
+      certificateNumber: '',
+      description: '',
+      verificationStatus: 'pending'
+    });
     setIsAddingCert(false);
     toast({
       title: "Success",
@@ -608,13 +620,20 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                   <Award className="w-5 h-5 text-primary mt-1" />
                   <div className="flex-1">
                     <h4 className="font-semibold">{cert.title}</h4>
-                    <p className="text-sm text-muted-foreground">{cert.description}</p>
+                    <p className="text-sm text-muted-foreground mb-1">{cert.certifyingBody}</p>
+                    {cert.certificateNumber && (
+                      <p className="text-xs text-muted-foreground">Certificate #: {cert.certificateNumber}</p>
+                    )}
+                    {cert.description && (
+                      <p className="text-sm text-muted-foreground mt-2">{cert.description}</p>
+                    )}
                   </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => removeCertification(index)}
+                    aria-label="Remove certification"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -627,24 +646,48 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             <Card>
               <CardContent className="pt-6 space-y-4">
                 <div>
-                  <Label>Certification Title</Label>
+                  <Label htmlFor="edit-cert-name">Certification Name *</Label>
                   <Input
+                    id="edit-cert-name"
                     value={newCert.title}
                     onChange={(e) => setNewCert({ ...newCert, title: e.target.value })}
-                    placeholder="e.g., Mountain Leader Award"
+                    placeholder="e.g., IFMGA Mountain Guide"
                   />
                 </div>
                 <div>
-                  <Label>Description</Label>
+                  <Label htmlFor="edit-cert-body">Certifying Body *</Label>
+                  <Input
+                    id="edit-cert-body"
+                    value={newCert.certifyingBody}
+                    onChange={(e) => setNewCert({ ...newCert, certifyingBody: e.target.value })}
+                    placeholder="e.g., International Federation of Mountain Guides Associations"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-cert-number">Certificate Number (Optional)</Label>
+                  <Input
+                    id="edit-cert-number"
+                    value={newCert.certificateNumber}
+                    onChange={(e) => setNewCert({ ...newCert, certificateNumber: e.target.value })}
+                    placeholder="e.g., IFMGA-12345"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-cert-desc">Description (Optional)</Label>
                   <Textarea
+                    id="edit-cert-desc"
                     value={newCert.description}
                     onChange={(e) => setNewCert({ ...newCert, description: e.target.value })}
-                    placeholder="Describe your certification..."
+                    placeholder="Any additional details about this certification..."
                     rows={3}
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={addCertification}>
+                  <Button 
+                    type="button" 
+                    onClick={addCertification}
+                    disabled={!newCert.title.trim() || !newCert.certifyingBody.trim()}
+                  >
                     Add Certification
                   </Button>
                   <Button
@@ -652,7 +695,13 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                     variant="outline"
                     onClick={() => {
                       setIsAddingCert(false);
-                      setNewCert({ title: '', description: '' });
+                      setNewCert({ 
+                        title: '', 
+                        certifyingBody: '', 
+                        certificateNumber: '',
+                        description: '',
+                        verificationStatus: 'pending'
+                      });
                     }}
                   >
                     Cancel

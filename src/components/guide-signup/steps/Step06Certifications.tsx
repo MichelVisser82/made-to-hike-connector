@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Award, Plus, X } from 'lucide-react';
+import { Award, Plus, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,14 +16,26 @@ interface Step06CertificationsProps {
 
 export function Step06Certifications({ data, updateData, onNext, onBack }: Step06CertificationsProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const [newCert, setNewCert] = useState<GuideCertification>({ title: '', description: '' });
+  const [newCert, setNewCert] = useState<GuideCertification>({ 
+    title: '', 
+    certifyingBody: '', 
+    certificateNumber: '',
+    description: '',
+    verificationStatus: 'pending'
+  });
   
   const certifications = data.certifications || [];
 
   const addCertification = () => {
-    if (newCert.title.trim()) {
-      updateData({ certifications: [...certifications, newCert] });
-      setNewCert({ title: '', description: '' });
+    if (newCert.title.trim() && newCert.certifyingBody.trim()) {
+      updateData({ certifications: [...certifications, { ...newCert }] });
+      setNewCert({ 
+        title: '', 
+        certifyingBody: '', 
+        certificateNumber: '',
+        description: '',
+        verificationStatus: 'pending'
+      });
       setIsAdding(false);
     }
   };
@@ -51,12 +63,19 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
                 size="icon"
                 className="absolute top-2 right-2"
                 onClick={() => removeCertification(index)}
+                aria-label="Remove certification"
               >
                 <X className="w-4 h-4" />
               </Button>
-              <CardContent className="p-4">
+              <CardContent className="p-4 pr-12">
                 <div className="font-semibold mb-1">{cert.title}</div>
-                <div className="text-sm text-muted-foreground">{cert.description}</div>
+                <div className="text-sm text-muted-foreground mb-2">{cert.certifyingBody}</div>
+                {cert.certificateNumber && (
+                  <div className="text-xs text-muted-foreground">Certificate #: {cert.certificateNumber}</div>
+                )}
+                {cert.description && (
+                  <div className="text-sm text-muted-foreground mt-2">{cert.description}</div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -66,23 +85,49 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div>
-                  <Label>Certification Name *</Label>
+                  <Label htmlFor="cert-name">Certification Name *</Label>
                   <Input
+                    id="cert-name"
                     value={newCert.title}
                     onChange={(e) => setNewCert({ ...newCert, title: e.target.value })}
-                    placeholder="e.g., IFMGA Certified"
+                    placeholder="e.g., IFMGA Mountain Guide"
                   />
                 </div>
                 <div>
-                  <Label>Description</Label>
+                  <Label htmlFor="cert-body">Certifying Body *</Label>
+                  <Input
+                    id="cert-body"
+                    value={newCert.certifyingBody}
+                    onChange={(e) => setNewCert({ ...newCert, certifyingBody: e.target.value })}
+                    placeholder="e.g., International Federation of Mountain Guides Associations"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cert-number">Certificate Number (Optional)</Label>
+                  <Input
+                    id="cert-number"
+                    value={newCert.certificateNumber}
+                    onChange={(e) => setNewCert({ ...newCert, certificateNumber: e.target.value })}
+                    placeholder="e.g., IFMGA-12345"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cert-description">Description (Optional)</Label>
                   <Textarea
+                    id="cert-description"
                     value={newCert.description}
                     onChange={(e) => setNewCert({ ...newCert, description: e.target.value })}
-                    placeholder="Brief description..."
+                    placeholder="Any additional details about this certification..."
+                    rows={3}
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={addCertification}>Add</Button>
+                  <Button 
+                    onClick={addCertification}
+                    disabled={!newCert.title.trim() || !newCert.certifyingBody.trim()}
+                  >
+                    Add Certification
+                  </Button>
                   <Button variant="outline" onClick={() => setIsAdding(false)}>Cancel</Button>
                 </div>
               </CardContent>
