@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Star, MapPin, Users, Clock, ArrowLeft } from 'lucide-react';
-import { SmartImage } from '../SmartImage';
+import { TourCard } from '../tour/TourCard';
 import { type Tour, type SearchFilters } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -129,84 +126,12 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
         {/* Tour Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredTours.map((tour) => (
-            <Card key={tour.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
-              <div onClick={() => onTourClick(tour)}>
-                <div className="aspect-[4/5] relative overflow-hidden">
-                  <SmartImage
-                    category="tour"
-                    usageContext={tour.region}
-                    tags={[tour.region, tour.difficulty, 'landscape', 'hiking']}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop"
-                    alt={`${tour.title} - ${tour.region} hiking tour`}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <Badge
-                    className="absolute top-4 left-4 bg-white/90 text-foreground hover:bg-white"
-                    variant="secondary"
-                  >
-                    {tour.difficulty}
-                  </Badge>
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <h3 className="text-lg font-bold mb-1 group-hover:text-primary-foreground transition-colors">
-                      {tour.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-sm opacity-90">
-                      {tour.guide_display_name && (
-                        <>
-                          <SmartImage
-                            category="guide"
-                            usageContext="avatar"
-                            tags={['portrait', 'guide', 'professional']}
-                            className="w-5 h-5 rounded-full object-cover"
-                            fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-                            alt={`${tour.guide_display_name} - Professional hiking guide`}
-                          />
-                          <span>by {tour.guide_display_name}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <CardContent className="p-6">
-                <div className="space-y-3 text-sm mb-6">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <span className="capitalize">{tour.region.replace('-', ' ')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <span>{tour.duration}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-primary" />
-                    <span>Max {tour.group_size} people</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-accent fill-current" />
-                    <span>{tour.rating} ({tour.reviews_count} reviews)</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="text-xl font-bold text-primary">
-                    {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
-                  </div>
-                  <Button 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onBookTour(tour);
-                    }}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    Book Now
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <TourCard
+              key={tour.id}
+              tour={tour}
+              onTourClick={onTourClick}
+              onBookTour={onBookTour}
+            />
           ))}
         </div>
 
