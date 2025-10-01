@@ -181,7 +181,53 @@ serve(async (req) => {
 
     if (guideProfileError) throw guideProfileError;
 
-    return new Response(JSON.stringify({ 
+    // Check if guide has Priority 1 or 2 certifications to auto-request verification
+    const hasPriorityCerts = guideData.certifications?.some((cert: any) => 
+      cert.verificationPriority === 1 || cert.verificationPriority === 2
+    );
+
+    const verificationStatus = hasPriorityCerts ? 'pending' : 'not_requested';
+
+    // Create or update user_verifications record
+    const { error: verificationError } = await supabase
+      .from('user_verifications')
+      .upsert({
+        user_id: userId,
+        verification_status: verificationStatus,
+        admin_notes: hasPriorityCerts 
+          ? `Auto-requested verification: Guide signed up with ${guideData.certifications?.length || 0} certification(s)`
+          : null,
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (verificationError) {
+      console.error('Error creating verification record:', verificationError);
+      // Don't fail signup if verification record fails
+    }
+
+    // Send admin notification if verification was auto-requested
+    if (hasPriorityCerts) {
+      try {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'admin_verification_request',
+            to: 'admin@madetohike.com',
+            template_data: {
+              guide_name: guideData.display_name,
+              guide_email: email,
+              certification_count: guideData.certifications?.length || 0,
+              timestamp: new Date().toISOString(),
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send admin notification:', emailError);
+        // Don't fail signup if email fails
+      }
+    }
+
+    return new Response(JSON.stringify({
       success: true,
       message: 'Guide account created successfully!',
       user_id: userId

@@ -226,6 +226,75 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </body>
 </html>`,
       text: `Welcome to MadeToHike!\n\nHi ${data.user_name || 'Adventurer'}, we're excited to have you join our community!\n\nPlease verify your email address by clicking this link:\n${data.verification_url}\n\n© 2025 MadeToHike. Happy hiking! 🏔️`
+    },
+
+    admin_verification_request: {
+      subject: `🔔 New Guide Verification Request - ${data.guide_name || 'Unknown'}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Guide Verification Request</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f6f9fc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px;">🔔 New Verification Request</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 20px; margin-bottom: 20px;">
+                <h2 style="margin: 0 0 10px; color: #f57c00; font-size: 18px;">Action Required</h2>
+                <p style="margin: 0; color: #666;">A guide has submitted certifications for verification</p>
+            </div>
+
+            <div style="background: #f8fffe; border: 1px solid #e2e8f0; border-radius: 6px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 15px; color: #2c5530;">Guide Information</h3>
+                <p style="margin: 8px 0;"><strong>Name:</strong> ${data.guide_name || 'Unknown'}</p>
+                <p style="margin: 8px 0;"><strong>Email:</strong> ${data.guide_email || 'Unknown'}</p>
+                <p style="margin: 8px 0;"><strong>Certifications:</strong> ${data.certification_count || 0} submitted</p>
+                ${data.certification_added ? `<p style="margin: 8px 0;"><strong>Latest:</strong> ${data.certification_added}</p>` : ''}
+                <p style="margin: 8px 0;"><strong>Requested:</strong> ${new Date(data.timestamp || Date.now()).toLocaleString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric', 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 15px 30px; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                    Review in Admin Dashboard
+                </a>
+            </div>
+
+            <div style="padding: 15px; background: #f0f8f0; border-radius: 6px; margin-top: 20px;">
+                <p style="margin: 0; color: #2c5530; font-size: 14px; text-align: center;">
+                    <strong>⏰ Please review within 48 hours</strong>
+                </p>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px;">
+            <p style="margin: 0;">© 2025 MadeToHike Admin System</p>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `New Guide Verification Request\n\n` +
+            `Guide Information:\n` +
+            `Name: ${data.guide_name || 'Unknown'}\n` +
+            `Email: ${data.guide_email || 'Unknown'}\n` +
+            `Certifications: ${data.certification_count || 0} submitted\n` +
+            ${data.certification_added ? `Latest: ${data.certification_added}\n` : ''} +
+            `Requested: ${new Date(data.timestamp || Date.now()).toLocaleString()}\n\n` +
+            `Please review in the admin dashboard:\n` +
+            `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin\n\n` +
+            `⏰ Please review within 48 hours`
     }
   }
 
@@ -236,7 +305,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 

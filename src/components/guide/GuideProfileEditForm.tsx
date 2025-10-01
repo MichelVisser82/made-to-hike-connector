@@ -312,7 +312,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     return true;
   };
 
-  const addCertification = () => {
+  const addCertification = async () => {
     if (!validateForm()) return;
 
     const certToAdd = {
@@ -320,10 +320,59 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       addedDate: new Date().toISOString(),
     };
 
+    const updatedCertifications = [...formData.certifications, certToAdd];
+
     setFormData({
       ...formData,
-      certifications: [...formData.certifications, certToAdd],
+      certifications: updatedCertifications,
     });
+    
+    // Check if this is the first P1/P2 certification - auto-request verification
+    const hasPriorityCert = certToAdd.verificationPriority === 1 || certToAdd.verificationPriority === 2;
+    const existingPriorityCerts = formData.certifications.some(c => 
+      c.verificationPriority === 1 || c.verificationPriority === 2
+    );
+
+    // Auto-request verification if adding first P1/P2 cert
+    if (hasPriorityCert && !existingPriorityCerts && user?.id) {
+      try {
+        // Update verification status to pending
+        const { error: verificationError } = await supabase
+          .from('user_verifications')
+          .update({
+            verification_status: 'pending',
+            admin_notes: `Auto-requested: Guide added Priority ${certToAdd.verificationPriority} certification (${certToAdd.title})`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id);
+
+        if (verificationError) {
+          console.error('Error updating verification status:', verificationError);
+        } else {
+          // Send admin notification
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'admin_verification_request',
+              to: 'admin@madetohike.com',
+              template_data: {
+                guide_name: formData.display_name,
+                guide_email: user.email,
+                certification_count: updatedCertifications.length,
+                certification_added: certToAdd.title,
+                timestamp: new Date().toISOString(),
+              }
+            }
+          });
+
+          toast({
+            title: "Verification Requested",
+            description: "Your certification has been submitted for admin verification.",
+          });
+        }
+      } catch (error) {
+        console.error('Error requesting verification:', error);
+      }
+    }
     
     // Reset form
     setNewCert({ 
