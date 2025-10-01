@@ -285,16 +285,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
     </div>
 </body>
 </html>`,
-      text: `New Guide Verification Request\n\n` +
-            `Guide Information:\n` +
-            `Name: ${data.guide_name || 'Unknown'}\n` +
-            `Email: ${data.guide_email || 'Unknown'}\n` +
-            `Certifications: ${data.certification_count || 0} submitted\n` +
-            ${data.certification_added ? `Latest: ${data.certification_added}\n` : ''} +
-            `Requested: ${new Date(data.timestamp || Date.now()).toLocaleString()}\n\n` +
-            `Please review in the admin dashboard:\n` +
-            `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin\n\n` +
-            `⏰ Please review within 48 hours`
+      text: `New Guide Verification Request\n\nGuide Information:\nName: ${data.guide_name || 'Unknown'}\nEmail: ${data.guide_email || 'Unknown'}\nCertifications: ${data.certification_count || 0} submitted\n${data.certification_added ? `Latest: ${data.certification_added}\n` : ''}Requested: ${new Date(data.timestamp || Date.now()).toLocaleString()}\n\nPlease review in the admin dashboard:\nhttps://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin\n\n⏰ Please review within 48 hours`
     }
   }
 
