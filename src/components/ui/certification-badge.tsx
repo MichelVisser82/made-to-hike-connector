@@ -252,6 +252,10 @@ function CertificationBadge({
     return certification.title;
   }, [certification.title, showAbbreviated]);
 
+  // Small & Medium badges: Use rich hover card
+  // Large badges: No tooltip by default
+  const shouldShowTooltip = showTooltip && (size === 'mini' || size === 'compact');
+  
   const badgeContent = (
     <div
       className={cn(certificationBadgeVariants({ variant: badgeVariant, size }), className)}
@@ -268,10 +272,6 @@ function CertificationBadge({
       )}
     </div>
   );
-
-  // Small & Medium badges: Use rich hover card
-  // Large badges: No tooltip by default
-  const shouldShowTooltip = showTooltip && (size === 'mini' || size === 'compact');
   
   if (!shouldShowTooltip) {
     return badgeContent;

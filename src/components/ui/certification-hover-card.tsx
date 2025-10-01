@@ -38,7 +38,7 @@ export function CertificationHoverCard({ certification, children }: Certificatio
     return (
       <HoverCard openDelay={200} closeDelay={100}>
         <HoverCardTrigger asChild>
-          {children}
+          <span className="inline-block">{children}</span>
         </HoverCardTrigger>
         <HoverCardContent 
           className="w-[280px] p-0 overflow-hidden border-0" 
@@ -107,7 +107,7 @@ export function CertificationHoverCard({ certification, children }: Certificatio
     return (
       <HoverCard openDelay={200} closeDelay={100}>
         <HoverCardTrigger asChild>
-          {children}
+          <span className="inline-block">{children}</span>
         </HoverCardTrigger>
         <HoverCardContent 
           className="w-[320px] p-0 overflow-hidden border-0" 
@@ -181,7 +181,7 @@ export function CertificationHoverCard({ certification, children }: Certificatio
   return (
     <HoverCard openDelay={200} closeDelay={100}>
       <HoverCardTrigger asChild>
-        {children}
+        <span className="inline-block">{children}</span>
       </HoverCardTrigger>
       <HoverCardContent className="w-[240px] p-4 bg-card border-border">
         <div className="space-y-2.5">
