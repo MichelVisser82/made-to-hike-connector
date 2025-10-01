@@ -95,21 +95,6 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
 
       {/* Content Section */}
       <CardContent className="p-4 space-y-3">
-        {/* Guide Certifications */}
-        {priorityCerts.length > 0 && (
-          <div className="flex flex-wrap gap-2 pb-2 border-b">
-            {priorityCerts.map((cert, index) => (
-              <CertificationBadge
-                key={index}
-                certification={cert}
-                size="mini"
-                showTooltip
-                isGuideVerified={isGuideVerified}
-              />
-            ))}
-          </div>
-        )}
-
         <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3" />

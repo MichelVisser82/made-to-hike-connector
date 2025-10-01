@@ -67,29 +67,27 @@ export function GuideInfoDisplay({
           </AvatarFallback>
         </Avatar>
         
-        <div className="flex-1">
-          {isLoadingProfessional ? (
-            <div className="flex items-center gap-2 text-xs text-white/90">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Loading...
-            </div>
-          ) : (
-            <div>
-              <p className="text-sm font-semibold text-white drop-shadow-lg">
-                {guideInfo.displayName}
-              </p>
-              {/* Primary Certification Badge - Simple mode for tour cards */}
-              {primaryCert && (
-                <CertificationBadge 
-                  certification={primaryCert}
-                  displayMode="simple"
-                  showTooltip={true}
-                  isGuideVerified={isGuideVerified}
-                />
-              )}
-            </div>
-          )}
-        </div>
+        {isLoadingProfessional ? (
+          <div className="flex items-center gap-2 text-xs text-white/90">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Loading...
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 flex-1">
+            <p className="text-sm font-semibold text-white drop-shadow-lg">
+              {guideInfo.displayName}
+            </p>
+            {/* Primary Certification Badge - Simple mode for tour cards */}
+            {primaryCert && (
+              <CertificationBadge 
+                certification={primaryCert}
+                displayMode="simple"
+                showTooltip={true}
+                isGuideVerified={isGuideVerified}
+              />
+            )}
+          </div>
+        )}
       </div>
     );
   }
