@@ -4,13 +4,16 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { CertificationBadge } from '../ui/certification-badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, ExternalLink } from 'lucide-react';
+import { Search, ExternalLink, Eye, MapPin, Calendar, Award } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Badge } from '../ui/badge';
 
 export function VerifiedGuidesArchive() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGuide, setSelectedGuide] = useState<any>(null);
 
   const { data: verifiedGuides, isLoading } = useQuery({
     queryKey: ['verified-guides'],
@@ -146,27 +149,205 @@ export function VerifiedGuidesArchive() {
                     </div>
                   )}
 
-                  <a
-                    href={`/guide/${guide.user_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block w-full"
-                  >
+                  <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full gap-2"
+                      className="flex-1 gap-2"
+                      onClick={() => setSelectedGuide(guide)}
                     >
-                      View Profile
-                      <ExternalLink className="h-3 w-3" />
+                      <Eye className="h-3 w-3" />
+                      View Details
                     </Button>
-                  </a>
+                    <a
+                      href={`/guide/${guide.user_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </a>
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
       )}
+
+      {/* Guide Details Modal */}
+      <Dialog open={!!selectedGuide} onOpenChange={(open) => !open && setSelectedGuide(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Verified Guide Details</DialogTitle>
+          </DialogHeader>
+          {selectedGuide && (
+            <div className="space-y-6 mt-4">
+              {/* Guide Header */}
+              <div className="flex items-start gap-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={selectedGuide.profile_image_url || undefined} />
+                  <AvatarFallback className="text-2xl">
+                    {selectedGuide.display_name?.charAt(0) || 'G'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-semibold">{selectedGuide.display_name}</h3>
+                  <p className="text-muted-foreground">{selectedGuide.profile?.email}</p>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                    {selectedGuide.location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {selectedGuide.location}
+                      </div>
+                    )}
+                    {selectedGuide.experience_years && (
+                      <div className="flex items-center gap-1">
+                        <Award className="h-3 w-3" />
+                        {selectedGuide.experience_years} years experience
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Badge variant="default" className="bg-green-600">
+                  Verified
+                </Badge>
+              </div>
+
+              {/* Bio */}
+              {selectedGuide.bio && (
+                <div>
+                  <h4 className="font-semibold mb-2">About</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {selectedGuide.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Certifications */}
+              <div>
+                <h4 className="font-semibold mb-3">Verified Certifications</h4>
+                {selectedGuide.certifications && Array.isArray(selectedGuide.certifications) && selectedGuide.certifications.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {selectedGuide.certifications.map((cert: any, index: number) => (
+                      <div
+                        key={index}
+                        className="p-3 border border-border rounded-lg bg-muted/30"
+                      >
+                        <CertificationBadge
+                          certification={cert}
+                          size="full"
+                          isGuideVerified={true}
+                          showTooltip
+                        />
+                        {cert.certificateNumber && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Certificate #: {cert.certificateNumber}
+                          </p>
+                        )}
+                        {cert.expiryDate && (
+                          <p className="text-xs text-muted-foreground">
+                            Expires: {new Date(cert.expiryDate).toLocaleDateString()}
+                          </p>
+                        )}
+                        {cert.addedDate && (
+                          <p className="text-xs text-muted-foreground">
+                            Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No certifications on record</p>
+                )}
+              </div>
+
+              {/* Specialties */}
+              {selectedGuide.specialties && Array.isArray(selectedGuide.specialties) && selectedGuide.specialties.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2">Specialties</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedGuide.specialties.map((specialty: string, index: number) => (
+                      <Badge key={index} variant="secondary">
+                        {specialty}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Guiding Areas */}
+              {selectedGuide.guiding_areas && Array.isArray(selectedGuide.guiding_areas) && selectedGuide.guiding_areas.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2">Guiding Areas</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedGuide.guiding_areas.map((area: string, index: number) => (
+                      <Badge key={index} variant="outline">
+                        {area}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Languages */}
+              {selectedGuide.languages_spoken && Array.isArray(selectedGuide.languages_spoken) && selectedGuide.languages_spoken.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2">Languages Spoken</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedGuide.languages_spoken.map((lang: string, index: number) => (
+                      <Badge key={index} variant="secondary">
+                        {lang}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Verification Info */}
+              {selectedGuide.verification && (
+                <div className="pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Verified {formatDistanceToNow(new Date(Array.isArray(selectedGuide.verification) ? selectedGuide.verification[0].updated_at : selectedGuide.verification.updated_at))} ago
+                  </p>
+                  {(Array.isArray(selectedGuide.verification) ? selectedGuide.verification[0].admin_notes : selectedGuide.verification.admin_notes) && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Admin Notes: {Array.isArray(selectedGuide.verification) ? selectedGuide.verification[0].admin_notes : selectedGuide.verification.admin_notes}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-4 border-t border-border">
+                <a
+                  href={`/guide/${selectedGuide.user_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1"
+                >
+                  <Button variant="default" className="w-full gap-2">
+                    View Public Profile
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </a>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedGuide(null)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

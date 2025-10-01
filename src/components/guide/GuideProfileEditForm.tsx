@@ -352,14 +352,13 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         certifications: updatedCertifications,
       });
       
-      // Check if this is the first P1/P2 certification - auto-request verification
-      const hasPriorityCert = certToAdd.verificationPriority === 1 || certToAdd.verificationPriority === 2;
-      const existingPriorityCerts = formData.certifications.some(c => 
-        c.verificationPriority === 1 || c.verificationPriority === 2
-      );
+      // Always request verification when adding a new P1/P2/P4 certification
+      const hasPriorityCert = certToAdd.verificationPriority === 1 || 
+                              certToAdd.verificationPriority === 2 || 
+                              certToAdd.verificationPriority === 4;
 
-      // Auto-request verification if adding first P1/P2 cert
-      if (hasPriorityCert && !existingPriorityCerts && user?.id) {
+      // Auto-request verification for any new priority certification
+      if (hasPriorityCert && user?.id) {
         try {
           // Update verification status to pending
           const { error: verificationError } = await supabase
@@ -391,7 +390,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
             toast({
               title: "Verification Requested",
-              description: "Your certification has been submitted for admin verification.",
+              description: "Your new certification has been submitted for admin verification. Your profile may show as 'pending' until approved.",
             });
           }
         } catch (error) {

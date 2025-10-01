@@ -18,7 +18,7 @@ export interface GuideCertification {
   certificateDocument?: File | string; // File upload or URL after upload
   
   // Verification
-  verificationPriority?: 1 | 2 | 3;
+  verificationPriority?: 1 | 2 | 3 | 4;
   verificationDocuments?: string[]; // Admin-only file references
   
   // Display
