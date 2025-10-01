@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { useGuideVerifications, useUpdateVerificationStatus } from '@/hooks/useGuideVerifications';
 import { ArrowLeft, CheckCircle2, XCircle, FileText, ExternalLink, AlertCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { formatDistanceToNow } from 'date-fns';
 
 interface GuideVerificationDetailsProps {
   verificationId: string;
@@ -189,17 +190,71 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
               </Alert>
             ) : (
               <>
-                <div className="flex flex-wrap gap-3 mb-4">
-                  {certifications.map((cert: any, index: number) => (
-                    <CertificationBadge
-                      key={index}
-                      certification={cert}
-                      size="full"
-                      showTooltip
-                      isGuideVerified={verification?.verification_status === 'approved'}
-                      showPrimaryIndicator
-                    />
-                  ))}
+                <div className="space-y-3 mb-4">
+                  {certifications.map((cert: any, index: number) => {
+                    // Check if certification was added recently (within last 7 days)
+                    const isNewCert = cert.addedDate && 
+                      (new Date().getTime() - new Date(cert.addedDate).getTime()) < (7 * 24 * 60 * 60 * 1000);
+                    
+                    // Check if it lacks verifiedDate (pending approval)
+                    const isPendingReview = !cert.verifiedDate;
+                    
+                    return (
+                      <div
+                        key={index}
+                        className={`p-4 border rounded-lg ${
+                          isNewCert && isPendingReview 
+                            ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' 
+                            : 'border-border bg-muted/30'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <CertificationBadge
+                            certification={cert}
+                            size="full"
+                            showTooltip
+                            isGuideVerified={verification?.verification_status === 'approved'}
+                            showPrimaryIndicator
+                          />
+                          <div className="flex flex-col gap-1">
+                            {isNewCert && isPendingReview && (
+                              <Badge variant="destructive" className="text-xs">
+                                NEW - Pending Review
+                              </Badge>
+                            )}
+                            {!isNewCert && isPendingReview && (
+                              <Badge variant="outline" className="text-xs border-orange-500 text-orange-600">
+                                Pending Review
+                              </Badge>
+                            )}
+                            {cert.verifiedDate && (
+                              <Badge variant="default" className="text-xs bg-green-600">
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-muted-foreground space-y-1">
+                          {cert.certificateNumber && (
+                            <p>Certificate #: {cert.certificateNumber}</p>
+                          )}
+                          {cert.expiryDate && (
+                            <p>Expires: {new Date(cert.expiryDate).toLocaleDateString()}</p>
+                          )}
+                          {cert.addedDate && (
+                            <p className="font-medium">
+                              Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
+                            </p>
+                          )}
+                          {cert.verifiedDate && (
+                            <p className="text-green-600 dark:text-green-400">
+                              Verified: {formatDistanceToNow(new Date(cert.verifiedDate))} ago
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
                 {!hasPriorityOne && !hasPriorityTwo && (
                   <Alert variant="destructive">
