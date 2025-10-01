@@ -1,5 +1,6 @@
 import { GuideHeroSection } from '../guide/GuideHeroSection';
 import { ProfessionalExpertise } from '../guide/ProfessionalExpertise';
+import { GuideCertificationCard } from '../guide/GuideCertificationCard';
 import { GuideStatsCards } from '../guide/GuideStatsCards';
 import { GuideSpecialties } from '../guide/GuideSpecialties';
 import { GuidingAreasGrid } from '../guide/GuidingAreasGrid';
@@ -27,6 +28,12 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
 
       {/* Content Container */}
       <div className="container mx-auto px-4">
+        {/* Meet Your Guide - Large Certification Card */}
+        <section className="py-12">
+          <h2 className="text-3xl font-bold mb-6">Meet Your Guide</h2>
+          <GuideCertificationCard certifications={guide.certifications} />
+        </section>
+
         {/* Professional Expertise */}
         <ProfessionalExpertise certifications={guide.certifications} />
 

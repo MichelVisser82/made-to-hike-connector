@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Award, Shield, CheckCircle2 } from "lucide-react";
+import { Award, Shield, CheckCircle2, Users, Globe, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,7 +9,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
 import type { GuideCertification } from "@/types/guide";
+import { getCertificationMetadata } from "@/constants/certificationMetadata";
 
 const certificationBadgeVariants = cva(
   "inline-flex items-center gap-1.5 font-medium transition-colors",
@@ -45,6 +47,7 @@ export interface CertificationBadgeProps
   showVerificationStatus?: boolean;
   showPrimaryIndicator?: boolean;
   showAbbreviated?: boolean;
+  displayMode?: 'simple' | 'detailed' | 'card';
 }
 
 function CertificationBadge({
@@ -55,9 +58,126 @@ function CertificationBadge({
   showVerificationStatus = false,
   showPrimaryIndicator = false,
   showAbbreviated = false,
+  displayMode = 'simple',
   className,
   ...props
 }: CertificationBadgeProps) {
+  const metadata = getCertificationMetadata(certification.title);
+  
+  // Simple mode: Just abbreviation with checkmark
+  if (displayMode === 'simple') {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium text-white"
+              style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{metadata?.abbreviation || certification.title}</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="font-semibold">{certification.title}</div>
+            <div className="text-sm text-muted-foreground mt-1">
+              {certification.certifyingBody}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
+  // Detailed mode: Badge with title and subtitle
+  if (displayMode === 'detailed') {
+    return (
+      <div
+        className="inline-flex items-start gap-3 px-4 py-3 rounded-lg text-white"
+        style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
+      >
+        <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-base">
+            {metadata?.abbreviation || certification.title} Certified
+          </div>
+          <div className="text-sm opacity-90 mt-0.5">
+            {metadata?.fullTitle || certification.certifyingBody}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Card mode: Full certification card with all details
+  if (displayMode === 'card') {
+    return (
+      <Card 
+        className="overflow-hidden border-0"
+        style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
+      >
+        <CardContent className="p-6 text-white space-y-4">
+          {/* Header */}
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="w-6 h-6 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-bold text-xl mb-1">
+                {metadata?.abbreviation || certification.title} Certified
+              </h3>
+              <p className="text-base opacity-90">
+                {metadata?.fullTitle || certification.certifyingBody}
+              </p>
+            </div>
+          </div>
+
+          {/* Qualification Description */}
+          {metadata?.qualificationDescription && (
+            <p className="text-sm leading-relaxed opacity-95">
+              {metadata.qualificationDescription}
+            </p>
+          )}
+
+          {/* Activity Types */}
+          {metadata?.activityTypes && metadata.activityTypes.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {metadata.activityTypes.map((activity, idx) => (
+                <span 
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm"
+                >
+                  {activity}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Stats Row */}
+          {(metadata?.trainingHours || metadata?.recognitionCountries) && (
+            <div className="flex items-center gap-6 pt-2 border-t border-white/20">
+              {metadata?.trainingHours && (
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <div className="text-sm">
+                    <span className="font-semibold">{metadata.trainingHours}h</span>
+                    <span className="opacity-75 ml-1">training</span>
+                  </div>
+                </div>
+              )}
+              {metadata?.recognitionCountries && (
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
+                  <div className="text-sm">
+                    <span className="font-semibold">{metadata.recognitionCountries}+</span>
+                    <span className="opacity-75 ml-1">countries</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
   // Determine variant and background color based on certification priority
   const { badgeVariant, backgroundColor } = React.useMemo((): {
     badgeVariant: "default" | "priority1" | "priority2" | "priority3" | "medical" | "verified";

@@ -7,6 +7,9 @@ import { type User, type Tour } from '../../types';
 import { Badge } from '../ui/badge';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
 import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
+import { useGuideProfile } from '@/hooks/useGuideProfile';
+import { CertificationBadge } from '../ui/certification-badge';
+import { getPrimaryCertification } from '@/utils/guideDataUtils';
 
 interface BookingFlowProps {
   tour: Tour;
@@ -40,6 +43,8 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
   
   // Use unified hook for consistent guide data
   const { guideInfo, isLoading, isLoadingProfessional } = useEnhancedGuideInfo(tour);
+  const { data: guideProfile } = useGuideProfile(tour.guide_id);
+  const primaryCert = guideProfile?.certifications ? getPrimaryCertification(guideProfile.certifications) : null;
   
   const selectedDateOption = mockDateOptions.find(d => d.date === selectedDate);
   const tourPrice = selectedDateOption?.price || tour.price;
@@ -85,6 +90,17 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
               showBadge={true}
               size="md"
             />
+            
+            {/* Certification Badge - Detailed mode for booking modal */}
+            {primaryCert && (
+              <div className="mt-4">
+                <CertificationBadge 
+                  certification={primaryCert}
+                  displayMode="detailed"
+                  showTooltip={false}
+                />
+              </div>
+            )}
           </CardHeader>
           
           <CardContent className="space-y-6">

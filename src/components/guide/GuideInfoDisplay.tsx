@@ -76,17 +76,13 @@ export function GuideInfoDisplay({
               <p className="text-sm font-semibold text-white drop-shadow-lg">
                 {guideInfo.displayName}
               </p>
-              {primaryCert ? (
-                <CertificationBadge
+              {/* Primary Certification Badge - Simple mode for tour cards */}
+              {primaryCert && (
+                <CertificationBadge 
                   certification={primaryCert}
-                  size="mini"
-                  showAbbreviated
-                  showTooltip={false}
+                  displayMode="simple"
+                  showTooltip={true}
                 />
-              ) : (
-                <p className="text-xs text-white/90 drop-shadow-lg">
-                  Certified Professional
-                </p>
               )}
             </div>
           )}
@@ -130,8 +126,7 @@ export function GuideInfoDisplay({
                 <div className="mb-2">
                   <CertificationBadge
                     certification={primaryCert}
-                    size={size === 'sm' ? 'mini' : size === 'lg' ? 'full' : 'compact'}
-                    showAbbreviated
+                    displayMode="simple"
                     showTooltip
                   />
                 </div>
