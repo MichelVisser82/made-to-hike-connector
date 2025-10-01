@@ -71,10 +71,10 @@ function CertificationBadge({
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium text-white"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-white"
               style={{ backgroundColor: metadata?.badgeColor || '#8FA68E' }}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-4 h-4" />
               <span>{metadata?.abbreviation || certification.title}</span>
             </div>
           </TooltipTrigger>
