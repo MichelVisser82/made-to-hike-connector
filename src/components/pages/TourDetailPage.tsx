@@ -657,9 +657,18 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   <div className="p-8 flex flex-col">
                     {/* Name with Certification Badge */}
                     <div className="mb-4">
-                      <h3 className="text-3xl font-bold mb-3">
+                      <h3 className="text-3xl font-bold mb-2">
                         {guideInfo.displayName}
                       </h3>
+                      
+                      {/* Location directly below name */}
+                      {guideInfo.location && (
+                        <p className="text-muted-foreground flex items-center gap-1 mb-3">
+                          <MapPin className="h-4 w-4" />
+                          {guideInfo.location}
+                        </p>
+                      )}
+                      
                       {/* Large Certification Badge - Card Display Mode */}
                       {primaryCert && (
                         <CertificationBadge
@@ -685,13 +694,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                               />
                             ))}
                         </div>
-                      )}
-                      
-                      {guideInfo.location && (
-                        <p className="text-muted-foreground flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          {guideInfo.location}
-                        </p>
                       )}
                     </div>
 
