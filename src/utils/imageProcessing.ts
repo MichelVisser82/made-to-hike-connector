@@ -235,6 +235,87 @@ export const analyzeImageWithAI = async (
 };
 
 /**
+ * Optimize document (image or PDF) using edge function
+ */
+export const optimizeDocument = async (
+  file: File,
+  category: string = 'certificate'
+): Promise<File> => {
+  try {
+    console.log(`Optimizing document: ${file.name} (${file.size} bytes)`);
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', category);
+    
+    const { data, error } = await supabase.functions.invoke('optimize-document', {
+      body: formData,
+    });
+
+    if (error) throw error;
+
+    // Convert response to File object
+    const optimizedBlob = new Blob([data], { 
+      type: file.type === 'application/pdf' ? 'application/pdf' : 'image/jpeg' 
+    });
+    
+    const optimizedFile = new File(
+      [optimizedBlob], 
+      file.name.replace(/\.[^.]+$/, file.type === 'application/pdf' ? '.pdf' : '.jpg'),
+      { type: optimizedBlob.type }
+    );
+    
+    console.log(`Document optimized: ${file.size} -> ${optimizedFile.size} bytes`);
+    return optimizedFile;
+  } catch (error) {
+    console.error('Document optimization failed, using original:', error);
+    return file;
+  }
+};
+
+/**
+ * Upload document to guide-documents storage bucket
+ */
+export const uploadCertificateDocument = async (
+  file: File,
+  userId: string,
+  optimize: boolean = true
+): Promise<string> => {
+  try {
+    const finalFile = optimize ? await optimizeDocument(file) : file;
+    
+    const fileExt = finalFile.name.split('.').pop();
+    const fileName = `cert-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `${userId}/certificates/${fileName}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('guide-documents')
+      .upload(filePath, finalFile, {
+        contentType: finalFile.type,
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    return filePath;
+  } catch (error) {
+    console.error('Certificate upload failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get public URL for document in guide-documents bucket
+ */
+export const getCertificateDocumentUrl = (filePath: string): string => {
+  const { data } = supabase.storage
+    .from('guide-documents')
+    .getPublicUrl(filePath);
+  
+  return data.publicUrl;
+};
+
+/**
  * Upload image to website_images table with metadata
  */
 export const uploadToWebsiteImages = async (

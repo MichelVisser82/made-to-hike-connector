@@ -22,6 +22,7 @@ import {
   findCertificationById,
   validateCertificateNumber 
 } from '@/constants/certifications';
+import { uploadCertificateDocument } from '@/utils/imageProcessing';
 import type { GuideCertification } from '@/types/guide';
 
 const SPECIALTY_OPTIONS = [
@@ -112,6 +113,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [selectedCertId, setSelectedCertId] = useState<string>('');
   const [certNumberError, setCertNumberError] = useState<string>('');
   const [fileError, setFileError] = useState<string>('');
+  const [isUploadingCert, setIsUploadingCert] = useState(false);
   const [certFile, setCertFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -315,87 +317,127 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const addCertification = async () => {
     if (!validateForm()) return;
 
-    const certToAdd = {
-      ...newCert,
-      addedDate: new Date().toISOString(),
-    };
-
-    const updatedCertifications = [...formData.certifications, certToAdd];
-
-    setFormData({
-      ...formData,
-      certifications: updatedCertifications,
-    });
+    setIsUploadingCert(true);
     
-    // Check if this is the first P1/P2 certification - auto-request verification
-    const hasPriorityCert = certToAdd.verificationPriority === 1 || certToAdd.verificationPriority === 2;
-    const existingPriorityCerts = formData.certifications.some(c => 
-      c.verificationPriority === 1 || c.verificationPriority === 2
-    );
-
-    // Auto-request verification if adding first P1/P2 cert
-    if (hasPriorityCert && !existingPriorityCerts && user?.id) {
-      try {
-        // Update verification status to pending
-        const { error: verificationError } = await supabase
-          .from('user_verifications')
-          .update({
-            verification_status: 'pending',
-            admin_notes: `Auto-requested: Guide added Priority ${certToAdd.verificationPriority} certification (${certToAdd.title})`,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id);
-
-        if (verificationError) {
-          console.error('Error updating verification status:', verificationError);
-        } else {
-          // Send admin notification
-          await supabase.functions.invoke('send-email', {
-            body: {
-              type: 'admin_verification_request',
-              to: 'admin@madetohike.com',
-              template_data: {
-                guide_name: formData.display_name,
-                guide_email: user.email,
-                certification_count: updatedCertifications.length,
-                certification_added: certToAdd.title,
-                timestamp: new Date().toISOString(),
-              }
-            }
-          });
-
-          toast({
-            title: "Verification Requested",
-            description: "Your certification has been submitted for admin verification.",
-          });
-        }
-      } catch (error) {
-        console.error('Error requesting verification:', error);
+    try {
+      let certToAdd = {
+        ...newCert,
+        addedDate: new Date().toISOString(),
+      };
+      
+      // Upload certificate document if provided
+      if (certFile instanceof File) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+        
+        toast({
+          title: "Optimizing document...",
+          description: "This may take a moment for large files.",
+        });
+        
+        const filePath = await uploadCertificateDocument(
+          certFile,
+          user.id,
+          true // optimize
+        );
+        
+        certToAdd = {
+          ...certToAdd,
+          certificateDocument: filePath
+        };
+        
+        toast({
+          title: "Document uploaded",
+          description: "Certificate document optimized and uploaded successfully.",
+        });
       }
+
+      const updatedCertifications = [...formData.certifications, certToAdd];
+
+      setFormData({
+        ...formData,
+        certifications: updatedCertifications,
+      });
+      
+      // Check if this is the first P1/P2 certification - auto-request verification
+      const hasPriorityCert = certToAdd.verificationPriority === 1 || certToAdd.verificationPriority === 2;
+      const existingPriorityCerts = formData.certifications.some(c => 
+        c.verificationPriority === 1 || c.verificationPriority === 2
+      );
+
+      // Auto-request verification if adding first P1/P2 cert
+      if (hasPriorityCert && !existingPriorityCerts && user?.id) {
+        try {
+          // Update verification status to pending
+          const { error: verificationError } = await supabase
+            .from('user_verifications')
+            .update({
+              verification_status: 'pending',
+              admin_notes: `Auto-requested: Guide added Priority ${certToAdd.verificationPriority} certification (${certToAdd.title})`,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('user_id', user.id);
+
+          if (verificationError) {
+            console.error('Error updating verification status:', verificationError);
+          } else {
+            // Send admin notification
+            await supabase.functions.invoke('send-email', {
+              body: {
+                type: 'admin_verification_request',
+                to: 'admin@madetohike.com',
+                template_data: {
+                  guide_name: formData.display_name,
+                  guide_email: user.email,
+                  certification_count: updatedCertifications.length,
+                  certification_added: certToAdd.title,
+                  timestamp: new Date().toISOString(),
+                }
+              }
+            });
+
+            toast({
+              title: "Verification Requested",
+              description: "Your certification has been submitted for admin verification.",
+            });
+          }
+        } catch (error) {
+          console.error('Error requesting verification:', error);
+        }
+      }
+      
+      // Reset form
+      setNewCert({ 
+        certificationType: 'custom',
+        title: '', 
+        certifyingBody: '', 
+        certificateNumber: '',
+        description: '',
+        verificationStatus: 'pending',
+        verificationPriority: 3,
+        badgeColor: '#6b7280'
+      });
+      setCertificationType('standard');
+      setSelectedCertId('');
+      setCertNumberError('');
+      setFileError('');
+      setCertFile(null);
+      setIsAddingCert(false);
+      
+      toast({
+        title: "Success",
+        description: "Certification added. It will be verified by our team.",
+      });
+    } catch (error) {
+      console.error('Error uploading certificate:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload certificate document. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingCert(false);
     }
-    
-    // Reset form
-    setNewCert({ 
-      certificationType: 'custom',
-      title: '', 
-      certifyingBody: '', 
-      certificateNumber: '',
-      description: '',
-      verificationStatus: 'pending',
-      verificationPriority: 3,
-      badgeColor: '#6b7280'
-    });
-    setCertificationType('standard');
-    setSelectedCertId('');
-    setCertNumberError('');
-    setFileError('');
-    setCertFile(null);
-    setIsAddingCert(false);
-    
-    toast({
-      title: "Success",
-      description: "Certification added. It will be verified by our team.",
-    });
   };
 
   const togglePrimary = (index: number) => {
@@ -1030,8 +1072,16 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                       <Button 
                         type="button" 
                         onClick={addCertification}
+                        disabled={isUploadingCert}
                       >
-                        Add Certification
+                        {isUploadingCert ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          'Add Certification'
+                        )}
                       </Button>
                       <Button
                         type="button"
@@ -1054,6 +1104,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                           setFileError('');
                           setCertFile(null);
                         }}
+                        disabled={isUploadingCert}
                       >
                         Cancel
                       </Button>

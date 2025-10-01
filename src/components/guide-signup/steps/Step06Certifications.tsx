@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Award, Plus, X, Upload, Shield, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Award, Plus, X, Upload, Shield, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { uploadCertificateDocument } from '@/utils/imageProcessing';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +33,8 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
   const [selectedCertId, setSelectedCertId] = useState<string>('');
   const [certNumberError, setCertNumberError] = useState('');
   const [fileError, setFileError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
   
   const [newCert, setNewCert] = useState<Partial<GuideCertification>>({ 
     certificationType: 'standard',
@@ -77,9 +82,9 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
       return;
     }
     
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      setFileError('File size must be less than 5MB');
+    // Validate file size (10MB max before optimization)
+    if (file.size > 10 * 1024 * 1024) {
+      setFileError('File size must be less than 10MB');
       return;
     }
     
@@ -128,31 +133,71 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
     return true;
   };
 
-  const addCertification = () => {
+  const addCertification = async () => {
     if (!validateForm()) return;
     
-    const certToAdd: GuideCertification = {
-      ...newCert,
-      addedDate: new Date().toISOString(),
-    } as GuideCertification;
+    setIsUploading(true);
     
-    updateData({ certifications: [...certifications, certToAdd] });
-    
-    // Reset form
-    setNewCert({ 
-      certificationType: 'standard',
-      title: '', 
-      certifyingBody: '', 
-      certificateNumber: '',
-      description: '',
-      expiryDate: '',
-      verificationStatus: 'pending'
-    });
-    setSelectedCertId('');
-    setCertificationType('standard');
-    setIsAdding(false);
-    setCertNumberError('');
-    setFileError('');
+    try {
+      let certToAdd: GuideCertification = {
+        ...newCert,
+        addedDate: new Date().toISOString(),
+      } as GuideCertification;
+      
+      // Upload certificate document if provided
+      if (newCert.certificateDocument instanceof File) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+        
+        toast({
+          title: "Optimizing document...",
+          description: "This may take a moment for large files.",
+        });
+        
+        const filePath = await uploadCertificateDocument(
+          newCert.certificateDocument,
+          user.id,
+          true // optimize
+        );
+        
+        certToAdd = {
+          ...certToAdd,
+          certificateDocument: filePath
+        };
+        
+        toast({
+          title: "Document uploaded",
+          description: "Certificate document optimized and uploaded successfully.",
+        });
+      }
+      
+      updateData({ certifications: [...certifications, certToAdd] });
+      
+      // Reset form
+      setNewCert({ 
+        certificationType: 'standard',
+        title: '', 
+        certifyingBody: '', 
+        certificateNumber: '',
+        description: '',
+        expiryDate: '',
+        verificationStatus: 'pending'
+      });
+      setSelectedCertId('');
+      setCertificationType('standard');
+      setIsAdding(false);
+      setCertNumberError('');
+      setFileError('');
+    } catch (error) {
+      console.error('Error uploading certificate:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload certificate document. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const removeCertification = (index: number) => {
@@ -467,17 +512,40 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
                     <div className="flex gap-2">
                       <Button 
                         onClick={addCertification}
-                        disabled={!newCert.title?.trim() || !newCert.certifyingBody?.trim()}
+                        disabled={isUploading || !newCert.title?.trim() || !newCert.certifyingBody?.trim()}
                       >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Certification
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Certification
+                          </>
+                        )}
                       </Button>
-                      <Button variant="outline" onClick={() => {
-                        setIsAdding(false);
-                        setSelectedCertId('');
-                        setCertNumberError('');
-                        setFileError('');
-                      }}>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsAdding(false);
+                          setNewCert({
+                            certificationType: 'standard',
+                            title: '',
+                            certifyingBody: '',
+                            certificateNumber: '',
+                            description: '',
+                            expiryDate: '',
+                            verificationStatus: 'pending'
+                          });
+                          setSelectedCertId('');
+                          setCertificationType('standard');
+                          setCertNumberError('');
+                          setFileError('');
+                        }}
+                        disabled={isUploading}
+                      >
                         Cancel
                       </Button>
                     </div>

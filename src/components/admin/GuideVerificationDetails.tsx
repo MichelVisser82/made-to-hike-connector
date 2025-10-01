@@ -48,12 +48,23 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
   };
 
   const viewDocument = async (documentPath: string) => {
-    const { data } = await supabase.storage
-      .from('guide-documents')
-      .createSignedUrl(documentPath, 3600);
-    
-    if (data?.signedUrl) {
-      window.open(data.signedUrl, '_blank');
+    try {
+      // Check if it's a storage path or a full URL
+      if (documentPath.startsWith('http')) {
+        window.open(documentPath, '_blank');
+      } else {
+        // It's a storage path in guide-documents bucket
+        const { data, error } = await supabase.storage
+          .from('guide-documents')
+          .createSignedUrl(documentPath, 3600);
+        
+        if (error) throw error;
+        if (data?.signedUrl) {
+          window.open(data.signedUrl, '_blank');
+        }
+      }
+    } catch (error) {
+      console.error('Error viewing document:', error);
     }
   };
 
