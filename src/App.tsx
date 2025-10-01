@@ -13,6 +13,7 @@ import { EmailTest } from "./components/EmailTest";
 import { Auth } from "./pages/Auth";
 import { VerifyEmail } from "./pages/VerifyEmail";
 import { AdminDashboard } from "./components/admin/AdminDashboard";
+import CertificationsPage from "./pages/CertificationsPage";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App: React.FC = () => {
             <Route path="/tours/:slug" element={<TourPage />} />
             <Route path="/guides/:guideId" element={<GuidePage />} />
             <Route path="/guide/signup" element={<GuideSignupPage />} />
+            <Route path="/certifications" element={<CertificationsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

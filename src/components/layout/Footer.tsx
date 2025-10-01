@@ -110,6 +110,15 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
                   Expert Expeditions
                 </button>
               </li>
+              <li>
+                <button 
+                  onClick={() => window.location.href = '/certifications'}
+                  className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
+                >
+                  <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                  Certifications Reference Guide
+                </button>
+              </li>
             </ul>
           </div>
 
