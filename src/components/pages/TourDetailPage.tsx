@@ -163,6 +163,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   isLoadingProfessional={isLoadingProfessional}
                   showBadge={true}
                   size="sm"
+                  certifications={guideProfile?.certifications}
                   isGuideVerified={guideProfile?.verified ?? false}
                 />
               </CardHeader>

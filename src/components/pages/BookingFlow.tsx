@@ -89,6 +89,7 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
               isLoadingProfessional={isLoadingProfessional}
               showBadge={true}
               size="md"
+              certifications={guideProfile?.certifications}
               isGuideVerified={guideProfile?.verified ?? false}
             />
             
