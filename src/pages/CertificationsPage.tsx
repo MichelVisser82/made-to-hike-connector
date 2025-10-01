@@ -1,5 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { CertificationsContent } from '@/components/pages/CertificationsContent';
 
 export default function CertificationsPage() {
@@ -17,7 +18,9 @@ export default function CertificationsPage() {
         />
         <link rel="canonical" href="https://madetohike.com/certifications" />
       </Helmet>
-      <CertificationsContent />
+      <MainLayout>
+        <CertificationsContent />
+      </MainLayout>
     </>
   );
 }
