@@ -242,8 +242,7 @@ export function CertificationsContent() {
                   title: 'IFMGA Mountain Guide',
                   certifyingBody: 'International Federation of Mountain Guides Associations',
                   certificateNumber: 'IFMGA-12345',
-                  isPrimary: true,
-                  badgeColor: '#8B4513'
+                  isPrimary: true
                 }}
                 displayMode="detailed"
                 showTooltip={false}
@@ -258,8 +257,7 @@ export function CertificationsContent() {
                   title: 'International Mountain Leader',
                   certifyingBody: 'Union of International Mountain Leader Associations',
                   certificateNumber: 'IML-67890',
-                  isPrimary: true,
-                  badgeColor: '#2F5233'
+                  isPrimary: true
                 }}
                 displayMode="detailed"
                 showTooltip={false}
