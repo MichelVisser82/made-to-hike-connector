@@ -245,7 +245,7 @@ export function CertificationsContent() {
                   isPrimary: true
                 }}
                 displayMode="detailed"
-                showTooltip={false}
+                showTooltip={true}
                 isGuideVerified={true}
               />
             </div>
@@ -260,7 +260,7 @@ export function CertificationsContent() {
                   isPrimary: true
                 }}
                 displayMode="detailed"
-                showTooltip={false}
+                showTooltip={true}
                 isGuideVerified={true}
               />
             </div>
