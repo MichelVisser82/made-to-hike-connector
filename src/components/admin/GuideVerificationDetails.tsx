@@ -8,7 +8,7 @@ import { Label } from '../ui/label';
 import { Alert, AlertDescription } from '../ui/alert';
 import { CertificationBadge } from '../ui/certification-badge';
 import { useGuideVerifications, useUpdateVerificationStatus } from '@/hooks/useGuideVerifications';
-import { ArrowLeft, CheckCircle2, XCircle, FileText, ExternalLink, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, FileText, ExternalLink, AlertCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface GuideVerificationDetailsProps {
@@ -170,10 +170,51 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
             )}
           </div>
 
-          {/* Documents */}
+          {/* Certificate Documents */}
+          {certifications.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-lg mb-4">Certificate Documents</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {certifications.map((cert: any, index: number) => {
+                  if (!cert.certificateDocument) return null;
+                  
+                  return (
+                    <div
+                      key={index}
+                      className="relative group cursor-pointer rounded-lg overflow-hidden border border-border bg-muted aspect-[3/4]"
+                      onClick={() => {
+                        if (typeof cert.certificateDocument === 'string') {
+                          viewDocument(cert.certificateDocument);
+                        }
+                      }}
+                    >
+                      {/* Certificate preview placeholder */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                        <FileText className="h-12 w-12 text-muted-foreground mb-2" />
+                        <p className="text-sm font-medium line-clamp-2">{cert.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {cert.certificateNumber || 'Certificate'}
+                        </p>
+                      </div>
+                      
+                      {/* Hover overlay with eye icon */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="text-white flex flex-col items-center gap-2">
+                          <Eye className="h-8 w-8" />
+                          <span className="text-sm font-medium">View Certificate</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Additional Verification Documents */}
           {verification.verification_documents && verification.verification_documents.length > 0 && (
             <div>
-              <h3 className="font-semibold text-lg mb-4">Verification Documents</h3>
+              <h3 className="font-semibold text-lg mb-4">Additional Documents</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {verification.verification_documents.map((doc, index) => (
                   <Button
