@@ -3,7 +3,9 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { SmartImage } from '../SmartImage';
 import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
+import { CertificationBadge } from '../ui/certification-badge';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
+import { useGuideProfile } from '@/hooks/useGuideProfile';
 import { MapPin, Clock, Users, Star } from 'lucide-react';
 import type { Tour } from '@/types';
 
@@ -19,6 +21,16 @@ interface TourCardProps {
  */
 export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
   const { guideInfo, isLoadingProfessional } = useEnhancedGuideInfo(tour);
+  const { data: guideProfile } = useGuideProfile(tour.guide_id);
+
+  // Get verified Priority 1 & 2 certifications for display
+  const verifiedCerts = guideProfile?.certifications
+    ?.filter(c => 
+      c.verificationStatus === 'verified' && 
+      c.verificationPriority && 
+      c.verificationPriority <= 2
+    )
+    .slice(0, 2) || [];
 
   return (
     <Card 
@@ -76,6 +88,21 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
 
       {/* Content Section */}
       <CardContent className="p-4 space-y-3">
+        {/* Guide Certifications */}
+        {verifiedCerts.length > 0 && (
+          <div className="flex flex-wrap gap-2 pb-2 border-b">
+            {verifiedCerts.map((cert, index) => (
+              <CertificationBadge
+                key={index}
+                certification={cert}
+                size="mini"
+                showTooltip
+                showVerificationStatus
+              />
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3" />

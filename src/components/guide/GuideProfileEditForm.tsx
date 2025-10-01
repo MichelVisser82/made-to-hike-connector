@@ -11,9 +11,17 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Loader2, X, Mail, Lock, AlertCircle, Award, Plus, Eye } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { CertificationBadge } from '../ui/certification-badge';
+import { Loader2, X, Mail, Lock, AlertCircle, Plus, Eye, Star, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '../ui/alert';
+import { 
+  PRELOADED_CERTIFICATIONS, 
+  getCertificationsByCategory, 
+  findCertificationById,
+  validateCertificateNumber 
+} from '@/constants/certifications';
 import type { GuideCertification } from '@/types/guide';
 
 const SPECIALTY_OPTIONS = [
@@ -100,6 +108,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     badgeColor: '#6b7280'
   });
   const [isAddingCert, setIsAddingCert] = useState(false);
+  const [certificationType, setCertificationType] = useState<'standard' | 'custom'>('standard');
+  const [selectedCertId, setSelectedCertId] = useState<string>('');
+  const [certNumberError, setCertNumberError] = useState<string>('');
+  const [fileError, setFileError] = useState<string>('');
+  const [certFile, setCertFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -213,19 +226,106 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     }
   };
 
-  const addCertification = () => {
+  const handleCertificationSelect = (certId: string) => {
+    setSelectedCertId(certId);
+    const cert = findCertificationById(certId);
+    if (cert) {
+      setNewCert({
+        ...newCert,
+        certificationType: 'standard',
+        certificationId: cert.id,
+        title: cert.name,
+        certifyingBody: cert.certifyingBody,
+        verificationPriority: cert.priority as 1 | 2 | 3,
+        badgeColor: cert.badgeColor,
+      });
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      setFileError('Please upload a PDF or image file (JPG, PNG)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setFileError('File size must be less than 5MB');
+      return;
+    }
+
+    setFileError('');
+    setCertFile(file);
+    setNewCert({ ...newCert, certificateDocument: file });
+  };
+
+  const validateForm = (): boolean => {
+    // Required fields
     if (!newCert.title.trim() || !newCert.certifyingBody.trim()) {
       toast({
         title: "Error",
         description: "Please fill in certification name and certifying body",
         variant: "destructive",
       });
-      return;
+      return false;
     }
+
+    // Validate certificate number for standard certifications
+    if (certificationType === 'standard' && selectedCertId) {
+      const cert = findCertificationById(selectedCertId);
+      if (cert?.requiresCertificateNumber) {
+        if (!newCert.certificateNumber?.trim()) {
+          setCertNumberError('Certificate number is required for this certification');
+          return false;
+        }
+        if (!validateCertificateNumber(newCert.certificateNumber, selectedCertId)) {
+          setCertNumberError('Invalid certificate number format (6-20 alphanumeric characters)');
+          return false;
+        }
+      }
+    }
+
+    // Validate expiry date
+    if (newCert.expiryDate) {
+      const expiryDate = new Date(newCert.expiryDate);
+      if (expiryDate <= new Date()) {
+        toast({
+          title: "Error",
+          description: "Expiry date must be in the future",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
+    // Required document upload
+    if (!newCert.certificateDocument && !certFile) {
+      setFileError('Certificate document is required');
+      return false;
+    }
+
+    return true;
+  };
+
+  const addCertification = () => {
+    if (!validateForm()) return;
+
+    const certToAdd = {
+      ...newCert,
+      addedDate: new Date().toISOString(),
+    };
+
     setFormData({
       ...formData,
-      certifications: [...formData.certifications, { ...newCert }],
+      certifications: [...formData.certifications, certToAdd],
     });
+    
+    // Reset form
     setNewCert({ 
       certificationType: 'custom',
       title: '', 
@@ -236,11 +336,25 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       verificationPriority: 3,
       badgeColor: '#6b7280'
     });
+    setCertificationType('standard');
+    setSelectedCertId('');
+    setCertNumberError('');
+    setFileError('');
+    setCertFile(null);
     setIsAddingCert(false);
+    
     toast({
       title: "Success",
-      description: "Certification added",
+      description: "Certification added. It will be verified by our team.",
     });
+  };
+
+  const togglePrimary = (index: number) => {
+    const updatedCerts = formData.certifications.map((cert, i) => ({
+      ...cert,
+      isPrimary: i === index ? !cert.isPrimary : false,
+    }));
+    setFormData({ ...formData, certifications: updatedCerts });
   };
 
   const removeCertification = (index: number) => {
@@ -619,103 +733,284 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           <CardDescription>Your professional qualifications and certifications</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {formData.certifications.map((cert, index) => (
-            <Card key={index}>
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <Award className="w-5 h-5 text-primary mt-1" />
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{cert.title}</h4>
-                    <p className="text-sm text-muted-foreground mb-1">{cert.certifyingBody}</p>
-                    {cert.certificateNumber && (
-                      <p className="text-xs text-muted-foreground">Certificate #: {cert.certificateNumber}</p>
-                    )}
-                    {cert.description && (
-                      <p className="text-sm text-muted-foreground mt-2">{cert.description}</p>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeCertification(index)}
-                    aria-label="Remove certification"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {/* Existing Certifications */}
+          {formData.certifications.length > 0 && (
+            <div className="space-y-3">
+              {formData.certifications.map((cert, index) => (
+                <Card key={index}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <CertificationBadge
+                            certification={cert}
+                            size="compact"
+                            showTooltip
+                            showVerificationStatus
+                          />
+                          {cert.isPrimary && (
+                            <Badge variant="secondary" className="gap-1">
+                              <Star className="w-3 h-3 fill-current" />
+                              Primary
+                            </Badge>
+                          )}
+                        </div>
+                        {cert.certificateNumber && (
+                          <p className="text-xs text-muted-foreground">Certificate #: {cert.certificateNumber}</p>
+                        )}
+                        {cert.expiryDate && (
+                          <p className="text-xs text-muted-foreground">
+                            Expires: {new Date(cert.expiryDate).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => togglePrimary(index)}
+                          aria-label="Set as primary certification"
+                          title={cert.isPrimary ? "Remove primary" : "Set as primary"}
+                        >
+                          <Star className={`w-4 h-4 ${cert.isPrimary ? 'fill-current' : ''}`} />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeCertification(index)}
+                          aria-label="Remove certification"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
+          {/* Priority Alert */}
+          {formData.certifications.length > 0 && 
+           !formData.certifications.some(c => c.verificationPriority && c.verificationPriority <= 2) && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                To become a verified guide, you need at least one Priority 1 or 2 certification (IFMGA, UIMLA, national, or medical).
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Add Certification Form */}
           {isAddingCert ? (
-            <Card>
+            <Card className="border-2 border-primary/20">
               <CardContent className="pt-6 space-y-4">
+                {/* Step 1: Certification Type Selection */}
                 <div>
-                  <Label htmlFor="edit-cert-name">Certification Name *</Label>
-                  <Input
-                    id="edit-cert-name"
-                    value={newCert.title}
-                    onChange={(e) => setNewCert({ ...newCert, title: e.target.value })}
-                    placeholder="e.g., IFMGA Mountain Guide"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-cert-body">Certifying Body *</Label>
-                  <Input
-                    id="edit-cert-body"
-                    value={newCert.certifyingBody}
-                    onChange={(e) => setNewCert({ ...newCert, certifyingBody: e.target.value })}
-                    placeholder="e.g., International Federation of Mountain Guides Associations"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-cert-number">Certificate Number (Optional)</Label>
-                  <Input
-                    id="edit-cert-number"
-                    value={newCert.certificateNumber}
-                    onChange={(e) => setNewCert({ ...newCert, certificateNumber: e.target.value })}
-                    placeholder="e.g., IFMGA-12345"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-cert-desc">Description (Optional)</Label>
-                  <Textarea
-                    id="edit-cert-desc"
-                    value={newCert.description}
-                    onChange={(e) => setNewCert({ ...newCert, description: e.target.value })}
-                    placeholder="Any additional details about this certification..."
-                    rows={3}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    onClick={addCertification}
-                    disabled={!newCert.title.trim() || !newCert.certifyingBody.trim()}
-                  >
-                    Add Certification
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsAddingCert(false);
-                      setNewCert({ 
+                  <Label>Certification Type *</Label>
+                  <RadioGroup value={certificationType} onValueChange={(v) => {
+                    setCertificationType(v as 'standard' | 'custom');
+                    setSelectedCertId('');
+                    setCertNumberError('');
+                    if (v === 'custom') {
+                      setNewCert({
                         certificationType: 'custom',
-                        title: '', 
-                        certifyingBody: '', 
+                        title: '',
+                        certifyingBody: '',
                         certificateNumber: '',
                         description: '',
                         verificationStatus: 'pending',
                         verificationPriority: 3,
                         badgeColor: '#6b7280'
                       });
-                    }}
-                  >
-                    Cancel
-                  </Button>
+                    }
+                  }} className="flex gap-4 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="standard" id="standard" />
+                      <Label htmlFor="standard" className="font-normal cursor-pointer">
+                        Standard Certification
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="custom" id="custom" />
+                      <Label htmlFor="custom" className="font-normal cursor-pointer">
+                        Other Certification
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
+
+                {/* Step 2a: Standard Certification */}
+                {certificationType === 'standard' && (
+                  <>
+                    <div>
+                      <Label htmlFor="cert-select">Select Certification *</Label>
+                      <Select value={selectedCertId} onValueChange={handleCertificationSelect}>
+                        <SelectTrigger id="cert-select" className="bg-background">
+                          <SelectValue placeholder="Choose a certification..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background">
+                          {Object.entries(getCertificationsByCategory()).map(([category, certs]) => (
+                            <div key={category}>
+                              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                                {category}
+                              </div>
+                              {certs.map((cert) => (
+                                <SelectItem key={cert.id} value={cert.id}>
+                                  {cert.name}
+                                </SelectItem>
+                              ))}
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedCertId && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Certifying Body: {findCertificationById(selectedCertId)?.certifyingBody}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Step 2b: Custom Certification */}
+                {certificationType === 'custom' && (
+                  <>
+                    <div>
+                      <Label htmlFor="edit-cert-name">Certification Name *</Label>
+                      <Input
+                        id="edit-cert-name"
+                        value={newCert.title}
+                        onChange={(e) => setNewCert({ ...newCert, title: e.target.value })}
+                        placeholder="e.g., Local Hiking Guide Certificate"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-cert-body">Certifying Body *</Label>
+                      <Input
+                        id="edit-cert-body"
+                        value={newCert.certifyingBody}
+                        onChange={(e) => setNewCert({ ...newCert, certifyingBody: e.target.value })}
+                        placeholder="e.g., Regional Tourism Board"
+                      />
+                    </div>
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription className="text-xs">
+                        Custom certifications require manual verification and may take 3-5 business days to review.
+                      </AlertDescription>
+                    </Alert>
+                  </>
+                )}
+
+                {/* Common Fields (for both types) */}
+                {(certificationType === 'custom' || selectedCertId) && (
+                  <>
+                    <div>
+                      <Label htmlFor="edit-cert-number">
+                        Certificate Number 
+                        {certificationType === 'standard' && selectedCertId && 
+                         findCertificationById(selectedCertId)?.requiresCertificateNumber && ' *'}
+                      </Label>
+                      <Input
+                        id="edit-cert-number"
+                        value={newCert.certificateNumber || ''}
+                        onChange={(e) => {
+                          setNewCert({ ...newCert, certificateNumber: e.target.value });
+                          setCertNumberError('');
+                        }}
+                        placeholder="e.g., IFMGA-12345"
+                      />
+                      {certNumberError && (
+                        <p className="text-xs text-destructive mt-1">{certNumberError}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit-cert-expiry">Expiry Date *</Label>
+                      <Input
+                        id="edit-cert-expiry"
+                        type="date"
+                        value={newCert.expiryDate || ''}
+                        onChange={(e) => setNewCert({ ...newCert, expiryDate: e.target.value })}
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit-cert-file">Certificate Document *</Label>
+                      <div className="mt-2">
+                        <Input
+                          id="edit-cert-file"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={handleFileUpload}
+                          className="cursor-pointer"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Upload your certificate (PDF or image, max 5MB)
+                        </p>
+                        {certFile && (
+                          <div className="flex items-center gap-2 mt-2 text-xs text-green-600">
+                            <Upload className="w-3 h-3" />
+                            {certFile.name}
+                          </div>
+                        )}
+                        {fileError && (
+                          <p className="text-xs text-destructive mt-1">{fileError}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {certificationType === 'custom' && (
+                      <div>
+                        <Label htmlFor="edit-cert-desc">Description (Optional)</Label>
+                        <Textarea
+                          id="edit-cert-desc"
+                          value={newCert.description || ''}
+                          onChange={(e) => setNewCert({ ...newCert, description: e.target.value })}
+                          placeholder="Any additional details about this certification..."
+                          rows={3}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button 
+                        type="button" 
+                        onClick={addCertification}
+                      >
+                        Add Certification
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsAddingCert(false);
+                          setNewCert({ 
+                            certificationType: 'custom',
+                            title: '', 
+                            certifyingBody: '', 
+                            certificateNumber: '',
+                            description: '',
+                            verificationStatus: 'pending',
+                            verificationPriority: 3,
+                            badgeColor: '#6b7280'
+                          });
+                          setCertificationType('standard');
+                          setSelectedCertId('');
+                          setCertNumberError('');
+                          setFileError('');
+                          setCertFile(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           ) : (
