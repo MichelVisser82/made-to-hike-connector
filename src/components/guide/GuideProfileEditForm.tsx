@@ -541,6 +541,37 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       console.log('Saving guide profile with experience_years:', formData.experience_years);
       console.log('Saving certifications:', formData.certifications);
 
+      // Preserve admin verification data on existing certifications
+      const existingProfile = await supabase
+        .from('guide_profiles')
+        .select('certifications')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      const existingCerts = (existingProfile?.data?.certifications as any[]) || [];
+      
+      // Merge: preserve verifiedDate and verifiedBy from existing certs
+      const mergedCertifications = formData.certifications.map((newCert) => {
+        // Find matching cert by title and certifying body (or certificateNumber if available)
+        const existingCert = existingCerts.find((ec: any) => {
+          if (newCert.certificateNumber && ec.certificateNumber) {
+            return ec.certificateNumber === newCert.certificateNumber;
+          }
+          return ec.title === newCert.title && ec.certifyingBody === newCert.certifyingBody;
+        });
+        
+        // If found, preserve verification fields
+        if (existingCert?.verifiedDate) {
+          return {
+            ...newCert,
+            verifiedDate: existingCert.verifiedDate,
+            verifiedBy: existingCert.verifiedBy,
+          };
+        }
+        
+        return newCert;
+      });
+
       const { error } = await supabase
         .from('guide_profiles')
         .upsert({
@@ -556,7 +587,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           terrain_capabilities: formData.terrain_capabilities,
           languages_spoken: formData.languages_spoken,
           difficulty_levels: formData.difficulty_levels,
-          certifications: formData.certifications,
+          certifications: mergedCertifications,
           portfolio_images: portfolioUrls,
           min_group_size: formData.min_group_size,
           max_group_size: formData.max_group_size,
