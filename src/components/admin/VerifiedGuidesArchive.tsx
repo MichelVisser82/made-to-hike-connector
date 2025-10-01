@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -7,13 +7,15 @@ import { CertificationBadge } from '../ui/certification-badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, ExternalLink, Eye, MapPin, Calendar, Award } from 'lucide-react';
+import { Search, ExternalLink, Eye, MapPin, Calendar, Award, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 
 export function VerifiedGuidesArchive() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
+  const [selectedDocument, setSelectedDocument] = useState<{ url: string; title: string } | null>(null);
+  const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
 
   const { data: verifiedGuides, isLoading } = useQuery({
     queryKey: ['verified-guides'],
@@ -55,6 +57,53 @@ export function VerifiedGuidesArchive() {
     guide.profile?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     guide.location?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const getDocumentUrl = async (documentPath: string): Promise<string> => {
+    try {
+      if (documentPath.startsWith('http')) {
+        return documentPath;
+      } else {
+        const { data, error } = await supabase.storage
+          .from('guide-documents')
+          .createSignedUrl(documentPath, 3600);
+        
+        if (error) throw error;
+        return data?.signedUrl || '';
+      }
+    } catch (error) {
+      console.error('Error getting document URL:', error);
+      return '';
+    }
+  };
+
+  const openDocumentModal = async (documentPath: string, title: string) => {
+    const url = await getDocumentUrl(documentPath);
+    if (url) {
+      setSelectedDocument({ url, title });
+    }
+  };
+
+  useEffect(() => {
+    const loadDocumentUrls = async () => {
+      if (!selectedGuide) return;
+      
+      const certifications = selectedGuide.certifications || [];
+      const urls: Record<string, string> = {};
+      
+      for (const cert of certifications) {
+        if (cert.certificateDocument && typeof cert.certificateDocument === 'string') {
+          const url = await getDocumentUrl(cert.certificateDocument);
+          if (url) {
+            urls[cert.certificateDocument] = url;
+          }
+        }
+      }
+      
+      setDocumentUrls(urls);
+    };
+    
+    loadDocumentUrls();
+  }, [selectedGuide]);
 
   return (
     <div className="space-y-6">
@@ -234,34 +283,79 @@ export function VerifiedGuidesArchive() {
                 <h4 className="font-semibold mb-3">Verified Certifications</h4>
                 {selectedGuide.certifications && Array.isArray(selectedGuide.certifications) && selectedGuide.certifications.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {selectedGuide.certifications.map((cert: any, index: number) => (
-                      <div
-                        key={index}
-                        className="p-3 border border-border rounded-lg bg-muted/30"
-                      >
-                        <CertificationBadge
-                          certification={cert}
-                          size="full"
-                          isGuideVerified={true}
-                          showTooltip
-                        />
-                        {cert.certificateNumber && (
-                          <p className="text-xs text-muted-foreground mt-2">
-                            Certificate #: {cert.certificateNumber}
-                          </p>
-                        )}
-                        {cert.expiryDate && (
-                          <p className="text-xs text-muted-foreground">
-                            Expires: {new Date(cert.expiryDate).toLocaleDateString()}
-                          </p>
-                        )}
-                        {cert.addedDate && (
-                          <p className="text-xs text-muted-foreground">
-                            Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                    {selectedGuide.certifications.map((cert: any, index: number) => {
+                      const documentUrl = cert.certificateDocument && documentUrls[cert.certificateDocument];
+                      const isPdf = documentUrl?.toLowerCase().includes('.pdf') || 
+                                   cert.certificateDocument?.toLowerCase().endsWith('.pdf');
+                      
+                      return (
+                        <div
+                          key={index}
+                          className="p-3 border border-border rounded-lg bg-muted/30 flex gap-3"
+                        >
+                          <div className="flex-1">
+                            <CertificationBadge
+                              certification={cert}
+                              size="full"
+                              isGuideVerified={true}
+                              showTooltip
+                            />
+                            {cert.certificateNumber && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Certificate #: {cert.certificateNumber}
+                              </p>
+                            )}
+                            {cert.expiryDate && (
+                              <p className="text-xs text-muted-foreground">
+                                Expires: {new Date(cert.expiryDate).toLocaleDateString()}
+                              </p>
+                            )}
+                            {cert.addedDate && (
+                              <p className="text-xs text-muted-foreground">
+                                Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
+                              </p>
+                            )}
+                          </div>
+                          
+                          {/* Certificate Thumbnail */}
+                          {cert.certificateDocument && (
+                            <div
+                              className="relative w-20 h-20 rounded overflow-hidden border border-border bg-muted cursor-pointer group flex-shrink-0"
+                              onClick={() => {
+                                if (typeof cert.certificateDocument === 'string') {
+                                  openDocumentModal(cert.certificateDocument, cert.title);
+                                }
+                              }}
+                            >
+                              {documentUrl ? (
+                                <>
+                                  {isPdf ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900">
+                                      <FileText className="h-8 w-8 text-red-600 dark:text-red-400" />
+                                    </div>
+                                  ) : (
+                                    <img 
+                                      src={documentUrl} 
+                                      alt={cert.title}
+                                      className="absolute inset-0 w-full h-full object-cover"
+                                    />
+                                  )}
+                                </>
+                              ) : (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <FileText className="h-6 w-6 text-muted-foreground animate-pulse" />
+                                </div>
+                              )}
+                              
+                              {/* Hover overlay with eye icon */}
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Eye className="h-6 w-6 text-white" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">No certifications on record</p>
@@ -344,6 +438,32 @@ export function VerifiedGuidesArchive() {
                   Close
                 </Button>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Certificate Document Viewer Modal */}
+      <Dialog open={!!selectedDocument} onOpenChange={(open) => !open && setSelectedDocument(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>{selectedDocument?.title || 'Certificate Document'}</DialogTitle>
+          </DialogHeader>
+          {selectedDocument && (
+            <div className="mt-4">
+              {selectedDocument.url.toLowerCase().includes('.pdf') ? (
+                <iframe
+                  src={selectedDocument.url}
+                  className="w-full h-[70vh] border border-border rounded"
+                  title={selectedDocument.title}
+                />
+              ) : (
+                <img
+                  src={selectedDocument.url}
+                  alt={selectedDocument.title}
+                  className="w-full h-auto max-h-[70vh] object-contain rounded"
+                />
+              )}
             </div>
           )}
         </DialogContent>
