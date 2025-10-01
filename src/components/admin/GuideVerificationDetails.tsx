@@ -196,7 +196,7 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                       certification={cert}
                       size="full"
                       showTooltip
-                      showVerificationStatus
+                      isGuideVerified={verification?.verification_status === 'approved'}
                       showPrimaryIndicator
                     />
                   ))}

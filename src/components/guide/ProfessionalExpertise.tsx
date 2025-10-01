@@ -3,9 +3,10 @@ import type { GuideCertification } from '@/types/guide';
 
 interface ProfessionalExpertiseProps {
   certifications: GuideCertification[];
+  isGuideVerified?: boolean;
 }
 
-export function ProfessionalExpertise({ certifications }: ProfessionalExpertiseProps) {
+export function ProfessionalExpertise({ certifications, isGuideVerified = false }: ProfessionalExpertiseProps) {
   if (!certifications || certifications.length === 0) return null;
 
   // Sort certifications: primary first, then by priority
@@ -28,7 +29,7 @@ export function ProfessionalExpertise({ certifications }: ProfessionalExpertiseP
             certification={cert}
             size="full"
             showTooltip
-            showVerificationStatus
+            isGuideVerified={isGuideVerified}
             showPrimaryIndicator
           />
         ))}

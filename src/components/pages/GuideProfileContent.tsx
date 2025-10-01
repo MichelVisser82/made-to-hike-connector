@@ -35,7 +35,10 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
         </section>
 
         {/* Professional Expertise */}
-        <ProfessionalExpertise certifications={guide.certifications} />
+        <ProfessionalExpertise 
+          certifications={guide.certifications}
+          isGuideVerified={guide.verified}
+        />
 
         {/* Stats Cards */}
         <GuideStatsCards stats={stats} />

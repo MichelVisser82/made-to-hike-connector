@@ -42,8 +42,7 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
     certifyingBody: '', 
     certificateNumber: '',
     description: '',
-    expiryDate: '',
-    verificationStatus: 'pending'
+    expiryDate: ''
   });
   
   const certifications = data.certifications || [];
@@ -62,7 +61,6 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
         certificateNumber: '',
         description: preloaded.description || '',
         expiryDate: '',
-        verificationStatus: 'pending',
         verificationPriority: preloaded.priority,
         badgeColor: preloaded.badgeColor,
       });
@@ -174,8 +172,7 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
         certifyingBody: '', 
         certificateNumber: '',
         description: '',
-        expiryDate: '',
-        verificationStatus: 'pending'
+        expiryDate: ''
       });
       setSelectedCertId('');
       setCertificationType('standard');
@@ -255,9 +252,6 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
                           Primary
                         </span>
                       )}
-                      {cert.verificationStatus === 'verified' && (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      )}
                     </div>
                     <div className="text-sm text-muted-foreground mb-1">{cert.certifyingBody}</div>
                     {cert.certificateNumber && (
@@ -313,7 +307,6 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
                         certificateNumber: '',
                         description: '',
                         expiryDate: '',
-                        verificationStatus: 'pending',
                         verificationPriority: value === 'custom' ? 3 : undefined,
                         badgeColor: value === 'custom' ? '#6b7280' : undefined,
                       });
@@ -530,8 +523,7 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
                             certifyingBody: '',
                             certificateNumber: '',
                             description: '',
-                            expiryDate: '',
-                            verificationStatus: 'pending'
+                            expiryDate: ''
                           });
                           setSelectedCertId('');
                           setCertificationType('standard');

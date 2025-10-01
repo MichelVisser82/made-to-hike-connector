@@ -44,7 +44,7 @@ export interface CertificationBadgeProps
     VariantProps<typeof certificationBadgeVariants> {
   certification: GuideCertification;
   showTooltip?: boolean;
-  showVerificationStatus?: boolean;
+  isGuideVerified?: boolean;
   showPrimaryIndicator?: boolean;
   showAbbreviated?: boolean;
   displayMode?: 'simple' | 'detailed' | 'card';
@@ -55,7 +55,7 @@ function CertificationBadge({
   variant,
   size,
   showTooltip = true,
-  showVerificationStatus = false,
+  isGuideVerified = false,
   showPrimaryIndicator = false,
   showAbbreviated = false,
   displayMode = 'simple',
@@ -213,7 +213,7 @@ function CertificationBadge({
       size === "hero" ? "w-5 h-5" :
       "w-4 h-4";
     
-    if (certification.verificationStatus === "verified") {
+    if (isGuideVerified) {
       return <CheckCircle2 className={iconSize} />;
     }
     
@@ -222,7 +222,7 @@ function CertificationBadge({
     }
     
     return <Award className={iconSize} />;
-  }, [certification, size]);
+  }, [certification, isGuideVerified, size]);
 
   // Get display title - abbreviated or full
   const displayTitle = React.useMemo(() => {
@@ -268,13 +268,8 @@ function CertificationBadge({
       {showPrimaryIndicator && certification.isPrimary && (
         <span className="ml-1 text-xs opacity-90">★</span>
       )}
-      {showVerificationStatus && certification.verificationStatus === "verified" && (
+      {isGuideVerified && (
         <CheckCircle2 className="w-3 h-3 ml-1" />
-      )}
-      {showVerificationStatus && certification.verificationStatus === "pending" && (
-        <Badge variant="outline" className="ml-1 text-xs bg-background/20">
-          Pending
-        </Badge>
       )}
     </div>
   );
@@ -313,10 +308,10 @@ function CertificationBadge({
             {certification.description && (
               <div className="text-sm mt-2">{certification.description}</div>
             )}
-            {certification.verificationStatus === "verified" && (
+            {isGuideVerified && (
               <div className="flex items-center gap-1 text-xs text-emerald-600 mt-2">
                 <CheckCircle2 className="w-3 h-3" />
-                Verified Certification
+                Verified Guide
               </div>
             )}
             {certification.isPrimary && (

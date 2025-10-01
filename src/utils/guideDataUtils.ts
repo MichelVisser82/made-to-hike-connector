@@ -145,28 +145,21 @@ export function getAbbreviatedCertification(fullTitle: string): string {
 
 /**
  * Gets the primary certification from a guide profile
- * Priority: isPrimary → highest priority verified → highest priority pending → first available
+ * Priority: isPrimary → highest priority → first available
  */
 export function getPrimaryCertification(certifications?: GuideCertification[] | null): GuideCertification | null {
   if (!certifications || certifications.length === 0) return null;
   
-  // Check for explicitly marked primary certification
+  // First priority: explicitly marked as primary
   const primaryCert = certifications.find(c => c.isPrimary);
   if (primaryCert) return primaryCert;
   
-  // Find highest priority verified certification
-  const verifiedCerts = certifications
-    .filter(c => c.verificationStatus === 'verified' && c.verificationPriority)
+  // Second priority: Find highest priority certification
+  const priorityCerts = certifications
+    .filter(c => c.verificationPriority)
     .sort((a, b) => (a.verificationPriority || 999) - (b.verificationPriority || 999));
   
-  if (verifiedCerts.length > 0) return verifiedCerts[0];
-  
-  // Find highest priority pending certification
-  const pendingCerts = certifications
-    .filter(c => c.verificationStatus === 'pending' && c.verificationPriority)
-    .sort((a, b) => (a.verificationPriority || 999) - (b.verificationPriority || 999));
-  
-  if (pendingCerts.length > 0) return pendingCerts[0];
+  if (priorityCerts.length > 0) return priorityCerts[0];
   
   // Fallback to first certification
   return certifications[0];

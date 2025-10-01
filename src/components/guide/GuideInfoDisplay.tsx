@@ -12,6 +12,7 @@ interface GuideInfoDisplayProps {
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'overlay';
   certifications?: GuideCertification[];
+  isGuideVerified?: boolean;
 }
 
 /**
@@ -24,7 +25,8 @@ export function GuideInfoDisplay({
   showBadge = true,
   size = 'md',
   variant = 'default',
-  certifications
+  certifications,
+  isGuideVerified = false
 }: GuideInfoDisplayProps) {
   const primaryCert = getPrimaryCertification(certifications);
   const avatarSizes = {
@@ -82,6 +84,7 @@ export function GuideInfoDisplay({
                   certification={primaryCert}
                   displayMode="simple"
                   showTooltip={true}
+                  isGuideVerified={isGuideVerified}
                 />
               )}
             </div>
@@ -128,6 +131,7 @@ export function GuideInfoDisplay({
                     certification={primaryCert}
                     displayMode="simple"
                     showTooltip
+                    isGuideVerified={isGuideVerified}
                   />
                 </div>
               ) : (

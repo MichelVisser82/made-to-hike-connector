@@ -25,15 +25,17 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
   
   // Pass certifications to GuideInfoDisplay for primary cert badge
   const certifications = guideProfile?.certifications;
-
-  // Get verified Priority 1 & 2 certifications for display
-  const verifiedCerts = guideProfile?.certifications
+  
+  // Get Priority 1 & 2 certifications for display (show for verified guides)
+  const priorityCerts = guideProfile?.certifications
     ?.filter(c => 
-      c.verificationStatus === 'verified' && 
       c.verificationPriority && 
       c.verificationPriority <= 2
     )
     .slice(0, 2) || [];
+  
+  // Check if guide is verified
+  const isGuideVerified = guideProfile?.verified || false;
 
   return (
     <Card 
@@ -86,6 +88,7 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
             size="sm"
             variant="overlay"
             certifications={certifications}
+            isGuideVerified={isGuideVerified}
           />
         </div>
       </div>
@@ -93,15 +96,15 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
       {/* Content Section */}
       <CardContent className="p-4 space-y-3">
         {/* Guide Certifications */}
-        {verifiedCerts.length > 0 && (
+        {priorityCerts.length > 0 && (
           <div className="flex flex-wrap gap-2 pb-2 border-b">
-            {verifiedCerts.map((cert, index) => (
+            {priorityCerts.map((cert, index) => (
               <CertificationBadge
                 key={index}
                 certification={cert}
                 size="mini"
                 showTooltip
-                showVerificationStatus
+                isGuideVerified={isGuideVerified}
               />
             ))}
           </div>

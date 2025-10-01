@@ -104,7 +104,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     certifyingBody: '', 
     certificateNumber: '',
     description: '',
-    verificationStatus: 'pending',
     verificationPriority: 3,
     badgeColor: '#6b7280'
   });
@@ -407,7 +406,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         certifyingBody: '', 
         certificateNumber: '',
         description: '',
-        verificationStatus: 'pending',
         verificationPriority: 3,
         badgeColor: '#6b7280'
       });
@@ -831,7 +829,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                             certification={cert}
                             size="compact"
                             showTooltip
-                            showVerificationStatus
+                            isGuideVerified={profile?.verified || false}
                           />
                           {cert.isPrimary && (
                             <Badge variant="secondary" className="gap-1">
@@ -906,7 +904,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                         certifyingBody: '',
                         certificateNumber: '',
                         description: '',
-                        verificationStatus: 'pending',
                         verificationPriority: 3,
                         badgeColor: '#6b7280'
                       });
@@ -1088,7 +1085,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                             certifyingBody: '', 
                             certificateNumber: '',
                             description: '',
-                            verificationStatus: 'pending',
                             verificationPriority: 3,
                             badgeColor: '#6b7280'
                           });
