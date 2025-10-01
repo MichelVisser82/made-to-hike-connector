@@ -39,12 +39,12 @@
     --trust-blue: 217 91% 60%;
 
     /* Certification badge colors */
-    --cert-sage: 120 13% 56%;
+    --cert-sage: 119 12% 60%;
     --cert-sage-foreground: 0 0% 100%;
-    --cert-burgundy: 338 81% 29%;
+    --cert-burgundy: 342 75% 30%;
     --cert-burgundy-foreground: 0 0% 100%;
     --cert-neutral: 30 33% 95%;
-    --cert-neutral-foreground: 338 81% 29%;
+    --cert-neutral-foreground: 342 75% 30%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -88,12 +88,12 @@
     --primary-glow: 142 76% 55%;
 
     /* Certification badge colors - dark mode */
-    --cert-sage: 120 13% 56%;
+    --cert-sage: 119 12% 60%;
     --cert-sage-foreground: 0 0% 100%;
-    --cert-burgundy: 338 81% 29%;
+    --cert-burgundy: 342 75% 30%;
     --cert-burgundy-foreground: 0 0% 100%;
     --cert-neutral: 30 20% 25%;
-    --cert-neutral-foreground: 338 81% 60%;
+    --cert-neutral-foreground: 342 75% 60%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
