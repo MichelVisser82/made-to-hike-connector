@@ -37,14 +37,14 @@ export function GuideInfoDisplay({
   
   const badgeSizes = {
     sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-14 h-14',
+    md: 'w-10 h-10',
+    lg: 'w-12 h-12',
   };
   
   const iconSizes = {
-    sm: 'h-4 w-4',
-    md: 'h-6 w-6',
-    lg: 'h-7 w-7',
+    sm: 'h-3 w-3',
+    md: 'h-4 w-4',
+    lg: 'h-5 w-5',
   };
   
   const titleSizes = {
@@ -100,7 +100,7 @@ export function GuideInfoDisplay({
         </div>
       )}
       
-      <div className={`flex items-start gap-4 ${showBadge ? 'pr-16' : ''}`}>
+      <div className={`flex items-start gap-4 ${showBadge ? 'pr-12' : ''}`}>
         <Avatar className={avatarSizes[size]}>
           <AvatarImage 
             src={guideInfo.avatarUrl || ''} 
