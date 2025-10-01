@@ -12,11 +12,8 @@ async function pdfToJpeg(file: File): Promise<Blob> {
       // Use PDF.js to render PDF to canvas
       const pdfjsLib = await import('pdfjs-dist');
       
-      // Set worker source - use the bundled worker
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.min.mjs',
-        import.meta.url
-      ).toString();
+      // Set worker source - use local copy from node_modules
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `/node_modules/pdfjs-dist/build/pdf.worker.min.mjs`;
       
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
