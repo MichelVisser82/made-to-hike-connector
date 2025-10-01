@@ -22,11 +22,11 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
 
   return (
     <Card 
-      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-[420px] flex flex-col"
+      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-[460px] flex flex-col"
       onClick={() => onTourClick(tour)}
     >
-      {/* Hero Image Section - 85% */}
-      <div className="relative h-[340px] flex-shrink-0">
+      {/* Hero Image Section */}
+      <div className="relative h-96 flex-shrink-0">
         {tour.hero_image ? (
           <img
             src={tour.hero_image}
@@ -74,8 +74,8 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
         </div>
       </div>
 
-      {/* Content Section - 15% */}
-      <div className="h-20 flex-shrink-0 px-4 py-4 flex flex-col gap-3">
+      {/* Content Section */}
+      <div className="h-24 flex-shrink-0 px-4 py-4 flex flex-col justify-between">
         <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3" />
