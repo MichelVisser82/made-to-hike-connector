@@ -90,11 +90,14 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [portfolioFiles, setPortfolioFiles] = useState<File[]>([]);
   const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>([]);
   const [newCert, setNewCert] = useState<GuideCertification>({ 
+    certificationType: 'custom',
     title: '', 
     certifyingBody: '', 
     certificateNumber: '',
     description: '',
-    verificationStatus: 'pending'
+    verificationStatus: 'pending',
+    verificationPriority: 3,
+    badgeColor: '#6b7280'
   });
   const [isAddingCert, setIsAddingCert] = useState(false);
 
@@ -224,11 +227,14 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       certifications: [...formData.certifications, { ...newCert }],
     });
     setNewCert({ 
+      certificationType: 'custom',
       title: '', 
       certifyingBody: '', 
       certificateNumber: '',
       description: '',
-      verificationStatus: 'pending'
+      verificationStatus: 'pending',
+      verificationPriority: 3,
+      badgeColor: '#6b7280'
     });
     setIsAddingCert(false);
     toast({
@@ -696,11 +702,14 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                     onClick={() => {
                       setIsAddingCert(false);
                       setNewCert({ 
+                        certificationType: 'custom',
                         title: '', 
                         certifyingBody: '', 
                         certificateNumber: '',
                         description: '',
-                        verificationStatus: 'pending'
+                        verificationStatus: 'pending',
+                        verificationPriority: 3,
+                        badgeColor: '#6b7280'
                       });
                     }}
                   >

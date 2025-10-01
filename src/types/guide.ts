@@ -1,10 +1,30 @@
 export interface GuideCertification {
+  // Certification type
+  certificationType: 'standard' | 'custom';
+  certificationId?: string; // ID from preloaded list (for standard)
+  
+  // Core fields
   title: string; // Certification Name
   certifyingBody: string; // Certifying Organization
-  certificateNumber?: string; // Certificate ID/Number
+  certificateNumber?: string; // Certificate ID/Number (required for Priority 1 & 2)
   description?: string; // Optional description
-  verificationStatus?: 'pending' | 'verified' | 'rejected'; // Admin-only
+  
+  // Dates
+  expiryDate?: string; // ISO date string (required)
+  addedDate?: string; // ISO date string
+  verifiedDate?: string; // ISO date string
+  
+  // Document
+  certificateDocument?: File | string; // File upload or URL after upload
+  
+  // Verification
+  verificationStatus?: 'pending' | 'verified' | 'rejected';
+  verificationPriority?: 1 | 2 | 3;
   verificationDocuments?: string[]; // Admin-only file references
+  
+  // Display
+  badgeColor?: string; // Hex color for badge
+  isPrimary?: boolean; // Primary certification to display prominently
   icon?: string; // Optional icon
 }
 

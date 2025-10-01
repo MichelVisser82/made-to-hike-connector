@@ -16,9 +16,12 @@ const certificationBadgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary/10 text-primary hover:bg-primary/20",
-        ifmga: "bg-destructive/10 text-destructive hover:bg-destructive/20",
-        verified: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20",
+        default: "text-white hover:opacity-90",
+        priority1: "text-white hover:opacity-90", // Burgundy - will use inline style
+        priority2: "text-white hover:opacity-90", // Green - will use inline style
+        priority3: "text-white hover:opacity-90", // Gray - will use inline style
+        medical: "text-white hover:opacity-90", // Teal - will use inline style
+        verified: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border border-emerald-500/20",
       },
       size: {
         mini: "text-xs px-2 py-0.5 rounded-full",
@@ -39,6 +42,7 @@ export interface CertificationBadgeProps
   certification: GuideCertification;
   showTooltip?: boolean;
   showVerificationStatus?: boolean;
+  showPrimaryIndicator?: boolean;
 }
 
 function CertificationBadge({
@@ -47,17 +51,37 @@ function CertificationBadge({
   size,
   showTooltip = true,
   showVerificationStatus = false,
+  showPrimaryIndicator = false,
   className,
   ...props
 }: CertificationBadgeProps) {
-  // Determine variant based on certification type
-  const badgeVariant = React.useMemo(() => {
-    if (variant) return variant;
+  // Determine variant and background color based on certification priority
+  const { badgeVariant, backgroundColor } = React.useMemo((): {
+    badgeVariant: "default" | "priority1" | "priority2" | "priority3" | "medical" | "verified";
+    backgroundColor: string | undefined;
+  } => {
+    if (variant) return { badgeVariant: variant, backgroundColor: undefined };
     
-    const titleLower = certification.title.toLowerCase();
-    if (titleLower.includes("ifmga")) return "ifmga";
-    if (certification.verificationStatus === "verified") return "verified";
-    return "default";
+    // Use priority-based colors
+    if (certification.verificationPriority === 1) {
+      return { badgeVariant: "priority1", backgroundColor: certification.badgeColor || '#881337' };
+    }
+    if (certification.verificationPriority === 2) {
+      const isMedical = certification.badgeColor === '#0d9488';
+      return { 
+        badgeVariant: isMedical ? "medical" : "priority2", 
+        backgroundColor: certification.badgeColor || '#22c55e' 
+      };
+    }
+    if (certification.verificationPriority === 3) {
+      return { badgeVariant: "priority3", backgroundColor: '#6b7280' };
+    }
+    
+    // Fallback to custom badge color or default
+    return { 
+      badgeVariant: "default", 
+      backgroundColor: certification.badgeColor 
+    };
   }, [certification, variant]);
 
   const icon = React.useMemo(() => {
@@ -67,8 +91,7 @@ function CertificationBadge({
       return <CheckCircle2 className={iconSize} />;
     }
     
-    const titleLower = certification.title.toLowerCase();
-    if (titleLower.includes("ifmga") || titleLower.includes("guide")) {
+    if (certification.verificationPriority === 1) {
       return <Shield className={iconSize} />;
     }
     
@@ -78,12 +101,19 @@ function CertificationBadge({
   const badgeContent = (
     <div
       className={cn(certificationBadgeVariants({ variant: badgeVariant, size }), className)}
+      style={backgroundColor ? { backgroundColor } : undefined}
       {...props}
     >
       {icon}
-      <span>{certification.title}</span>
+      <span className="truncate">{certification.title}</span>
+      {showPrimaryIndicator && certification.isPrimary && (
+        <span className="ml-1 text-xs opacity-90">★</span>
+      )}
+      {showVerificationStatus && certification.verificationStatus === "verified" && (
+        <CheckCircle2 className="w-3 h-3 ml-1" />
+      )}
       {showVerificationStatus && certification.verificationStatus === "pending" && (
-        <Badge variant="outline" className="ml-1 text-xs">
+        <Badge variant="outline" className="ml-1 text-xs bg-background/20">
           Pending
         </Badge>
       )}
@@ -111,6 +141,16 @@ function CertificationBadge({
                 Certificate #: {certification.certificateNumber}
               </div>
             )}
+            {certification.expiryDate && (
+              <div className="text-xs text-muted-foreground">
+                Expires: {new Date(certification.expiryDate).toLocaleDateString()}
+              </div>
+            )}
+            {certification.verificationPriority && (
+              <div className="text-xs text-muted-foreground">
+                Priority {certification.verificationPriority} Certification
+              </div>
+            )}
             {certification.description && (
               <div className="text-sm mt-2">{certification.description}</div>
             )}
@@ -118,6 +158,11 @@ function CertificationBadge({
               <div className="flex items-center gap-1 text-xs text-emerald-600 mt-2">
                 <CheckCircle2 className="w-3 h-3" />
                 Verified Certification
+              </div>
+            )}
+            {certification.isPrimary && (
+              <div className="text-xs font-medium text-primary mt-2">
+                ★ Primary Certification
               </div>
             )}
           </div>
