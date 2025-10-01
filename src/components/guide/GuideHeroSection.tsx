@@ -1,6 +1,8 @@
 import { MapPin, CheckCircle, MessageCircle, Calendar } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { CertificationBadge } from '../ui/certification-badge';
+import { getPrimaryCertification } from '@/utils/guideDataUtils';
 import type { GuideProfile } from '@/types/guide';
 
 interface GuideHeroSectionProps {
@@ -15,6 +17,8 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   const activeSinceYear = guide.active_since 
     ? new Date(guide.active_since).getFullYear()
     : new Date().getFullYear();
+  
+  const primaryCert = getPrimaryCertification(guide.certifications);
 
   return (
     <section className="relative h-[500px] w-full overflow-hidden">
@@ -52,8 +56,16 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           {/* Guide Info */}
           <div className="flex-1 text-white">
             {/* Name and Rating */}
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
               <h1 className="text-4xl md:text-5xl font-bold">{guide.display_name}</h1>
+              {primaryCert && (
+                <CertificationBadge
+                  certification={primaryCert}
+                  size="hero"
+                  showAbbreviated
+                  showTooltip
+                />
+              )}
               {stats.average_rating > 0 && (
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (

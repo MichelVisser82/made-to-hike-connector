@@ -27,6 +27,7 @@ const certificationBadgeVariants = cva(
         mini: "text-xs px-2 py-0.5 rounded-full",
         compact: "text-sm px-2.5 py-1 rounded-md",
         full: "text-sm px-3 py-1.5 rounded-md",
+        hero: "text-base px-4 py-2 rounded-lg font-semibold",
       },
     },
     defaultVariants: {
@@ -43,6 +44,7 @@ export interface CertificationBadgeProps
   showTooltip?: boolean;
   showVerificationStatus?: boolean;
   showPrimaryIndicator?: boolean;
+  showAbbreviated?: boolean;
 }
 
 function CertificationBadge({
@@ -52,6 +54,7 @@ function CertificationBadge({
   showTooltip = true,
   showVerificationStatus = false,
   showPrimaryIndicator = false,
+  showAbbreviated = false,
   className,
   ...props
 }: CertificationBadgeProps) {
@@ -85,7 +88,10 @@ function CertificationBadge({
   }, [certification, variant]);
 
   const icon = React.useMemo(() => {
-    const iconSize = size === "mini" ? "w-3 h-3" : "w-4 h-4";
+    const iconSize = 
+      size === "mini" ? "w-3 h-3" : 
+      size === "hero" ? "w-5 h-5" :
+      "w-4 h-4";
     
     if (certification.verificationStatus === "verified") {
       return <CheckCircle2 className={iconSize} />;
@@ -98,6 +104,39 @@ function CertificationBadge({
     return <Award className={iconSize} />;
   }, [certification, size]);
 
+  // Get display title - abbreviated or full
+  const displayTitle = React.useMemo(() => {
+    if (!showAbbreviated) return certification.title;
+    
+    // Common abbreviations
+    const abbreviations: Record<string, string> = {
+      'International Mountain Leader': 'IML',
+      'Mountain Leader': 'ML',
+      'Wilderness First Aid': 'WFA',
+      'Wilderness First Responder': 'WFR',
+      'Mountain Instructor Certificate': 'MIC',
+      'International Federation of Mountain Guides Association': 'IFMGA',
+      'Alpine Guide': 'AG',
+      'Rock Climbing Instructor': 'RCI',
+      'Winter Mountain Leader': 'WML',
+    };
+    
+    // Check for exact match
+    if (abbreviations[certification.title]) {
+      return abbreviations[certification.title];
+    }
+    
+    // Check for partial match
+    for (const [key, abbr] of Object.entries(abbreviations)) {
+      if (certification.title.includes(key)) {
+        return abbr;
+      }
+    }
+    
+    // Fallback to full title
+    return certification.title;
+  }, [certification.title, showAbbreviated]);
+
   const badgeContent = (
     <div
       className={cn(certificationBadgeVariants({ variant: badgeVariant, size }), className)}
@@ -105,7 +144,7 @@ function CertificationBadge({
       {...props}
     >
       {icon}
-      <span className="truncate">{certification.title}</span>
+      <span className="truncate">{displayTitle}</span>
       {showPrimaryIndicator && certification.isPrimary && (
         <span className="ml-1 text-xs opacity-90">★</span>
       )}

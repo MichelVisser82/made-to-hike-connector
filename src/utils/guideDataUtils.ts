@@ -1,5 +1,5 @@
 import type { Tour } from '@/types';
-import type { GuideProfile, GuideStats } from '@/types/guide';
+import type { GuideProfile, GuideStats, GuideCertification } from '@/types/guide';
 
 /**
  * Unified guide display information interface
@@ -100,6 +100,69 @@ export function getExperienceDisplayText(guideInfo: GuideDisplayInfo): string {
   }
   
   return 'Experienced professional';
+}
+
+/**
+ * Certification abbreviation mapping for common certifications
+ */
+const CERTIFICATION_ABBREVIATIONS: Record<string, string> = {
+  'International Mountain Leader': 'IML',
+  'Mountain Leader': 'ML',
+  'Wilderness First Aid': 'WFA',
+  'Wilderness First Responder': 'WFR',
+  'Mountain Instructor Certificate': 'MIC',
+  'International Federation of Mountain Guides Association': 'IFMGA',
+  'Alpine Guide': 'AG',
+  'Rock Climbing Instructor': 'RCI',
+  'Winter Mountain Leader': 'WML',
+  'Mountain Training': 'MT',
+};
+
+/**
+ * Gets abbreviated certification title for badge display
+ */
+export function getAbbreviatedCertification(fullTitle: string): string {
+  // Check for exact match
+  if (CERTIFICATION_ABBREVIATIONS[fullTitle]) {
+    return CERTIFICATION_ABBREVIATIONS[fullTitle];
+  }
+  
+  // Check for partial match
+  for (const [key, abbr] of Object.entries(CERTIFICATION_ABBREVIATIONS)) {
+    if (fullTitle.includes(key)) {
+      return abbr;
+    }
+  }
+  
+  // Fallback: Create abbreviation from first letters of words
+  const words = fullTitle.split(' ').filter(w => w.length > 2);
+  if (words.length > 1) {
+    return words.map(w => w[0].toUpperCase()).join('');
+  }
+  
+  return fullTitle;
+}
+
+/**
+ * Gets the primary certification from a guide profile
+ * Priority: isPrimary → highest priority verified → first available
+ */
+export function getPrimaryCertification(certifications?: GuideCertification[] | null): GuideCertification | null {
+  if (!certifications || certifications.length === 0) return null;
+  
+  // Check for explicitly marked primary certification
+  const primaryCert = certifications.find(c => c.isPrimary);
+  if (primaryCert) return primaryCert;
+  
+  // Find highest priority verified certification
+  const verifiedCerts = certifications
+    .filter(c => c.verificationStatus === 'verified' && c.verificationPriority)
+    .sort((a, b) => (a.verificationPriority || 999) - (b.verificationPriority || 999));
+  
+  if (verifiedCerts.length > 0) return verifiedCerts[0];
+  
+  // Fallback to first certification
+  return certifications[0];
 }
 
 /**

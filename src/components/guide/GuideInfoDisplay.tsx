@@ -1,7 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { CertificationBadge } from '../ui/certification-badge';
 import { Award, Loader2 } from 'lucide-react';
 import type { GuideDisplayInfo } from '@/utils/guideDataUtils';
-import { getExperienceDisplayText, getCertificationDisplayText } from '@/utils/guideDataUtils';
+import { getExperienceDisplayText, getPrimaryCertification } from '@/utils/guideDataUtils';
+import type { GuideCertification } from '@/types/guide';
 
 interface GuideInfoDisplayProps {
   guideInfo: GuideDisplayInfo;
@@ -9,6 +11,7 @@ interface GuideInfoDisplayProps {
   showBadge?: boolean;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'overlay';
+  certifications?: GuideCertification[];
 }
 
 /**
@@ -20,8 +23,10 @@ export function GuideInfoDisplay({
   isLoadingProfessional = false,
   showBadge = true,
   size = 'md',
-  variant = 'default'
+  variant = 'default',
+  certifications
 }: GuideInfoDisplayProps) {
+  const primaryCert = getPrimaryCertification(certifications);
   const avatarSizes = {
     sm: 'h-12 w-12',
     md: 'h-20 w-20',
@@ -71,9 +76,18 @@ export function GuideInfoDisplay({
               <p className="text-sm font-semibold text-white drop-shadow-lg">
                 {guideInfo.displayName}
               </p>
-              <p className="text-xs text-white/90 drop-shadow-lg">
-                {getCertificationDisplayText(guideInfo)}
-              </p>
+              {primaryCert ? (
+                <CertificationBadge
+                  certification={primaryCert}
+                  size="mini"
+                  showAbbreviated
+                  showTooltip={false}
+                />
+              ) : (
+                <p className="text-xs text-white/90 drop-shadow-lg">
+                  Certified Professional
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -112,9 +126,20 @@ export function GuideInfoDisplay({
             </div>
           ) : (
             <>
-              <p className="text-primary font-semibold mb-1">
-                {getCertificationDisplayText(guideInfo)}
-              </p>
+              {primaryCert ? (
+                <div className="mb-2">
+                  <CertificationBadge
+                    certification={primaryCert}
+                    size={size === 'sm' ? 'mini' : size === 'lg' ? 'full' : 'compact'}
+                    showAbbreviated
+                    showTooltip
+                  />
+                </div>
+              ) : (
+                <p className="text-primary font-semibold mb-1">
+                  Certified Professional
+                </p>
+              )}
               <p className="text-sm text-muted-foreground">
                 {getExperienceDisplayText(guideInfo)}
               </p>

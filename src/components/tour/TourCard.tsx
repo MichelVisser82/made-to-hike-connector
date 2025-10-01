@@ -22,6 +22,9 @@ interface TourCardProps {
 export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
   const { guideInfo, isLoadingProfessional } = useEnhancedGuideInfo(tour);
   const { data: guideProfile } = useGuideProfile(tour.guide_id);
+  
+  // Pass certifications to GuideInfoDisplay for primary cert badge
+  const certifications = guideProfile?.certifications;
 
   // Get verified Priority 1 & 2 certifications for display
   const verifiedCerts = guideProfile?.certifications
@@ -82,6 +85,7 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
             showBadge={false}
             size="sm"
             variant="overlay"
+            certifications={certifications}
           />
         </div>
       </div>
