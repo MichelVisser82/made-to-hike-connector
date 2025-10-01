@@ -145,15 +145,21 @@ export function VerifiedGuidesArchive() {
                     </div>
                   )}
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={() => window.open(`/guide/${guide.user_id}`, '_blank')}
+                  <a
+                    href={`/guide/${guide.user_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block w-full"
                   >
-                    View Profile
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                    >
+                      View Profile
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </a>
                 </CardContent>
               </Card>
             );
