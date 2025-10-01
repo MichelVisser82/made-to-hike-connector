@@ -22,7 +22,7 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
 
   return (
     <Card 
-      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-[460px] flex flex-col"
+      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col"
       onClick={() => onTourClick(tour)}
     >
       {/* Hero Image Section */}
@@ -75,7 +75,7 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
       </div>
 
       {/* Content Section */}
-      <div className="h-24 flex-shrink-0 px-4 py-4 flex flex-col gap-4">
+      <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3" />
@@ -110,7 +110,7 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
             Book Now
           </Button>
         </div>
-      </div>
+      </CardContent>
     </Card>
   );
 }
