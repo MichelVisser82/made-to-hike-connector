@@ -1,27 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Mail, MessageCircle, Award, ChevronDown, Loader2 } from 'lucide-react';
+import { Mail, MessageCircle, ChevronDown, Loader2 } from 'lucide-react';
 import { type User, type Tour } from '../../types';
-import type { GuideProfile, GuideStats } from '@/types/guide';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
-import { useGuideProfile } from '@/hooks/useGuideProfile';
-import { useGuideStats } from '@/hooks/useGuideStats';
+import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
+import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 
 interface BookingFlowProps {
   tour: Tour;
   user: User;
-  guide?: GuideProfile;
-  stats?: GuideStats;
   onComplete: () => void;
   onCancel: () => void;
 }
@@ -44,42 +33,13 @@ const mockDateOptions: DateOption[] = [
   { date: 'May 20-22, 2024', spotsLeft: 5, price: 427, originalPrice: 450, discount: 'Limited Spots', savings: 23 },
 ];
 
-export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: BookingFlowProps) {
+export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowProps) {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDateOptions, setShowDateOptions] = useState(false);
   
-  // ALWAYS fetch guide data fresh - ignore any stale props
-  const { data: fetchedGuide, isLoading: isLoadingGuide, refetch: refetchGuide } = useGuideProfile(tour.guide_id);
-  const { data: fetchedStats, isLoading: isLoadingStats } = useGuideStats(tour.guide_id);
-  
-  // Force refetch on mount to ensure fresh data
-  useEffect(() => {
-    refetchGuide();
-  }, [refetchGuide]);
-  
-  // Use fetched data, never props
-  const guideData = fetchedGuide;
-  const statsData = fetchedStats;
-  const isLoading = isLoadingGuide || isLoadingStats;
-  
-  // Enhanced fallbacks using tour object as middle layer for name/image only
-  const guideDisplayName = tour.guide_display_name || fetchedGuide?.display_name || 'Professional Guide';
-  const guideImage = tour.guide_avatar_url || fetchedGuide?.profile_image_url;
-  const guideCertification = fetchedGuide?.certifications?.[0]?.title || 'Certified Professional';
-  
-  console.log('BookingFlow - Guide data:', {
-    tourGuideId: tour.guide_id,
-    tourGuideDisplayName: tour.guide_display_name,
-    tourGuideAvatarUrl: tour.guide_avatar_url,
-    fetchedGuide: !!fetchedGuide,
-    fetchedGuideData: fetchedGuide,
-    guideDataExperienceYears: guideData?.experience_years,
-    guideDataActiveSince: guideData?.active_since,
-    guideDataCertifications: guideData?.certifications,
-    finalName: guideDisplayName,
-    finalCertification: guideCertification
-  });
+  // Use unified hook for consistent guide data
+  const { guideInfo, isLoading, isLoadingProfessional } = useEnhancedGuideInfo(tour);
   
   const selectedDateOption = mockDateOptions.find(d => d.date === selectedDate);
   const tourPrice = selectedDateOption?.price || tour.price;
@@ -118,57 +78,13 @@ export function BookingFlow({ tour, user, guide, stats, onComplete, onCancel }: 
         )}
 
         <Card>
-          <CardHeader className="relative pb-4">
-            <div className="absolute top-6 right-6 w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-              <Award className="h-6 w-6 text-primary" />
-            </div>
-            <div className="flex items-start gap-4 pr-16">
-              <Avatar className="h-20 w-20">
-                <AvatarImage 
-                  src={guideImage || ''} 
-                  alt={guideDisplayName} 
-                />
-                <AvatarFallback>
-                  {guideDisplayName.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-1">
-                  {guideDisplayName}
-                </h3>
-                <p className="text-primary font-semibold mb-1">
-                  {guideCertification}
-                </p>
-                {(() => {
-                  // Use experience_years if available, fallback to calculating from active_since
-                  const yearsExperience = guideData?.experience_years ?? (
-                    guideData?.active_since 
-                      ? new Date().getFullYear() - new Date(guideData.active_since).getFullYear()
-                      : 0
-                  );
-                  
-                  if (yearsExperience > 0) {
-                    return (
-                      <p className="text-sm text-muted-foreground">
-                        {yearsExperience}+ years experience
-                      </p>
-                    );
-                  }
-                  if (statsData?.tours_completed && statsData.tours_completed > 0) {
-                    return (
-                      <p className="text-sm text-muted-foreground">
-                        {statsData.tours_completed}+ tours completed
-                      </p>
-                    );
-                  }
-                  return (
-                    <p className="text-sm text-muted-foreground">
-                      Experienced professional
-                    </p>
-                  );
-                })()}
-              </div>
-            </div>
+          <CardHeader className="pb-4">
+            <GuideInfoDisplay 
+              guideInfo={guideInfo}
+              isLoadingProfessional={isLoadingProfessional}
+              showBadge={true}
+              size="md"
+            />
           </CardHeader>
           
           <CardContent className="space-y-6">
