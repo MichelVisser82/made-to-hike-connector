@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Award, Shield, CheckCircle2, Users, Globe, Clock } from "lucide-react";
+import { Award, Shield, CheckCircle2, Users, Globe, Clock, Mountain } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -65,9 +65,9 @@ function CertificationBadge({
 }: CertificationBadgeProps) {
   const metadata = getCertificationMetadata(certification.title);
   
-  // Simple mode: Just abbreviation with checkmark (with rich hover card)
+  // Simple mode: Icon left, abbreviation center, checkmark right (with rich hover card)
   if (displayMode === 'simple') {
-    // Determine color scheme class based on certification
+    // Determine color scheme class and icon based on certification
     const lowerTitle = certification.title.toLowerCase();
     const colorClass = React.useMemo(() => {
       if (lowerTitle.includes('iml')) return 'bg-cert-sage text-cert-sage-foreground';
@@ -75,14 +75,22 @@ function CertificationBadge({
       return 'bg-cert-neutral text-cert-neutral-foreground';
     }, [lowerTitle]);
 
+    // Choose icon based on certification type
+    const LeftIcon = React.useMemo(() => {
+      if (lowerTitle.includes('iml')) return Mountain;
+      if (lowerTitle.includes('ifmga')) return Award;
+      return Shield;
+    }, [lowerTitle]);
+
     const badgeElement = (
       <div className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer border shadow-sm",
+        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold cursor-pointer border shadow-sm",
         colorClass,
         lowerTitle.includes('iml') || lowerTitle.includes('ifmga') ? 'border-transparent' : 'border-cert-neutral-foreground/20'
       )}>
-        <CheckCircle2 className="w-4 h-4" />
-        <span>{metadata?.abbreviation || certification.title}</span>
+        <LeftIcon className="w-4 h-4 flex-shrink-0" />
+        <span className="flex-1">{metadata?.abbreviation || certification.title}</span>
+        <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
       </div>
     );
 
@@ -93,7 +101,7 @@ function CertificationBadge({
     ) : badgeElement;
   }
   
-  // Detailed mode: Badge with title and subtitle
+  // Detailed mode: Icon with background left, two lines of text center, checkmark right
   if (displayMode === 'detailed') {
     const lowerTitle = certification.title.toLowerCase();
     const colorClass = React.useMemo(() => {
@@ -102,21 +110,36 @@ function CertificationBadge({
       return 'bg-cert-neutral text-cert-neutral-foreground';
     }, [lowerTitle]);
 
+    // Choose icon based on certification type
+    const LeftIcon = React.useMemo(() => {
+      if (lowerTitle.includes('iml')) return Mountain;
+      if (lowerTitle.includes('ifmga')) return Award;
+      return Shield;
+    }, [lowerTitle]);
+
     const badgeElement = (
       <div className={cn(
-        "inline-flex items-start gap-3 px-4 py-3 rounded-lg border shadow-sm cursor-pointer",
+        "inline-flex items-center gap-3 px-4 py-3 rounded-xl border shadow-sm cursor-pointer w-full",
         colorClass,
         lowerTitle.includes('iml') || lowerTitle.includes('ifmga') ? 'border-transparent' : 'border-cert-neutral-foreground/20'
       )}>
-        <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
+        {/* Icon with darker background circle */}
+        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-black/20 flex items-center justify-center">
+          <LeftIcon className="w-6 h-6" />
+        </div>
+        
+        {/* Two lines of text */}
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-base">
+          <div className="font-bold text-base leading-tight">
             {metadata?.abbreviation || certification.title} Certified
           </div>
           <div className="text-sm opacity-90 mt-0.5">
             {metadata?.fullTitle || certification.certifyingBody}
           </div>
         </div>
+        
+        {/* Checkmark on right */}
+        <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
       </div>
     );
 
