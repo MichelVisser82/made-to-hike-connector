@@ -173,11 +173,15 @@ export function TourDetailPage({ tour, guide, stats, onBookTour, onBackToSearch 
                       <h3 className="font-semibold text-base">{tour.guide_display_name || 'Professional Guide'}</h3>
                       <p className="text-xs text-muted-foreground">Professional Guide</p>
                       <div className="flex flex-col gap-0.5 mt-1">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Award className="h-3 w-3" />
-                          <span>IFMGA Certified</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground">5+ years experience</div>
+                        {guide?.certifications && guide.certifications.length > 0 && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Award className="h-3 w-3" />
+                            <span>{guide.certifications[0].title}</span>
+                          </div>
+                        )}
+                        {guide?.experience_years && (
+                          <div className="text-xs text-muted-foreground">{guide.experience_years}+ years experience</div>
+                        )}
                       </div>
                     </div>
                   </div>
