@@ -27,6 +27,39 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
 
   const verification = verifications?.find(v => v.id === verificationId);
 
+  const handleVerifyCertification = async (certIndex: number) => {
+    if (!verification?.user_id) return;
+    
+    try {
+      const certifications = verification.guide_profile?.certifications || [];
+      const updatedCerts = certifications.map((cert, idx) => {
+        if (idx === certIndex) {
+          return {
+            ...cert,
+            verifiedDate: new Date().toISOString(),
+            verifiedBy: 'admin'
+          };
+        }
+        return cert;
+      });
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({ 
+          certifications: updatedCerts,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', verification.user_id);
+
+      if (error) throw error;
+
+      // Refetch to update UI
+      window.location.reload();
+    } catch (error) {
+      console.error('Error verifying certification:', error);
+    }
+  };
+
   const handleApprove = () => {
     updateStatus.mutate({
       verificationId,
@@ -192,65 +225,72 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
               <>
                 <div className="space-y-3 mb-4">
                   {certifications.map((cert: any, index: number) => {
+                    // Check if it lacks verifiedDate (pending approval)
+                    const isPendingReview = !cert.verifiedDate;
+                    
                     // Check if certification was added recently (within last 7 days)
                     const isNewCert = cert.addedDate && 
                       (new Date().getTime() - new Date(cert.addedDate).getTime()) < (7 * 24 * 60 * 60 * 1000);
-                    
-                    // Check if it lacks verifiedDate (pending approval)
-                    const isPendingReview = !cert.verifiedDate;
                     
                     return (
                       <div
                         key={index}
                         className={`p-4 border rounded-lg ${
-                          isNewCert && isPendingReview 
+                          isPendingReview 
                             ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' 
-                            : 'border-border bg-muted/30'
+                            : 'border-green-500 bg-green-50 dark:bg-green-950/20'
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <CertificationBadge
-                            certification={cert}
-                            size="full"
-                            showTooltip
-                            isGuideVerified={verification?.verification_status === 'approved'}
-                            showPrimaryIndicator
-                          />
-                          <div className="flex flex-col gap-1">
-                            {isNewCert && isPendingReview && (
-                              <Badge variant="destructive" className="text-xs">
-                                NEW - Pending Review
-                              </Badge>
-                            )}
-                            {!isNewCert && isPendingReview && (
-                              <Badge variant="outline" className="text-xs border-orange-500 text-orange-600">
-                                Pending Review
-                              </Badge>
-                            )}
-                            {cert.verifiedDate && (
-                              <Badge variant="default" className="text-xs bg-green-600">
-                                Verified
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1">
+                            <CertificationBadge
+                              certification={cert}
+                              size="full"
+                              showTooltip
+                              isGuideVerified={verification?.verification_status === 'approved'}
+                              showPrimaryIndicator
+                            />
+                            <div className="mt-3 text-xs text-muted-foreground space-y-1">
+                              {cert.certificateNumber && (
+                                <p>Certificate #: {cert.certificateNumber}</p>
+                              )}
+                              {cert.expiryDate && (
+                                <p>Expires: {new Date(cert.expiryDate).toLocaleDateString()}</p>
+                              )}
+                              {cert.addedDate && (
+                                <p className="font-medium">
+                                  Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
+                                  {isNewCert && isPendingReview && <span className="ml-2 text-orange-600 font-semibold">NEW</span>}
+                                </p>
+                              )}
+                              {cert.verifiedDate && (
+                                <p className="text-green-600 dark:text-green-400 font-medium">
+                                  ✓ Verified: {formatDistanceToNow(new Date(cert.verifiedDate))} ago
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2 items-end">
+                            {isPendingReview ? (
+                              <>
+                                <Badge variant="destructive" className="text-xs whitespace-nowrap">
+                                  Pending Approval
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleVerifyCertification(index)}
+                                  className="gap-2 whitespace-nowrap"
+                                >
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Verify Now
+                                </Button>
+                              </>
+                            ) : (
+                              <Badge variant="default" className="text-xs bg-green-600 whitespace-nowrap">
+                                ✓ Verified
                               </Badge>
                             )}
                           </div>
-                        </div>
-                        <div className="mt-2 text-xs text-muted-foreground space-y-1">
-                          {cert.certificateNumber && (
-                            <p>Certificate #: {cert.certificateNumber}</p>
-                          )}
-                          {cert.expiryDate && (
-                            <p>Expires: {new Date(cert.expiryDate).toLocaleDateString()}</p>
-                          )}
-                          {cert.addedDate && (
-                            <p className="font-medium">
-                              Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
-                            </p>
-                          )}
-                          {cert.verifiedDate && (
-                            <p className="text-green-600 dark:text-green-400">
-                              Verified: {formatDistanceToNow(new Date(cert.verifiedDate))} ago
-                            </p>
-                          )}
                         </div>
                       </div>
                     );
