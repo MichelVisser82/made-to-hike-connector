@@ -13,6 +13,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { SmartImage } from '@/components/SmartImage';
+import { CertificationBadge } from '@/components/ui/certification-badge';
+import type { GuideCertification } from '@/types/guide';
 
 interface CountryCertification {
   country: string;
@@ -229,6 +231,42 @@ export function CertificationsContent() {
         {/* The Two International Standards */}
         <section className="mb-20">
           <h2 className="text-3xl md:text-4xl font-bold mb-8">The Two International Standards</h2>
+          
+          {/* Example Certification Badges */}
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="flex items-center justify-center p-4 bg-muted/30 rounded-lg">
+              <CertificationBadge
+                certification={{
+                  certificationType: 'standard',
+                  certificationId: 'ifmga-mountain-guide',
+                  title: 'IFMGA Mountain Guide',
+                  certifyingBody: 'International Federation of Mountain Guides Associations',
+                  certificateNumber: 'IFMGA-12345',
+                  isPrimary: true,
+                  badgeColor: '#8B4513'
+                }}
+                displayMode="detailed"
+                showTooltip={false}
+                isGuideVerified={true}
+              />
+            </div>
+            <div className="flex items-center justify-center p-4 bg-muted/30 rounded-lg">
+              <CertificationBadge
+                certification={{
+                  certificationType: 'standard',
+                  certificationId: 'international-mountain-leader',
+                  title: 'International Mountain Leader',
+                  certifyingBody: 'Union of International Mountain Leader Associations',
+                  certificateNumber: 'IML-67890',
+                  isPrimary: true,
+                  badgeColor: '#2F5233'
+                }}
+                displayMode="detailed"
+                showTooltip={false}
+                isGuideVerified={true}
+              />
+            </div>
+          </div>
           
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             {/* IFMGA */}
