@@ -1,6 +1,7 @@
 import heic2any from 'heic2any';
 import { gps } from 'exifr';
 import { supabase } from '@/integrations/supabase/client';
+import { convertToJpeg, needsConversion } from './documentToJpeg';
 
 export interface GPSData {
   latitude: number;
@@ -275,6 +276,7 @@ export const optimizeDocument = async (
 
 /**
  * Upload document to guide-documents storage bucket
+ * All files are automatically converted to JPEG for uniform handling
  */
 export const uploadCertificateDocument = async (
   file: File,
@@ -282,21 +284,44 @@ export const uploadCertificateDocument = async (
   optimize: boolean = true
 ): Promise<string> => {
   try {
-    const finalFile = optimize ? await optimizeDocument(file) : file;
+    console.log('Starting certificate document upload:', { 
+      name: file.name, 
+      type: file.type, 
+      size: file.size 
+    });
     
-    const fileExt = finalFile.name.split('.').pop();
-    const fileName = `cert-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    // Convert all documents to JPEG format
+    const { blob: jpegBlob, fileName: jpegFileName } = await convertToJpeg(file);
+    
+    // Create File object from blob
+    const jpegFile = new File([jpegBlob], jpegFileName, { type: 'image/jpeg' });
+    
+    console.log('Converted to JPEG:', {
+      originalSize: file.size,
+      jpegSize: jpegFile.size,
+      fileName: jpegFileName
+    });
+    
+    // Generate unique filename
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(7);
+    const fileName = `cert-${timestamp}-${random}.jpg`;
     const filePath = `${userId}/certificates/${fileName}`;
     
+    // Upload to Supabase storage
     const { error: uploadError } = await supabase.storage
       .from('guide-documents')
-      .upload(filePath, finalFile, {
-        contentType: finalFile.type,
+      .upload(filePath, jpegFile, {
+        contentType: 'image/jpeg',
         upsert: false
       });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw uploadError;
+    }
 
+    console.log('Upload successful:', filePath);
     return filePath;
   } catch (error) {
     console.error('Certificate upload failed:', error);

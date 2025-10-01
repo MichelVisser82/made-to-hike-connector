@@ -340,7 +340,7 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
             )}
           </div>
 
-          {/* Certificate Documents */}
+          {/* Certificate Documents - All stored as JPEG now */}
           {certifications.length > 0 && (
             <div>
               <h3 className="font-semibold text-lg mb-4">Certificate Documents</h3>
@@ -349,50 +349,49 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                   if (!cert.certificateDocument) return null;
                   
                   const documentUrl = documentUrls[cert.certificateDocument];
-                  const isPdf = documentUrl?.toLowerCase().includes('.pdf') || 
-                               cert.certificateDocument?.toLowerCase().endsWith('.pdf');
                   
                   return (
                     <div
                       key={index}
-                      className="relative group cursor-pointer rounded-lg overflow-hidden border border-border bg-muted aspect-[3/4]"
+                      className="relative group cursor-pointer rounded-lg overflow-hidden border-2 border-border bg-card aspect-[3/4]"
                       onClick={() => {
                         if (typeof cert.certificateDocument === 'string') {
                           openDocumentModal(cert.certificateDocument, cert.title);
                         }
                       }}
+                      title="Click to view full size"
                     >
-                      {/* Certificate preview */}
+                      {/* Certificate preview - All files are JPEG images */}
                       {documentUrl ? (
-                        <>
-                          {isPdf ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900">
-                              <FileText className="h-16 w-16 text-red-600 dark:text-red-400 mb-2" />
-                              <p className="text-sm font-medium line-clamp-2 text-foreground">{cert.title}</p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {cert.certificateNumber || 'PDF Document'}
-                              </p>
-                            </div>
-                          ) : (
-                            <img 
-                              src={documentUrl} 
-                              alt={cert.title}
-                              className="absolute inset-0 w-full h-full object-cover"
-                            />
-                          )}
-                        </>
+                        <img 
+                          src={documentUrl} 
+                          alt={cert.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
+                          onError={() => {
+                            console.error('Failed to load certificate thumbnail:', {
+                              path: cert.certificateDocument,
+                              url: documentUrl
+                            });
+                          }}
+                        />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
                           <FileText className="h-12 w-12 text-muted-foreground animate-pulse" />
                         </div>
                       )}
                       
-                      {/* Hover overlay with eye icon */}
+                      {/* Hover overlay */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <div className="text-white flex flex-col items-center gap-2">
                           <Eye className="h-8 w-8" />
                           <span className="text-sm font-medium">View Certificate</span>
                         </div>
+                      </div>
+                      
+                      {/* Certificate title overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                        <p className="text-white text-xs font-medium line-clamp-2">{cert.title}</p>
                       </div>
                     </div>
                   );
@@ -470,27 +469,22 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
         </CardContent>
       </Card>
 
-      {/* Document Viewer Modal */}
+      {/* Document Viewer Modal - All files are JPEG images now */}
       <Dialog open={!!selectedDocument} onOpenChange={(open) => !open && setSelectedDocument(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>{selectedDocument?.title}</DialogTitle>
+            <DialogTitle>{selectedDocument?.title || 'Certificate Document'}</DialogTitle>
           </DialogHeader>
           {selectedDocument && (
-            <div className="mt-4">
-              {selectedDocument.url.toLowerCase().includes('.pdf') ? (
-                <iframe
-                  src={selectedDocument.url}
-                  className="w-full h-[70vh] border rounded"
-                  title={selectedDocument.title}
-                />
-              ) : (
-                <img
-                  src={selectedDocument.url}
-                  alt={selectedDocument.title}
-                  className="w-full h-auto rounded"
-                />
-              )}
+            <div className="mt-4 border-2 border-border rounded-lg overflow-hidden bg-muted/30 flex items-center justify-center min-h-[70vh]">
+              <img
+                src={selectedDocument.url}
+                alt={selectedDocument.title}
+                className="max-w-full max-h-[70vh] object-contain"
+                onError={() => {
+                  console.error('Failed to load certificate document:', selectedDocument.url);
+                }}
+              />
             </div>
           )}
         </DialogContent>

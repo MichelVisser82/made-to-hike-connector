@@ -308,11 +308,6 @@ export function VerifiedGuidesArchive() {
                 {selectedGuide.certifications && Array.isArray(selectedGuide.certifications) && selectedGuide.certifications.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {selectedGuide.certifications.map((cert: any, index: number) => {
-                      // Check file type from the certificate document path (before loading URL)
-                      const docPath = (cert.certificateDocument || '').toLowerCase();
-                      const isPdf = docPath.endsWith('.pdf');
-                      const isImage = docPath.match(/\.(jpg|jpeg|png|webp|gif)$/);
-                      
                       const documentUrl = cert.certificateDocument && documentUrls[cert.certificateDocument];
                       
                       return (
@@ -349,7 +344,7 @@ export function VerifiedGuidesArchive() {
                             )}
                           </div>
                           
-                          {/* Certificate Thumbnail */}
+                          {/* Certificate Thumbnail - All files stored as JPEG now */}
                           {cert.certificateDocument && (
                             <div
                               className="relative w-20 h-20 rounded overflow-hidden border-2 border-border bg-card cursor-pointer group flex-shrink-0"
@@ -358,47 +353,38 @@ export function VerifiedGuidesArchive() {
                                   openDocumentModal(cert.certificateDocument, cert.title);
                                 }
                               }}
-                              title={`Click to view ${isPdf ? 'PDF' : 'image'}`}
+                              title="Click to view certificate"
                             >
-                              {/* Always show appropriate content based on file type */}
-                              {isPdf ? (
-                                // PDF - Always show icon, never try to load as image
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/50">
-                                  <FileText className="h-8 w-8 text-red-600 dark:text-red-400" />
-                                  <p className="text-[9px] text-red-800 dark:text-red-300 mt-1 font-bold uppercase tracking-wide">PDF</p>
-                                </div>
-                              ) : isImage && documentUrl ? (
-                                // Image - Only load if URL is available
+                              {documentUrl ? (
                                 <img 
                                   src={documentUrl} 
                                   alt={cert.title}
                                   className="absolute inset-0 w-full h-full object-cover"
                                   loading="lazy"
                                   onError={(e) => {
-                                    console.error('Image failed to load:', {
+                                    console.error('Failed to load certificate image:', {
                                       path: cert.certificateDocument,
                                       url: documentUrl
                                     });
-                                    // Replace with error placeholder
+                                    // Show error placeholder
                                     const parent = e.currentTarget.parentElement;
                                     if (parent) {
                                       e.currentTarget.style.display = 'none';
                                       const errorDiv = document.createElement('div');
-                                      errorDiv.className = 'absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-yellow-50 to-orange-100 dark:from-yellow-950/50 dark:to-orange-900/50';
-                                      errorDiv.innerHTML = '<svg class="h-8 w-8 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg><p class="text-[8px] text-orange-800 dark:text-orange-300 mt-1 font-semibold text-center px-1">Load Error</p>';
+                                      errorDiv.className = 'absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/50';
+                                      errorDiv.innerHTML = '<svg class="h-8 w-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg><p class="text-[8px] text-red-800 dark:text-red-300 mt-1 font-semibold text-center px-1">Load Error</p>';
                                       parent.appendChild(errorDiv);
                                     }
                                   }}
                                 />
                               ) : (
-                                // Loading or unknown type
                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/80">
                                   <FileText className="h-8 w-8 text-muted-foreground animate-pulse" />
                                   <p className="text-[8px] text-muted-foreground mt-1">Loading...</p>
                                 </div>
                               )}
                               
-                              {/* Hover overlay with eye icon */}
+                              {/* Hover overlay */}
                               <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
                                 <Eye className="h-6 w-6 text-white mb-1" />
                                 <p className="text-white text-[9px] font-semibold">View</p>
@@ -495,70 +481,36 @@ export function VerifiedGuidesArchive() {
         </DialogContent>
       </Dialog>
 
-      {/* Certificate Document Viewer Modal */}
+      {/* Certificate Document Viewer Modal - All files are JPEG now */}
       <Dialog open={!!selectedDocument} onOpenChange={(open) => !open && setSelectedDocument(null)}>
         <DialogContent className="max-w-5xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {selectedDocument?.url.toLowerCase().endsWith('.pdf') && (
-                <FileText className="h-5 w-5 text-red-600" />
-              )}
-              {selectedDocument?.title || 'Certificate Document'}
-            </DialogTitle>
+            <DialogTitle>{selectedDocument?.title || 'Certificate Document'}</DialogTitle>
           </DialogHeader>
           {selectedDocument && (
             <div className="mt-4">
-              {selectedDocument.url.toLowerCase().endsWith('.pdf') ? (
-                <div className="space-y-4">
-                  {/* PDF Viewer */}
-                  <div className="border-2 border-border rounded-lg overflow-hidden">
-                    <iframe
-                      src={selectedDocument.url}
-                      className="w-full h-[70vh]"
-                      title={selectedDocument.title}
-                      onError={() => {
-                        console.error('Failed to load PDF iframe:', selectedDocument.url);
-                      }}
-                    />
-                  </div>
-                  {/* Fallback: Open in new tab button */}
-                  <Button
-                    variant="outline"
-                    className="w-full gap-2"
-                    onClick={() => window.open(selectedDocument.url, '_blank')}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Open PDF in New Tab
-                  </Button>
-                </div>
-              ) : (
-                // Image viewer with better error handling
-                <div className="border-2 border-border rounded-lg overflow-hidden bg-muted/30 flex items-center justify-center min-h-[70vh]">
-                  <img
-                    src={selectedDocument.url}
-                    alt={selectedDocument.title}
-                    className="max-w-full max-h-[70vh] object-contain"
-                    onError={(e) => {
-                      console.error('Failed to load image:', selectedDocument.url);
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        parent.innerHTML = `
-                          <div class="flex flex-col items-center justify-center p-8 text-center">
-                            <svg class="h-16 w-16 text-destructive mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                            </svg>
-                            <p class="text-lg font-semibold text-foreground mb-2">Failed to Load Image</p>
-                            <p class="text-sm text-muted-foreground mb-4">The certificate image could not be displayed.</p>
-                            <button onclick="window.open('${selectedDocument.url}', '_blank')" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
-                              Try Opening in New Tab
-                            </button>
-                          </div>
-                        `;
-                      }
-                    }}
-                  />
-                </div>
-              )}
+              <div className="border-2 border-border rounded-lg overflow-hidden bg-muted/30 flex items-center justify-center min-h-[70vh]">
+                <img
+                  src={selectedDocument.url}
+                  alt={selectedDocument.title}
+                  className="max-w-full max-h-[70vh] object-contain"
+                  onError={(e) => {
+                    console.error('Failed to load certificate:', selectedDocument.url);
+                    const parent = e.currentTarget.parentElement;
+                    if (parent) {
+                      parent.innerHTML = `
+                        <div class="flex flex-col items-center justify-center p-8 text-center">
+                          <svg class="h-16 w-16 text-destructive mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                          </svg>
+                          <p class="text-lg font-semibold text-foreground mb-2">Failed to Load Certificate</p>
+                          <p class="text-sm text-muted-foreground">The certificate image could not be displayed.</p>
+                        </div>
+                      `;
+                    }
+                  }}
+                />
+              </div>
             </div>
           )}
         </DialogContent>
