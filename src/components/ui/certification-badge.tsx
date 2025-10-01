@@ -119,27 +119,27 @@ function CertificationBadge({
 
     const badgeElement = (
       <div className={cn(
-        "inline-flex items-center gap-3 px-4 py-3 rounded-xl border shadow-sm cursor-pointer w-full",
+        "inline-flex items-center gap-2.5 px-3 py-2 rounded-xl border shadow-sm cursor-pointer w-full",
         colorClass,
         lowerTitle.includes('iml') || lowerTitle.includes('ifmga') ? 'border-transparent' : 'border-cert-neutral-foreground/20'
       )}>
         {/* Icon with darker background circle */}
-        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-black/20 flex items-center justify-center">
-          <LeftIcon className="w-6 h-6" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black/20 flex items-center justify-center">
+          <LeftIcon className="w-5 h-5" />
         </div>
         
         {/* Two lines of text */}
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-base leading-tight">
+          <div className="font-bold text-sm leading-tight">
             {metadata?.abbreviation || certification.title} Certified
           </div>
-          <div className="text-sm opacity-90 mt-0.5">
+          <div className="text-xs opacity-90 mt-0.5">
             {metadata?.fullTitle || certification.certifyingBody}
           </div>
         </div>
         
         {/* Checkmark on right */}
-        <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
+        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
       </div>
     );
 
