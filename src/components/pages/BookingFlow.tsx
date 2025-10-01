@@ -89,6 +89,7 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
               isLoadingProfessional={isLoadingProfessional}
               showBadge={true}
               size="md"
+              isGuideVerified={guideProfile?.verified ?? false}
             />
             
             {/* Certification Badge - Detailed mode for booking modal */}
@@ -98,6 +99,7 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
                   certification={primaryCert}
                   displayMode="detailed"
                   showTooltip={false}
+                  isGuideVerified={guideProfile?.verified ?? false}
                 />
               </div>
             )}

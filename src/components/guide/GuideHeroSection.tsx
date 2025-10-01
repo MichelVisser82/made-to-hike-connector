@@ -64,6 +64,7 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
                   size="hero"
                   showAbbreviated
                   showTooltip
+                  isGuideVerified={guide.verified}
                 />
               )}
               {stats.average_rating > 0 && (

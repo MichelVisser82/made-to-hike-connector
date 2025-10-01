@@ -4,6 +4,7 @@ import { getPrimaryCertification } from '@/utils/guideDataUtils';
 
 interface GuideCertificationCardProps {
   certifications: GuideCertification[];
+  isGuideVerified?: boolean;
   className?: string;
 }
 
@@ -11,7 +12,7 @@ interface GuideCertificationCardProps {
  * Large certification card for "Meet Your Guide" section
  * Shows detailed certification information in card format
  */
-export function GuideCertificationCard({ certifications, className }: GuideCertificationCardProps) {
+export function GuideCertificationCard({ certifications, isGuideVerified = false, className }: GuideCertificationCardProps) {
   const primaryCert = getPrimaryCertification(certifications);
   
   if (!primaryCert) return null;
@@ -22,6 +23,7 @@ export function GuideCertificationCard({ certifications, className }: GuideCerti
         certification={primaryCert}
         displayMode="card"
         showTooltip={false}
+        isGuideVerified={isGuideVerified}
       />
     </div>
   );

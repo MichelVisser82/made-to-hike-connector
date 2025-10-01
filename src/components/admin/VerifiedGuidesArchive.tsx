@@ -128,6 +128,7 @@ export function VerifiedGuidesArchive() {
                             key={index}
                             certification={cert}
                             size="compact"
+                            isGuideVerified={true}
                           />
                         ))}
                         {guide.certifications.length > 3 && (

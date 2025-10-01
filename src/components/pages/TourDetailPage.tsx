@@ -22,7 +22,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   
   // Use unified hook for consistent guide data
-  const { guideInfo, isLoadingProfessional } = useEnhancedGuideInfo(tour);
+  const { guideInfo, isLoadingProfessional, guideProfile } = useEnhancedGuideInfo(tour);
 
   const toggleItinerary = (index: number) => {
     setExpandedItinerary(prev => ({
@@ -158,6 +158,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   isLoadingProfessional={isLoadingProfessional}
                   showBadge={true}
                   size="sm"
+                  isGuideVerified={guideProfile?.verified ?? false}
                 />
               </CardHeader>
               <CardContent className="space-y-4">
