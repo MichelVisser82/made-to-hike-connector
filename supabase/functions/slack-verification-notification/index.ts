@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
-// Version: 3.0.0 - Complete backend refactor with database triggers
-const FUNCTION_VERSION = '3.0.0';
+// Version: 3.1.0 - Added OPTIONS request handling to fix preflight errors
+const FUNCTION_VERSION = '3.1.0';
 
 // Create single service role client at module level
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
