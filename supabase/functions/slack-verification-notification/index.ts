@@ -134,30 +134,36 @@ serve(async (req) => {
 
       // If approved, update guide profile and mark all pending certifications as verified
       if (actionType === 'approve') {
-        // Get current certifications
-        const updatedCertifications = (guideProfile?.certifications || []).map((cert: any) => ({
-          ...cert,
-          verified: true,
-          verified_at: new Date().toISOString()
-        }));
+        // Get unverified certification names BEFORE updating (for confirmation message)
+        const unverifiedCerts = (guideProfile?.certifications || [])
+          .filter((cert: any) => !cert.verifiedDate)
+          .map((cert: any) => cert.title || cert.type)
+          .join(', ');
+        
+        // Mark all pending certifications as verified (using verifiedDate field)
+        const updatedCertifications = (guideProfile?.certifications || []).map((cert: any) => {
+          if (!cert.verifiedDate) {
+            return {
+              ...cert,
+              verifiedDate: new Date().toISOString(),
+              verifiedBy: 'admin'
+            };
+          }
+          return cert;
+        });
         
         const { error: profileError } = await supabase
           .from('guide_profiles')
           .update({ 
             verified: true,
-            certifications: updatedCertifications
+            certifications: updatedCertifications,
+            updated_at: new Date().toISOString()
           })
           .eq('user_id', verification.user_id);
 
         if (profileError) {
           console.error('Failed to update guide profile:', profileError);
         }
-        
-        // Get unverified certification names for confirmation message
-        const unverifiedCerts = (guideProfile?.certifications || [])
-          .filter((cert: any) => !cert.verified)
-          .map((cert: any) => cert.title || cert.type)
-          .join(', ');
         
         // Send follow-up confirmation to Slack
         if (unverifiedCerts) {
@@ -350,16 +356,16 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
     ['IFMGA', 'UIAGM', 'IVBV', 'BMG'].includes(cert.type)
   );
 
-  // Separate verified and unverified certifications
-  const verifiedCerts = certifications.filter((cert: any) => cert.verified);
-  const unverifiedCerts = certifications.filter((cert: any) => !cert.verified);
+  // Separate verified and unverified certifications (check verifiedDate field)
+  const verifiedCerts = certifications.filter((cert: any) => cert.verifiedDate);
+  const unverifiedCerts = certifications.filter((cert: any) => !cert.verifiedDate);
 
   // Format verified certifications
   const verifiedText = verifiedCerts.length > 0
     ? verifiedCerts.map((cert: any, index: number) => {
         let text = `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`;
-        if (cert.document_url) {
-          text += ` | <${cert.document_url}|View Document>`;
+        if (cert.certificateDocument) {
+          text += ` | <${cert.certificateDocument}|View Document>`;
         }
         return text;
       }).join('\n')
@@ -369,8 +375,8 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
   const unverifiedText = unverifiedCerts.length > 0
     ? unverifiedCerts.map((cert: any, index: number) => {
         let text = `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`;
-        if (cert.document_url) {
-          text += ` | <${cert.document_url}|View Document>`;
+        if (cert.certificateDocument) {
+          text += ` | <${cert.certificateDocument}|View Document>`;
         }
         return text;
       }).join('\n')
@@ -442,11 +448,16 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
 
   // Add certification documents as embedded images
   unverifiedCerts.forEach((cert: any) => {
-    if (cert.document_url) {
-      const fileName = cert.document_url.split('/').pop() || cert.title;
+    if (cert.certificateDocument) {
+      // Get public URL for the document
+      const publicUrl = cert.certificateDocument.startsWith('http') 
+        ? cert.certificateDocument 
+        : `${supabaseUrl}/storage/v1/object/public/guide-documents/${cert.certificateDocument}`;
+      
+      const fileName = cert.certificateDocument.split('/').pop() || cert.title;
       blocks.push({
         type: "image",
-        image_url: cert.document_url,
+        image_url: publicUrl,
         alt_text: fileName,
         title: {
           type: "plain_text",
