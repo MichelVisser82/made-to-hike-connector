@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
+// Version: 2.0.1 - Fixed supabase client scope issue
+const FUNCTION_VERSION = '2.0.1';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-slack-signature, x-slack-request-timestamp',
@@ -373,11 +376,15 @@ serve(async (req) => {
 });
 
 async function sendSlackNotification(verification: any, guideProfile: any) {
+  console.log(`[sendSlackNotification] Starting v${FUNCTION_VERSION} - Verification ID: ${verification.id}`);
+  
   // Create service role client for storage access
   const serviceSupabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
+  
+  console.log(`[sendSlackNotification] Service Supabase client created successfully`);
   
   const certifications = guideProfile?.certifications || [];
   const priorityCerts = certifications.filter((cert: any) => 
