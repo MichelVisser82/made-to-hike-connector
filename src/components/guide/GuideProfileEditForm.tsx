@@ -321,6 +321,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       let certToAdd = {
         ...newCert,
         addedDate: new Date().toISOString(),
+        isNewlyAdded: true, // Flag for Slack notification
       };
       
       // Upload certificate document if provided
@@ -590,6 +591,21 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       // Check if we need to send certification notifications
       if (hasPendingCertifications) {
         await handleCertificationNotification(user.id, mergedCertifications);
+        
+        // Remove isNewlyAdded flags after notification is sent
+        const cleanedCertifications = mergedCertifications.map(cert => {
+          const { isNewlyAdded, ...rest } = cert as any;
+          return rest;
+        });
+        
+        // Update database with cleaned certifications
+        await supabase
+          .from('guide_profiles')
+          .update({
+            certifications: cleanedCertifications,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id);
       }
 
       // Aggressively invalidate ALL guide profile queries
@@ -620,8 +636,8 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     try {
       console.log('🔔 Checking for unverified certifications to notify admin...');
       
-      // Find ALL certifications that don't have a verifiedDate (meaning they're new/unverified)
-      const unverifiedCerts = certifications.filter(cert => !cert.verifiedDate);
+      // Find certifications that were newly added in this session
+      const unverifiedCerts = certifications.filter(cert => (cert as any).isNewlyAdded && !cert.verifiedDate);
       
       if (unverifiedCerts.length === 0) {
         console.log('✅ No unverified certifications to notify about');
