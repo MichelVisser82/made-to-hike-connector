@@ -118,11 +118,27 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
     ['IFMGA', 'UIAGM', 'IVBV', 'BMG'].includes(cert.type)
   );
 
+  // Format certification text with verification status and document info
   const certificationText = certifications.length > 0
-    ? certifications.map((cert: any, index: number) => 
-        `${index + 1}. *${cert.title}* (${cert.type}) - ${cert.certifying_body}`
-      ).join('\n')
+    ? certifications.map((cert: any, index: number) => {
+        const verificationStatus = cert.verified ? '✅ Verified' : '⏳ Pending Verification';
+        const documentInfo = cert.document_url 
+          ? `<${cert.document_url}|View Document>` 
+          : 'No document uploaded';
+        return `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*\n   Status: ${verificationStatus} | ${documentInfo}`;
+      }).join('\n\n')
     : 'No certifications listed';
+
+  // Format verification documents
+  const verificationDocs = verification.verification_documents || [];
+  const documentsText = verificationDocs.length > 0
+    ? verificationDocs.map((doc: string, index: number) => {
+        const fileName = doc.split('/').pop() || 'Document';
+        return `${index + 1}. <${supabaseUrl}/storage/v1/object/public/${doc}|${fileName}>`;
+      }).join('\n')
+    : 'No documents uploaded';
+
+  const dashboardUrl = `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin`;
 
   const message = {
     blocks: [
@@ -174,44 +190,35 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
         type: "section",
         text: {
           type: "mrkdwn",
+          text: `*Verification Documents:*\n${documentsText}`
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
           text: `*Additional Info:*\n• License: ${verification.license_number || 'N/A'}\n• Insurance: ${verification.insurance_info || 'N/A'}`
         }
       },
       {
-        type: "actions",
-        elements: [
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "✅ Approve",
-              emoji: true
-            },
-            style: "primary",
-            value: verification.id,
-            url: `${supabaseUrl}/functions/v1/slack-verification-notification?action=approve&id=${verification.id}`
+        type: "divider"
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "⚠️ *Action Required:* Please review and approve/reject this verification in the admin dashboard."
+        },
+        accessory: {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "Open Admin Dashboard",
+            emoji: true
           },
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "❌ Reject",
-              emoji: true
-            },
-            style: "danger",
-            value: verification.id,
-            url: `${supabaseUrl}/functions/v1/slack-verification-notification?action=reject&id=${verification.id}`
-          },
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "👀 View in Dashboard",
-              emoji: true
-            },
-            url: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/admin?tab=verifications`
-          }
-        ]
+          style: "primary",
+          url: dashboardUrl
+        }
       }
     ]
   };
