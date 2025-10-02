@@ -190,7 +190,7 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
   
   const certifications = guideProfile?.certifications || [];
   const priorityCerts = certifications.filter((cert: any) => 
-    cert.priority === 1 || cert.priority === 2
+    cert.verificationPriority === 1 || cert.verificationPriority === 2
   );
 
   console.log(`[sendSlackNotification] Found ${priorityCerts.length} priority certs`);
@@ -198,11 +198,11 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
   // Generate signed URLs for certification documents
   const certsWithUrls = await Promise.all(
     priorityCerts.map(async (cert: any) => {
-      if (cert.documentPath) {
+      if (cert.certificateDocument) {
         try {
           const { data: signedUrlData } = await serviceSupabase.storage
             .from('guide-documents')
-            .createSignedUrl(cert.documentPath, 604800); // 7 days
+            .createSignedUrl(cert.certificateDocument, 604800); // 7 days
 
           return {
             ...cert,
@@ -269,8 +269,8 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
     });
 
     certsWithUrls.forEach((cert: any) => {
-      const priorityEmoji = cert.priority === 1 ? '🔴' : '🟡';
-      const certText = `${priorityEmoji} *${cert.title}*\nPriority: ${cert.priority} | Status: ${cert.verificationStatus || 'pending'}`;
+      const priorityEmoji = cert.verificationPriority === 1 ? '🔴' : '🟡';
+      const certText = `${priorityEmoji} *${cert.title}*\nPriority: ${cert.verificationPriority} | Status: ${cert.verificationStatus || 'pending'}`;
       
       blocks.push({
         type: 'section',
@@ -372,7 +372,7 @@ async function handleVerificationAction(
   if (action === 'approve') {
     const certifications = guideProfile?.certifications || [];
     const updatedCerts = certifications.map((cert: any) => {
-      if (cert.priority === 1 || cert.priority === 2) {
+      if (cert.verificationPriority === 1 || cert.verificationPriority === 2) {
         return { ...cert, verificationStatus: 'verified' };
       }
       return cert;
