@@ -10,6 +10,11 @@ const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL') ?? '';
 
 console.log(`[slack-verification-notification] Version ${FUNCTION_VERSION} initialized with JWT authentication`);
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 interface RequestPayload {
   verificationId: string;
   action: 'send' | 'approve' | 'reject';
@@ -17,6 +22,11 @@ interface RequestPayload {
 }
 
 serve(async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     console.log(`[${FUNCTION_VERSION}] Request received:`, req.method);
 
@@ -26,7 +36,7 @@ serve(async (req: Request) => {
       console.error('[auth-error] No authorization header');
       return new Response(
         JSON.stringify({ error: 'Unauthorized: No authorization header' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
 
@@ -46,7 +56,7 @@ serve(async (req: Request) => {
       console.error('[auth-error]', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized: Invalid token' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
 
@@ -99,7 +109,7 @@ serve(async (req: Request) => {
         console.error('[auth-error] User does not own verification and is not admin');
         return new Response(
           JSON.stringify({ error: 'Forbidden: You can only send notifications for your own verifications' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
+          { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
 
@@ -111,7 +121,7 @@ serve(async (req: Request) => {
             error: 'Bad Request: Only pending verifications can be sent to Slack',
             currentStatus: verification.verification_status 
           }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
 
@@ -131,7 +141,7 @@ serve(async (req: Request) => {
       
       return new Response(
         JSON.stringify({ success: true, message: 'Slack notification sent' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
       
     } else if (action === 'approve' || action === 'reject') {
@@ -140,7 +150,7 @@ serve(async (req: Request) => {
         console.error('[auth-error] User is not admin, cannot approve/reject');
         return new Response(
           JSON.stringify({ error: 'Forbidden: Only admins can approve or reject verifications' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
+          { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
 
@@ -160,7 +170,7 @@ serve(async (req: Request) => {
       
       return new Response(
         JSON.stringify({ success: true, message: `Verification ${action}d` }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
 
@@ -170,7 +180,7 @@ serve(async (req: Request) => {
     console.error('[edge-function-error]', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   }
 });
