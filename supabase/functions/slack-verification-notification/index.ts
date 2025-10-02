@@ -373,6 +373,12 @@ serve(async (req) => {
 });
 
 async function sendSlackNotification(verification: any, guideProfile: any) {
+  // Create service role client for storage access
+  const serviceSupabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+  
   const certifications = guideProfile?.certifications || [];
   const priorityCerts = certifications.filter((cert: any) => 
     ['IFMGA', 'UIAGM', 'IVBV', 'BMG'].includes(cert.type)
@@ -494,7 +500,7 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
           imageUrl = cert.certificateDocument;
         } else {
           // Generate a signed URL for the private document (valid for 1 hour)
-          const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          const { data: signedUrlData, error: signedUrlError } = await serviceSupabase.storage
             .from('guide-documents')
             .createSignedUrl(cert.certificateDocument, 3600);
           
@@ -538,7 +544,7 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
         const fileName = doc.split('/').pop() || 'Document';
         
         // Generate signed URL for the document
-        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        const { data: signedUrlData, error: signedUrlError } = await serviceSupabase.storage
           .from('guide-documents')
           .createSignedUrl(doc, 3600);
         
