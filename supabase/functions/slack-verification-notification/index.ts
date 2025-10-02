@@ -382,34 +382,11 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
   const verifiedCerts = certifications.filter((cert: any) => cert.verifiedDate);
   const unverifiedCerts = certifications.filter((cert: any) => !cert.verifiedDate);
 
-  // Format verified certifications with document preview links
+  // Format verified certifications (no document links needed - already approved)
   const verifiedText = verifiedCerts.length > 0
-    ? await Promise.all(verifiedCerts.map(async (cert: any, index: number) => {
-        let text = `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`;
-        if (cert.certificateDocument) {
-          try {
-            // Create service role client for storage access
-            const serviceSupabase = createClient(
-              Deno.env.get('SUPABASE_URL') ?? '',
-              Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-            );
-            
-            const { data: signedUrlData, error: signedUrlError } = await serviceSupabase.storage
-              .from('guide-documents')
-              .createSignedUrl(cert.certificateDocument, 3600);
-            
-            if (!signedUrlError && signedUrlData?.signedUrl) {
-              text += ` | <${signedUrlData.signedUrl}|View Document>`;
-              console.log('✅ Created signed URL for verified cert:', cert.title);
-            } else {
-              console.error('❌ Failed to create signed URL:', signedUrlError);
-            }
-          } catch (error) {
-            console.error('❌ Error creating signed URL:', error);
-          }
-        }
-        return text;
-      })).then(results => results.join('\n'))
+    ? verifiedCerts.map((cert: any, index: number) => 
+        `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`
+      ).join('\n')
     : 'None';
 
   // Format unverified certifications with document preview links
