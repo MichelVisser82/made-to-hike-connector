@@ -588,24 +588,15 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       if (error) throw error;
 
-      // Check if we need to send certification notifications
+      // Remove isNewlyAdded flags before saving to database
+      const cleanedCertifications = mergedCertifications.map(cert => {
+        const { isNewlyAdded, ...rest } = cert as any;
+        return rest;
+      });
+
+      // Check if we need to send certification notifications (before cleaning)
       if (hasPendingCertifications) {
         await handleCertificationNotification(user.id, mergedCertifications);
-        
-        // Remove isNewlyAdded flags after notification is sent
-        const cleanedCertifications = mergedCertifications.map(cert => {
-          const { isNewlyAdded, ...rest } = cert as any;
-          return rest;
-        });
-        
-        // Update database with cleaned certifications
-        await supabase
-          .from('guide_profiles')
-          .update({
-            certifications: cleanedCertifications,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id);
       }
 
       // Aggressively invalidate ALL guide profile queries
