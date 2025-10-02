@@ -386,27 +386,45 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
         if (verificationError) {
           console.error('Error updating verification status:', verificationError);
-        } else if (verification) {
-          // Automatically send to Slack
-          toast({
-            title: "Sending to verification...",
-            description: "Notifying admin team via Slack.",
-          });
-
-          await supabase.functions.invoke('slack-verification-notification', {
-            body: {
-              verificationId: verification.id,
-              action: 'send',
-            },
-          });
-
-          toast({
-            title: "Verification Requested",
-            description: "Your new certification has been sent to the admin team for verification via Slack.",
-          });
+          throw verificationError;
         }
+        
+        if (!verification) {
+          console.error('No verification record found');
+          throw new Error('No verification record found');
+        }
+
+        console.log('Sending certification to Slack:', {
+          verificationId: verification.id,
+          certTitle: certToAdd.title
+        });
+
+        // Automatically send to Slack
+        const { data: slackData, error: slackError } = await supabase.functions.invoke('slack-verification-notification', {
+          body: {
+            verificationId: verification.id,
+            action: 'send',
+          },
+        });
+
+        if (slackError) {
+          console.error('Error sending to Slack:', slackError);
+          throw slackError;
+        }
+
+        console.log('Successfully sent to Slack:', slackData);
+
+        toast({
+          title: "Verification Requested",
+          description: "Your new certification has been sent to the admin team for verification via Slack.",
+        });
       } catch (error) {
-        console.error('Error requesting verification:', error);
+        console.error('Error requesting automatic verification:', error);
+        toast({
+          title: "Certification Added",
+          description: "Certification added but automatic notification failed. Admin will be notified manually.",
+          variant: "destructive",
+        });
       }
       
       // Reset form

@@ -446,28 +446,46 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
     }
   ];
 
-  // Add certification documents as embedded images
-  unverifiedCerts.forEach((cert: any) => {
+  // Add certification documents as embedded images using signed URLs
+  for (const cert of unverifiedCerts) {
     if (cert.certificateDocument) {
-      // Get public URL for the document
-      const publicUrl = cert.certificateDocument.startsWith('http') 
-        ? cert.certificateDocument 
-        : `${supabaseUrl}/storage/v1/object/public/guide-documents/${cert.certificateDocument}`;
-      
-      const fileName = cert.certificateDocument.split('/').pop() || cert.title;
-      blocks.push({
-        type: "image",
-        image_url: publicUrl,
-        alt_text: fileName,
-        title: {
-          type: "plain_text",
-          text: `${cert.title || cert.type} - Certificate`
+      try {
+        let imageUrl: string;
+        
+        // Check if it's already a full URL
+        if (cert.certificateDocument.startsWith('http')) {
+          imageUrl = cert.certificateDocument;
+        } else {
+          // Generate a signed URL for the private document (valid for 1 hour)
+          const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from('guide-documents')
+            .createSignedUrl(cert.certificateDocument, 3600);
+          
+          if (signedUrlError || !signedUrlData?.signedUrl) {
+            console.error('Failed to create signed URL for certificate:', signedUrlError);
+            continue;
+          }
+          
+          imageUrl = signedUrlData.signedUrl;
         }
-      });
+        
+        const fileName = cert.certificateDocument.split('/').pop() || cert.title;
+        blocks.push({
+          type: "image",
+          image_url: imageUrl,
+          alt_text: fileName,
+          title: {
+            type: "plain_text",
+            text: `${cert.title || cert.type} - Certificate`
+          }
+        });
+      } catch (error) {
+        console.error('Error processing certificate document:', error);
+      }
     }
-  });
+  }
 
-  // Add verification documents as embedded images
+  // Add verification documents as embedded images using signed URLs
   const verificationDocs = verification.verification_documents || [];
   if (verificationDocs.length > 0) {
     blocks.push({
@@ -478,20 +496,33 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
       }
     });
 
-    verificationDocs.forEach((doc: string, index: number) => {
-      const publicUrl = `${supabaseUrl}/storage/v1/object/public/${doc}`;
-      const fileName = doc.split('/').pop() || `Document ${index + 1}`;
-      
-      blocks.push({
-        type: "image",
-        image_url: publicUrl,
-        alt_text: fileName,
-        title: {
-          type: "plain_text",
-          text: fileName
+    for (const doc of verificationDocs) {
+      try {
+        const fileName = doc.split('/').pop() || 'Document';
+        
+        // Generate signed URL for the document
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from('guide-documents')
+          .createSignedUrl(doc, 3600);
+        
+        if (signedUrlError || !signedUrlData?.signedUrl) {
+          console.error('Failed to create signed URL for verification doc:', signedUrlError);
+          continue;
         }
-      });
-    });
+        
+        blocks.push({
+          type: "image",
+          image_url: signedUrlData.signedUrl,
+          alt_text: fileName,
+          title: {
+            type: "plain_text",
+            text: fileName
+          }
+        });
+      } catch (error) {
+        console.error('Error processing verification document:', error);
+      }
+    }
   }
 
   // Add divider and action buttons
