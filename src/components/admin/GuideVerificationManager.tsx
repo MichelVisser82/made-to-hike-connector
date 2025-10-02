@@ -5,17 +5,50 @@ import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useGuideVerifications } from '@/hooks/useGuideVerifications';
-import { useSendSlackVerification } from '@/hooks/useSlackVerification';
 import { GuideVerificationDetails } from './GuideVerificationDetails';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { VerifiedGuidesArchive } from './VerifiedGuidesArchive';
 import { Clock, CheckCircle2, XCircle, FileText, Calendar, Send, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export function GuideVerificationManager() {
   const [selectedVerification, setSelectedVerification] = useState<string | null>(null);
-  const sendSlackNotification = useSendSlackVerification();
+  const [sendingSlack, setSendingSlack] = useState<string | null>(null);
+  const { toast } = useToast();
   const { data: pendingVerifications, isLoading: pendingLoading } = useGuideVerifications('pending');
   const { data: rejectedVerifications, isLoading: rejectedLoading } = useGuideVerifications('rejected');
+
+  const handleSendToSlack = async (verificationId: string) => {
+    setSendingSlack(verificationId);
+    try {
+      const { error } = await supabase.functions.invoke(
+        'slack-verification-notification',
+        {
+          body: {
+            verificationId,
+            action: 'send'
+          }
+        }
+      );
+
+      if (error) throw error;
+
+      toast({
+        title: 'Notification Sent',
+        description: 'Verification notification sent to Slack',
+      });
+    } catch (error: any) {
+      console.error('Failed to send Slack notification:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send notification to Slack',
+        variant: 'destructive',
+      });
+    } finally {
+      setSendingSlack(null);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -154,11 +187,11 @@ export function GuideVerificationManager() {
 
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => sendSlackNotification.mutate({ verificationId: verification.id })}
+                        onClick={() => handleSendToSlack(verification.id)}
                         variant="outline"
-                        disabled={sendSlackNotification.isPending}
+                        disabled={sendingSlack === verification.id}
                       >
-                        {sendSlackNotification.isPending ? (
+                        {sendingSlack === verification.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>

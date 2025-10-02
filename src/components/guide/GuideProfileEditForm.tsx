@@ -402,11 +402,34 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
         console.log('📝 Verification record updated, ID:', verification.id);
 
-        // Database trigger will automatically send Slack notification
-        toast({
-          title: "Certification Added & Submitted",
-          description: `Your ${priorityLabel} certification has been submitted for verification. The admin team has been notified automatically.`,
-        });
+        // Explicitly trigger Slack notification
+        try {
+          const { error: slackError } = await supabase.functions.invoke(
+            'slack-verification-notification',
+            {
+              body: {
+                verificationId: verification.id,
+                action: 'send'
+              }
+            }
+          );
+
+          if (slackError) {
+            console.error('Slack notification failed:', slackError);
+            // Don't block the user, just log it
+          }
+
+          toast({
+            title: "Certification Added & Submitted",
+            description: `Your ${priorityLabel} certification has been submitted for verification. The admin team has been notified.`,
+          });
+        } catch (slackError) {
+          console.error('Slack notification error:', slackError);
+          toast({
+            title: "Certification Submitted",
+            description: "Your certification has been submitted. Admin notification may be delayed.",
+          });
+        }
       } catch (error: any) {
         console.error('❌ Error requesting automatic verification:', error);
         toast({
