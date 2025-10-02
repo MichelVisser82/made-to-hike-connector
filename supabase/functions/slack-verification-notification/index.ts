@@ -342,7 +342,7 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
           type: 'button',
           text: {
             type: 'plain_text',
-            text: '✅ Approve',
+            text: '✅ Verify',
             emoji: true,
           },
           style: 'primary',

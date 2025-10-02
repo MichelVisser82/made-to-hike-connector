@@ -105,7 +105,7 @@ serve(async (req: Request) => {
     const immediateResponse = new Response(
       JSON.stringify({
         replace_original: true,
-        text: `⏳ Processing ${actionId === 'approve_verification' ? 'approval' : 'rejection'}...`,
+        text: `⏳ Processing ${actionId === 'approve_verification' ? 'verification' : 'rejection'}...`,
       }),
       {
         status: 200,
@@ -170,15 +170,15 @@ async function handleVerificationAction(
     throw new Error(`Guide profile not found: ${guideError?.message}`);
   }
 
-  const action = actionId === 'approve_verification' ? 'approve' : 'reject';
-  const newStatus = action === 'approve' ? 'approved' : 'rejected';
+  const action = actionId === 'approve_verification' ? 'verify' : 'reject';
+  const newStatus = action === 'verify' ? 'approved' : 'rejected';
 
   // Update verification status
   const { error: updateError } = await serviceSupabase
     .from('user_verifications')
     .update({
       verification_status: newStatus,
-      admin_notes: `${action === 'approve' ? 'Approved' : 'Rejected'} by ${slackUserName} via Slack`,
+      admin_notes: `${action === 'verify' ? 'Verified' : 'Rejected'} by ${slackUserName} via Slack`,
       updated_at: new Date().toISOString(),
     })
     .eq('id', verificationId);
@@ -188,12 +188,18 @@ async function handleVerificationAction(
     throw updateError;
   }
 
-  // If approved, update certifications in guide profile
-  if (action === 'approve') {
+  // If verified, update certifications in guide profile with timestamps
+  if (action === 'verify') {
     const certifications = guideProfile?.certifications || [];
+    const verifiedTimestamp = new Date().toISOString();
     const updatedCerts = certifications.map((cert: any) => {
       if (cert.verificationPriority === 1 || cert.verificationPriority === 2) {
-        return { ...cert, verificationStatus: 'verified' };
+        return { 
+          ...cert, 
+          verificationStatus: 'verified',
+          verifiedDate: verifiedTimestamp,
+          verifiedBy: slackUserName
+        };
       }
       return cert;
     });
@@ -213,11 +219,11 @@ async function handleVerificationAction(
     }
   }
 
-  console.log(`[handleVerificationAction] Successfully ${action}d verification`);
+  console.log(`[handleVerificationAction] Successfully ${action === 'verify' ? 'verified' : 'rejected'} verification`);
 
   // Update the original message
-  const emoji = action === 'approve' ? '✅' : '❌';
-  const actionText = action === 'approve' ? 'Approved' : 'Rejected';
+  const emoji = action === 'verify' ? '✅' : '❌';
+  const actionText = action === 'verify' ? 'Verified' : 'Rejected';
 
   await fetch(responseUrl, {
     method: 'POST',
@@ -278,11 +284,11 @@ async function handleVerificationAction(
 
 async function sendSlackConfirmation(
   guideProfile: any,
-  action: 'approve' | 'reject',
+  action: 'verify' | 'reject',
   slackUserName: string
 ) {
-  const emoji = action === 'approve' ? '✅' : '❌';
-  const actionText = action === 'approve' ? 'Approved' : 'Rejected';
+  const emoji = action === 'verify' ? '✅' : '❌';
+  const actionText = action === 'verify' ? 'Verified' : 'Rejected';
 
   const blocks: any[] = [
     {
