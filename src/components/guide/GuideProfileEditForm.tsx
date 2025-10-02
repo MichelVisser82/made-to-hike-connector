@@ -66,6 +66,8 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [newEmail, setNewEmail] = useState('');
+  const [hasPendingCertifications, setHasPendingCertifications] = useState(false);
+  const [newCertificationsCount, setNewCertificationsCount] = useState(0);
 
   const [formData, setFormData] = useState({
     display_name: '',
@@ -370,74 +372,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         certifications: updatedCertifications,
       });
       
-      // Auto-send ALL certifications to Slack for verification
-      console.log('🔔 New certification added, sending to Slack:', {
-        title: certToAdd.title,
-        priority: certToAdd.verificationPriority
-      });
+      // Mark that we have pending certifications to notify about
+      setHasPendingCertifications(true);
+      setNewCertificationsCount(prev => prev + 1);
       
-      try {
-        // Update verification record
-        const priorityLabel = `Priority ${certToAdd.verificationPriority}`;
-        const { data: verification, error: verificationError } = await supabase
-          .from('user_verifications')
-          .update({
-            verification_status: 'pending',
-            admin_notes: `Auto-requested: Guide added ${priorityLabel} certification (${certToAdd.title})`,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id)
-          .select('id')
-          .single();
-
-        if (verificationError) {
-          console.error('❌ Error updating verification status:', verificationError);
-          throw verificationError;
-        }
-        
-        if (!verification) {
-          console.error('❌ No verification record found');
-          throw new Error('No verification record found');
-        }
-
-        console.log('📝 Verification record updated, ID:', verification.id);
-
-        // Explicitly trigger Slack notification
-        try {
-          const { error: slackError } = await supabase.functions.invoke(
-            'slack-verification-notification',
-            {
-              body: {
-                verificationId: verification.id,
-                action: 'send'
-              }
-            }
-          );
-
-          if (slackError) {
-            console.error('Slack notification failed:', slackError);
-            // Don't block the user, just log it
-          }
-
-          toast({
-            title: "Certification Added & Submitted",
-            description: `Your ${priorityLabel} certification has been submitted for verification. The admin team has been notified.`,
-          });
-        } catch (slackError) {
-          console.error('Slack notification error:', slackError);
-          toast({
-            title: "Certification Submitted",
-            description: "Your certification has been submitted. Admin notification may be delayed.",
-          });
-        }
-      } catch (error: any) {
-        console.error('❌ Error requesting automatic verification:', error);
-        toast({
-          title: "Error",
-          description: `Failed to submit certification: ${error.message || 'Unknown error'}`,
-          variant: "destructive",
-        });
-      }
+      console.log('✅ Certification added. Will send notification when "Save Changes" is clicked.');
       
       // Reset form
       setNewCert({ 
@@ -457,8 +396,8 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       setIsAddingCert(false);
       
       toast({
-        title: "Success",
-        description: "Certification added. It will be verified by our team.",
+        title: "Certification Added",
+        description: "Click 'Save Changes' to submit for verification.",
       });
     } catch (error) {
       console.error('Error uploading certificate:', error);
@@ -648,6 +587,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       if (error) throw error;
 
+      // Check if we need to send certification notifications
+      if (hasPendingCertifications) {
+        await handleCertificationNotification(user.id, mergedCertifications);
+      }
+
       // Aggressively invalidate ALL guide profile queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['my-guide-profile'] }),
@@ -669,6 +613,78 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCertificationNotification = async (userId: string, certifications: GuideCertification[]) => {
+    try {
+      console.log('🔔 Checking for unverified certifications to notify admin...');
+      
+      // Find ALL certifications that don't have a verifiedDate (meaning they're new/unverified)
+      const unverifiedCerts = certifications.filter(cert => !cert.verifiedDate);
+      
+      if (unverifiedCerts.length === 0) {
+        console.log('✅ No unverified certifications to notify about');
+        return;
+      }
+      
+      console.log(`📋 Found ${unverifiedCerts.length} unverified certification(s)`);
+      
+      // Update verification status to pending
+      const { data: verification, error: verificationError } = await supabase
+        .from('user_verifications')
+        .update({
+          verification_status: 'pending',
+          admin_notes: `Guide added ${unverifiedCerts.length} certification(s) for review: ${unverifiedCerts.map(c => c.title).join(', ')}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+        .select('id')
+        .single();
+      
+      if (verificationError || !verification) {
+        console.error('❌ Failed to update verification status:', verificationError);
+        throw verificationError || new Error('No verification record found');
+      }
+      
+      console.log('✅ Verification status updated to pending, ID:', verification.id);
+      
+      // Call Slack notification edge function
+      const { data: slackResponse, error: slackError } = await supabase.functions.invoke(
+        'slack-verification-notification',
+        {
+          body: {
+            verificationId: verification.id,
+            action: 'send'
+          }
+        }
+      );
+      
+      if (slackError) {
+        console.error('❌ Slack notification failed:', slackError);
+        toast({
+          title: "Certifications Submitted",
+          description: `${unverifiedCerts.length} certification(s) submitted for review. Admin notification may be delayed.`,
+        });
+      } else {
+        console.log('✅ Slack notification sent successfully:', slackResponse);
+        toast({
+          title: "Certifications Submitted",
+          description: `${unverifiedCerts.length} certification(s) submitted. Admin team has been notified.`,
+        });
+      }
+      
+      // Reset pending flags
+      setHasPendingCertifications(false);
+      setNewCertificationsCount(0);
+      
+    } catch (error: any) {
+      console.error('❌ Certification notification error:', error);
+      toast({
+        title: "Notification Failed",
+        description: error.message || "Failed to notify admin team. Please contact support.",
+        variant: "destructive",
+      });
     }
   };
 
