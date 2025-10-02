@@ -193,9 +193,17 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
     cert.verificationPriority === 1 || cert.verificationPriority === 2
   );
 
-  console.log(`[sendSlackNotification] Found ${priorityCerts.length} priority certs`);
+  // Separate into new vs already verified
+  const newCerts = priorityCerts.filter((cert: any) => 
+    !cert.verified && !cert.verifiedDate
+  );
+  const verifiedCerts = priorityCerts.filter((cert: any) => 
+    cert.verified || cert.verifiedDate
+  );
 
-  // Generate signed URLs for certification documents
+  console.log(`[sendSlackNotification] Found ${newCerts.length} NEW priority certs, ${verifiedCerts.length} already verified`);
+
+  // Generate signed URLs for certification documents (for ALL priority certs)
   const certsWithUrls = await Promise.all(
     priorityCerts.map(async (cert: any) => {
       if (cert.certificateDocument) {
@@ -258,19 +266,60 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
     },
   ];
 
-  // Add certifications section
-  if (certsWithUrls.length > 0) {
+  // Section 1: NEW CERTIFICATIONS (Needs Review)
+  const newCertsWithUrls = certsWithUrls.filter(c => !c.verified && !c.verifiedDate);
+
+  if (newCertsWithUrls.length > 0) {
     blocks.push({
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: '*Priority Certifications for Review:*',
+        text: `*🔍 New Certifications Requiring Verification (${newCertsWithUrls.length}):*`,
       },
     });
 
-    certsWithUrls.forEach((cert: any) => {
+    newCertsWithUrls.forEach((cert: any) => {
       const priorityEmoji = cert.verificationPriority === 1 ? '🔴' : '🟡';
-      const certText = `${priorityEmoji} *${cert.title}*\nPriority: ${cert.verificationPriority} | Status: ${cert.verificationStatus || 'pending'}`;
+      const certText = `${priorityEmoji} *${cert.title}*\nPriority: ${cert.verificationPriority} | Status: Pending Review`;
+      
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: certText,
+        },
+      });
+
+      if (cert.documentUrl) {
+        blocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `📄 <${cert.documentUrl}|View Certificate Document>`,
+          },
+        });
+      }
+    });
+  }
+
+  // Section 2: ALREADY VERIFIED (For Context)
+  const verifiedCertsWithUrls = certsWithUrls.filter(c => c.verified || c.verifiedDate);
+
+  if (verifiedCertsWithUrls.length > 0) {
+    blocks.push(
+      { type: 'divider' },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*✅ Already Verified Certifications (${verifiedCertsWithUrls.length}):*`,
+        },
+      }
+    );
+
+    verifiedCertsWithUrls.forEach((cert: any) => {
+      const priorityEmoji = cert.verificationPriority === 1 ? '🔴' : '🟡';
+      const certText = `${priorityEmoji} *${cert.title}*\nPriority: ${cert.verificationPriority} | Status: ✅ Verified`;
       
       blocks.push({
         type: 'section',
