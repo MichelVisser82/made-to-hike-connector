@@ -1,723 +1,360 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
-// Version: 2.0.1 - Fixed supabase client scope issue
-const FUNCTION_VERSION = '2.0.1';
+// Version: 3.0.0 - Complete backend refactor with database triggers
+const FUNCTION_VERSION = '3.0.0';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-slack-signature, x-slack-request-timestamp',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// Create single service role client at module level
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL') ?? '';
+const slackSigningSecret = Deno.env.get('SLACK_SIGNING_SECRET') ?? '';
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL')!;
-const slackSigningSecret = Deno.env.get('SLACK_SIGNING_SECRET') || '';
+const serviceSupabase = createClient(supabaseUrl, supabaseServiceKey);
 
-interface VerificationNotificationRequest {
+console.log(`[slack-verification-notification] Version ${FUNCTION_VERSION} initialized`);
+
+interface RequestPayload {
   verificationId: string;
-  action?: 'send' | 'approve' | 'reject';
+  action: 'send' | 'approve' | 'reject';
   adminNotes?: string;
 }
 
-// Verify Slack signature for security
-async function verifySlackSignature(
-  timestamp: string,
-  body: string,
-  signature: string
-): Promise<boolean> {
-  if (!slackSigningSecret) {
-    console.warn('SLACK_SIGNING_SECRET not set, skipping signature verification');
-    return true; // Allow in development
-  }
-  
-  const time = parseInt(timestamp);
-  const currentTime = Math.floor(Date.now() / 1000);
-  
-  // Request is too old (>5 minutes)
-  if (Math.abs(currentTime - time) > 300) {
-    return false;
-  }
-  
-  const sigBasestring = `v0:${timestamp}:${body}`;
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(slackSigningSecret);
-  const msgData = encoder.encode(sigBasestring);
-  
-  const key = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  
-  const signatureBuffer = await crypto.subtle.sign('HMAC', key, msgData);
-  const hashArray = Array.from(new Uint8Array(signatureBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  const mySignature = `v0=${hashHex}`;
-  
-  return mySignature === signature;
-}
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
+serve(async (req: Request) => {
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const contentType = req.headers.get('content-type') || '';
-    
-    // Handle Slack interactive component callback
-    if (contentType.includes('application/x-www-form-urlencoded')) {
-      const bodyText = await req.text();
-      const timestamp = req.headers.get('x-slack-request-timestamp');
-      const signature = req.headers.get('x-slack-signature');
-      
-      // Verify Slack signature
-      const isValid = await verifySlackSignature(timestamp || '', bodyText, signature || '');
-      if (!timestamp || !signature || !isValid) {
-        console.error('Invalid Slack signature');
-        return new Response('Unauthorized', { status: 401, headers: corsHeaders });
-      }
-      
-      // Parse the payload
-      const params = new URLSearchParams(bodyText);
-      const payloadJson = params.get('payload');
-      
-      if (!payloadJson) {
-        throw new Error('No payload found');
-      }
-      
-      const payload = JSON.parse(payloadJson);
-      const action = payload.actions[0];
-      const verificationId = action.value;
-      const actionType = action.action_id; // 'approve' or 'reject'
-      
-      console.log('Processing Slack action:', { verificationId, actionType });
-      
-      // Fetch verification details
-      const { data: verification, error: verificationError } = await supabase
-        .from('user_verifications')
-        .select(`
-          *,
-          profiles!inner(email, name)
-        `)
-        .eq('id', verificationId)
-        .single();
+    console.log(`[${FUNCTION_VERSION}] Request received:`, req.method);
 
-      if (verificationError) {
-        throw new Error(`Failed to fetch verification: ${verificationError.message}`);
-      }
+    const payload: RequestPayload = await req.json();
+    console.log(`[${FUNCTION_VERSION}] Payload:`, JSON.stringify(payload, null, 2));
 
-      // Fetch guide profile
-      const { data: guideProfile } = await supabase
-        .from('guide_profiles')
-        .select('display_name, profile_image_url, certifications, experience_years, location')
-        .eq('user_id', verification.user_id)
-        .single();
-      
-      // Update verification status
-      const newStatus = actionType === 'approve' ? 'approved' : 'rejected';
-      
-      const { error: updateError } = await supabase
-        .from('user_verifications')
-        .update({
-          verification_status: newStatus,
-          admin_notes: `${actionType === 'approve' ? 'Approved' : 'Rejected'} via Slack`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', verificationId);
+    const { verificationId, action, adminNotes } = payload;
 
-      if (updateError) {
-        throw new Error(`Failed to update verification: ${updateError.message}`);
-      }
-
-      // If approved, update guide profile and mark all pending certifications as verified
-      if (actionType === 'approve') {
-        // Get unverified certification names BEFORE updating (for confirmation message)
-        const unverifiedCerts = (guideProfile?.certifications || [])
-          .filter((cert: any) => !cert.verifiedDate)
-          .map((cert: any) => cert.title || cert.type)
-          .join(', ');
-        
-        // Mark all pending certifications as verified (using verifiedDate field)
-        const updatedCertifications = (guideProfile?.certifications || []).map((cert: any) => {
-          if (!cert.verifiedDate) {
-            return {
-              ...cert,
-              verifiedDate: new Date().toISOString(),
-              verifiedBy: 'admin'
-            };
-          }
-          return cert;
-        });
-        
-        const { error: profileError } = await supabase
-          .from('guide_profiles')
-          .update({ 
-            verified: true,
-            certifications: updatedCertifications,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', verification.user_id);
-
-        if (profileError) {
-          console.error('Failed to update guide profile:', profileError);
-        }
-
-        console.log('✅ Certifications verified via Slack:', {
-          guide: guideProfile?.display_name || verification.profiles.name,
-          verifiedCertifications: unverifiedCerts,
-          verifiedDate: new Date().toISOString(),
-          verifiedBy: 'admin',
-          guideFullyVerified: true
-        });
-        
-        // Send follow-up confirmation to Slack
-        if (unverifiedCerts) {
-          await sendApprovalConfirmation(
-            guideProfile?.display_name || verification.profiles.name,
-            unverifiedCerts
-          );
-        }
-      }
-      
-      // Respond to Slack immediately with a message update
-      const emoji = actionType === 'approve' ? '✅' : '❌';
-      const statusText = actionType === 'approve' ? 'APPROVED' : 'REJECTED';
-      const color = actionType === 'approve' ? '#36a64f' : '#ff0000';
-      
-      return new Response(
-        JSON.stringify({
-          replace_original: true,
-          text: `${emoji} Verification ${statusText}`,
-          blocks: [
-            {
-              type: "header",
-              text: {
-                type: "plain_text",
-                text: `${emoji} Verification ${statusText}`,
-                emoji: true
-              }
-            },
-            {
-              type: "section",
-              fields: [
-                {
-                  type: "mrkdwn",
-                  text: `*Guide:*\n${guideProfile?.display_name || verification.profiles.name}`
-                },
-                {
-                  type: "mrkdwn",
-                  text: `*Email:*\n${verification.profiles.email}`
-                },
-                {
-                  type: "mrkdwn",
-                  text: `*Status:*\n${statusText}`
-                },
-                {
-                  type: "mrkdwn",
-                  text: `*Action By:*\n${payload.user.name}`
-                }
-              ]
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: actionType === 'approve' 
-                  ? "✅ *The guide has been verified and can now create tours.*"
-                  : "❌ *The verification has been rejected. The guide can resubmit with updated information.*"
-              }
-            }
-          ],
-          attachments: [
-            {
-              color: color,
-              text: `Processed at ${new Date().toLocaleString()}`
-            }
-          ]
-        }),
-        { 
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+    if (!verificationId) {
+      throw new Error('verificationId is required');
     }
-    
-    // Handle regular API call (send notification)
-    const body: VerificationNotificationRequest = await req.json();
-    const { verificationId, action = 'send', adminNotes } = body;
 
-    console.log('Processing verification action:', { verificationId, action });
-
-    // Fetch verification details
-    const { data: verification, error: verificationError } = await supabase
+    // Fetch verification record with related data
+    console.log(`[${FUNCTION_VERSION}] Fetching verification:`, verificationId);
+    const { data: verification, error: verificationError } = await serviceSupabase
       .from('user_verifications')
       .select(`
         *,
-        profiles!inner(email, name)
+        profiles:user_id (
+          id,
+          email,
+          name
+        )
       `)
       .eq('id', verificationId)
       .single();
 
-    if (verificationError) {
-      throw new Error(`Failed to fetch verification: ${verificationError.message}`);
+    if (verificationError || !verification) {
+      console.error('[verification-error]', verificationError);
+      throw new Error(`Verification not found: ${verificationError?.message}`);
     }
 
+    console.log(`[${FUNCTION_VERSION}] Verification found for user:`, verification.user_id);
+
     // Fetch guide profile
-    const { data: guideProfile } = await supabase
+    const { data: guideProfile, error: guideError } = await serviceSupabase
       .from('guide_profiles')
-      .select('display_name, profile_image_url, certifications, experience_years, location')
+      .select('*')
       .eq('user_id', verification.user_id)
       .single();
 
+    if (guideError || !guideProfile) {
+      console.error('[guide-error]', guideError);
+      throw new Error(`Guide profile not found: ${guideError?.message}`);
+    }
+
+    console.log(`[${FUNCTION_VERSION}] Guide profile found:`, guideProfile.display_name);
+
+    // Handle different actions
     if (action === 'send') {
-      // Send notification to Slack
       await sendSlackNotification(verification, guideProfile);
-      
       return new Response(
-        JSON.stringify({ success: true, message: 'Notification sent to Slack' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: true, message: 'Slack notification sent' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    } else if (action === 'approve' || action === 'reject') {
+      await handleVerificationAction(verification, guideProfile, action, adminNotes);
+      return new Response(
+        JSON.stringify({ success: true, message: `Verification ${action}d` }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    if (action === 'approve' || action === 'reject') {
-      // Update verification status
-      const newStatus = action === 'approve' ? 'approved' : 'rejected';
-      
-      const { error: updateError } = await supabase
-        .from('user_verifications')
-        .update({
-          verification_status: newStatus,
-          admin_notes: adminNotes || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', verificationId);
-
-      if (updateError) {
-        throw new Error(`Failed to update verification: ${updateError.message}`);
-      }
-
-      // If approved, update guide profile and mark all pending certifications as verified
-      if (action === 'approve') {
-        // Get unverified certification names BEFORE updating (for confirmation message)
-        const unverifiedCerts = (guideProfile?.certifications || [])
-          .filter((cert: any) => !cert.verifiedDate)
-          .map((cert: any) => cert.title || cert.type)
-          .join(', ');
-        
-        // Mark all pending certifications as verified (using verifiedDate field)
-        const updatedCertifications = (guideProfile?.certifications || []).map((cert: any) => {
-          if (!cert.verifiedDate) {
-            return {
-              ...cert,
-              verifiedDate: new Date().toISOString(),
-              verifiedBy: 'admin'
-            };
-          }
-          return cert;
-        });
-        
-        const { error: profileError } = await supabase
-          .from('guide_profiles')
-          .update({ 
-            verified: true,
-            certifications: updatedCertifications,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', verification.user_id);
-
-        if (profileError) {
-          console.error('Failed to update guide profile:', profileError);
-        }
-
-        console.log('✅ Certifications verified via API call:', {
-          guide: guideProfile?.display_name || verification.profiles.name,
-          verifiedCertifications: unverifiedCerts,
-          verifiedDate: new Date().toISOString(),
-          verifiedBy: 'admin',
-          guideFullyVerified: true
-        });
-        
-        // Send follow-up confirmation to Slack
-        if (unverifiedCerts) {
-          await sendApprovalConfirmation(
-            guideProfile?.display_name || verification.profiles.name,
-            unverifiedCerts
-          );
-        }
-      }
-
-      // Send confirmation to Slack
-      await sendSlackConfirmation(verification, guideProfile, newStatus, adminNotes);
-
-      return new Response(
-        JSON.stringify({ success: true, message: `Verification ${newStatus}` }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    throw new Error('Invalid action');
+    throw new Error(`Unknown action: ${action}`);
 
   } catch (error: any) {
-    console.error('Error in slack-verification-notification:', error);
+    console.error('[edge-function-error]', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 });
 
 async function sendSlackNotification(verification: any, guideProfile: any) {
-  console.log(`[sendSlackNotification] Starting v${FUNCTION_VERSION} - Verification ID: ${verification.id}`);
-  
-  // Create service role client for storage access
-  const serviceSupabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  );
-  
-  console.log(`[sendSlackNotification] Service Supabase client created successfully`);
+  console.log(`[sendSlackNotification] Starting v${FUNCTION_VERSION}`);
   
   const certifications = guideProfile?.certifications || [];
   const priorityCerts = certifications.filter((cert: any) => 
-    ['IFMGA', 'UIAGM', 'IVBV', 'BMG'].includes(cert.type)
+    cert.priority === 1 || cert.priority === 2
   );
 
-  // Separate verified and unverified certifications (check verifiedDate field)
-  const verifiedCerts = certifications.filter((cert: any) => cert.verifiedDate);
-  const unverifiedCerts = certifications.filter((cert: any) => !cert.verifiedDate);
+  console.log(`[sendSlackNotification] Found ${priorityCerts.length} priority certs`);
 
-  // Format verified certifications (no document links needed - already approved)
-  const verifiedText = verifiedCerts.length > 0
-    ? verifiedCerts.map((cert: any, index: number) => 
-        `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`
-      ).join('\n')
-    : 'None';
+  // Generate signed URLs for certification documents
+  const certsWithUrls = await Promise.all(
+    priorityCerts.map(async (cert: any) => {
+      if (cert.documentPath) {
+        try {
+          const { data: signedUrlData } = await serviceSupabase.storage
+            .from('guide-documents')
+            .createSignedUrl(cert.documentPath, 604800); // 7 days
 
-  // Format unverified certifications with document preview links
-  const unverifiedText = unverifiedCerts.length > 0
-    ? await Promise.all(unverifiedCerts.map(async (cert: any, index: number) => {
-        let text = `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`;
-        if (cert.certificateDocument) {
-          try {
-            // Create service role client for storage access
-            const serviceSupabase = createClient(
-              Deno.env.get('SUPABASE_URL') ?? '',
-              Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-            );
-            
-            const { data: signedUrlData, error: signedUrlError } = await serviceSupabase.storage
-              .from('guide-documents')
-              .createSignedUrl(cert.certificateDocument, 3600);
-            
-            if (!signedUrlError && signedUrlData?.signedUrl) {
-              text += ` | <${signedUrlData.signedUrl}|View Document>`;
-              console.log('✅ Created signed URL for unverified cert:', cert.title);
-            } else {
-              console.error('❌ Failed to create signed URL:', signedUrlError);
-            }
-          } catch (error) {
-            console.error('❌ Error creating signed URL:', error);
-          }
+          return {
+            ...cert,
+            documentUrl: signedUrlData?.signedUrl || null,
+          };
+        } catch (error) {
+          console.error(`[cert-url-error] ${cert.title}:`, error);
+          return { ...cert, documentUrl: null };
         }
-        return text;
-      })).then(results => results.join('\n'))
-    : 'None';
+      }
+      return { ...cert, documentUrl: null };
+    })
+  );
 
-  const dashboardUrl = `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin`;
-
-  // Build blocks array
+  // Build Slack message blocks
   const blocks: any[] = [
     {
-      type: "header",
+      type: 'header',
       text: {
-        type: "plain_text",
-        text: "🏔️ New Guide Verification Request",
-        emoji: true
-      }
+        type: 'plain_text',
+        text: '🏔️ New Guide Verification Request',
+        emoji: true,
+      },
     },
     {
-      type: "section",
+      type: 'section',
       fields: [
         {
-          type: "mrkdwn",
-          text: `*Guide Name:*\n${guideProfile?.display_name || verification.profiles.name}`
+          type: 'mrkdwn',
+          text: `*Guide Name:*\n${guideProfile.display_name || 'N/A'}`,
         },
         {
-          type: "mrkdwn",
-          text: `*Email:*\n${verification.profiles.email}`
+          type: 'mrkdwn',
+          text: `*Email:*\n${verification.profiles?.email || 'N/A'}`,
         },
-        {
-          type: "mrkdwn",
-          text: `*Location:*\n${guideProfile?.location || 'Not specified'}`
-        },
-        {
-          type: "mrkdwn",
-          text: `*Experience:*\n${guideProfile?.experience_years || verification.experience_years || 0} years`
-        },
-        {
-          type: "mrkdwn",
-          text: `*Priority:*\n${priorityCerts.length > 0 ? '🔴 High (IFMGA/UIAGM)' : '🟡 Standard'}`
-        },
-        {
-          type: "mrkdwn",
-          text: `*Company:*\n${verification.company_name || 'Not specified'}`
-        }
-      ]
+      ],
     },
     {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*✅ Already Verified Certifications:*\n${verifiedText}`
-      }
+      type: 'section',
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: `*Location:*\n${guideProfile.location || 'N/A'}`,
+        },
+        {
+          type: 'mrkdwn',
+          text: `*Experience:*\n${verification.experience_years || 0} years`,
+        },
+      ],
     },
     {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*⏳ Up for Verification:*\n${unverifiedText}`
-      }
+      type: 'divider',
     },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Additional Info:*\n• License: ${verification.license_number || 'N/A'}\n• Insurance: ${verification.insurance_info || 'N/A'}`
-      }
-    }
   ];
 
-  // Add certification documents as embedded images using signed URLs
-  for (const cert of unverifiedCerts) {
-    if (cert.certificateDocument) {
-      try {
-        let imageUrl: string;
-        
-        // Check if it's already a full URL
-        if (cert.certificateDocument.startsWith('http')) {
-          imageUrl = cert.certificateDocument;
-        } else {
-          // Generate a signed URL for the private document (valid for 1 hour)
-          const { data: signedUrlData, error: signedUrlError } = await serviceSupabase.storage
-            .from('guide-documents')
-            .createSignedUrl(cert.certificateDocument, 3600);
-          
-          if (signedUrlError || !signedUrlData?.signedUrl) {
-            console.error('Failed to create signed URL for certificate:', signedUrlError);
-            continue;
-          }
-          
-          imageUrl = signedUrlData.signedUrl;
-        }
-        
-        const fileName = cert.certificateDocument.split('/').pop() || cert.title;
-        blocks.push({
-          type: "image",
-          image_url: imageUrl,
-          alt_text: fileName,
-          title: {
-            type: "plain_text",
-            text: `${cert.title || cert.type} - Certificate`
-          }
-        });
-      } catch (error) {
-        console.error('Error processing certificate document:', error);
-      }
-    }
-  }
-
-  // Add verification documents as embedded images using signed URLs
-  const verificationDocs = verification.verification_documents || [];
-  if (verificationDocs.length > 0) {
+  // Add certifications section
+  if (certsWithUrls.length > 0) {
     blocks.push({
-      type: "section",
+      type: 'section',
       text: {
-        type: "mrkdwn",
-        text: "*Additional Verification Documents:*"
-      }
+        type: 'mrkdwn',
+        text: '*Priority Certifications for Review:*',
+      },
     });
 
-    for (const doc of verificationDocs) {
-      try {
-        const fileName = doc.split('/').pop() || 'Document';
-        
-        // Generate signed URL for the document
-        const { data: signedUrlData, error: signedUrlError } = await serviceSupabase.storage
-          .from('guide-documents')
-          .createSignedUrl(doc, 3600);
-        
-        if (signedUrlError || !signedUrlData?.signedUrl) {
-          console.error('Failed to create signed URL for verification doc:', signedUrlError);
-          continue;
-        }
-        
+    certsWithUrls.forEach((cert: any) => {
+      const priorityEmoji = cert.priority === 1 ? '🔴' : '🟡';
+      const certText = `${priorityEmoji} *${cert.title}*\nPriority: ${cert.priority} | Status: ${cert.verificationStatus || 'pending'}`;
+      
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: certText,
+        },
+      });
+
+      if (cert.documentUrl) {
         blocks.push({
-          type: "image",
-          image_url: signedUrlData.signedUrl,
-          alt_text: fileName,
-          title: {
-            type: "plain_text",
-            text: fileName
-          }
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `📄 <${cert.documentUrl}|View Certificate Document>`,
+          },
         });
-      } catch (error) {
-        console.error('Error processing verification document:', error);
       }
-    }
+    });
   }
 
-  // Add divider and action buttons
   blocks.push(
     {
-      type: "divider"
+      type: 'divider',
     },
     {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: "⚠️ *Action Required:* Please review and approve or reject this verification."
-      }
-    },
-    {
-      type: "actions",
-      block_id: "verification_actions",
+      type: 'actions',
       elements: [
         {
-          type: "button",
+          type: 'button',
           text: {
-            type: "plain_text",
-            text: "✅ Approve",
-            emoji: true
+            type: 'plain_text',
+            text: '✅ Approve',
+            emoji: true,
           },
-          style: "primary",
-          action_id: "approve",
-          value: verification.id
+          style: 'primary',
+          value: verification.id,
+          action_id: 'approve_verification',
         },
         {
-          type: "button",
+          type: 'button',
           text: {
-            type: "plain_text",
-            text: "❌ Reject",
-            emoji: true
+            type: 'plain_text',
+            text: '❌ Reject',
+            emoji: true,
           },
-          style: "danger",
-          action_id: "reject",
-          value: verification.id
-        }
-      ]
+          style: 'danger',
+          value: verification.id,
+          action_id: 'reject_verification',
+        },
+      ],
     }
   );
 
-  const message = {
-    blocks: blocks
-  };
-
-  const response = await fetch(slackWebhookUrl, {
+  // Send to Slack
+  console.log(`[sendSlackNotification] Sending to Slack webhook`);
+  const slackResponse = await fetch(slackWebhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(message),
+    body: JSON.stringify({ blocks }),
   });
 
-  if (!response.ok) {
-    throw new Error(`Slack API error: ${response.statusText}`);
+  if (!slackResponse.ok) {
+    const errorText = await slackResponse.text();
+    console.error('[slack-webhook-error]', errorText);
+    throw new Error(`Slack webhook failed: ${errorText}`);
   }
 
-  console.log('Slack notification sent successfully');
+  console.log(`[sendSlackNotification] Success - notification sent`);
 }
 
-async function sendApprovalConfirmation(guideName: string, certificationNames: string) {
-  const message = {
-    text: `✅ Verification Approved`,
-    blocks: [
-      {
-        type: "header",
-        text: {
-          type: "plain_text",
-          text: "✅ Certifications Approved",
-          emoji: true
-        }
-      },
-      {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: `*Guide:*\n${guideName}`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Approved Certifications:*\n${certificationNames}`
-          }
-        ]
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: "🎉 *All pending certifications have been verified and the guide can now create tours.*"
-        }
-      }
-    ],
-    attachments: [
-      {
-        color: '#36a64f',
-        text: `Approved at ${new Date().toLocaleString()}`
-      }
-    ]
-  };
+async function handleVerificationAction(
+  verification: any,
+  guideProfile: any,
+  action: 'approve' | 'reject',
+  adminNotes?: string
+) {
+  console.log(`[handleVerificationAction] ${action} for verification:`, verification.id);
 
-  await fetch(slackWebhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(message),
-  });
+  const newStatus = action === 'approve' ? 'verified' : 'rejected';
 
-  console.log('Slack approval confirmation sent successfully');
+  // Update verification status
+  const { error: updateError } = await serviceSupabase
+    .from('user_verifications')
+    .update({
+      verification_status: newStatus,
+      admin_notes: adminNotes || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', verification.id);
+
+  if (updateError) {
+    console.error('[update-verification-error]', updateError);
+    throw updateError;
+  }
+
+  // If approved, update certifications in guide profile
+  if (action === 'approve') {
+    const certifications = guideProfile?.certifications || [];
+    const updatedCerts = certifications.map((cert: any) => {
+      if (cert.priority === 1 || cert.priority === 2) {
+        return { ...cert, verificationStatus: 'verified' };
+      }
+      return cert;
+    });
+
+    const { error: profileError } = await serviceSupabase
+      .from('guide_profiles')
+      .update({
+        certifications: updatedCerts,
+        verified: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', verification.user_id);
+
+    if (profileError) {
+      console.error('[update-profile-error]', profileError);
+      throw profileError;
+    }
+  }
+
+  console.log(`[handleVerificationAction] Successfully ${action}d verification`);
+
+  // Send confirmation to Slack
+  await sendSlackConfirmation(verification, guideProfile, action, adminNotes);
 }
 
 async function sendSlackConfirmation(
   verification: any,
   guideProfile: any,
-  status: string,
+  action: 'approve' | 'reject',
   adminNotes?: string
 ) {
-  const emoji = status === 'approved' ? '✅' : '❌';
-  const color = status === 'approved' ? '#36a64f' : '#ff0000';
-  
-  const message = {
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `${emoji} *Verification ${status.toUpperCase()}*\n\n*Guide:* ${guideProfile?.display_name || verification.profiles.name}\n*Email:* ${verification.profiles.email}${adminNotes ? `\n*Admin Notes:* ${adminNotes}` : ''}`
-        }
-      }
-    ],
-    attachments: [
-      {
-        color: color,
-        text: status === 'approved' 
-          ? 'The guide has been verified and can now create tours.'
-          : 'The guide verification has been rejected. They can resubmit with updated information.'
-      }
-    ]
-  };
+  const emoji = action === 'approve' ? '✅' : '❌';
+  const actionText = action === 'approve' ? 'Approved' : 'Rejected';
+
+  const blocks: any[] = [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `${emoji} *Verification ${actionText}*`,
+      },
+    },
+    {
+      type: 'section',
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: `*Guide:*\n${guideProfile.display_name}`,
+        },
+        {
+          type: 'mrkdwn',
+          text: `*Action:*\n${actionText}`,
+        },
+      ],
+    },
+  ];
+
+  if (adminNotes) {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*Admin Notes:*\n${adminNotes}`,
+      },
+    });
+  }
 
   await fetch(slackWebhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(message),
+    body: JSON.stringify({ blocks }),
   });
 
-  console.log('Slack confirmation sent successfully');
+  console.log(`[sendSlackConfirmation] Confirmation sent for ${action}`);
 }
