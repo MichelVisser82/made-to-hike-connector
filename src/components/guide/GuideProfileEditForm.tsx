@@ -553,6 +553,18 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         return newCert;
       });
 
+      // Check if we need to send certification notifications BEFORE cleaning
+      if (hasPendingCertifications) {
+        await handleCertificationNotification(user.id, mergedCertifications);
+      }
+
+      // Remove isNewlyAdded flags before saving to database
+      const cleanedCertifications = mergedCertifications.map(cert => {
+        const { isNewlyAdded, ...rest } = cert as any;
+        return rest;
+      });
+
+      // Single database update with cleaned certifications
       const { error } = await supabase
         .from('guide_profiles')
         .upsert({
@@ -568,7 +580,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           terrain_capabilities: formData.terrain_capabilities,
           languages_spoken: formData.languages_spoken,
           difficulty_levels: formData.difficulty_levels,
-          certifications: mergedCertifications,
+          certifications: cleanedCertifications,
           portfolio_images: portfolioUrls,
           min_group_size: formData.min_group_size,
           max_group_size: formData.max_group_size,
@@ -587,17 +599,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         });
 
       if (error) throw error;
-
-      // Remove isNewlyAdded flags before saving to database
-      const cleanedCertifications = mergedCertifications.map(cert => {
-        const { isNewlyAdded, ...rest } = cert as any;
-        return rest;
-      });
-
-      // Check if we need to send certification notifications (before cleaning)
-      if (hasPendingCertifications) {
-        await handleCertificationNotification(user.id, mergedCertifications);
-      }
 
       // Aggressively invalidate ALL guide profile queries
       await Promise.all([

@@ -591,6 +591,10 @@ export type Database = {
           | { _role: string; _user_id: string }
         Returns: boolean
       }
+      verify_guide_certification: {
+        Args: { p_cert_updates: Json; p_user_id: string; p_verified_by: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "hiker" | "guide" | "admin"
