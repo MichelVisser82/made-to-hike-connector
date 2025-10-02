@@ -337,14 +337,12 @@ export function VerifiedGuidesArchive() {
                                 Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
                               </p>
                             )}
-                            {/* Show verified status - check both verifiedDate and verified fields */}
-                            {(cert.verifiedDate || cert.verified) && (
-                              <p className="text-xs text-green-600 dark:text-green-400 font-medium">
-                                ✓ Verified: {cert.verifiedDate 
-                                  ? formatDistanceToNow(new Date(cert.verifiedDate)) + ' ago'
-                                  : 'Yes'}
-                              </p>
-                            )}
+                            {/* Always show verified status for certifications in verified guides archive */}
+                            <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                              ✓ Verified: {cert.verifiedDate 
+                                ? `${formatDistanceToNow(new Date(cert.verifiedDate))} ago`
+                                : 'Yes'}
+                            </p>
                           </div>
                           
                           {/* Certificate Thumbnail - All files stored as JPEG now */}
