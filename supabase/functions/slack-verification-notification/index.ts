@@ -1,14 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
-// Version: 4.0.0 - Secure JWT-authenticated architecture
+// Version: 4.0.0 - Secure JWT-authenticated edge function (Frontend-Driven Architecture)
 const FUNCTION_VERSION = '4.0.0';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL') ?? '';
 
-console.log(`[slack-verification-notification] Version ${FUNCTION_VERSION} initialized (JWT required)`);
+console.log(`[slack-verification-notification] Version ${FUNCTION_VERSION} initialized with JWT authentication`);
 
 interface RequestPayload {
   verificationId: string;
@@ -20,29 +20,32 @@ serve(async (req: Request) => {
   try {
     console.log(`[${FUNCTION_VERSION}] Request received:`, req.method);
 
-    // Extract JWT from Authorization header
+    // Extract JWT token from Authorization header
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
+      console.error('[auth-error] No authorization header');
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
+        JSON.stringify({ error: 'Unauthorized: No authorization header' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     const token = authHeader.replace('Bearer ', '');
 
-    // Create authenticated Supabase client
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      global: { headers: { Authorization: authHeader } },
+    // Create authenticated Supabase client using JWT
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
+      global: {
+        headers: { Authorization: authHeader },
+      },
     });
 
     // Verify user identity
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
     
     if (authError || !user) {
       console.error('[auth-error]', authError);
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired token' }),
+        JSON.stringify({ error: 'Unauthorized: Invalid token' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -61,6 +64,7 @@ serve(async (req: Request) => {
     const serviceSupabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch verification record
+    console.log(`[${FUNCTION_VERSION}] Fetching verification:`, verificationId);
     const { data: verification, error: verificationError } = await serviceSupabase
       .from('user_verifications')
       .select(`
@@ -76,10 +80,7 @@ serve(async (req: Request) => {
 
     if (verificationError || !verification) {
       console.error('[verification-error]', verificationError);
-      return new Response(
-        JSON.stringify({ error: 'Verification not found' }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
-      );
+      throw new Error(`Verification not found: ${verificationError?.message}`);
     }
 
     // Check if user is admin
@@ -87,27 +88,29 @@ serve(async (req: Request) => {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
+      .single();
 
-    const isAdmin = !!userRole;
+    const isAdmin = userRole?.role === 'admin';
 
-    // Handle different actions
+    // Handle different actions with authorization checks
     if (action === 'send') {
-      // Validate: user owns verification OR is admin
+      // Authorization: User must own the verification OR be admin
       if (verification.user_id !== user.id && !isAdmin) {
-        console.error('[ownership-error] User does not own verification');
+        console.error('[auth-error] User does not own verification and is not admin');
         return new Response(
-          JSON.stringify({ error: 'Unauthorized: You can only send notifications for your own verifications' }),
+          JSON.stringify({ error: 'Forbidden: You can only send notifications for your own verifications' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
         );
       }
 
-      // Validate: verification status is pending
+      // Validation: Only allow pending verifications
       if (verification.verification_status !== 'pending') {
-        console.error('[status-error] Verification is not pending:', verification.verification_status);
+        console.error('[validation-error] Verification is not pending:', verification.verification_status);
         return new Response(
-          JSON.stringify({ error: 'Can only send notifications for pending verifications' }),
+          JSON.stringify({ 
+            error: 'Bad Request: Only pending verifications can be sent to Slack',
+            currentStatus: verification.verification_status 
+          }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -121,10 +124,7 @@ serve(async (req: Request) => {
 
       if (guideError || !guideProfile) {
         console.error('[guide-error]', guideError);
-        return new Response(
-          JSON.stringify({ error: 'Guide profile not found' }),
-          { status: 404, headers: { 'Content-Type': 'application/json' } }
-        );
+        throw new Error(`Guide profile not found: ${guideError?.message}`);
       }
 
       await sendSlackNotification(verification, guideProfile, serviceSupabase);
@@ -133,22 +133,28 @@ serve(async (req: Request) => {
         JSON.stringify({ success: true, message: 'Slack notification sent' }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
-
+      
     } else if (action === 'approve' || action === 'reject') {
-      // Only admins can approve/reject
+      // Authorization: Only admins can approve/reject
       if (!isAdmin) {
+        console.error('[auth-error] User is not admin, cannot approve/reject');
         return new Response(
-          JSON.stringify({ error: 'Unauthorized: Only admins can approve/reject verifications' }),
+          JSON.stringify({ error: 'Forbidden: Only admins can approve or reject verifications' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
         );
       }
 
       // Fetch guide profile
-      const { data: guideProfile } = await serviceSupabase
+      const { data: guideProfile, error: guideError } = await serviceSupabase
         .from('guide_profiles')
         .select('*')
         .eq('user_id', verification.user_id)
         .single();
+
+      if (guideError || !guideProfile) {
+        console.error('[guide-error]', guideError);
+        throw new Error(`Guide profile not found: ${guideError?.message}`);
+      }
 
       await handleVerificationAction(verification, guideProfile, action, adminNotes, serviceSupabase);
       
@@ -158,10 +164,7 @@ serve(async (req: Request) => {
       );
     }
 
-    return new Response(
-      JSON.stringify({ error: `Unknown action: ${action}` }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
-    );
+    throw new Error(`Unknown action: ${action}`);
 
   } catch (error: any) {
     console.error('[edge-function-error]', error);
@@ -172,12 +175,12 @@ serve(async (req: Request) => {
   }
 });
 
-async function sendSlackNotification(verification: any, guideProfile: any, supabase: any) {
+async function sendSlackNotification(verification: any, guideProfile: any, serviceSupabase: any) {
   console.log(`[sendSlackNotification] Starting v${FUNCTION_VERSION}`);
   
   const certifications = guideProfile?.certifications || [];
   const priorityCerts = certifications.filter((cert: any) => 
-    cert.verificationPriority === 1 || cert.verificationPriority === 2
+    cert.priority === 1 || cert.priority === 2
   );
 
   console.log(`[sendSlackNotification] Found ${priorityCerts.length} priority certs`);
@@ -187,7 +190,7 @@ async function sendSlackNotification(verification: any, guideProfile: any, supab
     priorityCerts.map(async (cert: any) => {
       if (cert.documentPath) {
         try {
-          const { data: signedUrlData } = await supabase.storage
+          const { data: signedUrlData } = await serviceSupabase.storage
             .from('guide-documents')
             .createSignedUrl(cert.documentPath, 604800); // 7 days
 
@@ -256,8 +259,8 @@ async function sendSlackNotification(verification: any, guideProfile: any, supab
     });
 
     certsWithUrls.forEach((cert: any) => {
-      const priorityEmoji = cert.verificationPriority === 1 ? '🔴' : '🟡';
-      const certText = `${priorityEmoji} *${cert.title}*\nPriority: ${cert.verificationPriority} | Status: ${cert.verificationStatus || 'pending'}`;
+      const priorityEmoji = cert.priority === 1 ? '🔴' : '🟡';
+      const certText = `${priorityEmoji} *${cert.title}*\nPriority: ${cert.priority} | Status: ${cert.verificationStatus || 'pending'}`;
       
       blocks.push({
         type: 'section',
@@ -334,14 +337,14 @@ async function handleVerificationAction(
   guideProfile: any,
   action: 'approve' | 'reject',
   adminNotes: string | undefined,
-  supabase: any
+  serviceSupabase: any
 ) {
   console.log(`[handleVerificationAction] ${action} for verification:`, verification.id);
 
   const newStatus = action === 'approve' ? 'verified' : 'rejected';
 
   // Update verification status
-  const { error: updateError } = await supabase
+  const { error: updateError } = await serviceSupabase
     .from('user_verifications')
     .update({
       verification_status: newStatus,
@@ -359,13 +362,13 @@ async function handleVerificationAction(
   if (action === 'approve') {
     const certifications = guideProfile?.certifications || [];
     const updatedCerts = certifications.map((cert: any) => {
-      if (cert.verificationPriority === 1 || cert.verificationPriority === 2) {
+      if (cert.priority === 1 || cert.priority === 2) {
         return { ...cert, verificationStatus: 'verified' };
       }
       return cert;
     });
 
-    const { error: profileError } = await supabase
+    const { error: profileError } = await serviceSupabase
       .from('guide_profiles')
       .update({
         certifications: updatedCerts,
