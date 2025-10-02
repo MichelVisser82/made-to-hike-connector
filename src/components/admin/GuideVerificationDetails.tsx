@@ -62,22 +62,56 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
         return c;
       });
 
-      const { error } = await supabase
+      // Check if guide now has sufficient verified certifications (Priority 1 or 2)
+      const hasPriorityOneOrTwo = updatedCerts.some(c => 
+        c.verifiedDate && (c.verificationPriority === 1 || c.verificationPriority === 2)
+      );
+
+      // Update guide profile with verified certifications
+      const { error: profileError } = await supabase
         .from('guide_profiles')
         .update({ 
           certifications: updatedCerts,
+          verified: hasPriorityOneOrTwo,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', verification.user_id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // If guide now has sufficient certifications, also update verification status
+      if (hasPriorityOneOrTwo) {
+        const { error: verificationError } = await supabase
+          .from('user_verifications')
+          .update({
+            verification_status: 'approved',
+            admin_notes: 'Auto-approved: Guide has verified Priority 1 or 2 certification',
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', verification.user_id);
+
+        if (verificationError) {
+          console.error('Failed to update verification status:', verificationError);
+        }
+      }
 
       // Invalidate queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ['guide-verifications'] });
+      await queryClient.invalidateQueries({ queryKey: ['guide-profile', verification.user_id] });
+
+      console.log('✅ Certification verified via Admin Panel:', {
+        guide: verification.guide_profile?.display_name,
+        certification: cert.title,
+        verifiedDate: new Date().toISOString(),
+        verifiedBy: 'admin',
+        guideFullyVerified: hasPriorityOneOrTwo
+      });
 
       toast({
         title: 'Certification Verified',
-        description: `${cert.title} has been successfully verified.`,
+        description: hasPriorityOneOrTwo 
+          ? `${cert.title} verified. Guide is now fully verified!` 
+          : `${cert.title} has been successfully verified.`,
       });
     } catch (error) {
       console.error('Error verifying certification:', error);

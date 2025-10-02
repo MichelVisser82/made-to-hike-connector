@@ -164,6 +164,14 @@ serve(async (req) => {
         if (profileError) {
           console.error('Failed to update guide profile:', profileError);
         }
+
+        console.log('✅ Certifications verified via Slack:', {
+          guide: guideProfile?.display_name || verification.profiles.name,
+          verifiedCertifications: unverifiedCerts,
+          verifiedDate: new Date().toISOString(),
+          verifiedBy: 'admin',
+          guideFullyVerified: true
+        });
         
         // Send follow-up confirmation to Slack
         if (unverifiedCerts) {
@@ -293,30 +301,44 @@ serve(async (req) => {
 
       // If approved, update guide profile and mark all pending certifications as verified
       if (action === 'approve') {
-        // Get current certifications
-        const updatedCertifications = (guideProfile?.certifications || []).map((cert: any) => ({
-          ...cert,
-          verified: true,
-          verified_at: new Date().toISOString()
-        }));
+        // Get unverified certification names BEFORE updating (for confirmation message)
+        const unverifiedCerts = (guideProfile?.certifications || [])
+          .filter((cert: any) => !cert.verifiedDate)
+          .map((cert: any) => cert.title || cert.type)
+          .join(', ');
+        
+        // Mark all pending certifications as verified (using verifiedDate field)
+        const updatedCertifications = (guideProfile?.certifications || []).map((cert: any) => {
+          if (!cert.verifiedDate) {
+            return {
+              ...cert,
+              verifiedDate: new Date().toISOString(),
+              verifiedBy: 'admin'
+            };
+          }
+          return cert;
+        });
         
         const { error: profileError } = await supabase
           .from('guide_profiles')
           .update({ 
             verified: true,
-            certifications: updatedCertifications
+            certifications: updatedCertifications,
+            updated_at: new Date().toISOString()
           })
           .eq('user_id', verification.user_id);
 
         if (profileError) {
           console.error('Failed to update guide profile:', profileError);
         }
-        
-        // Get unverified certification names for confirmation message
-        const unverifiedCerts = (guideProfile?.certifications || [])
-          .filter((cert: any) => !cert.verified)
-          .map((cert: any) => cert.title || cert.type)
-          .join(', ');
+
+        console.log('✅ Certifications verified via API call:', {
+          guide: guideProfile?.display_name || verification.profiles.name,
+          verifiedCertifications: unverifiedCerts,
+          verifiedDate: new Date().toISOString(),
+          verifiedBy: 'admin',
+          guideFullyVerified: true
+        });
         
         // Send follow-up confirmation to Slack
         if (unverifiedCerts) {
