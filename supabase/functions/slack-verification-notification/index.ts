@@ -1,20 +1,44 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { createHmac } from "https://deno.land/std@0.190.0/node/crypto.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-slack-signature, x-slack-request-timestamp',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL')!;
+const slackSigningSecret = Deno.env.get('SLACK_SIGNING_SECRET')!;
 
 interface VerificationNotificationRequest {
   verificationId: string;
   action?: 'send' | 'approve' | 'reject';
   adminNotes?: string;
+}
+
+// Verify Slack signature for security
+function verifySlackSignature(
+  timestamp: string,
+  body: string,
+  signature: string
+): boolean {
+  const time = parseInt(timestamp);
+  const currentTime = Math.floor(Date.now() / 1000);
+  
+  // Request is too old (>5 minutes)
+  if (Math.abs(currentTime - time) > 300) {
+    return false;
+  }
+  
+  const sigBasestring = `v0:${timestamp}:${body}`;
+  const mySignature = `v0=${createHmac('sha256', slackSigningSecret)
+    .update(sigBasestring)
+    .digest('hex')}`;
+  
+  return mySignature === signature;
 }
 
 serve(async (req) => {
@@ -24,6 +48,148 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const contentType = req.headers.get('content-type') || '';
+    
+    // Handle Slack interactive component callback
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      const bodyText = await req.text();
+      const timestamp = req.headers.get('x-slack-request-timestamp');
+      const signature = req.headers.get('x-slack-signature');
+      
+      // Verify Slack signature
+      if (!timestamp || !signature || !verifySlackSignature(timestamp, bodyText, signature)) {
+        console.error('Invalid Slack signature');
+        return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+      }
+      
+      // Parse the payload
+      const params = new URLSearchParams(bodyText);
+      const payloadJson = params.get('payload');
+      
+      if (!payloadJson) {
+        throw new Error('No payload found');
+      }
+      
+      const payload = JSON.parse(payloadJson);
+      const action = payload.actions[0];
+      const verificationId = action.value;
+      const actionType = action.action_id; // 'approve' or 'reject'
+      
+      console.log('Processing Slack action:', { verificationId, actionType });
+      
+      // Fetch verification details
+      const { data: verification, error: verificationError } = await supabase
+        .from('user_verifications')
+        .select(`
+          *,
+          profiles!inner(email, name)
+        `)
+        .eq('id', verificationId)
+        .single();
+
+      if (verificationError) {
+        throw new Error(`Failed to fetch verification: ${verificationError.message}`);
+      }
+
+      // Fetch guide profile
+      const { data: guideProfile } = await supabase
+        .from('guide_profiles')
+        .select('display_name, profile_image_url, certifications, experience_years, location')
+        .eq('user_id', verification.user_id)
+        .single();
+      
+      // Update verification status
+      const newStatus = actionType === 'approve' ? 'approved' : 'rejected';
+      
+      const { error: updateError } = await supabase
+        .from('user_verifications')
+        .update({
+          verification_status: newStatus,
+          admin_notes: `${actionType === 'approve' ? 'Approved' : 'Rejected'} via Slack`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', verificationId);
+
+      if (updateError) {
+        throw new Error(`Failed to update verification: ${updateError.message}`);
+      }
+
+      // If approved, update guide profile
+      if (actionType === 'approve') {
+        const { error: profileError } = await supabase
+          .from('guide_profiles')
+          .update({ verified: true })
+          .eq('user_id', verification.user_id);
+
+        if (profileError) {
+          console.error('Failed to update guide profile:', profileError);
+        }
+      }
+      
+      // Respond to Slack immediately with a message update
+      const emoji = actionType === 'approve' ? '✅' : '❌';
+      const statusText = actionType === 'approve' ? 'APPROVED' : 'REJECTED';
+      const color = actionType === 'approve' ? '#36a64f' : '#ff0000';
+      
+      return new Response(
+        JSON.stringify({
+          replace_original: true,
+          text: `${emoji} Verification ${statusText}`,
+          blocks: [
+            {
+              type: "header",
+              text: {
+                type: "plain_text",
+                text: `${emoji} Verification ${statusText}`,
+                emoji: true
+              }
+            },
+            {
+              type: "section",
+              fields: [
+                {
+                  type: "mrkdwn",
+                  text: `*Guide:*\n${guideProfile?.display_name || verification.profiles.name}`
+                },
+                {
+                  type: "mrkdwn",
+                  text: `*Email:*\n${verification.profiles.email}`
+                },
+                {
+                  type: "mrkdwn",
+                  text: `*Status:*\n${statusText}`
+                },
+                {
+                  type: "mrkdwn",
+                  text: `*Action By:*\n${payload.user.name}`
+                }
+              ]
+            },
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: actionType === 'approve' 
+                  ? "✅ *The guide has been verified and can now create tours.*"
+                  : "❌ *The verification has been rejected. The guide can resubmit with updated information.*"
+              }
+            }
+          ],
+          attachments: [
+            {
+              color: color,
+              text: `Processed at ${new Date().toLocaleString()}`
+            }
+          ]
+        }),
+        { 
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    // Handle regular API call (send notification)
     const body: VerificationNotificationRequest = await req.json();
     const { verificationId, action = 'send', adminNotes } = body;
 
@@ -219,7 +385,7 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
     });
   }
 
-  // Add divider and action button
+  // Add divider and action buttons
   blocks.push(
     {
       type: "divider"
@@ -228,18 +394,36 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "⚠️ *Action Required:* Please review and approve/reject this verification in the admin dashboard."
-      },
-      accessory: {
-        type: "button",
-        text: {
-          type: "plain_text",
-          text: "Open Admin Dashboard",
-          emoji: true
-        },
-        style: "primary",
-        url: dashboardUrl
+        text: "⚠️ *Action Required:* Please review and approve or reject this verification."
       }
+    },
+    {
+      type: "actions",
+      block_id: "verification_actions",
+      elements: [
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "✅ Approve",
+            emoji: true
+          },
+          style: "primary",
+          action_id: "approve",
+          value: verification.id
+        },
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "❌ Reject",
+            emoji: true
+          },
+          style: "danger",
+          action_id: "reject",
+          value: verification.id
+        }
+      ]
     }
   );
 
