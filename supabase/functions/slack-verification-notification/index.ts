@@ -328,16 +328,6 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
           text: certText,
         },
       });
-
-      if (cert.documentUrl) {
-        blocks.push({
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `📄 <${cert.documentUrl}|View Certificate Document>`,
-          },
-        });
-      }
     });
   }
 
