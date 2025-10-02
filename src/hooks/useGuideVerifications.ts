@@ -82,6 +82,82 @@ export function useUpdateVerificationStatus() {
       status: 'approved' | 'rejected';
       adminNotes?: string;
     }) => {
+      console.log('🔄 Starting verification status update:', { verificationId, status });
+
+      // Get verification and guide profile data
+      const { data: verification } = await supabase
+        .from('user_verifications')
+        .select('user_id')
+        .eq('id', verificationId)
+        .single();
+
+      if (!verification) throw new Error('Verification not found');
+
+      // If approved, verify all pending certifications
+      if (status === 'approved') {
+        const { data: guideProfile } = await supabase
+          .from('guide_profiles')
+          .select('certifications')
+          .eq('user_id', verification.user_id)
+          .single();
+
+        if (guideProfile) {
+          const certifications = guideProfile.certifications as any[] || [];
+          
+          // Find all certifications without verifiedDate (pending)
+          const pendingCerts = certifications.filter(cert => !cert.verifiedDate);
+          
+          console.log('📋 Pending certifications to verify:', {
+            total: certifications.length,
+            pending: pendingCerts.length,
+            pendingNames: pendingCerts.map(c => c.title)
+          });
+
+          if (pendingCerts.length > 0) {
+            // Update all pending certifications with verifiedDate
+            const updatedCertifications = certifications.map(cert => {
+              if (!cert.verifiedDate) {
+                console.log('✅ Verifying certification:', cert.title);
+                return {
+                  ...cert,
+                  verifiedDate: new Date().toISOString(),
+                  verifiedBy: 'admin'
+                };
+              }
+              return cert;
+            });
+
+            // Update guide profile with verified certifications
+            const { error: profileError } = await supabase
+              .from('guide_profiles')
+              .update({
+                certifications: updatedCertifications,
+                verified: true,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', verification.user_id);
+
+            if (profileError) {
+              console.error('❌ Error updating guide profile:', profileError);
+              throw profileError;
+            }
+
+            console.log('✅ Updated guide profile with verified certifications');
+          } else {
+            // Just mark guide as verified
+            const { error: profileError } = await supabase
+              .from('guide_profiles')
+              .update({ 
+                verified: true,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', verification.user_id);
+
+            if (profileError) throw profileError;
+          }
+        }
+      }
+
       // Update verification status
       const { error: verificationError } = await supabase
         .from('user_verifications')
@@ -92,31 +168,30 @@ export function useUpdateVerificationStatus() {
         })
         .eq('id', verificationId);
 
-      if (verificationError) throw verificationError;
-
-      // If approved, update guide_profiles.verified
-      if (status === 'approved') {
-        const { data: verification } = await supabase
-          .from('user_verifications')
-          .select('user_id')
-          .eq('id', verificationId)
-          .single();
-
-        if (verification) {
-          const { error: profileError } = await supabase
-            .from('guide_profiles')
-            .update({ verified: true })
-            .eq('user_id', verification.user_id);
-
-          if (profileError) throw profileError;
-        }
+      if (verificationError) {
+        console.error('❌ Error updating verification status:', verificationError);
+        throw verificationError;
       }
+
+      console.log('✅ Verification status updated successfully');
+
+      return { 
+        verificationId, 
+        status,
+        pendingCertsVerified: status === 'approved' 
+      };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['guide-verifications'] });
+      queryClient.invalidateQueries({ queryKey: ['guide-profile'] });
+      
+      const message = data.status === 'approved' 
+        ? 'Guide verification approved and all pending certifications verified'
+        : 'Verification status updated successfully';
+      
       toast({
         title: 'Success',
-        description: 'Verification status updated successfully',
+        description: message,
       });
     },
     onError: (error) => {

@@ -382,26 +382,64 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
   const verifiedCerts = certifications.filter((cert: any) => cert.verifiedDate);
   const unverifiedCerts = certifications.filter((cert: any) => !cert.verifiedDate);
 
-  // Format verified certifications
+  // Format verified certifications with document preview links
   const verifiedText = verifiedCerts.length > 0
-    ? verifiedCerts.map((cert: any, index: number) => {
+    ? await Promise.all(verifiedCerts.map(async (cert: any, index: number) => {
         let text = `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`;
         if (cert.certificateDocument) {
-          text += ` | <${cert.certificateDocument}|View Document>`;
+          try {
+            // Create service role client for storage access
+            const serviceSupabase = createClient(
+              Deno.env.get('SUPABASE_URL') ?? '',
+              Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            );
+            
+            const { data: signedUrlData, error: signedUrlError } = await serviceSupabase.storage
+              .from('guide-documents')
+              .createSignedUrl(cert.certificateDocument, 3600);
+            
+            if (!signedUrlError && signedUrlData?.signedUrl) {
+              text += ` | <${signedUrlData.signedUrl}|View Document>`;
+              console.log('✅ Created signed URL for verified cert:', cert.title);
+            } else {
+              console.error('❌ Failed to create signed URL:', signedUrlError);
+            }
+          } catch (error) {
+            console.error('❌ Error creating signed URL:', error);
+          }
         }
         return text;
-      }).join('\n')
+      })).then(results => results.join('\n'))
     : 'None';
 
-  // Format unverified certifications
+  // Format unverified certifications with document preview links
   const unverifiedText = unverifiedCerts.length > 0
-    ? unverifiedCerts.map((cert: any, index: number) => {
+    ? await Promise.all(unverifiedCerts.map(async (cert: any, index: number) => {
         let text = `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`;
         if (cert.certificateDocument) {
-          text += ` | <${cert.certificateDocument}|View Document>`;
+          try {
+            // Create service role client for storage access
+            const serviceSupabase = createClient(
+              Deno.env.get('SUPABASE_URL') ?? '',
+              Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            );
+            
+            const { data: signedUrlData, error: signedUrlError } = await serviceSupabase.storage
+              .from('guide-documents')
+              .createSignedUrl(cert.certificateDocument, 3600);
+            
+            if (!signedUrlError && signedUrlData?.signedUrl) {
+              text += ` | <${signedUrlData.signedUrl}|View Document>`;
+              console.log('✅ Created signed URL for unverified cert:', cert.title);
+            } else {
+              console.error('❌ Failed to create signed URL:', signedUrlError);
+            }
+          } catch (error) {
+            console.error('❌ Error creating signed URL:', error);
+          }
         }
         return text;
-      }).join('\n')
+      })).then(results => results.join('\n'))
     : 'None';
 
   const dashboardUrl = `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin`;

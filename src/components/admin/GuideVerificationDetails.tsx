@@ -126,12 +126,39 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
   };
 
   const handleApprove = () => {
+    const pendingCerts = certifications.filter(cert => !cert.verifiedDate);
+    
+    if (pendingCerts.length === 0) {
+      toast({
+        title: 'No Pending Certifications',
+        description: 'All certifications are already verified.',
+        variant: 'default',
+      });
+      return;
+    }
+
+    const confirmMessage = `This will verify ${pendingCerts.length} pending certification${pendingCerts.length > 1 ? 's' : ''}:\n\n${pendingCerts.map(c => `• ${c.title}`).join('\n')}\n\nContinue?`;
+    
+    if (!confirm(confirmMessage)) return;
+
+    console.log('🎯 Approving verification and verifying pending certifications:', {
+      verificationId,
+      pendingCount: pendingCerts.length,
+      certNames: pendingCerts.map(c => c.title)
+    });
+
     updateStatus.mutate({
       verificationId,
       status: 'approved',
       adminNotes: adminNotes || undefined,
     }, {
-      onSuccess: () => onBack(),
+      onSuccess: () => {
+        toast({
+          title: 'Approved Successfully',
+          description: `Verified ${pendingCerts.length} certification${pendingCerts.length > 1 ? 's' : ''} and approved guide profile.`,
+        });
+        onBack();
+      },
     });
   };
 
@@ -150,21 +177,45 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
   };
 
   const getDocumentUrl = async (documentPath: string): Promise<string> => {
+    console.log('🔍 Fetching document URL for:', documentPath);
+    
     try {
       // Check if it's a storage path or a full URL
       if (documentPath.startsWith('http')) {
+        console.log('✅ URL is already public:', documentPath);
         return documentPath;
-      } else {
-        // It's a storage path in guide-documents bucket
-        const { data, error } = await supabase.storage
-          .from('guide-documents')
-          .createSignedUrl(documentPath, 3600);
-        
-        if (error) throw error;
-        return data?.signedUrl || '';
       }
-    } catch (error) {
-      console.error('Error getting document URL:', error);
+      
+      // It's a storage path in guide-documents bucket
+      console.log('📦 Creating signed URL for storage path...');
+      const { data, error } = await supabase.storage
+        .from('guide-documents')
+        .createSignedUrl(documentPath, 3600);
+      
+      if (error) {
+        console.error('❌ Failed to create signed URL:', error);
+        toast({
+          title: 'Document Load Error',
+          description: `Failed to load document: ${error.message}`,
+          variant: 'destructive',
+        });
+        return '';
+      }
+      
+      if (!data?.signedUrl) {
+        console.error('❌ No signed URL returned from Supabase');
+        return '';
+      }
+      
+      console.log('✅ Generated signed URL successfully');
+      return data.signedUrl;
+    } catch (error: any) {
+      console.error('❌ Exception in getDocumentUrl:', error);
+      toast({
+        title: 'Document Load Error',
+        description: `Failed to load document: ${error.message}`,
+        variant: 'destructive',
+      });
       return '';
     }
   };
@@ -213,6 +264,8 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
   }
 
   const certifications = verification.guide_profile?.certifications || [];
+  const pendingCertifications = certifications.filter(cert => !cert.verifiedDate);
+  const verifiedCertifications = certifications.filter(cert => cert.verifiedDate);
   const hasPriorityOne = certifications.some(cert => cert.verificationPriority === 1);
   const hasPriorityTwo = certifications.some(cert => cert.verificationPriority === 2);
 
@@ -456,6 +509,23 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
           )}
 
           {/* Admin Notes Section */}
+          {verification.verification_status === 'pending' && pendingCertifications.length > 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong className="block mb-2">Pending Certifications: {pendingCertifications.length}</strong>
+                <ul className="ml-4 list-disc text-sm space-y-1">
+                  {pendingCertifications.map((cert, idx) => (
+                    <li key={idx}>{cert.title}</li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-sm font-medium">
+                  Clicking "Approve" will verify all pending certifications and mark the guide as verified.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="admin-notes">Admin Notes</Label>
@@ -483,11 +553,14 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
             <div className="flex gap-4">
               <Button
                 onClick={handleApprove}
-                disabled={updateStatus.isPending}
+                disabled={updateStatus.isPending || pendingCertifications.length === 0}
                 className="flex-1 gap-2"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                Approve Verification
+                {pendingCertifications.length > 0 
+                  ? `Approve & Verify All (${pendingCertifications.length})`
+                  : 'Approve Verification'
+                }
               </Button>
               <Button
                 onClick={handleReject}
