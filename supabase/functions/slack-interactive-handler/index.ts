@@ -171,7 +171,7 @@ async function handleVerificationAction(
   }
 
   const action = actionId === 'approve_verification' ? 'approve' : 'reject';
-  const newStatus = action === 'approve' ? 'verified' : 'rejected';
+  const newStatus = action === 'approve' ? 'approved' : 'rejected';
 
   // Update verification status
   const { error: updateError } = await serviceSupabase
