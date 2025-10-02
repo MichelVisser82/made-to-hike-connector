@@ -313,6 +313,9 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     setIsUploadingCert(true);
     
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       let certToAdd = {
         ...newCert,
         addedDate: new Date().toISOString(),
@@ -320,9 +323,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       
       // Upload certificate document if provided
       if (certFile instanceof File) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-        
         toast({
           title: "Optimizing document...",
           description: "This may take a moment for large files.",
@@ -347,55 +347,66 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       const updatedCertifications = [...formData.certifications, certToAdd];
 
+      // Immediately save to database
+      const { error: updateError } = await supabase
+        .from('guide_profiles')
+        .update({
+          certifications: updatedCertifications as any,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Invalidate queries to refresh data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['my-guide-profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['guide-profile'] }),
+        refetch()
+      ]);
+
       setFormData({
         ...formData,
         certifications: updatedCertifications,
       });
       
-      // Always request verification when adding a new P1/P2/P4 certification
-      const hasPriorityCert = certToAdd.verificationPriority === 1 || 
-                              certToAdd.verificationPriority === 2 || 
-                              certToAdd.verificationPriority === 4;
+      // Auto-send all new certifications to Slack for verification
+      try {
+        // Get or update verification record
+        const { data: verification, error: verificationError } = await supabase
+          .from('user_verifications')
+          .update({
+            verification_status: 'pending',
+            admin_notes: `Auto-requested: Guide added certification (${certToAdd.title})`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id)
+          .select('id')
+          .single();
 
-      // Auto-request verification for any new priority certification
-      if (hasPriorityCert && user?.id) {
-        try {
-          // Update verification status to pending
-          const { error: verificationError } = await supabase
-            .from('user_verifications')
-            .update({
-              verification_status: 'pending',
-              admin_notes: `Auto-requested: Guide added Priority ${certToAdd.verificationPriority} certification (${certToAdd.title})`,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('user_id', user.id);
+        if (verificationError) {
+          console.error('Error updating verification status:', verificationError);
+        } else if (verification) {
+          // Automatically send to Slack
+          toast({
+            title: "Sending to verification...",
+            description: "Notifying admin team via Slack.",
+          });
 
-          if (verificationError) {
-            console.error('Error updating verification status:', verificationError);
-          } else {
-            // Send admin notification
-            await supabase.functions.invoke('send-email', {
-              body: {
-                type: 'admin_verification_request',
-                to: 'admin@madetohike.com',
-                template_data: {
-                  guide_name: formData.display_name,
-                  guide_email: user.email,
-                  certification_count: updatedCertifications.length,
-                  certification_added: certToAdd.title,
-                  timestamp: new Date().toISOString(),
-                }
-              }
-            });
+          await supabase.functions.invoke('slack-verification-notification', {
+            body: {
+              verificationId: verification.id,
+              action: 'send',
+            },
+          });
 
-            toast({
-              title: "Verification Requested",
-              description: "Your new certification has been submitted for admin verification. Your profile may show as 'pending' until approved.",
-            });
-          }
-        } catch (error) {
-          console.error('Error requesting verification:', error);
+          toast({
+            title: "Verification Requested",
+            description: "Your new certification has been sent to the admin team for verification via Slack.",
+          });
         }
+      } catch (error) {
+        console.error('Error requesting verification:', error);
       }
       
       // Reset form
