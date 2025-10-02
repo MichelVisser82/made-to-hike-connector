@@ -341,7 +341,7 @@ export function VerifiedGuidesArchive() {
                             <p className="text-xs text-green-600 dark:text-green-400 font-medium">
                               ✓ Verified: {cert.verifiedDate 
                                 ? `${formatDistanceToNow(new Date(cert.verifiedDate))} ago`
-                                : 'Yes'}
+                                : 'Date not recorded'}
                             </p>
                           </div>
                           
