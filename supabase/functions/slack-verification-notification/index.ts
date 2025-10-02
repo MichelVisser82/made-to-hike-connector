@@ -24,6 +24,19 @@ serve(async (req: Request) => {
   try {
     console.log(`[${FUNCTION_VERSION}] Request received:`, req.method);
 
+    // Handle OPTIONS preflight requests
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'authorization, content-type',
+        },
+      });
+    }
+
+    // Only parse JSON for POST requests
     const payload: RequestPayload = await req.json();
     console.log(`[${FUNCTION_VERSION}] Payload:`, JSON.stringify(payload, null, 2));
 
