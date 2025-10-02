@@ -118,109 +118,133 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
     ['IFMGA', 'UIAGM', 'IVBV', 'BMG'].includes(cert.type)
   );
 
-  // Format certification text with verification status and document info
+  // Format certification text with verification status
   const certificationText = certifications.length > 0
     ? certifications.map((cert: any, index: number) => {
         const verificationStatus = cert.verified ? '✅ Verified' : '⏳ Pending Verification';
-        const documentInfo = cert.document_url 
-          ? `<${cert.document_url}|View Document>` 
-          : 'No document uploaded';
-        return `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*\n   Status: ${verificationStatus} | ${documentInfo}`;
+        return `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*\n   Status: ${verificationStatus}`;
       }).join('\n\n')
     : 'No certifications listed';
 
-  // Format verification documents
-  const verificationDocs = verification.verification_documents || [];
-  const documentsText = verificationDocs.length > 0
-    ? verificationDocs.map((doc: string, index: number) => {
-        const fileName = doc.split('/').pop() || 'Document';
-        return `${index + 1}. <${supabaseUrl}/storage/v1/object/public/${doc}|${fileName}>`;
-      }).join('\n')
-    : 'No documents uploaded';
-
   const dashboardUrl = `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin`;
 
-  const message = {
-    blocks: [
-      {
-        type: "header",
+  // Build blocks array
+  const blocks: any[] = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "🏔️ New Guide Verification Request",
+        emoji: true
+      }
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Guide Name:*\n${guideProfile?.display_name || verification.profiles.name}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Email:*\n${verification.profiles.email}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Location:*\n${guideProfile?.location || 'Not specified'}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Experience:*\n${guideProfile?.experience_years || verification.experience_years || 0} years`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Priority:*\n${priorityCerts.length > 0 ? '🔴 High (IFMGA/UIAGM)' : '🟡 Standard'}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Company:*\n${verification.company_name || 'Not specified'}`
+        }
+      ]
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Certifications:*\n${certificationText}`
+      }
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Additional Info:*\n• License: ${verification.license_number || 'N/A'}\n• Insurance: ${verification.insurance_info || 'N/A'}`
+      }
+    }
+  ];
+
+  // Add verification documents as embedded images
+  const verificationDocs = verification.verification_documents || [];
+  if (verificationDocs.length > 0) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*Verification Documents:*"
+      }
+    });
+
+    // Add each document as an image block
+    verificationDocs.forEach((doc: string, index: number) => {
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/${doc}`;
+      const fileName = doc.split('/').pop() || `Document ${index + 1}`;
+      
+      blocks.push({
+        type: "image",
+        image_url: publicUrl,
+        alt_text: fileName,
+        title: {
+          type: "plain_text",
+          text: fileName
+        }
+      });
+    });
+  } else {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*Verification Documents:* No documents uploaded"
+      }
+    });
+  }
+
+  // Add divider and action button
+  blocks.push(
+    {
+      type: "divider"
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "⚠️ *Action Required:* Please review and approve/reject this verification in the admin dashboard."
+      },
+      accessory: {
+        type: "button",
         text: {
           type: "plain_text",
-          text: "🏔️ New Guide Verification Request",
+          text: "Open Admin Dashboard",
           emoji: true
-        }
-      },
-      {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: `*Guide Name:*\n${guideProfile?.display_name || verification.profiles.name}`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Email:*\n${verification.profiles.email}`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Location:*\n${guideProfile?.location || 'Not specified'}`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Experience:*\n${guideProfile?.experience_years || verification.experience_years || 0} years`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Priority:*\n${priorityCerts.length > 0 ? '🔴 High (IFMGA/UIAGM)' : '🟡 Standard'}`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Company:*\n${verification.company_name || 'Not specified'}`
-          }
-        ]
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*Certifications:*\n${certificationText}`
-        }
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*Verification Documents:*\n${documentsText}`
-        }
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*Additional Info:*\n• License: ${verification.license_number || 'N/A'}\n• Insurance: ${verification.insurance_info || 'N/A'}`
-        }
-      },
-      {
-        type: "divider"
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: "⚠️ *Action Required:* Please review and approve/reject this verification in the admin dashboard."
         },
-        accessory: {
-          type: "button",
-          text: {
-            type: "plain_text",
-            text: "Open Admin Dashboard",
-            emoji: true
-          },
-          style: "primary",
-          url: dashboardUrl
-        }
+        style: "primary",
+        url: dashboardUrl
       }
-    ]
+    }
+  );
+
+  const message = {
+    blocks: blocks
   };
 
   const response = await fetch(slackWebhookUrl, {
