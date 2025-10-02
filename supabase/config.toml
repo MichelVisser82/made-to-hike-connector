@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.optimize-image]
 verify_jwt = false
+
+[functions.slack-verification-notification]
+verify_jwt = false
