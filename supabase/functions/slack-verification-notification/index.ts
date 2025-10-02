@@ -346,7 +346,7 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
             emoji: true,
           },
           style: 'primary',
-          value: verification.id,
+          value: JSON.stringify({ verificationId: verification.id, userId: verification.user_id }),
           action_id: 'approve_verification',
         },
         {
@@ -357,7 +357,7 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
             emoji: true,
           },
           style: 'danger',
-          value: verification.id,
+          value: JSON.stringify({ verificationId: verification.id, userId: verification.user_id }),
           action_id: 'reject_verification',
         },
       ],
