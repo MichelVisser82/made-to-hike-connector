@@ -132,15 +132,39 @@ serve(async (req) => {
         throw new Error(`Failed to update verification: ${updateError.message}`);
       }
 
-      // If approved, update guide profile
+      // If approved, update guide profile and mark all pending certifications as verified
       if (actionType === 'approve') {
+        // Get current certifications
+        const updatedCertifications = (guideProfile?.certifications || []).map((cert: any) => ({
+          ...cert,
+          verified: true,
+          verified_at: new Date().toISOString()
+        }));
+        
         const { error: profileError } = await supabase
           .from('guide_profiles')
-          .update({ verified: true })
+          .update({ 
+            verified: true,
+            certifications: updatedCertifications
+          })
           .eq('user_id', verification.user_id);
 
         if (profileError) {
           console.error('Failed to update guide profile:', profileError);
+        }
+        
+        // Get unverified certification names for confirmation message
+        const unverifiedCerts = (guideProfile?.certifications || [])
+          .filter((cert: any) => !cert.verified)
+          .map((cert: any) => cert.title || cert.type)
+          .join(', ');
+        
+        // Send follow-up confirmation to Slack
+        if (unverifiedCerts) {
+          await sendApprovalConfirmation(
+            guideProfile?.display_name || verification.profiles.name,
+            unverifiedCerts
+          );
         }
       }
       
@@ -261,15 +285,39 @@ serve(async (req) => {
         throw new Error(`Failed to update verification: ${updateError.message}`);
       }
 
-      // If approved, update guide profile
+      // If approved, update guide profile and mark all pending certifications as verified
       if (action === 'approve') {
+        // Get current certifications
+        const updatedCertifications = (guideProfile?.certifications || []).map((cert: any) => ({
+          ...cert,
+          verified: true,
+          verified_at: new Date().toISOString()
+        }));
+        
         const { error: profileError } = await supabase
           .from('guide_profiles')
-          .update({ verified: true })
+          .update({ 
+            verified: true,
+            certifications: updatedCertifications
+          })
           .eq('user_id', verification.user_id);
 
         if (profileError) {
           console.error('Failed to update guide profile:', profileError);
+        }
+        
+        // Get unverified certification names for confirmation message
+        const unverifiedCerts = (guideProfile?.certifications || [])
+          .filter((cert: any) => !cert.verified)
+          .map((cert: any) => cert.title || cert.type)
+          .join(', ');
+        
+        // Send follow-up confirmation to Slack
+        if (unverifiedCerts) {
+          await sendApprovalConfirmation(
+            guideProfile?.display_name || verification.profiles.name,
+            unverifiedCerts
+          );
         }
       }
 
@@ -302,13 +350,31 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
     ['IFMGA', 'UIAGM', 'IVBV', 'BMG'].includes(cert.type)
   );
 
-  // Format certification text with verification status
-  const certificationText = certifications.length > 0
-    ? certifications.map((cert: any, index: number) => {
-        const verificationStatus = cert.verified ? '✅ Verified' : '⏳ Pending Verification';
-        return `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*\n   Status: ${verificationStatus}`;
-      }).join('\n\n')
-    : 'No certifications listed';
+  // Separate verified and unverified certifications
+  const verifiedCerts = certifications.filter((cert: any) => cert.verified);
+  const unverifiedCerts = certifications.filter((cert: any) => !cert.verified);
+
+  // Format verified certifications
+  const verifiedText = verifiedCerts.length > 0
+    ? verifiedCerts.map((cert: any, index: number) => {
+        let text = `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`;
+        if (cert.document_url) {
+          text += ` | <${cert.document_url}|View Document>`;
+        }
+        return text;
+      }).join('\n')
+    : 'None';
+
+  // Format unverified certifications
+  const unverifiedText = unverifiedCerts.length > 0
+    ? unverifiedCerts.map((cert: any, index: number) => {
+        let text = `${index + 1}. *${cert.title || cert.type || 'Unknown Certification'}*`;
+        if (cert.document_url) {
+          text += ` | <${cert.document_url}|View Document>`;
+        }
+        return text;
+      }).join('\n')
+    : 'None';
 
   const dashboardUrl = `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin`;
 
@@ -355,7 +421,14 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `*Certifications:*\n${certificationText}`
+        text: `*✅ Already Verified Certifications:*\n${verifiedText}`
+      }
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*⏳ Up for Verification:*\n${unverifiedText}`
       }
     },
     {
@@ -367,6 +440,22 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
     }
   ];
 
+  // Add certification documents as embedded images
+  unverifiedCerts.forEach((cert: any) => {
+    if (cert.document_url) {
+      const fileName = cert.document_url.split('/').pop() || cert.title;
+      blocks.push({
+        type: "image",
+        image_url: cert.document_url,
+        alt_text: fileName,
+        title: {
+          type: "plain_text",
+          text: `${cert.title || cert.type} - Certificate`
+        }
+      });
+    }
+  });
+
   // Add verification documents as embedded images
   const verificationDocs = verification.verification_documents || [];
   if (verificationDocs.length > 0) {
@@ -374,11 +463,10 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*Verification Documents:*"
+        text: "*Additional Verification Documents:*"
       }
     });
 
-    // Add each document as an image block
     verificationDocs.forEach((doc: string, index: number) => {
       const publicUrl = `${supabaseUrl}/storage/v1/object/public/${doc}`;
       const fileName = doc.split('/').pop() || `Document ${index + 1}`;
@@ -392,14 +480,6 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
           text: fileName
         }
       });
-    });
-  } else {
-    blocks.push({
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: "*Verification Documents:* No documents uploaded"
-      }
     });
   }
 
@@ -460,6 +540,56 @@ async function sendSlackNotification(verification: any, guideProfile: any) {
   }
 
   console.log('Slack notification sent successfully');
+}
+
+async function sendApprovalConfirmation(guideName: string, certificationNames: string) {
+  const message = {
+    text: `✅ Verification Approved`,
+    blocks: [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "✅ Certifications Approved",
+          emoji: true
+        }
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Guide:*\n${guideName}`
+          },
+          {
+            type: "mrkdwn",
+            text: `*Approved Certifications:*\n${certificationNames}`
+          }
+        ]
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "🎉 *All pending certifications have been verified and the guide can now create tours.*"
+        }
+      }
+    ],
+    attachments: [
+      {
+        color: '#36a64f',
+        text: `Approved at ${new Date().toLocaleString()}`
+      }
+    ]
+  };
+
+  await fetch(slackWebhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(message),
+  });
+
+  console.log('Slack approval confirmation sent successfully');
 }
 
 async function sendSlackConfirmation(
