@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
-import { createHmac } from "https://deno.land/std@0.190.0/node/crypto.ts";
 
 // Version: 1.0.0 - Direct Slack Interactive Handler
 const FUNCTION_VERSION = '1.0.0';
@@ -49,13 +48,24 @@ serve(async (req: Request) => {
       );
     }
 
-    // Verify Slack signature
+    // Verify Slack signature using Web Crypto API
     const sigBasestring = `v0:${slackTimestamp}:${requestBody}`;
-    const mySignature = `v0=${
-      createHmac('sha256', slackSigningSecret)
-        .update(sigBasestring)
-        .digest('hex')
-    }`;
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(slackSigningSecret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const signature = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(sigBasestring)
+    );
+    const hashArray = Array.from(new Uint8Array(signature));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const mySignature = `v0=${hashHex}`;
 
     if (mySignature !== slackSignature) {
       console.error('[slack-auth-error] Invalid signature');
