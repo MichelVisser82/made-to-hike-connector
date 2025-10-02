@@ -370,71 +370,65 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         certifications: updatedCertifications,
       });
       
-      // Auto-send Priority 1 & 2 certifications to Slack for verification
-      const isPriorityCert = certToAdd.verificationPriority === 1 || certToAdd.verificationPriority === 2;
+      // Auto-send ALL certifications to Slack for verification
+      console.log('🔔 New certification added, sending to Slack:', {
+        title: certToAdd.title,
+        priority: certToAdd.verificationPriority
+      });
       
-      if (isPriorityCert) {
-        console.log('🔔 New Priority certification added, sending to Slack:', {
-          title: certToAdd.title,
-          priority: certToAdd.verificationPriority
-        });
-        
-        try {
-          // Update verification record
-          const priorityLabel = certToAdd.verificationPriority === 1 ? 'Priority 1' : 'Priority 2';
-          const { data: verification, error: verificationError } = await supabase
-            .from('user_verifications')
-            .update({
-              verification_status: 'pending',
-              admin_notes: `Auto-requested: Guide added ${priorityLabel} certification (${certToAdd.title})`,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('user_id', user.id)
-            .select('id')
-            .single();
+      try {
+        // Update verification record
+        const priorityLabel = `Priority ${certToAdd.verificationPriority}`;
+        const { data: verification, error: verificationError } = await supabase
+          .from('user_verifications')
+          .update({
+            verification_status: 'pending',
+            admin_notes: `Auto-requested: Guide added ${priorityLabel} certification (${certToAdd.title})`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id)
+          .select('id')
+          .single();
 
-          if (verificationError) {
-            console.error('❌ Error updating verification status:', verificationError);
-            throw verificationError;
-          }
-          
-          if (!verification) {
-            console.error('❌ No verification record found');
-            throw new Error('No verification record found');
-          }
-
-          console.log('📝 Verification record updated, ID:', verification.id);
-
-          // Automatically send to Slack
-          console.log('📤 Invoking Slack notification function...');
-          const { data: slackData, error: slackError } = await supabase.functions.invoke('slack-verification-notification', {
-            body: {
-              verificationId: verification.id,
-              action: 'send',
-            },
-          });
-
-          if (slackError) {
-            console.error('❌ Error sending to Slack:', slackError);
-            throw slackError;
-          }
-
-          console.log('✅ Successfully sent to Slack:', slackData);
-
-          toast({
-            title: "Verification Requested",
-            description: `Your ${priorityLabel} certification has been sent to the admin team for verification via Slack.`,
-          });
-        } catch (error: any) {
-          console.error('❌ Error requesting automatic verification:', error);
-          toast({
-            title: "Certification Added",
-            description: `Certification added but automatic notification failed: ${error.message || 'Unknown error'}`,
-            variant: "destructive",
-          });
+        if (verificationError) {
+          console.error('❌ Error updating verification status:', verificationError);
+          throw verificationError;
         }
-      } else {
-        console.log('ℹ️ Priority 3 certification added (no Slack notification needed):', certToAdd.title);
+        
+        if (!verification) {
+          console.error('❌ No verification record found');
+          throw new Error('No verification record found');
+        }
+
+        console.log('📝 Verification record updated, ID:', verification.id);
+
+        // Automatically send to Slack
+        console.log('📤 Invoking Slack notification function...');
+        const { data: slackData, error: slackError } = await supabase.functions.invoke('slack-verification-notification', {
+          body: {
+            verificationId: verification.id,
+            action: 'send',
+          },
+        });
+
+        if (slackError) {
+          console.error('❌ Error sending to Slack:', slackError);
+          throw slackError;
+        }
+
+        console.log('✅ Successfully sent to Slack:', slackData);
+
+        toast({
+          title: "Verification Requested",
+          description: `Your ${priorityLabel} certification has been sent to the admin team for verification via Slack.`,
+        });
+      } catch (error: any) {
+        console.error('❌ Error requesting automatic verification:', error);
+        toast({
+          title: "Certification Added",
+          description: `Certification added but automatic notification failed: ${error.message || 'Unknown error'}`,
+          variant: "destructive",
+        });
       }
       
       // Reset form
