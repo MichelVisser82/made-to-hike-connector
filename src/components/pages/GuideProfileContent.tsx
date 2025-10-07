@@ -77,6 +77,12 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
           
           {/* Main Content Column (2/3 width) */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Credentials Section - Above About Me */}
+            <CredentialsSection 
+              certifications={guide.certifications}
+              isGuideVerified={guide.verified}
+            />
+
             {/* About Me Section */}
             {guide.bio && (
               <Card className="border-burgundy/20 shadow-lg bg-white">
@@ -93,12 +99,6 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
                 </CardContent>
               </Card>
             )}
-
-            {/* Credentials Section */}
-            <CredentialsSection 
-              certifications={guide.certifications}
-              isGuideVerified={guide.verified}
-            />
 
             {/* Languages */}
             {mockLanguages.length > 0 && (
