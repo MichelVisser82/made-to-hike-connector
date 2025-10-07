@@ -29,7 +29,7 @@ export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: Vid
                 className="w-full h-full object-cover"
               />
               {/* Grey gradient overlay with video icon */}
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-charcoal/20 to-transparent flex items-end justify-center pb-6">
+              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-charcoal/20 to-transparent flex items-center justify-center">
                 <Video className="h-12 w-12 text-white/90" />
               </div>
             </>
