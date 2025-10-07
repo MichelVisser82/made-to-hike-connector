@@ -92,6 +92,8 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     instagram_url: '',
     facebook_url: '',
     website_url: '',
+    intro_video_url: '',
+    intro_video_thumbnail_url: '',
   });
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -142,6 +144,8 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         instagram_url: profile.instagram_url || '',
         facebook_url: profile.facebook_url || '',
         website_url: profile.website_url || '',
+        intro_video_url: (profile as any).intro_video_url || '',
+        intro_video_thumbnail_url: (profile as any).intro_video_thumbnail_url || '',
       });
       setProfileImagePreview(profile.profile_image_url || '');
       setHeroImagePreview(profile.hero_background_url || '');
@@ -593,6 +597,8 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           instagram_url: formData.instagram_url,
           facebook_url: formData.facebook_url,
           website_url: formData.website_url,
+          intro_video_url: formData.intro_video_url || null,
+          intro_video_thumbnail_url: formData.intro_video_thumbnail_url || null,
           updated_at: new Date().toISOString(),
         } as any, {
           onConflict: 'user_id'
@@ -900,6 +906,83 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               <p className="text-sm text-muted-foreground mt-2">
                 {portfolioPreviews.length} / 10 images uploaded
               </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Video Introduction Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Video Introduction</CardTitle>
+          <CardDescription>Add a video introduction to help hikers get to know you</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="intro_video_url">Video URL</Label>
+            <Input
+              id="intro_video_url"
+              placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+              value={formData.intro_video_url}
+              onChange={(e) => setFormData({ ...formData, intro_video_url: e.target.value })}
+            />
+            <p className="text-sm text-muted-foreground">
+              Link to your introduction video on YouTube, Vimeo, or other platform
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="intro_video_thumbnail_url">Custom Thumbnail URL (Optional)</Label>
+            <Input
+              id="intro_video_thumbnail_url"
+              placeholder="https://example.com/thumbnail.jpg"
+              value={formData.intro_video_thumbnail_url}
+              onChange={(e) => setFormData({ ...formData, intro_video_thumbnail_url: e.target.value })}
+            />
+            <p className="text-sm text-muted-foreground">
+              If not provided, we'll use your first portfolio image
+            </p>
+          </div>
+
+          {/* Preview */}
+          {(formData.intro_video_url || formData.intro_video_thumbnail_url || portfolioPreviews.length > 0) && (
+            <div className="space-y-2">
+              <Label>Preview</Label>
+              <div className="border rounded-lg overflow-hidden max-w-md">
+                <div className="relative aspect-video bg-muted">
+                  {(formData.intro_video_thumbnail_url || portfolioPreviews[0]) ? (
+                    <img
+                      src={formData.intro_video_thumbnail_url || portfolioPreviews[0]}
+                      alt="Video thumbnail preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Upload className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  {formData.intro_video_url && (
+                    <div className="absolute inset-0 bg-charcoal/30 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-burgundy flex items-center justify-center">
+                        <span className="text-white text-xl">▶</span>
+                      </div>
+                    </div>
+                  )}
+                  {!formData.intro_video_url && (
+                    <div className="absolute top-2 right-2 bg-burgundy text-white px-2 py-1 rounded text-xs">
+                      Coming Soon
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 bg-background">
+                  <p className="text-sm font-medium">Meet {formData.display_name || 'Your Name'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.intro_video_url 
+                      ? 'Watch introduction to learn more about my guiding style'
+                      : 'Video introduction coming soon'}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

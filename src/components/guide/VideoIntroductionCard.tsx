@@ -8,12 +8,19 @@ interface VideoIntroductionCardProps {
 }
 
 export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: VideoIntroductionCardProps) {
-  if (!videoUrl) return null;
+  const handleClick = () => {
+    if (videoUrl) {
+      window.open(videoUrl, '_blank');
+    }
+  };
 
   return (
     <Card className="border-burgundy/20 shadow-lg bg-cream overflow-hidden">
       <CardContent className="p-0">
-        <div className="relative aspect-video bg-charcoal/10 group cursor-pointer">
+        <div 
+          className={`relative aspect-video bg-charcoal/10 group ${videoUrl ? 'cursor-pointer' : ''}`}
+          onClick={handleClick}
+        >
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}
@@ -26,12 +33,21 @@ export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: Vid
             </div>
           )}
           
-          {/* Play Button Overlay */}
-          <div className="absolute inset-0 bg-charcoal/30 flex items-center justify-center group-hover:bg-charcoal/40 transition-colors">
-            <div className="w-16 h-16 rounded-full bg-burgundy flex items-center justify-center shadow-elegant group-hover:scale-110 transition-transform">
-              <Play className="h-8 w-8 text-white ml-1" />
+          {/* Play Button Overlay - only show if video exists */}
+          {videoUrl && (
+            <div className="absolute inset-0 bg-charcoal/30 flex items-center justify-center group-hover:bg-charcoal/40 transition-colors">
+              <div className="w-16 h-16 rounded-full bg-burgundy flex items-center justify-center shadow-elegant group-hover:scale-110 transition-transform">
+                <Play className="h-8 w-8 text-white ml-1" />
+              </div>
             </div>
-          </div>
+          )}
+          
+          {/* Coming Soon Badge - show if no video */}
+          {!videoUrl && (
+            <div className="absolute top-4 right-4 bg-burgundy text-white px-3 py-1 rounded-full text-xs font-medium">
+              Coming Soon
+            </div>
+          )}
         </div>
         
         <div className="p-4">
@@ -39,7 +55,9 @@ export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: Vid
             Meet {guideName}
           </h4>
           <p className="text-sm text-charcoal/70">
-            Watch introduction to learn more about my guiding style and experience
+            {videoUrl 
+              ? 'Watch introduction to learn more about my guiding style and experience'
+              : 'Video introduction coming soon'}
           </p>
         </div>
       </CardContent>

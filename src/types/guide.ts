@@ -55,6 +55,8 @@ export interface GuideProfile {
   instagram_url?: string;
   facebook_url?: string;
   website_url?: string;
+  intro_video_url?: string;
+  intro_video_thumbnail_url?: string;
   max_group_size?: number;
   min_group_size: number;
   languages_spoken: string[];

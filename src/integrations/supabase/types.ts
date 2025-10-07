@@ -87,6 +87,8 @@ export type Database = {
           hero_background_url: string | null
           id: string
           instagram_url: string | null
+          intro_video_thumbnail_url: string | null
+          intro_video_url: string | null
           languages_spoken: string[] | null
           location: string | null
           max_group_size: number | null
@@ -122,6 +124,8 @@ export type Database = {
           hero_background_url?: string | null
           id?: string
           instagram_url?: string | null
+          intro_video_thumbnail_url?: string | null
+          intro_video_url?: string | null
           languages_spoken?: string[] | null
           location?: string | null
           max_group_size?: number | null
@@ -157,6 +161,8 @@ export type Database = {
           hero_background_url?: string | null
           id?: string
           instagram_url?: string | null
+          intro_video_thumbnail_url?: string | null
+          intro_video_url?: string | null
           languages_spoken?: string[] | null
           location?: string | null
           max_group_size?: number | null
