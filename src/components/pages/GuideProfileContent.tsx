@@ -1,3 +1,5 @@
+import { User, Target, MapPin, Camera } from 'lucide-react';
+import { Card, CardContent } from '../ui/card';
 import { GuideHeroSection } from '../guide/GuideHeroSection';
 import { CredentialsSection } from '../guide/CredentialsSection';
 import { GuideStatsCards } from '../guide/GuideStatsCards';
@@ -65,26 +67,31 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
   ];
 
   return (
-    <div className="bg-cream-light min-h-screen">
+    <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <GuideHeroSection guide={guide} stats={stats} />
 
       {/* Main Content - Two Column Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Main Content Column (2/3 width) */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
             {/* About Me Section */}
             {guide.bio && (
-              <section>
-                <h2 className="text-3xl font-bold mb-4 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                  About Me
-                </h2>
-                <p className="text-charcoal/80 leading-relaxed whitespace-pre-line">
-                  {guide.bio}
-                </p>
-              </section>
+              <Card className="border-burgundy/20 shadow-lg bg-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <User className="h-5 w-5 text-burgundy" />
+                    <h2 className="text-2xl font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                      About Me
+                    </h2>
+                  </div>
+                  <p className="text-charcoal/80 leading-relaxed whitespace-pre-line">
+                    {guide.bio}
+                  </p>
+                </CardContent>
+              </Card>
             )}
 
             {/* Credentials Section */}
@@ -100,15 +107,50 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
 
             {/* Specialties */}
             {guide.specialties && guide.specialties.length > 0 && (
-              <GuideSpecialties specialties={guide.specialties} />
+              <Card className="border-burgundy/20 shadow-lg bg-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Target className="h-5 w-5 text-burgundy" />
+                    <h2 className="text-2xl font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                      Specialties
+                    </h2>
+                  </div>
+                  <GuideSpecialties specialties={guide.specialties} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Guiding Areas */}
+            {guide.guiding_areas && guide.guiding_areas.length > 0 && (
+              <Card className="border-burgundy/20 shadow-lg bg-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MapPin className="h-5 w-5 text-burgundy" />
+                    <h2 className="text-2xl font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                      Guiding Areas
+                    </h2>
+                  </div>
+                  <GuidingAreasGrid areas={guide.guiding_areas} />
+                </CardContent>
+              </Card>
             )}
 
             {/* Photo Gallery */}
             {mockPhotos.length > 0 && (
-              <PhotoGalleryWithFilters 
-                photos={mockPhotos} 
-                guideName={guide.display_name}
-              />
+              <Card className="border-burgundy/20 shadow-lg bg-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Camera className="h-5 w-5 text-burgundy" />
+                    <h2 className="text-2xl font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                      {guide.display_name}'s Adventure Gallery
+                    </h2>
+                  </div>
+                  <PhotoGalleryWithFilters 
+                    photos={mockPhotos} 
+                    guideName={guide.display_name}
+                  />
+                </CardContent>
+              </Card>
             )}
 
             {/* Active Tours */}
@@ -117,7 +159,7 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
             {/* Reviews with Rating Breakdown */}
             {reviews && reviews.length > 0 && (
               <section className="space-y-6">
-                <h2 className="text-3xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
                   Reviews & Testimonials
                 </h2>
                 <ReviewCategoryRatings ratings={mockReviewRatings} />

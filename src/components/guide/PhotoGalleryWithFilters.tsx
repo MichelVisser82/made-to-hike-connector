@@ -31,13 +31,9 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
   if (!photos || photos.length === 0) return null;
 
   return (
-    <section className="py-8">
-      <h2 className="text-3xl font-bold mb-6 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-        {guideName} - Adventure Gallery
-      </h2>
-
+    <div className="space-y-4">
       {/* Category Filters */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2">
         {categories.map((cat) => (
           <Badge
             key={cat.id}
@@ -53,7 +49,7 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
         ))}
       </div>
 
-      {/* Photo Grid - Masonry Layout */}
+      {/* Photo Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredPhotos.map((photo, index) => (
           <div 
@@ -77,6 +73,6 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
           <p>No photos in this category yet</p>
         </div>
       )}
-    </section>
+    </div>
   );
 }

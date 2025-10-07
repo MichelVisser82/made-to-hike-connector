@@ -51,7 +51,7 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   }, [guide.hero_background_url, guide.user_id, fetchImages, getImageUrl]);
 
   return (
-    <section className="relative h-[550px] w-full overflow-hidden">
+    <section className="relative h-[480px] w-full overflow-hidden">
       {/* Hero Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
@@ -64,8 +64,8 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
         }}
       >
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-b from-transparent to-cream" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-56 bg-gradient-to-b from-transparent to-white" />
       </div>
 
       {/* Content */}
@@ -75,15 +75,15 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           <div className="flex flex-col md:flex-row gap-8 items-center md:items-start w-full">
             {/* Profile Image */}
             <div className="flex-shrink-0">
-              <div className="relative w-60 h-60">
+              <div className="relative w-36 h-36 md:w-44 md:h-44">
                 <img
-                  src={guide.profile_image_url || 'https://via.placeholder.com/240'}
+                  src={guide.profile_image_url || 'https://via.placeholder.com/176'}
                   alt={guide.display_name}
-                  className="w-full h-full rounded-full object-cover border-6 border-white shadow-2xl"
+                  className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
                 />
                 {guide.verified && (
-                  <div className="absolute bottom-3 right-3 bg-burgundy rounded-full p-3 shadow-lg border-4 border-white">
-                    <CheckCircle className="w-7 h-7 text-white" />
+                  <div className="absolute bottom-2 right-2 bg-burgundy rounded-full p-2 shadow-lg border-3 border-white">
+                    <CheckCircle className="w-5 h-5 text-white" />
                   </div>
                 )}
               </div>
@@ -92,62 +92,62 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
             {/* Guide Info - Center Content */}
             <div className="flex-1">
               {/* Name */}
-              <h1 className="text-6xl lg:text-7xl font-serif text-white mb-2">{guide.display_name}</h1>
+              <h1 className="text-5xl lg:text-6xl font-serif text-white mb-2">{guide.display_name}</h1>
 
               {/* Subtitle */}
-              <p className="text-white text-xl mb-3">
+              <p className="text-white text-base mb-3">
                 Certified Mountain Guide · {experienceYears} Years Experience
               </p>
 
               {/* Location */}
               {guide.location && (
-                <div className="flex items-center gap-2 text-white/90 text-lg mb-8">
-                  <MapPin className="w-5 h-5" />
+                <div className="flex items-center gap-2 text-white/90 text-sm mb-8">
+                  <MapPin className="w-4 h-4" />
                   <span>{guide.location}</span>
                 </div>
               )}
 
               {/* Stats Bar - Inline Pill Design */}
-              <div className="inline-flex items-center gap-4 bg-white/90 backdrop-blur-md rounded-full px-8 py-4 shadow-xl">
+              <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-full px-6 py-2.5 shadow-lg">
                 {/* Rating */}
                 <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-gold fill-gold" />
-                  <span className="font-bold text-charcoal text-lg">{stats.average_rating.toFixed(1)}</span>
-                  <span className="text-charcoal/60 text-sm">({reviewCount})</span>
+                  <Star className="w-4 h-4 text-gold fill-gold" />
+                  <span className="font-bold text-charcoal text-base">{stats.average_rating.toFixed(1)}</span>
+                  <span className="text-charcoal/60 text-xs">({reviewCount})</span>
                 </div>
 
-                <div className="w-px h-6 bg-charcoal/20" />
+                <div className="w-px h-5 bg-charcoal/20" />
 
                 {/* Tours */}
                 <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-burgundy" />
-                  <span className="font-bold text-charcoal text-lg">{stats.tours_completed}+</span>
-                  <span className="text-charcoal/60 text-sm">tours</span>
+                  <Users className="w-4 h-4 text-burgundy" />
+                  <span className="font-bold text-charcoal text-base">{stats.tours_completed}+</span>
+                  <span className="text-charcoal/60 text-xs">tours</span>
                 </div>
 
-                <div className="w-px h-6 bg-charcoal/20" />
+                <div className="w-px h-5 bg-charcoal/20" />
 
                 {/* Response Time */}
                 <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-burgundy" />
-                  <span className="font-bold text-charcoal text-lg">{responseTime}</span>
-                  <span className="text-charcoal/60 text-sm">response</span>
+                  <Clock className="w-4 h-4 text-burgundy" />
+                  <span className="font-bold text-charcoal text-base">{responseTime}</span>
+                  <span className="text-charcoal/60 text-xs">response</span>
                 </div>
 
-                <div className="w-px h-6 bg-charcoal/20" />
+                <div className="w-px h-5 bg-charcoal/20" />
 
                 {/* Experience */}
                 <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-burgundy" />
-                  <span className="font-bold text-charcoal text-lg">{experienceYears}</span>
-                  <span className="text-charcoal/60 text-sm">years</span>
+                  <Award className="w-4 h-4 text-burgundy" />
+                  <span className="font-bold text-charcoal text-base">{experienceYears}</span>
+                  <span className="text-charcoal/60 text-xs">years</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Contact Card - Floating on Desktop */}
-          <Card className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm shadow-2xl rounded-2xl p-6 w-80">
+          <Card className="hidden lg:block absolute right-8 top-8 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-5 w-72">
             <h3 className="text-xl font-semibold text-charcoal mb-4">
               Contact {guide.display_name.split(' ')[0]}
             </h3>
