@@ -35,11 +35,11 @@ export function EnhancedCalendarWidget({
   };
 
   return (
-    <Card className="border-burgundy/20 shadow-lg">
+    <Card className="border-burgundy/20 shadow-lg bg-cream">
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <CalendarIcon className="h-5 w-5 text-burgundy" />
-          <h4 className="font-semibold" style={{fontFamily: 'Playfair Display, serif'}}>
+          <h4 className="font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
             Availability Calendar
           </h4>
         </div>

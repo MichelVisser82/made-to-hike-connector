@@ -11,16 +11,17 @@ export function GuideSpecialties({ specialties, title = "Specialties" }: GuideSp
 
   return (
     <section className="py-8">
-      <h2 className="text-3xl font-bold mb-6">{title}</h2>
+      <h2 className="text-3xl font-bold mb-6 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+        {title}
+      </h2>
       
       <div className="flex flex-wrap gap-3">
         {specialties.map((specialty, index) => (
           <Badge 
             key={index} 
-            variant="secondary" 
-            className="text-sm py-2 px-4 bg-muted hover:bg-muted/80"
+            className="text-sm py-2 px-4 bg-burgundy/10 text-burgundy border border-burgundy/30 hover:bg-burgundy/20"
           >
-            <Check className="w-4 h-4 mr-2 text-primary" />
+            <Check className="w-4 h-4 mr-2 text-burgundy" />
             {specialty}
           </Badge>
         ))}

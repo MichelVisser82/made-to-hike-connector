@@ -20,19 +20,19 @@ export function FAQAccordion({ faqs }: FAQAccordionProps) {
   if (!faqs || faqs.length === 0) return null;
 
   return (
-    <Card className="border-burgundy/20 shadow-lg">
+    <Card className="border-burgundy/20 shadow-lg bg-cream">
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-6">
           <Info className="h-5 w-5 text-burgundy" />
-          <h3 className="text-xl font-semibold" style={{fontFamily: 'Playfair Display, serif'}}>
+          <h3 className="text-xl font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
             Frequently Asked Questions
           </h3>
         </div>
 
         <Accordion type="single" collapsible className="w-full">
           {faqs.map((faq, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="text-left hover:text-burgundy">
+            <AccordionItem key={index} value={`item-${index}`} className="border-burgundy/20">
+              <AccordionTrigger className="text-left hover:text-burgundy text-charcoal font-medium">
                 {faq.question}
               </AccordionTrigger>
               <AccordionContent className="text-charcoal/80">

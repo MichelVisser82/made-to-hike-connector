@@ -28,26 +28,11 @@ export function GuideReviewsSection({ reviews, averageRating, totalReviews }: Gu
   };
 
   return (
-    <section className="py-12">
-      <h2 className="text-3xl font-bold mb-8">Reviews & Testimonials</h2>
-
-      {/* Overall Rating */}
-      <div className="flex items-center gap-6 mb-8">
-        <div>
-          <div className="text-5xl font-bold">{averageRating.toFixed(1)}</div>
-          <div className="flex gap-1 mt-2">
-            {renderStars(Math.round(averageRating))}
-          </div>
-        </div>
-        <div className="text-muted-foreground">
-          Based on {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}
-        </div>
-      </div>
-
+    <section className="space-y-4">
       {/* Review Cards */}
       <div className="space-y-4">
         {reviews.map((review) => (
-          <Card key={review.id} className="border-burgundy/20 shadow-lg">
+          <Card key={review.id} className="border-burgundy/20 shadow-lg bg-cream">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <Avatar>
@@ -59,8 +44,8 @@ export function GuideReviewsSection({ reviews, averageRating, totalReviews }: Gu
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <div className="font-semibold">{review.hiker_name || 'Anonymous'}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="font-semibold text-charcoal">{review.hiker_name || 'Anonymous'}</div>
+                      <div className="text-sm text-charcoal/60">
                         {formatDate(review.created_at)}
                       </div>
                     </div>
@@ -68,7 +53,7 @@ export function GuideReviewsSection({ reviews, averageRating, totalReviews }: Gu
                       {renderStars(review.rating)}
                     </div>
                   </div>
-                  <p className="text-foreground">{review.comment}</p>
+                  <p className="text-charcoal/80">{review.comment}</p>
                 </div>
               </div>
             </CardContent>

@@ -1,12 +1,10 @@
 import { GuideHeroSection } from '../guide/GuideHeroSection';
-import { ProfessionalExpertise } from '../guide/ProfessionalExpertise';
-import { GuideCertificationCard } from '../guide/GuideCertificationCard';
+import { CredentialsSection } from '../guide/CredentialsSection';
 import { GuideStatsCards } from '../guide/GuideStatsCards';
 import { GuideSpecialties } from '../guide/GuideSpecialties';
 import { GuidingAreasGrid } from '../guide/GuidingAreasGrid';
 import { GuideActiveTours } from '../guide/GuideActiveTours';
 import { GuideReviewsSection } from '../guide/GuideReviewsSection';
-import { GuideAvailabilityCard } from '../guide/GuideAvailabilityCard';
 import { GuideFooterCTA } from '../guide/GuideFooterCTA';
 import { VideoIntroductionCard } from '../guide/VideoIntroductionCard';
 import { EnhancedCalendarWidget } from '../guide/EnhancedCalendarWidget';
@@ -76,17 +74,33 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Main Content Column (2/3 width) */}
-          <div className="lg:col-span-2 space-y-12">
+          <div className="lg:col-span-2 space-y-8">
             {/* About Me Section */}
             {guide.bio && (
               <section>
-                <h2 className="text-3xl font-bold mb-4" style={{fontFamily: 'Playfair Display, serif'}}>
+                <h2 className="text-3xl font-bold mb-4 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
                   About Me
                 </h2>
                 <p className="text-charcoal/80 leading-relaxed whitespace-pre-line">
                   {guide.bio}
                 </p>
               </section>
+            )}
+
+            {/* Credentials Section */}
+            <CredentialsSection 
+              certifications={guide.certifications}
+              isGuideVerified={guide.verified}
+            />
+
+            {/* Languages */}
+            {mockLanguages.length > 0 && (
+              <LanguagesSection languages={mockLanguages} />
+            )}
+
+            {/* Specialties */}
+            {guide.specialties && guide.specialties.length > 0 && (
+              <GuideSpecialties specialties={guide.specialties} />
             )}
 
             {/* Photo Gallery */}
@@ -97,46 +111,15 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
               />
             )}
 
-            {/* Specialties */}
-            {guide.specialties && guide.specialties.length > 0 && (
-              <GuideSpecialties specialties={guide.specialties} />
-            )}
-
-            {/* Certifications */}
-            <section>
-              <h2 className="text-3xl font-bold mb-6" style={{fontFamily: 'Playfair Display, serif'}}>
-                Professional Certifications
-              </h2>
-              <GuideCertificationCard certifications={guide.certifications} />
-            </section>
-
-            {/* Languages */}
-            {mockLanguages.length > 0 && (
-              <LanguagesSection languages={mockLanguages} />
-            )}
-
-            {/* Stats Cards */}
-            <GuideStatsCards stats={stats} />
-
-            {/* Guiding Areas */}
-            {guide.guiding_areas && guide.guiding_areas.length > 0 && (
-              <GuidingAreasGrid areas={guide.guiding_areas} />
-            )}
-
-            {/* Terrain Capabilities */}
-            {guide.terrain_capabilities && guide.terrain_capabilities.length > 0 && (
-              <GuideSpecialties 
-                specialties={guide.terrain_capabilities} 
-                title="Terrain Capabilities" 
-              />
-            )}
-
             {/* Active Tours */}
             <GuideActiveTours tours={tours} guideId={guide.user_id} />
 
-            {/* Reviews */}
+            {/* Reviews with Rating Breakdown */}
             {reviews && reviews.length > 0 && (
-              <section>
+              <section className="space-y-6">
+                <h2 className="text-3xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                  Reviews & Testimonials
+                </h2>
                 <ReviewCategoryRatings ratings={mockReviewRatings} />
                 <GuideReviewsSection 
                   reviews={reviews} 
@@ -145,9 +128,6 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
                 />
               </section>
             )}
-
-            {/* Safety Information */}
-            <SafetyInformationCard safetyRecord="Zero incidents in 450+ tours" />
 
             {/* FAQs */}
             <FAQAccordion faqs={mockFAQs} />

@@ -13,12 +13,14 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
   if (!tours || tours.length === 0) return null;
 
   return (
-    <section className="py-12">
+    <section className="py-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold">Active Tours</h2>
+        <h2 className="text-3xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+          Active Tours
+        </h2>
         <Link 
           to={`/search?guide=${guideId}`} 
-          className="text-primary hover:underline flex items-center gap-1"
+          className="text-burgundy hover:underline flex items-center gap-1 font-medium"
         >
           See all tours <ArrowRight className="w-4 h-4" />
         </Link>
@@ -34,7 +36,7 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                   alt={tour.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cream-light via-cream-light/60 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cream via-cream/60 to-transparent" />
                 {tour.rating >= 4.5 && (
                   <Badge className="absolute top-3 right-3 bg-burgundy text-white">
                     <Flame className="w-3 h-3 mr-1" />
@@ -43,22 +45,27 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 )}
               </div>
               <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-2 line-clamp-1">{tour.title}</h3>
+                <h3 className="font-semibold text-lg mb-2 line-clamp-1 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                  {tour.title}
+                </h3>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <span className="text-sm font-medium">{tour.rating}</span>
+                    <Star className="w-4 h-4 text-gold fill-gold" />
+                    <span className="text-sm font-medium text-charcoal">{tour.rating}</span>
                   </div>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-charcoal/60">
                     ({tour.reviews_count} reviews)
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{tour.duration}</span>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-charcoal/60">{tour.duration}</span>
                   <span className="text-lg font-bold text-burgundy">
                     {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </span>
                 </div>
+                <button className="w-full bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                  View Details
+                </button>
               </CardContent>
             </Card>
           </Link>

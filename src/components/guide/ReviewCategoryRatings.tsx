@@ -18,8 +18,8 @@ export function ReviewCategoryRatings({ ratings }: ReviewCategoryRatingsProps) {
   ];
 
   return (
-    <div className="mb-8 p-6 bg-burgundy/5 rounded-lg border border-burgundy/10">
-      <h3 className="text-lg font-semibold mb-4" style={{fontFamily: 'Playfair Display, serif'}}>
+    <div className="p-6 bg-burgundy/5 rounded-lg border border-burgundy/20">
+      <h3 className="text-lg font-semibold mb-4 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
         Rating Breakdown
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -31,7 +31,7 @@ export function ReviewCategoryRatings({ ratings }: ReviewCategoryRatingsProps) {
             </div>
             <Progress 
               value={(cat.value / 5) * 100} 
-              className="h-2 bg-burgundy/10"
+              className="h-2"
             />
           </div>
         ))}

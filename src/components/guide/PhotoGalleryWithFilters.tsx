@@ -31,8 +31,8 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
   if (!photos || photos.length === 0) return null;
 
   return (
-    <section className="py-12">
-      <h2 className="text-3xl font-bold mb-6" style={{fontFamily: 'Playfair Display, serif'}}>
+    <section className="py-8">
+      <h2 className="text-3xl font-bold mb-6 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
         {guideName} - Adventure Gallery
       </h2>
 
@@ -42,10 +42,10 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
           <Badge
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`cursor-pointer transition-colors ${
+            className={`cursor-pointer transition-all px-4 py-2 ${
               selectedCategory === cat.id
-                ? 'bg-burgundy text-white border-burgundy'
-                : 'bg-burgundy/10 text-burgundy border-burgundy/20 hover:bg-burgundy/20'
+                ? 'bg-burgundy text-white border-burgundy hover:bg-burgundy/90'
+                : 'bg-cream border-burgundy/30 text-burgundy hover:bg-burgundy/10'
             }`}
           >
             {cat.label}

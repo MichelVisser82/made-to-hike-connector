@@ -11,7 +11,7 @@ export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: Vid
   if (!videoUrl) return null;
 
   return (
-    <Card className="border-burgundy/20 shadow-lg overflow-hidden">
+    <Card className="border-burgundy/20 shadow-lg bg-cream overflow-hidden">
       <CardContent className="p-0">
         <div className="relative aspect-video bg-charcoal/10 group cursor-pointer">
           {thumbnailUrl ? (
@@ -35,7 +35,7 @@ export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: Vid
         </div>
         
         <div className="p-4">
-          <h4 className="font-semibold mb-1" style={{fontFamily: 'Playfair Display, serif'}}>
+          <h4 className="font-semibold mb-1 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
             Meet {guideName}
           </h4>
           <p className="text-sm text-charcoal/70">
