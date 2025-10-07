@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { MapPin, CheckCircle, Star, Users, Clock, Award, Heart, Share2, MessageCircle, Mail } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -12,6 +13,8 @@ interface GuideHeroSectionProps {
 }
 
 export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
+  const [fallbackHeroUrl, setFallbackHeroUrl] = useState<string | null>(null);
+
   const activeSinceYear = guide.active_since 
     ? new Date(guide.active_since).getFullYear()
     : new Date().getFullYear();
@@ -19,6 +22,13 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   const experienceYears = guide.experience_years || (new Date().getFullYear() - activeSinceYear);
   const reviewCount = 156; // This should come from actual review count
   const responseTime = '2 hours'; // This should come from guide data
+
+  useEffect(() => {
+    if (!guide.hero_background_url && guide.portfolio_images?.length > 0) {
+      const randomIndex = Math.floor(Math.random() * guide.portfolio_images.length);
+      setFallbackHeroUrl(guide.portfolio_images[randomIndex]);
+    }
+  }, [guide.hero_background_url, guide.portfolio_images]);
 
   return (
     <section className="relative h-[600px] w-full overflow-hidden">
@@ -28,6 +38,8 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
         style={{
           backgroundImage: guide.hero_background_url 
             ? `url(${guide.hero_background_url})` 
+            : fallbackHeroUrl
+            ? `url(${fallbackHeroUrl})`
             : 'linear-gradient(135deg, #1a4d2e 0%, #2d5f3e 25%, #4a7c59 50%, #6b9377 75%, #8ba888 100%)',
         }}
       >
