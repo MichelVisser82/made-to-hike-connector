@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface WebsiteImage {
@@ -19,7 +19,7 @@ export function useWebsiteImages() {
   const [images, setImages] = useState<WebsiteImage[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchImages = async (filters?: {
+  const fetchImages = useCallback(async (filters?: {
     category?: string;
     usage_context?: string;
     tags?: string[];
@@ -67,19 +67,19 @@ export function useWebsiteImages() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getImageUrl = (image: WebsiteImage) => {
+  const getImageUrl = useCallback((image: WebsiteImage) => {
     return supabase.storage.from(image.bucket_id).getPublicUrl(image.file_path).data.publicUrl;
-  };
+  }, []);
 
-  const getImagesByContext = async (context: string, limit = 10) => {
+  const getImagesByContext = useCallback(async (context: string, limit = 10) => {
     return fetchImages({ usage_context: context, limit });
-  };
+  }, [fetchImages]);
 
-  const getImagesByCategory = async (category: string, limit = 10) => {
+  const getImagesByCategory = useCallback(async (category: string, limit = 10) => {
     return fetchImages({ category, limit });
-  };
+  }, [fetchImages]);
 
   const getRandomImage = async (filters?: { category?: string; usage_context?: string }) => {
     const imageList = await fetchImages(filters);
@@ -202,13 +202,9 @@ export function useWebsiteImages() {
     }
   };
 
-  useEffect(() => {
-    fetchImages();
-  }, []);
-
-  const getImagesByGuide = async (guide_id: string, limit = 10) => {
+  const getImagesByGuide = useCallback(async (guide_id: string, limit = 50) => {
     return fetchImages({ guide_id, limit });
-  };
+  }, [fetchImages]);
 
   return {
     images,

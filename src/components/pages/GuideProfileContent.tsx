@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Target, MapPin, Camera } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
@@ -32,49 +32,61 @@ interface GuideProfileContentProps {
 }
 
 export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfileContentProps) {
-  const { getImagesByGuide, getImageUrl, loading } = useWebsiteImages();
+  const { getImagesByGuide, getImageUrl } = useWebsiteImages();
   const [galleryPhotos, setGalleryPhotos] = useState<Photo[]>([]);
   const [loadingGallery, setLoadingGallery] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false);
 
-  // Fetch guide's images from website_images table
+  // Stable fetch function wrapped in useCallback
+  const fetchGalleryImages = useCallback(async () => {
+    // Prevent duplicate fetches
+    if (hasFetched) return;
+    
+    setLoadingGallery(true);
+    setHasFetched(true);
+    
+    try {
+      const images = await getImagesByGuide(guide.user_id);
+      
+      // Map website_images to Photo format
+      const photos: Photo[] = images.map(image => {
+        // Determine gallery category from usage_context or category
+        let category: Photo['category'] = 'all';
+        
+        if (image.usage_context?.includes('tour') || image.category === 'tour') {
+          category = 'tours';
+        } else if (image.category === 'landscape' || image.tags?.includes('landscape')) {
+          category = 'landscapes';
+        } else if (image.tags?.some(tag => tag.includes('group') || tag.includes('team'))) {
+          category = 'groups';
+        } else if (image.category === 'hiking' || image.tags?.includes('action')) {
+          category = 'action';
+        }
+        
+        return {
+          url: getImageUrl(image),
+          category,
+          alt: image.alt_text || `${guide.display_name} adventure photo`
+        };
+      });
+      
+      setGalleryPhotos(photos);
+    } catch (error) {
+      console.error('Error fetching gallery images:', error);
+      setGalleryPhotos([]);
+    } finally {
+      setLoadingGallery(false);
+    }
+  }, [guide.user_id, guide.display_name, getImagesByGuide, getImageUrl, hasFetched]);
+
+  // Only fetch once when guide.user_id changes
   useEffect(() => {
-    const fetchGalleryImages = async () => {
-      setLoadingGallery(true);
-      try {
-        const images = await getImagesByGuide(guide.user_id, 50);
-        
-        // Map website_images to Photo format
-        const photos: Photo[] = images.map(image => {
-          // Determine gallery category from usage_context or category
-          let category: Photo['category'] = 'all';
-          
-          if (image.usage_context?.includes('tour') || image.category === 'tour') {
-            category = 'tours';
-          } else if (image.category === 'landscape' || image.tags?.includes('landscape')) {
-            category = 'landscapes';
-          } else if (image.tags?.some(tag => tag.includes('group') || tag.includes('team'))) {
-            category = 'groups';
-          } else if (image.category === 'hiking' || image.tags?.includes('action')) {
-            category = 'action';
-          }
-          
-          return {
-            url: getImageUrl(image),
-            category,
-            alt: image.alt_text || `${guide.display_name} adventure photo`
-          };
-        });
-        
-        setGalleryPhotos(photos);
-      } catch (error) {
-        console.error('Error fetching gallery images:', error);
-      } finally {
-        setLoadingGallery(false);
-      }
-    };
+    setHasFetched(false);
+  }, [guide.user_id]);
 
+  useEffect(() => {
     fetchGalleryImages();
-  }, [guide.user_id, getImagesByGuide, getImageUrl, guide.display_name]);
+  }, [fetchGalleryImages]);
 
   const mockLanguages = guide.languages_spoken?.map(lang => ({
     language: lang,
