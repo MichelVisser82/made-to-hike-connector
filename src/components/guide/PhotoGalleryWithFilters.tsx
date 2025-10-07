@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Camera, ChevronDown, ChevronUp } from 'lucide-react';
+import { Camera, ChevronDown, ChevronUp, Eye, X } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
+import { Dialog, DialogContent } from '../ui/dialog';
 
 export interface Photo {
   url: string;
@@ -25,6 +26,7 @@ const categories = [
 export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithFiltersProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [startIndex, setStartIndex] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<Photo | null>(null);
 
   const filteredPhotos = selectedCategory === 'all' 
     ? photos 
@@ -93,6 +95,7 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
           <div 
             key={index} 
             className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer shadow-lg hover:shadow-elegant transition-all duration-300 animate-fade-in"
+            onClick={() => setSelectedImage(photo)}
           >
             <img
               src={photo.url}
@@ -100,11 +103,41 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/20 transition-colors" />
+            <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/30 transition-colors" />
+            
+            {/* Eye Icon Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="bg-white/90 rounded-full p-4 backdrop-blur-sm transform group-hover:scale-110 transition-transform duration-300">
+                <Eye className="h-8 w-8 text-burgundy" />
+              </div>
+            </div>
+            
             <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-charcoal/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         ))}
       </div>
+
+      {/* Image Lightbox Modal */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-7xl w-full h-[90vh] p-0 bg-charcoal/95 border-none">
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 z-50 bg-white/10 hover:bg-white/20 rounded-full p-2 backdrop-blur-sm transition-colors"
+            aria-label="Close"
+          >
+            <X className="h-6 w-6 text-white" />
+          </button>
+          {selectedImage && (
+            <div className="w-full h-full flex items-center justify-center p-6">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.alt || 'Enlarged photo'}
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Load More Button */}
       {hasMore && (
