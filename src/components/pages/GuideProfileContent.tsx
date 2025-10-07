@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Target, MapPin, Camera } from 'lucide-react';
+import { Target, MapPin, Camera, Star } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
 import { GuideHeroSection } from '../guide/GuideHeroSection';
@@ -95,9 +95,10 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
 
   const mockReviewRatings = {
     safety: 4.9,
-    knowledge: 4.8,
+    knowledge: 5.0,
     communication: 4.9,
-    value: 4.7
+    value: 4.8,
+    overall: 4.9
   };
 
   const mockFAQs = [
@@ -229,11 +230,24 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
 
             {/* Reviews with Rating Breakdown */}
             <section className="space-y-6">
-              <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                Reviews & Testimonials
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                  Reviews & Testimonials
+                </h2>
+                {reviews && reviews.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                    <span className="text-2xl font-bold text-charcoal">{stats.average_rating.toFixed(1)}</span>
+                    <span className="text-charcoal/60">({reviews.length} reviews)</span>
+                  </div>
+                )}
+              </div>
               {reviews && reviews.length > 0 && (
-                <ReviewCategoryRatings ratings={mockReviewRatings} />
+                <ReviewCategoryRatings 
+                  ratings={mockReviewRatings}
+                  recommendPercentage={98}
+                  aboveBeyondPercentage={95}
+                />
               )}
               <GuideReviewsSection 
                 reviews={reviews} 

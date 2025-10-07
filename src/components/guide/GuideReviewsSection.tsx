@@ -1,7 +1,8 @@
-import { Star } from 'lucide-react';
+import { Star, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Badge } from '../ui/badge';
 import type { GuideReview } from '@/hooks/useGuideReviews';
 
 interface GuideReviewsSectionProps {
@@ -32,28 +33,39 @@ export function GuideReviewsSection({ reviews, averageRating, totalReviews }: Gu
         <>
           <div className="space-y-4">
             {reviews.map((review) => (
-              <Card key={review.id} className="border-burgundy/20 shadow-lg bg-cream">
+              <Card key={review.id} className="border-burgundy/20 shadow-lg bg-white">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
-                    <Avatar>
+                    <Avatar className="h-12 w-12">
                       <AvatarImage src={review.hiker_avatar} alt={review.hiker_name} />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-burgundy/10 text-burgundy">
                         {review.hiker_name?.charAt(0) || 'H'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-start justify-between mb-2">
                         <div>
-                          <div className="font-semibold text-charcoal">{review.hiker_name || 'Anonymous'}</div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-charcoal text-lg">{review.hiker_name || 'Anonymous'}</span>
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1">
+                              <CheckCircle className="h-3 w-3" />
+                              Verified Booking
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-charcoal/70 mb-1">
+                            Ben Nevis Summit Challenge
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <div className="flex gap-0.5">
+                            {renderStars(review.rating)}
+                          </div>
                           <div className="text-sm text-charcoal/60">
                             {formatDate(review.created_at)}
                           </div>
                         </div>
-                        <div className="flex gap-0.5">
-                          {renderStars(review.rating)}
-                        </div>
                       </div>
-                      <p className="text-charcoal/80">{review.comment}</p>
+                      <p className="text-charcoal/80 leading-relaxed">{review.comment}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -70,7 +82,7 @@ export function GuideReviewsSection({ reviews, averageRating, totalReviews }: Gu
           )}
         </>
       ) : (
-        <Card className="border-burgundy/20 shadow-lg bg-cream">
+        <Card className="border-burgundy/20 shadow-lg bg-white">
           <CardContent className="p-8 text-center">
             <Star className="h-12 w-12 text-burgundy/30 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-charcoal mb-2">No reviews yet</h3>
