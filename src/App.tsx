@@ -31,9 +31,10 @@ const App: React.FC = () => {
             <Route path="/email-test" element={<EmailTest />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/tours/:slug" element={<TourPage />} />
-            <Route path="/guides/:guideId" element={<GuidePage />} />
             <Route path="/guide/signup" element={<GuideSignupPage />} />
             <Route path="/certifications" element={<CertificationsPage />} />
+            {/* Dynamic guide profile route - BEFORE NotFound */}
+            <Route path="/:slug" element={<GuidePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

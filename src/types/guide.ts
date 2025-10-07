@@ -30,6 +30,7 @@ export interface GuideCertification {
 export interface GuideProfile {
   id: string;
   user_id: string;
+  slug: string;
   display_name: string;
   profile_image_url?: string;
   hero_background_url?: string;
@@ -66,6 +67,7 @@ export interface GuideProfile {
 export interface GuideSignupData {
   // Step 2: Basic Info
   display_name: string;
+  slug?: string;
   email: string;
   password: string;
   profile_image?: File;

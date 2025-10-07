@@ -97,6 +97,7 @@ export type Database = {
           profile_completed: boolean | null
           profile_image_url: string | null
           seasonal_availability: string | null
+          slug: string | null
           specialties: string[] | null
           terrain_capabilities: string[] | null
           upcoming_availability_end: string | null
@@ -131,6 +132,7 @@ export type Database = {
           profile_completed?: boolean | null
           profile_image_url?: string | null
           seasonal_availability?: string | null
+          slug?: string | null
           specialties?: string[] | null
           terrain_capabilities?: string[] | null
           upcoming_availability_end?: string | null
@@ -165,6 +167,7 @@ export type Database = {
           profile_completed?: boolean | null
           profile_image_url?: string | null
           seasonal_availability?: string | null
+          slug?: string | null
           specialties?: string[] | null
           terrain_capabilities?: string[] | null
           upcoming_availability_end?: string | null
@@ -215,6 +218,24 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      reserved_slugs: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          slug?: string
         }
         Relationships: []
       }
@@ -576,6 +597,10 @@ export type Database = {
       add_admin_role_if_user_exists: {
         Args: { user_email: string }
         Returns: undefined
+      }
+      generate_guide_slug: {
+        Args: { guide_name: string }
+        Returns: string
       }
       generate_tour_slug: {
         Args: { tour_region: string; tour_title: string }

@@ -1533,7 +1533,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               if (onNavigateToGuideProfile) {
                 onNavigateToGuideProfile(profile.user_id);
               } else {
-                navigate(`/guides/${profile.user_id}`);
+                navigate(`/${profile.slug}`);
               }
             }}
           >

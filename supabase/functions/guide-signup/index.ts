@@ -155,6 +155,7 @@ serve(async (req) => {
       .from('guide_profiles')
       .upsert({
         user_id: userId,
+        slug: guideData.slug || null,
         display_name: guideData.display_name,
         bio: guideData.bio,
         location: guideData.location,

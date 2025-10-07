@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { GuideSignupData } from '@/types/guide';
+import { sanitizeSlug } from '@/utils/slugValidation';
 
 interface Step02BasicInfoProps {
   data: Partial<GuideSignupData>;
@@ -90,6 +91,25 @@ export function Step02BasicInfo({ data, updateData, onNext, onBack }: Step02Basi
               placeholder="e.g., Sarah Mountain"
             />
             {errors.display_name && <p className="text-sm text-destructive mt-1">{errors.display_name}</p>}
+          </div>
+
+          {/* Custom Slug (Optional) */}
+          <div>
+            <Label htmlFor="slug">Custom Profile URL (Optional)</Label>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">madetohike.com/</span>
+              <Input
+                id="slug"
+                value={data.slug || ''}
+                onChange={(e) => updateData({ slug: sanitizeSlug(e.target.value) })}
+                placeholder="johnsmith"
+                className="flex-1"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Leave blank to auto-generate from your name. Letters, numbers, and hyphens only.
+            </p>
+            {errors.slug && <p className="text-sm text-destructive mt-1">{errors.slug}</p>}
           </div>
 
           {/* Email */}
