@@ -10,14 +10,21 @@ export function useGuideTours(guideId: string | undefined, limit = 3) {
 
       const { data, error } = await supabase
         .from('tours')
-        .select('*')
+        .select(`
+          *,
+          guide:guide_profiles!tours_guide_id_fkey(
+            display_name,
+            profile_image_url,
+            slug
+          )
+        `)
         .eq('guide_id', guideId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
-      return data as Tour[];
+      return data as any[];
     },
     enabled: !!guideId,
     staleTime: 5 * 60 * 1000,

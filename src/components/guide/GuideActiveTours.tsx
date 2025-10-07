@@ -6,8 +6,16 @@ import { Button } from '../ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import type { Tour } from '@/types';
 
+interface EnrichedTour extends Tour {
+  guide?: {
+    display_name: string;
+    profile_image_url: string | null;
+    slug: string;
+  } | null;
+}
+
 interface GuideActiveToursProps {
-  tours: Tour[];
+  tours: EnrichedTour[];
   guideId: string;
 }
 
@@ -39,8 +47,8 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/30 to-transparent" />
+                {/* Gradient overlay - lighter and more natural */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 
                 {/* Difficulty badge - top left */}
                 <Badge className="absolute top-3 left-3 bg-white text-charcoal capitalize shadow-md rounded-full px-4 py-1.5">
@@ -62,19 +70,25 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                   </h3>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-10 w-10 border-2 border-white/50">
-                      <AvatarImage src={tour.guide_avatar_url} alt={tour.guide_display_name} />
+                      <AvatarImage 
+                        src={tour.guide?.profile_image_url || undefined} 
+                        alt={tour.guide?.display_name || 'Guide'} 
+                      />
                       <AvatarFallback className="text-xs bg-burgundy text-white">
-                        {tour.guide_display_name?.split(' ').map(n => n[0]).join('') || 'G'}
+                        {tour.guide?.display_name?.split(' ').map(n => n[0]).join('') || 'G'}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-sm text-white/90">
-                      by {tour.guide_display_name || 'Guide'}
+                      by {tour.guide?.display_name || 'Guide'}
                     </span>
                   </div>
                 </div>
               </div>
               
-              <CardContent className="p-6 space-y-5">
+              {/* Smooth transition fade between image and content */}
+              <div className="h-6 bg-gradient-to-t from-white to-transparent -mt-6 relative z-10" />
+              
+              <CardContent className="p-6 space-y-4">
                 {/* Metadata with icons - vertical stack */}
                 <div className="flex flex-col gap-2 text-sm text-charcoal/70">
                   <div className="flex items-center gap-1">
@@ -93,8 +107,8 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 
                 {/* Rating */}
                 <div className="flex items-center gap-2">
-                  <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
-                  <span className="text-lg font-bold text-charcoal">{tour.rating}</span>
+                  <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  <span className="text-base font-bold text-charcoal">{tour.rating}</span>
                   <span className="text-sm text-charcoal/60">
                     ({tour.reviews_count} reviews)
                   </span>
@@ -102,10 +116,10 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 
                 {/* Price & CTA */}
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-4xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
+                  <span className="text-2xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
                     {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </span>
-                  <Button className="bg-primary hover:bg-primary/90 text-white px-8">
+                  <Button className="bg-burgundy hover:bg-burgundy/90 text-white px-4">
                     Book Now
                   </Button>
                 </div>
