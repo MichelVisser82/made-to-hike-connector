@@ -265,7 +265,7 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
               </div>
 
               {/* Trust Indicators - also sticky */}
-              <div className="sticky top-24 z-20">
+              <div className="sticky top-[30rem] z-20">
                 <TrustIndicatorsCard 
                   guideName={guide.display_name}
                   isVerified={guide.verified}
