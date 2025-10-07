@@ -47,6 +47,15 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        burgundy: {
+          DEFAULT: "hsl(var(--burgundy))",
+          dark: "hsl(var(--burgundy-dark))",
+        },
+        "cream-light": "hsl(var(--cream-light))",
+        cream: "hsl(var(--cream))",
+        charcoal: "hsl(var(--charcoal))",
+        gold: "hsl(var(--gold))",
+        sage: "hsl(var(--sage))",
         cert: {
           sage: "hsl(var(--cert-sage))",
           "sage-foreground": "hsl(var(--cert-sage-foreground))",
@@ -77,6 +86,10 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        elegant: "0 10px 30px -10px rgba(139, 21, 56, 0.3)",
+        glow: "0 0 40px rgba(184, 134, 11, 0.4)",
       },
       keyframes: {
         "accordion-down": {

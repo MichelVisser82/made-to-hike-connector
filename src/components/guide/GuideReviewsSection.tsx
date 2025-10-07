@@ -47,7 +47,7 @@ export function GuideReviewsSection({ reviews, averageRating, totalReviews }: Gu
       {/* Review Cards */}
       <div className="space-y-4">
         {reviews.map((review) => (
-          <Card key={review.id}>
+          <Card key={review.id} className="border-burgundy/20 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <Avatar>
@@ -78,7 +78,9 @@ export function GuideReviewsSection({ reviews, averageRating, totalReviews }: Gu
 
       {totalReviews > reviews.length && (
         <div className="mt-6 text-center">
-          <Button variant="outline">Load More Reviews</Button>
+          <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white">
+            Load More Reviews
+          </Button>
         </div>
       )}
     </section>

@@ -27,15 +27,16 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {tours.map((tour) => (
           <Link key={tour.id} to={`/tours/${tour.slug || tour.id}`}>
-            <Card className="hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+            <Card className="border-burgundy/20 shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
               <div className="relative h-48">
                 <img
                   src={tour.hero_image || tour.images?.[0] || 'https://via.placeholder.com/400x300'}
                   alt={tour.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cream-light via-cream-light/60 to-transparent" />
                 {tour.rating >= 4.5 && (
-                  <Badge className="absolute top-3 right-3 bg-red-500 text-white">
+                  <Badge className="absolute top-3 right-3 bg-burgundy text-white">
                     <Flame className="w-3 h-3 mr-1" />
                     HOT!
                   </Badge>
@@ -54,7 +55,7 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{tour.duration}</span>
-                  <span className="text-lg font-bold text-primary">
+                  <span className="text-lg font-bold text-burgundy">
                     {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </span>
                 </div>

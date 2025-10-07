@@ -1,4 +1,4 @@
-import { MapPin, CheckCircle, MessageCircle, Calendar } from 'lucide-react';
+import { MapPin, CheckCircle, MessageCircle, Calendar, Share2, Heart } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { CertificationBadge } from '../ui/certification-badge';
@@ -103,20 +103,21 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3">
-              <Button size="lg" variant="default">
+              <Button size="lg" className="bg-burgundy hover:bg-burgundy/90 text-white">
                 <MessageCircle className="w-4 h-4 mr-2" />
-                Send Message
+                Contact Guide
               </Button>
-              <Button size="lg" variant="secondary">
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white hover:text-charcoal">
                 <Calendar className="w-4 h-4 mr-2" />
                 Book a Tour
               </Button>
-              {guide.verified && (
-                <Badge className="bg-primary/90 text-primary-foreground px-4 py-2 text-sm font-semibold">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  VERIFIED GUIDE
-                </Badge>
-              )}
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white hover:text-charcoal">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white hover:text-burgundy">
+                <Heart className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
