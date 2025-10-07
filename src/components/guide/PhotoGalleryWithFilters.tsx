@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, ChevronDown } from 'lucide-react';
+import { Camera, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
@@ -32,9 +32,14 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
 
   const displayedPhotos = filteredPhotos.slice(startIndex, startIndex + 9);
   const hasMore = startIndex + 9 < filteredPhotos.length;
+  const hasPrevious = startIndex > 0;
 
   const handleLoadMore = () => {
     setStartIndex(prev => prev + 3);
+  };
+
+  const handleShowPrevious = () => {
+    setStartIndex(prev => Math.max(0, prev - 3));
   };
 
   const handleCategoryChange = (category: string) => {
@@ -62,6 +67,20 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
           </Badge>
         ))}
       </div>
+
+      {/* Show Previous Button */}
+      {hasPrevious && (
+        <div className="flex justify-center">
+          <Button
+            onClick={handleShowPrevious}
+            variant="outline"
+            className="border-burgundy text-burgundy hover:bg-burgundy hover:text-white transition-colors gap-2"
+          >
+            <ChevronUp className="h-4 w-4 animate-bounce" />
+            Show Previous Photos
+          </Button>
+        </div>
+      )}
 
       {/* Photo Grid */}
       <div className={`grid gap-4 ${
