@@ -50,7 +50,7 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
             return (
           <Link key={tour.id} to={`/tours/${tour.slug || tour.id}`}>
             <Card className="rounded-xl shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-              <div className="relative h-64">
+              <div className="relative h-64 overflow-hidden">
                 <img
                   src={tour.hero_image || tour.images?.[0] || 'https://via.placeholder.com/400x300'}
                   alt={tour.title}
