@@ -91,6 +91,7 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
               size="md"
               certifications={guideProfile?.certifications}
               isGuideVerified={guideProfile?.verified ?? false}
+              guideSlug={guideProfile?.slug}
             />
             
             {/* Certification Badge - Detailed mode for booking modal */}

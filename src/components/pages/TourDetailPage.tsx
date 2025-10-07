@@ -165,6 +165,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   size="md"
                   certifications={guideProfile?.certifications}
                   isGuideVerified={guideProfile?.verified ?? false}
+                  guideSlug={guideProfile?.slug}
                 />
               </CardHeader>
               <CardContent className="space-y-4">

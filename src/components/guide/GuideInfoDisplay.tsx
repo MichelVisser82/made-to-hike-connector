@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { CertificationBadge } from '../ui/certification-badge';
 import { Award, Loader2 } from 'lucide-react';
@@ -13,6 +14,7 @@ interface GuideInfoDisplayProps {
   variant?: 'default' | 'overlay';
   certifications?: GuideCertification[];
   isGuideVerified?: boolean;
+  guideSlug?: string;
 }
 
 /**
@@ -26,7 +28,8 @@ export function GuideInfoDisplay({
   size = 'md',
   variant = 'default',
   certifications,
-  isGuideVerified = false
+  isGuideVerified = false,
+  guideSlug
 }: GuideInfoDisplayProps) {
   const primaryCert = getPrimaryCertification(certifications);
   const avatarSizes = {
@@ -55,8 +58,8 @@ export function GuideInfoDisplay({
 
   // Overlay variant for image overlays
   if (variant === 'overlay') {
-    return (
-      <div className="flex items-center gap-2">
+    const overlayContent = (
+      <>
         <Avatar className="h-8 w-8 border-2 border-white/50">
           <AvatarImage 
             src={guideInfo.avatarUrl || ''} 
@@ -88,27 +91,61 @@ export function GuideInfoDisplay({
             )}
           </div>
         )}
+      </>
+    );
+
+    return guideSlug ? (
+      <Link to={`/${guideSlug}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        {overlayContent}
+      </Link>
+    ) : (
+      <div className="flex items-center gap-2">
+        {overlayContent}
       </div>
     );
   }
 
+  const AvatarComponent = guideSlug ? (
+    <Link to={`/${guideSlug}`} className="block hover:opacity-80 transition-opacity">
+      <Avatar className={avatarSizes[size]}>
+        <AvatarImage 
+          src={guideInfo.avatarUrl || ''} 
+          alt={guideInfo.displayName} 
+        />
+        <AvatarFallback>
+          {guideInfo.displayName.split(' ').map(n => n[0]).join('')}
+        </AvatarFallback>
+      </Avatar>
+    </Link>
+  ) : (
+    <Avatar className={avatarSizes[size]}>
+      <AvatarImage 
+        src={guideInfo.avatarUrl || ''} 
+        alt={guideInfo.displayName} 
+      />
+      <AvatarFallback>
+        {guideInfo.displayName.split(' ').map(n => n[0]).join('')}
+      </AvatarFallback>
+    </Avatar>
+  );
+
   return (
     <div className="relative">
       <div className="flex items-start gap-4">
-        <Avatar className={avatarSizes[size]}>
-          <AvatarImage 
-            src={guideInfo.avatarUrl || ''} 
-            alt={guideInfo.displayName} 
-          />
-          <AvatarFallback>
-            {guideInfo.displayName.split(' ').map(n => n[0]).join('')}
-          </AvatarFallback>
-        </Avatar>
+        {AvatarComponent}
         
         <div className="flex-1">
-          <h3 className={`${titleSizes[size]} font-semibold mb-1`}>
-            {guideInfo.displayName}
-          </h3>
+          {guideSlug ? (
+            <Link to={`/${guideSlug}`} className="hover:text-primary transition-colors">
+              <h3 className={`${titleSizes[size]} font-semibold mb-1`}>
+                {guideInfo.displayName}
+              </h3>
+            </Link>
+          ) : (
+            <h3 className={`${titleSizes[size]} font-semibold mb-1`}>
+              {guideInfo.displayName}
+            </h3>
+          )}
           
           {isLoadingProfessional ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

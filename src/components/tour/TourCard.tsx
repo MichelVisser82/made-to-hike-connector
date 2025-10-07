@@ -89,6 +89,7 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
             variant="overlay"
             certifications={certifications}
             isGuideVerified={isGuideVerified}
+            guideSlug={guideProfile?.slug}
           />
         </div>
       </div>
