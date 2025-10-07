@@ -24,9 +24,15 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   const responseTime = '2 hours'; // This should come from guide data
 
   useEffect(() => {
+    console.log('GuideHeroSection - hero_background_url:', guide.hero_background_url);
+    console.log('GuideHeroSection - portfolio_images:', guide.portfolio_images);
+    console.log('GuideHeroSection - portfolio_images length:', guide.portfolio_images?.length);
+    
     if (!guide.hero_background_url && guide.portfolio_images?.length > 0) {
       const randomIndex = Math.floor(Math.random() * guide.portfolio_images.length);
-      setFallbackHeroUrl(guide.portfolio_images[randomIndex]);
+      const selectedImage = guide.portfolio_images[randomIndex];
+      console.log('GuideHeroSection - Selected fallback image:', selectedImage);
+      setFallbackHeroUrl(selectedImage);
     }
   }, [guide.hero_background_url, guide.portfolio_images]);
 
