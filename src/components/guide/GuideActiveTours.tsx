@@ -36,7 +36,7 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {tours.map((tour) => (
           <Link key={tour.id} to={`/tours/${tour.slug || tour.id}`}>
             <Card className="rounded-xl shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
@@ -64,8 +64,8 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 )}
                 
                 {/* Text overlay at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-6 z-10">
-                  <h3 className="font-bold text-xl mb-2 line-clamp-2 text-white" style={{fontFamily: 'Playfair Display, serif'}}>
+                <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 pt-8 z-10">
+                  <h3 className="font-bold text-2xl mb-3 line-clamp-2 text-white" style={{fontFamily: 'Playfair Display, serif'}}>
                     {tour.title}
                   </h3>
                   <div className="flex items-center gap-2">
@@ -86,27 +86,27 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
               </div>
               
               {/* Smooth transition fade between image and content */}
-              <div className="h-6 bg-gradient-to-t from-white to-transparent -mt-6 relative z-10" />
+              <div className="h-8 bg-gradient-to-t from-white to-transparent -mt-8 relative z-10" />
               
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="p-5 space-y-3">
                 {/* Metadata with icons - vertical stack */}
-                <div className="flex flex-col gap-2 text-sm text-charcoal/70">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4 text-burgundy" />
+                <div className="flex flex-col gap-1.5 text-sm text-charcoal/70">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-burgundy/70" />
                     <span className="capitalize">{tour.region}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4 text-burgundy" />
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-burgundy/70" />
                     <span>{tour.duration}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4 text-burgundy" />
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-burgundy/70" />
                     <span>Up to {tour.group_size}</span>
                   </div>
                 </div>
                 
                 {/* Rating */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
                   <span className="text-base font-bold text-charcoal">{tour.rating}</span>
                   <span className="text-sm text-charcoal/60">
@@ -115,11 +115,11 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 </div>
                 
                 {/* Price & CTA */}
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-2xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
+                <div className="flex items-center justify-between pt-3">
+                  <span className="text-3xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
                     {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </span>
-                  <Button className="bg-burgundy hover:bg-burgundy/90 text-white px-4">
+                  <Button className="bg-burgundy hover:bg-burgundy/90 text-white px-6 h-10">
                     Book Now
                   </Button>
                 </div>
