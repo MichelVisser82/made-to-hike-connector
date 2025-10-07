@@ -124,7 +124,7 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
               isGuideVerified={guide.verified}
             />
 
-            {/* Combined About Me Card - Contains About, Gallery, Specializations, Languages, Guiding Areas */}
+            {/* Combined About Me Card - Contains About, Specializations, Languages, Guiding Areas */}
             <Card className="border-burgundy/20 shadow-lg bg-white">
               <CardContent className="p-6 space-y-6">
                 {/* About Me Section */}
@@ -137,42 +137,6 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
                       {guide.bio}
                     </p>
                   </div>
-                )}
-
-                {/* Adventure Gallery */}
-                {loadingGallery ? (
-                  <>
-                    <div className="border-t border-burgundy/10" />
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <Camera className="h-5 w-5 text-burgundy" />
-                        <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                          {guide.display_name.split(' ')[0]} - Adventure Gallery
-                        </h2>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                          <Skeleton key={i} className="aspect-square rounded-lg" />
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                ) : galleryPhotos.length > 0 && (
-                  <>
-                    <div className="border-t border-burgundy/10" />
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <Camera className="h-5 w-5 text-burgundy" />
-                        <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                          {guide.display_name.split(' ')[0]} - Adventure Gallery
-                        </h2>
-                      </div>
-                      <PhotoGalleryWithFilters 
-                        photos={galleryPhotos} 
-                        guideName={guide.display_name}
-                      />
-                    </div>
-                  </>
                 )}
 
                 {/* Specializations */}
@@ -213,6 +177,40 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
                 )}
               </CardContent>
             </Card>
+
+            {/* Adventure Gallery - Separate Section */}
+            {loadingGallery ? (
+              <Card className="border-burgundy/20 shadow-lg bg-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Camera className="h-5 w-5 text-burgundy" />
+                    <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                      {guide.display_name.split(' ')[0]} - Adventure Gallery
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <Skeleton key={i} className="aspect-square rounded-lg" />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : galleryPhotos.length > 0 && (
+              <Card className="border-burgundy/20 shadow-lg bg-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Camera className="h-5 w-5 text-burgundy" />
+                    <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                      {guide.display_name.split(' ')[0]} - Adventure Gallery
+                    </h2>
+                  </div>
+                  <PhotoGalleryWithFilters 
+                    photos={galleryPhotos} 
+                    guideName={guide.display_name}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
             {/* Active Tours */}
             <GuideActiveTours tours={tours} guideId={guide.user_id} />
