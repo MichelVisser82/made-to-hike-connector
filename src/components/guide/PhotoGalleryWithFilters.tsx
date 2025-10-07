@@ -24,22 +24,22 @@ const categories = [
 
 export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithFiltersProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [visibleCount, setVisibleCount] = useState(9);
+  const [startIndex, setStartIndex] = useState(0);
 
   const filteredPhotos = selectedCategory === 'all' 
     ? photos 
     : photos.filter(p => p.category === selectedCategory);
 
-  const displayedPhotos = filteredPhotos.slice(0, visibleCount);
-  const hasMore = filteredPhotos.length > visibleCount;
+  const displayedPhotos = filteredPhotos.slice(startIndex, startIndex + 9);
+  const hasMore = startIndex + 9 < filteredPhotos.length;
 
   const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 9);
+    setStartIndex(prev => prev + 3);
   };
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
-    setVisibleCount(9); // Reset to 9 when changing category
+    setStartIndex(0); // Reset to start when changing category
   };
 
   if (!photos || photos.length === 0) return null;
