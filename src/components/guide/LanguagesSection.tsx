@@ -1,5 +1,4 @@
 import { Languages } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 
 interface Language {
@@ -22,26 +21,22 @@ export function LanguagesSection({ languages }: LanguagesSectionProps) {
   if (!languages || languages.length === 0) return null;
 
   return (
-    <Card className="border-burgundy/20 shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Languages className="h-5 w-5 text-burgundy" />
-          <h3 className="text-xl font-semibold" style={{fontFamily: 'Playfair Display, serif'}}>
-            Languages
-          </h3>
-        </div>
+    <div>
+      <div className="flex items-center gap-2 mb-4">
+        <Languages className="h-5 w-5 text-burgundy" />
+        <h3 className="text-lg font-semibold text-charcoal/80">
+          Languages
+        </h3>
+      </div>
 
-        <div className="space-y-3">
-          {languages.map((lang, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <span className="text-charcoal font-medium">{lang.language}</span>
-              <Badge className={proficiencyColors[lang.proficiency]}>
-                {lang.proficiency}
-              </Badge>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {languages.map((lang, index) => (
+          <div key={index} className="flex items-center justify-between bg-cream/50 rounded-lg px-4 py-3">
+            <span className="text-charcoal font-medium">{lang.language}</span>
+            <span className="text-charcoal/60 text-sm">{lang.proficiency}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

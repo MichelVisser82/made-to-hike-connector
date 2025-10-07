@@ -1,4 +1,4 @@
-import { User, Target, MapPin, Camera } from 'lucide-react';
+import { Target, MapPin, Camera } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { GuideHeroSection } from '../guide/GuideHeroSection';
 import { CredentialsSection } from '../guide/CredentialsSection';
@@ -77,63 +77,65 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
           
           {/* Main Content Column (2/3 width) */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Credentials Section - Above About Me */}
+            {/* Credentials Section */}
             <CredentialsSection 
               certifications={guide.certifications}
               isGuideVerified={guide.verified}
             />
 
-            {/* About Me Section */}
-            {guide.bio && (
-              <Card className="border-burgundy/20 shadow-lg bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <User className="h-5 w-5 text-burgundy" />
-                    <h2 className="text-2xl font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+            {/* Combined About Me Card - Contains About, Specializations, Languages, Guiding Areas */}
+            <Card className="border-burgundy/20 shadow-lg bg-white">
+              <CardContent className="p-6 space-y-6">
+                {/* About Me Section */}
+                {guide.bio && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-charcoal mb-4" style={{fontFamily: 'Playfair Display, serif'}}>
                       About Me
                     </h2>
+                    <p className="text-charcoal/80 leading-relaxed whitespace-pre-line">
+                      {guide.bio}
+                    </p>
                   </div>
-                  <p className="text-charcoal/80 leading-relaxed whitespace-pre-line">
-                    {guide.bio}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+                )}
 
-            {/* Languages */}
-            {mockLanguages.length > 0 && (
-              <LanguagesSection languages={mockLanguages} />
-            )}
+                {/* Specializations */}
+                {guide.specialties && guide.specialties.length > 0 && (
+                  <>
+                    <div className="border-t border-burgundy/10" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-charcoal/80 mb-4">
+                        Specializations
+                      </h3>
+                      <GuideSpecialties specialties={guide.specialties} />
+                    </div>
+                  </>
+                )}
 
-            {/* Specialties */}
-            {guide.specialties && guide.specialties.length > 0 && (
-              <Card className="border-burgundy/20 shadow-lg bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Target className="h-5 w-5 text-burgundy" />
-                    <h2 className="text-2xl font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                      Specialties
-                    </h2>
-                  </div>
-                  <GuideSpecialties specialties={guide.specialties} />
-                </CardContent>
-              </Card>
-            )}
+                {/* Languages */}
+                {mockLanguages.length > 0 && (
+                  <>
+                    <div className="border-t border-burgundy/10" />
+                    <LanguagesSection languages={mockLanguages} />
+                  </>
+                )}
 
-            {/* Guiding Areas */}
-            {guide.guiding_areas && guide.guiding_areas.length > 0 && (
-              <Card className="border-burgundy/20 shadow-lg bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <MapPin className="h-5 w-5 text-burgundy" />
-                    <h2 className="text-2xl font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                      Guiding Areas
-                    </h2>
-                  </div>
-                  <GuidingAreasGrid areas={guide.guiding_areas} />
-                </CardContent>
-              </Card>
-            )}
+                {/* Guiding Areas */}
+                {guide.guiding_areas && guide.guiding_areas.length > 0 && (
+                  <>
+                    <div className="border-t border-burgundy/10" />
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <MapPin className="h-5 w-5 text-burgundy" />
+                        <h3 className="text-lg font-semibold text-charcoal/80">
+                          Guiding Areas
+                        </h3>
+                      </div>
+                      <GuidingAreasGrid areas={guide.guiding_areas} />
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Photo Gallery */}
             {mockPhotos.length > 0 && (
