@@ -259,13 +259,10 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
                 />
               </div>
 
-              {/* Calendar Widget - becomes sticky after video */}
-              <div className="sticky top-24 z-20">
+              {/* Calendar Widget & Trust Indicators - sticky container */}
+              <div className="sticky top-24 z-20 space-y-6">
                 <EnhancedCalendarWidget />
-              </div>
-
-              {/* Trust Indicators - also sticky */}
-              <div className="sticky top-[30rem] z-20">
+                
                 <TrustIndicatorsCard 
                   guideName={guide.display_name}
                   isVerified={guide.verified}
