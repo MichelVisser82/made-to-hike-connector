@@ -20,7 +20,8 @@ interface GuideActiveToursProps {
 }
 
 export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
-  if (!tours || tours.length === 0) return null;
+  // Always render section, just show message if no tours
+  const hasTours = tours && tours.length > 0;
 
   return (
     <section className="py-8">
@@ -36,8 +37,17 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {tours.map((tour) => (
+      {!hasTours ? (
+        <p className="text-charcoal/60 text-center py-8">No active tours available at the moment.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {tours.map((tour) => {
+            // Defensive: use guide data if available, otherwise fall back to denormalized data
+            const guideName = tour.guide?.display_name || tour.guide_display_name || 'Guide';
+            const guideAvatar = tour.guide?.profile_image_url || tour.guide_avatar_url;
+            const guideInitials = guideName.split(' ').map(n => n[0]).join('');
+            
+            return (
           <Link key={tour.id} to={`/tours/${tour.slug || tour.id}`}>
             <Card className="rounded-xl shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
               <div className="relative h-64">
@@ -71,15 +81,15 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                   <div className="flex items-center gap-2">
                     <Avatar className="h-10 w-10 border-2 border-white/50">
                       <AvatarImage 
-                        src={tour.guide?.profile_image_url || undefined} 
-                        alt={tour.guide?.display_name || 'Guide'} 
+                        src={guideAvatar || undefined} 
+                        alt={guideName} 
                       />
                       <AvatarFallback className="text-xs bg-burgundy text-white">
-                        {tour.guide?.display_name?.split(' ').map(n => n[0]).join('') || 'G'}
+                        {guideInitials}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-sm text-white/90">
-                      by {tour.guide?.display_name || 'Guide'}
+                      by {guideName}
                     </span>
                   </div>
                 </div>
@@ -126,8 +136,10 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
               </CardContent>
             </Card>
           </Link>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
