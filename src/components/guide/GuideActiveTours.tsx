@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Star, ArrowRight, Flame } from 'lucide-react';
+import { Star, ArrowRight, Flame, MapPin, Clock, Users } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import type { Tour } from '@/types';
 
 interface GuideActiveToursProps {
@@ -30,42 +32,83 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
         {tours.map((tour) => (
           <Link key={tour.id} to={`/tours/${tour.slug || tour.id}`}>
             <Card className="border-burgundy/20 shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-              <div className="relative h-48">
+              <div className="relative h-80">
                 <img
                   src={tour.hero_image || tour.images?.[0] || 'https://via.placeholder.com/400x300'}
                   alt={tour.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cream via-cream/60 to-transparent" />
+                
+                {/* Dark gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/50 to-transparent" />
+                
+                {/* Difficulty badge - top left */}
+                <Badge className="absolute top-3 left-3 bg-white text-charcoal capitalize shadow-md">
+                  {tour.difficulty}
+                </Badge>
+                
+                {/* HOT badge - top right */}
                 {tour.rating >= 4.5 && (
-                  <Badge className="absolute top-3 right-3 bg-burgundy text-white">
+                  <Badge className="absolute top-3 right-3 bg-burgundy text-white shadow-md">
                     <Flame className="w-3 h-3 mr-1" />
                     HOT!
                   </Badge>
                 )}
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-2 line-clamp-1 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                  {tour.title}
-                </h3>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-gold fill-gold" />
-                    <span className="text-sm font-medium text-charcoal">{tour.rating}</span>
+                
+                {/* Text overlay at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                  <h3 className="font-bold text-2xl mb-2 line-clamp-2 text-white" style={{fontFamily: 'Playfair Display, serif'}}>
+                    {tour.title}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8 border-2 border-white/50">
+                      <AvatarImage src={tour.guide_avatar_url} alt={tour.guide_display_name} />
+                      <AvatarFallback className="text-xs bg-burgundy text-white">
+                        {tour.guide_display_name?.split(' ').map(n => n[0]).join('') || 'G'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm text-white/80">
+                      by {tour.guide_display_name || 'Guide'}
+                    </span>
                   </div>
+                </div>
+              </div>
+              
+              <CardContent className="p-4 space-y-3">
+                {/* Metadata with icons */}
+                <div className="flex items-center justify-between text-sm text-charcoal/70">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4 text-burgundy" />
+                    <span className="capitalize">{tour.region}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-burgundy" />
+                    <span>{tour.duration}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4 text-burgundy" />
+                    <span>Up to {tour.group_size}</span>
+                  </div>
+                </div>
+                
+                {/* Rating */}
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  <span className="text-base font-bold text-charcoal">{tour.rating}</span>
                   <span className="text-sm text-charcoal/60">
                     ({tour.reviews_count} reviews)
                   </span>
                 </div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm text-charcoal/60">{tour.duration}</span>
-                  <span className="text-lg font-bold text-burgundy">
+                
+                {/* Price & CTA */}
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-3xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
                     {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </span>
+                  <Button className="bg-primary hover:bg-primary/90 text-white">
+                    Book Now
+                  </Button>
                 </div>
-                <button className="w-full bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                  View Details
-                </button>
               </CardContent>
             </Card>
           </Link>
