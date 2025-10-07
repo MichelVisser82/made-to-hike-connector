@@ -9,7 +9,7 @@ import { GuideSpecialties } from '../guide/GuideSpecialties';
 import { GuidingAreasGrid } from '../guide/GuidingAreasGrid';
 import { GuideActiveTours } from '../guide/GuideActiveTours';
 import { GuideReviewsSection } from '../guide/GuideReviewsSection';
-import { GuideFooterCTA } from '../guide/GuideFooterCTA';
+
 import { VideoIntroductionCard } from '../guide/VideoIntroductionCard';
 import { EnhancedCalendarWidget } from '../guide/EnhancedCalendarWidget';
 import { PhotoGalleryWithFilters } from '../guide/PhotoGalleryWithFilters';
@@ -277,8 +277,6 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
         </div>
       </div>
 
-      {/* Footer CTA */}
-      <GuideFooterCTA guide={guide} />
     </div>
   );
 }
