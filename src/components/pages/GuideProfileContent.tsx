@@ -264,14 +264,16 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
                 <EnhancedCalendarWidget />
               </div>
 
-              {/* Trust Indicators */}
-              <TrustIndicatorsCard 
-                guideName={guide.display_name}
-                isVerified={guide.verified}
-                averageRating={stats.average_rating}
-                totalReviews={reviews.length}
-                totalClients={stats.total_hikers}
-              />
+              {/* Trust Indicators - also sticky */}
+              <div className="sticky top-24 z-20">
+                <TrustIndicatorsCard 
+                  guideName={guide.display_name}
+                  isVerified={guide.verified}
+                  averageRating={stats.average_rating}
+                  totalReviews={reviews.length}
+                  totalClients={stats.total_hikers}
+                />
+              </div>
             </div>
           </div>
         </div>
