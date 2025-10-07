@@ -28,22 +28,22 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {tours.map((tour) => (
           <Link key={tour.id} to={`/tours/${tour.slug || tour.id}`}>
-            <Card className="shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-              <div className="relative h-80">
+            <Card className="rounded-xl shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+              <div className="relative h-64">
                 <img
                   src={tour.hero_image || tour.images?.[0] || 'https://via.placeholder.com/400x300'}
                   alt={tour.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 
-                {/* Subtle gradient overlay at bottom only */}
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/20 to-transparent" />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/30 to-transparent" />
                 
                 {/* Difficulty badge - top left */}
-                <Badge className="absolute top-3 left-3 bg-white text-charcoal capitalize shadow-md rounded-full">
+                <Badge className="absolute top-3 left-3 bg-white text-charcoal capitalize shadow-md rounded-full px-4 py-1.5">
                   {tour.difficulty}
                 </Badge>
                 
@@ -61,22 +61,22 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                     {tour.title}
                   </h3>
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8 border-2 border-white/50">
+                    <Avatar className="h-10 w-10 border-2 border-white/50">
                       <AvatarImage src={tour.guide_avatar_url} alt={tour.guide_display_name} />
                       <AvatarFallback className="text-xs bg-burgundy text-white">
                         {tour.guide_display_name?.split(' ').map(n => n[0]).join('') || 'G'}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-xs text-white/90">
+                    <span className="text-sm text-white/90">
                       by {tour.guide_display_name || 'Guide'}
                     </span>
                   </div>
                 </div>
               </div>
               
-              <CardContent className="p-6 space-y-4">
-                {/* Metadata with icons */}
-                <div className="flex items-center gap-6 text-sm text-charcoal/70">
+              <CardContent className="p-6 space-y-5">
+                {/* Metadata with icons - vertical stack */}
+                <div className="flex flex-col gap-2 text-sm text-charcoal/70">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 text-burgundy" />
                     <span className="capitalize">{tour.region}</span>
@@ -93,8 +93,8 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 
                 {/* Rating */}
                 <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                  <span className="text-base font-bold text-charcoal">{tour.rating}</span>
+                  <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
+                  <span className="text-lg font-bold text-charcoal">{tour.rating}</span>
                   <span className="text-sm text-charcoal/60">
                     ({tour.reviews_count} reviews)
                   </span>
@@ -102,10 +102,10 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 
                 {/* Price & CTA */}
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-3xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
+                  <span className="text-4xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
                     {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </span>
-                  <Button className="bg-primary hover:bg-primary/90 text-white px-6">
+                  <Button className="bg-primary hover:bg-primary/90 text-white px-8">
                     Book Now
                   </Button>
                 </div>
