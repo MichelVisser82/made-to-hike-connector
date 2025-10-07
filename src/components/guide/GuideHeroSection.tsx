@@ -3,6 +3,7 @@ import { MapPin, CheckCircle, Star, Users, Clock, Award, Heart, Share2, MessageC
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import type { GuideProfile } from '@/types/guide';
+import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 
 interface GuideHeroSectionProps {
   guide: GuideProfile;
@@ -14,6 +15,7 @@ interface GuideHeroSectionProps {
 
 export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   const [fallbackHeroUrl, setFallbackHeroUrl] = useState<string | null>(null);
+  const { fetchImages, getImageUrl } = useWebsiteImages();
 
   const activeSinceYear = guide.active_since 
     ? new Date(guide.active_since).getFullYear()
@@ -24,17 +26,29 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   const responseTime = '2 hours'; // This should come from guide data
 
   useEffect(() => {
-    console.log('GuideHeroSection - hero_background_url:', guide.hero_background_url);
-    console.log('GuideHeroSection - portfolio_images:', guide.portfolio_images);
-    console.log('GuideHeroSection - portfolio_images length:', guide.portfolio_images?.length);
-    
-    if (!guide.hero_background_url && guide.portfolio_images?.length > 0) {
-      const randomIndex = Math.floor(Math.random() * guide.portfolio_images.length);
-      const selectedImage = guide.portfolio_images[randomIndex];
-      console.log('GuideHeroSection - Selected fallback image:', selectedImage);
-      setFallbackHeroUrl(selectedImage);
-    }
-  }, [guide.hero_background_url, guide.portfolio_images]);
+    const loadFallbackImage = async () => {
+      if (!guide.hero_background_url) {
+        // Fetch images from website_images table for this guide
+        const guideImages = await fetchImages({ guide_id: guide.user_id });
+        
+        if (guideImages && guideImages.length > 0) {
+          // Prioritize hero images, then landscapes, then any image
+          const heroImages = guideImages.filter(img => 
+            img.category === 'hero' || img.usage_context?.includes('hero')
+          );
+          const landscapeImages = guideImages.filter(img => 
+            img.category === 'landscape' || img.usage_context?.includes('landscape')
+          );
+          
+          const imageToUse = heroImages[0] || landscapeImages[0] || guideImages[0];
+          const imageUrl = getImageUrl(imageToUse);
+          setFallbackHeroUrl(imageUrl);
+        }
+      }
+    };
+
+    loadFallbackImage();
+  }, [guide.hero_background_url, guide.user_id, fetchImages, getImageUrl]);
 
   return (
     <section className="relative h-[600px] w-full overflow-hidden">
