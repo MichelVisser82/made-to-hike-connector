@@ -28,7 +28,7 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
         style={{
           backgroundImage: guide.hero_background_url 
             ? `url(${guide.hero_background_url})` 
-            : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%)',
+            : 'linear-gradient(135deg, #1a4d2e 0%, #2d5f3e 25%, #4a7c59 50%, #6b9377 75%, #8ba888 100%)',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50" />
