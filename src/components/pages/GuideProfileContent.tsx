@@ -242,23 +242,27 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
             <FAQAccordion faqs={mockFAQs} />
           </div>
 
-          {/* Sidebar Column (1/3 width, sticky) */}
+          {/* Sidebar Column (1/3 width) */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-6">
-              {/* Video Introduction */}
-              <VideoIntroductionCard 
-                videoUrl={guide.intro_video_url}
-                thumbnailUrl={
-                  guide.intro_video_thumbnail_url || 
-                  (guide.portfolio_images && guide.portfolio_images.length > 0 
-                    ? getImageUrl({ file_path: guide.portfolio_images[0] } as any)
-                    : guide.profile_image_url)
-                }
-                guideName={guide.display_name}
-              />
+            <div className="space-y-6">
+              {/* Video Introduction - sticky but hides on scroll */}
+              <div className="sticky top-24 z-10">
+                <VideoIntroductionCard 
+                  videoUrl={guide.intro_video_url}
+                  thumbnailUrl={
+                    guide.intro_video_thumbnail_url || 
+                    (guide.portfolio_images && guide.portfolio_images.length > 0 
+                      ? getImageUrl({ file_path: guide.portfolio_images[0] } as any)
+                      : guide.profile_image_url)
+                  }
+                  guideName={guide.display_name}
+                />
+              </div>
 
-              {/* Calendar Widget */}
-              <EnhancedCalendarWidget />
+              {/* Calendar Widget - becomes sticky after video */}
+              <div className="sticky top-24 z-20">
+                <EnhancedCalendarWidget />
+              </div>
 
               {/* Trust Indicators */}
               <TrustIndicatorsCard 
