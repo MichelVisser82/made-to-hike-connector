@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Target, MapPin, Camera } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
+import { Skeleton } from '../ui/skeleton';
 import { GuideHeroSection } from '../guide/GuideHeroSection';
 import { CredentialsSection } from '../guide/CredentialsSection';
 import { GuideStatsCards } from '../guide/GuideStatsCards';
@@ -16,9 +18,11 @@ import { ReviewCategoryRatings } from '../guide/ReviewCategoryRatings';
 import { SafetyInformationCard } from '../guide/SafetyInformationCard';
 import { FAQAccordion } from '../guide/FAQAccordion';
 import { TrustIndicatorsCard } from '../guide/TrustIndicatorsCard';
+import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import type { GuideProfile, GuideStats } from '@/types/guide';
 import type { Tour } from '@/types';
 import type { GuideReview } from '@/hooks/useGuideReviews';
+import type { Photo } from '../guide/PhotoGalleryWithFilters';
 
 interface GuideProfileContentProps {
   guide: GuideProfile;
@@ -28,12 +32,49 @@ interface GuideProfileContentProps {
 }
 
 export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfileContentProps) {
-  // Mock data for new components - replace with real data from API
-  const mockPhotos = guide.portfolio_images?.map((img, idx) => ({
-    url: typeof img === 'string' ? img : '',
-    category: ['tours', 'landscapes', 'groups', 'action'][idx % 4] as 'tours' | 'landscapes' | 'groups' | 'action',
-    alt: `${guide.display_name} tour photo ${idx + 1}`
-  })) || [];
+  const { getImagesByGuide, getImageUrl, loading } = useWebsiteImages();
+  const [galleryPhotos, setGalleryPhotos] = useState<Photo[]>([]);
+  const [loadingGallery, setLoadingGallery] = useState(true);
+
+  // Fetch guide's images from website_images table
+  useEffect(() => {
+    const fetchGalleryImages = async () => {
+      setLoadingGallery(true);
+      try {
+        const images = await getImagesByGuide(guide.user_id, 50);
+        
+        // Map website_images to Photo format
+        const photos: Photo[] = images.map(image => {
+          // Determine gallery category from usage_context or category
+          let category: Photo['category'] = 'all';
+          
+          if (image.usage_context?.includes('tour') || image.category === 'tour') {
+            category = 'tours';
+          } else if (image.category === 'landscape' || image.tags?.includes('landscape')) {
+            category = 'landscapes';
+          } else if (image.tags?.some(tag => tag.includes('group') || tag.includes('team'))) {
+            category = 'groups';
+          } else if (image.category === 'hiking' || image.tags?.includes('action')) {
+            category = 'action';
+          }
+          
+          return {
+            url: getImageUrl(image),
+            category,
+            alt: image.alt_text || `${guide.display_name} adventure photo`
+          };
+        });
+        
+        setGalleryPhotos(photos);
+      } catch (error) {
+        console.error('Error fetching gallery images:', error);
+      } finally {
+        setLoadingGallery(false);
+      }
+    };
+
+    fetchGalleryImages();
+  }, [guide.user_id, getImagesByGuide, getImageUrl, guide.display_name]);
 
   const mockLanguages = guide.languages_spoken?.map(lang => ({
     language: lang,
@@ -99,7 +140,24 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
                 )}
 
                 {/* Adventure Gallery */}
-                {mockPhotos.length > 0 && (
+                {loadingGallery ? (
+                  <>
+                    <div className="border-t border-burgundy/10" />
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Camera className="h-5 w-5 text-burgundy" />
+                        <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                          {guide.display_name.split(' ')[0]} - Adventure Gallery
+                        </h2>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                          <Skeleton key={i} className="aspect-square rounded-lg" />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : galleryPhotos.length > 0 && (
                   <>
                     <div className="border-t border-burgundy/10" />
                     <div>
@@ -110,7 +168,7 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
                         </h2>
                       </div>
                       <PhotoGalleryWithFilters 
-                        photos={mockPhotos} 
+                        photos={galleryPhotos} 
                         guideName={guide.display_name}
                       />
                     </div>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Camera } from 'lucide-react';
 import { Badge } from '../ui/badge';
 
-interface Photo {
+export interface Photo {
   url: string;
   category: 'all' | 'tours' | 'landscapes' | 'groups' | 'action';
   alt?: string;
