@@ -125,11 +125,11 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                 </div>
                 
                 {/* Price & CTA */}
-                <div className="flex items-center justify-between pt-3">
-                  <span className="text-3xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
+                <div className="flex items-center justify-between pt-2 gap-3">
+                  <span className="text-xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
                     {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </span>
-                  <Button className="bg-burgundy hover:bg-burgundy/90 text-white px-6 h-10">
+                  <Button size="sm" className="bg-burgundy hover:bg-burgundy/90 text-white">
                     Book Now
                   </Button>
                 </div>
