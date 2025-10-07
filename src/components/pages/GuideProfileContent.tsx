@@ -229,32 +229,14 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
             <GuideActiveTours tours={tours} guideId={guide.user_id} />
 
             {/* Reviews with Rating Breakdown */}
-            <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                  Reviews & Testimonials
-                </h2>
-                {reviews && reviews.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-                    <span className="text-2xl font-bold text-charcoal">{stats.average_rating.toFixed(1)}</span>
-                    <span className="text-charcoal/60">({reviews.length} reviews)</span>
-                  </div>
-                )}
-              </div>
-              {reviews && reviews.length > 0 && (
-                <ReviewCategoryRatings 
-                  ratings={mockReviewRatings}
-                  recommendPercentage={98}
-                  aboveBeyondPercentage={95}
-                />
-              )}
-              <GuideReviewsSection 
-                reviews={reviews} 
-                averageRating={stats.average_rating}
-                totalReviews={reviews.length}
-              />
-            </section>
+            <GuideReviewsSection 
+              reviews={reviews} 
+              averageRating={stats.average_rating}
+              totalReviews={reviews.length}
+              ratings={mockReviewRatings}
+              recommendPercentage={98}
+              aboveBeyondPercentage={95}
+            />
 
             {/* FAQs */}
             <FAQAccordion faqs={mockFAQs} />

@@ -4,14 +4,31 @@ import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import type { GuideReview } from '@/hooks/useGuideReviews';
+import { ReviewCategoryRatings } from './ReviewCategoryRatings';
 
 interface GuideReviewsSectionProps {
   reviews: GuideReview[];
   averageRating: number;
   totalReviews: number;
+  ratings?: {
+    safety: number;
+    knowledge: number;
+    communication: number;
+    value: number;
+    overall: number;
+  };
+  recommendPercentage?: number;
+  aboveBeyondPercentage?: number;
 }
 
-export function GuideReviewsSection({ reviews, averageRating, totalReviews }: GuideReviewsSectionProps) {
+export function GuideReviewsSection({ 
+  reviews, 
+  averageRating, 
+  totalReviews,
+  ratings,
+  recommendPercentage = 98,
+  aboveBeyondPercentage = 95
+}: GuideReviewsSectionProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -27,7 +44,32 @@ export function GuideReviewsSection({ reviews, averageRating, totalReviews }: Gu
   };
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
+      {/* Header Card with Title, Rating, and Category Breakdown */}
+      <Card className="border-burgundy/20 shadow-lg bg-white">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+              Reviews & Testimonials
+            </h2>
+            {totalReviews > 0 && (
+              <div className="flex items-center gap-2">
+                <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                <span className="text-2xl font-bold text-charcoal">{averageRating.toFixed(1)}</span>
+                <span className="text-charcoal/60">({totalReviews} reviews)</span>
+              </div>
+            )}
+          </div>
+          {ratings && totalReviews > 0 && (
+            <ReviewCategoryRatings 
+              ratings={ratings}
+              recommendPercentage={recommendPercentage}
+              aboveBeyondPercentage={aboveBeyondPercentage}
+            />
+          )}
+        </CardContent>
+      </Card>
+
       {/* Review Cards */}
       {reviews && reviews.length > 0 ? (
         <>
