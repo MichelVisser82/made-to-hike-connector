@@ -44,39 +44,37 @@ export function GuideReviewsSection({
   };
 
   return (
-    <section className="space-y-6">
-      {/* Header Card with Title, Rating, and Category Breakdown */}
-      <Card className="border-burgundy/20 shadow-lg bg-white">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-              Reviews & Testimonials
-            </h2>
-            {totalReviews > 0 && (
-              <div className="flex items-center gap-2">
-                <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-                <span className="text-2xl font-bold text-charcoal">{averageRating.toFixed(1)}</span>
-                <span className="text-charcoal/60">({totalReviews} reviews)</span>
-              </div>
-            )}
-          </div>
-          {ratings && totalReviews > 0 && (
-            <ReviewCategoryRatings 
-              ratings={ratings}
-              recommendPercentage={recommendPercentage}
-              aboveBeyondPercentage={aboveBeyondPercentage}
-            />
+    <Card className="border-burgundy/20 shadow-lg bg-white">
+      <CardContent className="p-6 space-y-6">
+        {/* Header with Title and Rating */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+            Reviews & Testimonials
+          </h2>
+          {totalReviews > 0 && (
+            <div className="flex items-center gap-2">
+              <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+              <span className="text-2xl font-bold text-charcoal">{averageRating.toFixed(1)}</span>
+              <span className="text-charcoal/60">({totalReviews} reviews)</span>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Review Cards */}
-      {reviews && reviews.length > 0 ? (
-        <>
-          <div className="space-y-4">
-            {reviews.map((review) => (
-              <Card key={review.id} className="border-burgundy/20 shadow-lg bg-white">
-                <CardContent className="p-6">
+        {/* Category Ratings */}
+        {ratings && totalReviews > 0 && (
+          <ReviewCategoryRatings 
+            ratings={ratings}
+            recommendPercentage={recommendPercentage}
+            aboveBeyondPercentage={aboveBeyondPercentage}
+          />
+        )}
+
+        {/* Review Items or Empty State */}
+        {reviews && reviews.length > 0 ? (
+          <>
+            <div className="space-y-4 pt-2">
+              {reviews.map((review) => (
+                <div key={review.id} className="border-t border-burgundy/10 pt-4 first:border-t-0 first:pt-0">
                   <div className="flex items-start gap-4">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={review.hiker_avatar} alt={review.hiker_name} />
@@ -110,28 +108,26 @@ export function GuideReviewsSection({
                       <p className="text-charcoal/80 leading-relaxed">{review.comment}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {totalReviews > reviews.length && (
-            <div className="mt-6 text-center">
-              <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white">
-                Load More Reviews
-              </Button>
+                </div>
+              ))}
             </div>
-          )}
-        </>
-      ) : (
-        <Card className="border-burgundy/20 shadow-lg bg-white">
-          <CardContent className="p-8 text-center">
+
+            {totalReviews > reviews.length && (
+              <div className="pt-2 text-center">
+                <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white">
+                  Load More Reviews
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="pt-4 text-center">
             <Star className="h-12 w-12 text-burgundy/30 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-charcoal mb-2">No reviews yet</h3>
             <p className="text-charcoal/60">Be the first to share your experience with this guide!</p>
-          </CardContent>
-        </Card>
-      )}
-    </section>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
