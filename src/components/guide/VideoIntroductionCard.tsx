@@ -22,11 +22,17 @@ export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: Vid
           onClick={handleClick}
         >
           {thumbnailUrl ? (
-            <img
-              src={thumbnailUrl}
-              alt={`${guideName} introduction video`}
-              className="w-full h-full object-cover"
-            />
+            <>
+              <img
+                src={thumbnailUrl}
+                alt={`${guideName} introduction video`}
+                className="w-full h-full object-cover"
+              />
+              {/* Grey gradient overlay with video icon */}
+              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-charcoal/20 to-transparent flex items-end justify-center pb-6">
+                <Video className="h-12 w-12 text-white/90" />
+              </div>
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-burgundy/10 to-burgundy/5">
               <Video className="h-16 w-16 text-burgundy/40" />
