@@ -31,7 +31,7 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {tours.map((tour) => (
           <Link key={tour.id} to={`/tours/${tour.slug || tour.id}`}>
-            <Card className="border-burgundy/20 shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+            <Card className="shadow-lg hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
               <div className="relative h-80">
                 <img
                   src={tour.hero_image || tour.images?.[0] || 'https://via.placeholder.com/400x300'}
@@ -39,25 +39,25 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 
-                {/* Dark gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/50 to-transparent" />
+                {/* Subtle gradient overlay at bottom only */}
+                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/20 to-transparent" />
                 
                 {/* Difficulty badge - top left */}
-                <Badge className="absolute top-3 left-3 bg-white text-charcoal capitalize shadow-md">
+                <Badge className="absolute top-3 left-3 bg-white text-charcoal capitalize shadow-md rounded-full">
                   {tour.difficulty}
                 </Badge>
                 
                 {/* HOT badge - top right */}
                 {tour.rating >= 4.5 && (
-                  <Badge className="absolute top-3 right-3 bg-burgundy text-white shadow-md">
+                  <Badge className="absolute top-3 right-3 bg-burgundy text-white shadow-md rounded-full">
                     <Flame className="w-3 h-3 mr-1" />
                     HOT!
                   </Badge>
                 )}
                 
                 {/* Text overlay at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-                  <h3 className="font-bold text-2xl mb-2 line-clamp-2 text-white" style={{fontFamily: 'Playfair Display, serif'}}>
+                <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-6 z-10">
+                  <h3 className="font-bold text-xl mb-2 line-clamp-2 text-white" style={{fontFamily: 'Playfair Display, serif'}}>
                     {tour.title}
                   </h3>
                   <div className="flex items-center gap-2">
@@ -67,16 +67,16 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                         {tour.guide_display_name?.split(' ').map(n => n[0]).join('') || 'G'}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm text-white/80">
+                    <span className="text-xs text-white/90">
                       by {tour.guide_display_name || 'Guide'}
                     </span>
                   </div>
                 </div>
               </div>
               
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="p-6 space-y-4">
                 {/* Metadata with icons */}
-                <div className="flex items-center justify-between text-sm text-charcoal/70">
+                <div className="flex items-center gap-6 text-sm text-charcoal/70">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 text-burgundy" />
                     <span className="capitalize">{tour.region}</span>
@@ -105,7 +105,7 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
                   <span className="text-3xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
                     {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                   </span>
-                  <Button className="bg-primary hover:bg-primary/90 text-white">
+                  <Button className="bg-primary hover:bg-primary/90 text-white px-6">
                     Book Now
                   </Button>
                 </div>
