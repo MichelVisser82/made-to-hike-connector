@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { CertificationBadge } from '../ui/certification-badge';
 import { ThumbnailSelectorModal } from './ThumbnailSelectorModal';
+import { ImageSelectorModal } from './ImageSelectorModal';
 import { Loader2, X, Mail, Lock, AlertCircle, Plus, Eye, Star, Upload, Video, ExternalLink, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '../ui/alert';
@@ -94,10 +95,10 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     website_url: '',
     intro_video_url: '',
     intro_video_thumbnail_url: '',
+    hero_background_url: '',
   });
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [heroImage, setHeroImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
   const [heroImagePreview, setHeroImagePreview] = useState<string>('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -105,6 +106,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [thumbnailSelectorOpen, setThumbnailSelectorOpen] = useState(false);
+  const [heroImageSelectorOpen, setHeroImageSelectorOpen] = useState(false);
   const [newCert, setNewCert] = useState<GuideCertification>({
     certificationType: 'custom',
     title: '', 
@@ -148,6 +150,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         website_url: profile.website_url || '',
         intro_video_url: (profile as any).intro_video_url || '',
         intro_video_thumbnail_url: (profile as any).intro_video_thumbnail_url || '',
+        hero_background_url: profile.hero_background_url || '',
       });
       setProfileImagePreview(profile.profile_image_url || '');
       setHeroImagePreview(profile.hero_background_url || '');
@@ -164,9 +167,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       if (type === 'profile') {
         setProfileImage(file);
         setProfileImagePreview(URL.createObjectURL(file));
-      } else {
-        setHeroImage(file);
-        setHeroImagePreview(URL.createObjectURL(file));
       }
     }
   };
@@ -554,6 +554,18 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     });
   };
 
+  const handleHeroImageSelect = (imageId: string, imageUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      hero_background_url: imageUrl,
+    }));
+    setHeroImagePreview(imageUrl);
+    toast({
+      title: "Hero image selected",
+      description: "Hero background has been updated",
+    });
+  };
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -561,17 +573,13 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       if (!user) throw new Error('Not authenticated');
 
       let profileImageUrl = profile?.profile_image_url;
-      let heroImageUrl = profile?.hero_background_url;
+      let heroImageUrl = formData.hero_background_url || profile?.hero_background_url;
       let videoUrl = formData.intro_video_url;
       let videoFilePath = (profile as any)?.intro_video_file_path;
       let videoSizeBytes: number | null = null;
 
       if (profileImage) {
         profileImageUrl = await uploadImage(profileImage, 'hero-images');
-      }
-
-      if (heroImage) {
-        heroImageUrl = await uploadImage(heroImage, 'hero-images');
       }
 
       if (videoType === 'upload' && videoFile) {
@@ -928,7 +936,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                   />
                   <button
                     onClick={() => {
-                      setHeroImage(null);
+                      setFormData(prev => ({ ...prev, hero_background_url: '' }));
                       setHeroImagePreview('');
                     }}
                     className="absolute top-2 right-2 rounded-full bg-destructive p-1"
@@ -937,15 +945,18 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                   </button>
                 </div>
               )}
-              <div>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageChange(e, 'hero')}
-                  className="mb-2"
-                />
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setHeroImageSelectorOpen(true)}
+                  className="w-full"
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  {heroImagePreview ? 'Change Hero Image' : 'Select from Image Library'}
+                </Button>
                 <p className="text-sm text-muted-foreground">
-                  Wide landscape image recommended, at least 1920x600px
+                  Select a wide landscape image from your Image Library (recommended: 1920x600px)
                 </p>
               </div>
             </div>
@@ -1100,6 +1111,16 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         onClose={() => setThumbnailSelectorOpen(false)}
         onSelect={handleThumbnailSelect}
         currentThumbnailUrl={formData.intro_video_thumbnail_url}
+      />
+
+      <ImageSelectorModal
+        open={heroImageSelectorOpen}
+        onClose={() => setHeroImageSelectorOpen(false)}
+        onSelect={handleHeroImageSelect}
+        currentImageUrl={formData.hero_background_url}
+        category="hero"
+        title="Select Hero Background Image"
+        description="Choose a wide landscape image from your Image Library"
       />
 
       <Card>
