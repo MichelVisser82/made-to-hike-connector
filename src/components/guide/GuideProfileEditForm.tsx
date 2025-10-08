@@ -15,7 +15,9 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { CertificationBadge } from '../ui/certification-badge';
 import { ThumbnailSelectorModal } from './ThumbnailSelectorModal';
 import { ImageSelectorModal } from './ImageSelectorModal';
-import { Loader2, X, Mail, Lock, AlertCircle, Plus, Eye, Star, Upload, Video, ExternalLink, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Loader2, X, Mail, Lock, AlertCircle, Plus, Eye, Star, Upload, Video, ExternalLink, Image as ImageIcon, Trash2, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '../ui/alert';
 import { 
@@ -70,6 +72,29 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [newEmail, setNewEmail] = useState('');
   const [hasPendingCertifications, setHasPendingCertifications] = useState(false);
   const [newCertificationsCount, setNewCertificationsCount] = useState(0);
+  
+  const [openSections, setOpenSections] = useState({
+    basicInfo: true,
+    profileImages: false,
+    videoIntro: false,
+    certifications: false,
+    difficultyLevels: false,
+    professional: false,
+    availability: false,
+    contact: false,
+    security: false,
+  });
+  
+  const [savingStates, setSavingStates] = useState({
+    basicInfo: false,
+    profileImages: false,
+    videoIntro: false,
+    certifications: false,
+    difficultyLevels: false,
+    professional: false,
+    availability: false,
+    contact: false,
+  });
 
   const [formData, setFormData] = useState({
     display_name: '',
@@ -715,6 +740,375 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     }
   };
 
+  const handleSectionToggle = (section: keyof typeof openSections) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const handleSaveBasicInfo = async () => {
+    setSavingStates(prev => ({ ...prev, basicInfo: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          display_name: formData.display_name,
+          location: formData.location,
+          bio: formData.bio,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refetch();
+      toast({
+        title: "Basic Info Saved",
+        description: "Your basic information has been updated.",
+      });
+    } catch (error) {
+      console.error('Error saving basic info:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save basic information.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingStates(prev => ({ ...prev, basicInfo: false }));
+    }
+  };
+
+  const handleSaveProfileImages = async () => {
+    setSavingStates(prev => ({ ...prev, profileImages: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      let profileImageUrl = profile?.profile_image_url;
+      if (profileImage) {
+        profileImageUrl = await uploadImage(profileImage, 'hero-images');
+      }
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          profile_image_url: profileImageUrl,
+          hero_background_url: formData.hero_background_url,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refetch();
+      toast({
+        title: "Profile Images Saved",
+        description: "Your profile images have been updated.",
+      });
+    } catch (error) {
+      console.error('Error saving profile images:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile images.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingStates(prev => ({ ...prev, profileImages: false }));
+    }
+  };
+
+  const handleSaveVideoIntroduction = async () => {
+    setSavingStates(prev => ({ ...prev, videoIntro: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      let videoUrl = formData.intro_video_url;
+      let videoFilePath = (profile as any)?.intro_video_file_path;
+      let videoSizeBytes: number | null = null;
+
+      if (videoType === 'upload' && videoFile) {
+        setIsUploadingVideo(true);
+        const fileExt = videoFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('guide-videos')
+          .upload(fileName, videoFile, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('guide-videos')
+          .getPublicUrl(fileName);
+
+        videoUrl = urlData.publicUrl;
+        videoFilePath = fileName;
+        videoSizeBytes = videoFile.size;
+        setIsUploadingVideo(false);
+      }
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          intro_video_url: videoType === 'external' ? formData.intro_video_url : videoUrl,
+          intro_video_file_path: videoType === 'upload' ? videoFilePath : null,
+          video_type: videoType,
+          intro_video_size_bytes: videoType === 'upload' ? videoSizeBytes : null,
+          intro_video_thumbnail_url: formData.intro_video_thumbnail_url || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refetch();
+      toast({
+        title: "Video Introduction Saved",
+        description: "Your video introduction has been updated.",
+      });
+    } catch (error) {
+      console.error('Error saving video introduction:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save video introduction.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingStates(prev => ({ ...prev, videoIntro: false }));
+      setIsUploadingVideo(false);
+    }
+  };
+
+  const handleSaveCertifications = async () => {
+    setSavingStates(prev => ({ ...prev, certifications: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Get existing certifications to preserve admin verification data
+      const existingProfile = await supabase
+        .from('guide_profiles')
+        .select('certifications')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      const existingCerts = (existingProfile?.data?.certifications as any[]) || [];
+      
+      // Merge: preserve verifiedDate and verifiedBy from existing certs
+      const mergedCertifications = formData.certifications.map((newCert) => {
+        const existingCert = existingCerts.find((ec: any) => {
+          if (newCert.certificateNumber && ec.certificateNumber) {
+            return ec.certificateNumber === newCert.certificateNumber;
+          }
+          return ec.title === newCert.title && ec.certifyingBody === newCert.certifyingBody;
+        });
+        
+        if (existingCert?.verifiedDate) {
+          return {
+            ...newCert,
+            verifiedDate: existingCert.verifiedDate,
+            verifiedBy: existingCert.verifiedBy,
+          };
+        }
+        
+        return newCert;
+      });
+
+      // Trigger Slack notification BEFORE cleaning
+      if (hasPendingCertifications) {
+        await handleCertificationNotification(user.id, mergedCertifications);
+      }
+
+      // Remove isNewlyAdded flags before saving to database
+      const cleanedCertifications = mergedCertifications.map(cert => {
+        const { isNewlyAdded, ...rest } = cert as any;
+        return rest;
+      });
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          certifications: cleanedCertifications,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['my-guide-profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['guide-profile'] }),
+        refetch()
+      ]);
+      
+      toast({
+        title: "Certifications Saved",
+        description: hasPendingCertifications 
+          ? "Certifications submitted for verification" 
+          : "Certifications updated successfully",
+      });
+    } catch (error) {
+      console.error('Error saving certifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save certifications.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingStates(prev => ({ ...prev, certifications: false }));
+    }
+  };
+
+  const handleSaveDifficultyLevels = async () => {
+    setSavingStates(prev => ({ ...prev, difficultyLevels: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          difficulty_levels: formData.difficulty_levels,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refetch();
+      toast({
+        title: "Difficulty Levels Saved",
+        description: "Your difficulty levels have been updated.",
+      });
+    } catch (error) {
+      console.error('Error saving difficulty levels:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save difficulty levels.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingStates(prev => ({ ...prev, difficultyLevels: false }));
+    }
+  };
+
+  const handleSaveProfessional = async () => {
+    setSavingStates(prev => ({ ...prev, professional: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          specialties: formData.specialties,
+          guiding_areas: formData.guiding_areas,
+          terrain_capabilities: formData.terrain_capabilities,
+          languages_spoken: formData.languages_spoken,
+          experience_years: formData.experience_years,
+          min_group_size: formData.min_group_size,
+          max_group_size: formData.max_group_size,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refetch();
+      toast({
+        title: "Professional Details Saved",
+        description: "Your professional details have been updated.",
+      });
+    } catch (error) {
+      console.error('Error saving professional details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save professional details.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingStates(prev => ({ ...prev, professional: false }));
+    }
+  };
+
+  const handleSaveAvailability = async () => {
+    setSavingStates(prev => ({ ...prev, availability: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          seasonal_availability: formData.seasonal_availability,
+          upcoming_availability_start: formData.upcoming_availability_start || null,
+          upcoming_availability_end: formData.upcoming_availability_end || null,
+          daily_rate: formData.daily_rate ? parseFloat(formData.daily_rate) : null,
+          daily_rate_currency: formData.daily_rate_currency,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refetch();
+      toast({
+        title: "Availability & Pricing Saved",
+        description: "Your availability and pricing have been updated.",
+      });
+    } catch (error) {
+      console.error('Error saving availability:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save availability and pricing.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingStates(prev => ({ ...prev, availability: false }));
+    }
+  };
+
+  const handleSaveContact = async () => {
+    setSavingStates(prev => ({ ...prev, contact: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          phone: formData.phone,
+          instagram_url: formData.instagram_url,
+          facebook_url: formData.facebook_url,
+          website_url: formData.website_url,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refetch();
+      toast({
+        title: "Contact Information Saved",
+        description: "Your contact information has been updated.",
+      });
+    } catch (error) {
+      console.error('Error saving contact information:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save contact information.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingStates(prev => ({ ...prev, contact: false }));
+    }
+  };
+
   const handleCertificationNotification = async (userId: string, certifications: GuideCertification[]) => {
     try {
       console.log('🔔 Checking for unverified certifications to notify admin...');
@@ -848,49 +1242,95 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="display_name">Display Name *</Label>
-            <Input
-              id="display_name"
-              value={formData.display_name}
-              onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-              placeholder="Your professional name"
-            />
-          </div>
-          <div>
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="e.g., Scottish Highlands"
-            />
-          </div>
-          <div>
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              placeholder="Tell hikers about yourself..."
-              rows={6}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Basic Information Section */}
+      <Collapsible open={openSections.basicInfo} onOpenChange={() => handleSectionToggle('basicInfo')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Basic Information</CardTitle>
+                  <CardDescription>Your display name, location, and bio</CardDescription>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.basicInfo && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-6">
+              <div>
+                <Label htmlFor="display_name">Display Name *</Label>
+                <Input
+                  id="display_name"
+                  value={formData.display_name}
+                  onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
+                  placeholder="Your professional name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="e.g., Scottish Highlands"
+                />
+              </div>
+              <div>
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  placeholder="Tell hikers about yourself..."
+                  rows={6}
+                />
+              </div>
+              
+              <div className="flex justify-end pt-4 border-t">
+                <Button 
+                  onClick={handleSaveBasicInfo}
+                  disabled={savingStates.basicInfo}
+                >
+                  {savingStates.basicInfo ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Basic Info'
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Images</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <Label>Profile Image</Label>
+      {/* Profile Images Section */}
+      <Collapsible open={openSections.profileImages} onOpenChange={() => handleSectionToggle('profileImages')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Profile Images</CardTitle>
+                  <CardDescription>Your profile picture and hero background</CardDescription>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.profileImages && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-6 pt-6">
+              <div>
+                <Label>Profile Image</Label>
             <div className="mt-2 flex items-start gap-4">
               {profileImagePreview && (
                 <div className="relative">
@@ -961,16 +1401,46 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               </div>
             </div>
           </div>
-        </CardContent>
+            
+          <div className="flex justify-end pt-4 border-t">
+              <Button 
+                onClick={handleSaveProfileImages}
+                disabled={savingStates.profileImages}
+              >
+                {savingStates.profileImages ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Profile Images'
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
       </Card>
+    </Collapsible>
 
       {/* Video Introduction Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Video Introduction</CardTitle>
-          <CardDescription>Add a video introduction to help hikers get to know you</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Collapsible open={openSections.videoIntro} onOpenChange={() => handleSectionToggle('videoIntro')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Video Introduction</CardTitle>
+                  <CardDescription>Add a video to help hikers get to know you</CardDescription>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.videoIntro && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-6">
           {/* Video Type Selection */}
           <div className="flex gap-4">
             <Button
@@ -1103,8 +1573,26 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               )}
             </div>
           )}
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              onClick={handleSaveVideoIntroduction}
+              disabled={savingStates.videoIntro || isUploadingVideo}
+            >
+              {savingStates.videoIntro || isUploadingVideo ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Video Introduction'
+              )}
+            </Button>
+          </div>
         </CardContent>
-      </Card>
+      </CollapsibleContent>
+    </Card>
+  </Collapsible>
 
       <ThumbnailSelectorModal
         open={thumbnailSelectorOpen}
@@ -1123,12 +1611,25 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         description="Choose a wide landscape image from your Image Library"
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Certifications</CardTitle>
-          <CardDescription>Your professional qualifications and certifications</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Certifications Section */}
+      <Collapsible open={openSections.certifications} onOpenChange={() => handleSectionToggle('certifications')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Certifications</CardTitle>
+                  <CardDescription>Your professional qualifications and certifications</CardDescription>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.certifications && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-6">
           {/* Existing Certifications */}
           {formData.certifications.length > 0 && (
             <div className="space-y-3">
@@ -1422,15 +1923,48 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               Add Certification
             </Button>
           )}
+          
+          {formData.certifications.length > 0 && (
+            <div className="flex justify-end pt-4 border-t">
+              <Button 
+                onClick={handleSaveCertifications}
+                disabled={savingStates.certifications}
+              >
+                {savingStates.certifications ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Certifications'
+                )}
+              </Button>
+            </div>
+          )}
         </CardContent>
-      </Card>
+      </CollapsibleContent>
+    </Card>
+  </Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Difficulty Levels</CardTitle>
-          <CardDescription>Select the difficulty levels you can guide</CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Difficulty Levels Section */}
+      <Collapsible open={openSections.difficultyLevels} onOpenChange={() => handleSectionToggle('difficultyLevels')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Difficulty Levels</CardTitle>
+                  <CardDescription>Select the difficulty levels you can guide</CardDescription>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.difficultyLevels && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {DIFFICULTY_OPTIONS.map((option) => (
               <Card
@@ -1454,14 +1988,46 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               </Card>
             ))}
           </div>
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              onClick={handleSaveDifficultyLevels}
+              disabled={savingStates.difficultyLevels}
+            >
+              {savingStates.difficultyLevels ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Difficulty Levels'
+              )}
+            </Button>
+          </div>
         </CardContent>
-      </Card>
+      </CollapsibleContent>
+    </Card>
+  </Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Professional Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      {/* Professional Details Section */}
+      <Collapsible open={openSections.professional} onOpenChange={() => handleSectionToggle('professional')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Professional Details</CardTitle>
+                  <CardDescription>Your expertise, specialties, and capabilities</CardDescription>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.professional && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-6 pt-6">
           <div>
             <Label>Specialties</Label>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -1576,14 +2142,46 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               />
             </div>
           </div>
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              onClick={handleSaveProfessional}
+              disabled={savingStates.professional}
+            >
+              {savingStates.professional ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Professional Details'
+              )}
+            </Button>
+          </div>
         </CardContent>
-      </Card>
+      </CollapsibleContent>
+    </Card>
+  </Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Availability & Pricing</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Availability & Pricing Section */}
+      <Collapsible open={openSections.availability} onOpenChange={() => handleSectionToggle('availability')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Availability & Pricing</CardTitle>
+                  <CardDescription>Your availability and daily rates</CardDescription>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.availability && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-6">
           <div>
             <Label htmlFor="seasonal_availability">Seasonal Availability</Label>
             <Textarea
@@ -1644,17 +2242,46 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               </Select>
             </div>
           </div>
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              onClick={handleSaveAvailability}
+              disabled={savingStates.availability}
+            >
+              {savingStates.availability ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Availability & Pricing'
+              )}
+            </Button>
+          </div>
         </CardContent>
-      </Card>
+      </CollapsibleContent>
+    </Card>
+  </Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Contact Information</CardTitle>
-          <CardDescription>
-            Your account email ({user?.email}) will be used for bookings and inquiries
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Contact Information Section */}
+      <Collapsible open={openSections.contact} onOpenChange={() => handleSectionToggle('contact')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Contact Information</CardTitle>
+                  <CardDescription>Your phone and social media links</CardDescription>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.contact && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-6">
           <div>
             <Label htmlFor="phone">Phone</Label>
             <Input
@@ -1692,23 +2319,58 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               type="url"
               value={formData.website_url}
               onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-              placeholder="https://..."
-            />
-          </div>
-        </CardContent>
-      </Card>
+            placeholder="https://..."
+          />
+        </div>
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Your account email ({user?.email}) will be used for bookings and inquiries
+          </AlertDescription>
+        </Alert>
+        
+        <div className="flex justify-end pt-4 border-t">
+          <Button 
+            onClick={handleSaveContact}
+            disabled={savingStates.contact}
+          >
+            {savingStates.contact ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Contact Information'
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </CollapsibleContent>
+  </Card>
+</Collapsible>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Security & Password
-          </CardTitle>
-          <CardDescription>
-            Manage your account password and security settings
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Security & Password Section */}
+      <Collapsible open={openSections.security} onOpenChange={() => handleSectionToggle('security')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  <div>
+                    <CardTitle>Security & Password</CardTitle>
+                    <CardDescription>Manage your account password and security settings</CardDescription>
+                  </div>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  openSections.security && "rotate-180"
+                )} />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-6">
           <div>
             <Label>Password</Label>
             <p className="text-sm text-muted-foreground mb-2">
@@ -1730,19 +2392,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </CollapsibleContent>
+    </Card>
+  </Collapsible>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-end">
-        <Button onClick={handleSave} disabled={isSaving} size="lg">
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            'Save Changes'
-          )}
-        </Button>
         {profile && (
           <Button
             variant="outline"
