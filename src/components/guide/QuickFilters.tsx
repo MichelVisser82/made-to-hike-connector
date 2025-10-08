@@ -3,24 +3,19 @@ import { Badge } from '@/components/ui/badge';
 interface QuickFiltersProps {
   selectedSpecialties: string[];
   onToggleSpecialty: (specialty: string) => void;
+  availableSpecialties: string[];
 }
 
-const QUICK_FILTERS = [
-  'Scottish Highlands',
-  'Winter Hiking',
-  'Alpine Climbing',
-  'Family Adventures',
-  'Photography Tours',
-  'Via Ferrata',
-  'Glacier Hiking',
-  'Multi-day Treks',
-];
+export function QuickFilters({ selectedSpecialties, onToggleSpecialty, availableSpecialties }: QuickFiltersProps) {
+  // Only show quick filters if we have available specialties
+  if (availableSpecialties.length === 0) {
+    return null;
+  }
 
-export function QuickFilters({ selectedSpecialties, onToggleSpecialty }: QuickFiltersProps) {
   return (
     <div className="w-full overflow-x-auto pb-2">
       <div className="flex gap-2 min-w-max px-1">
-        {QUICK_FILTERS.map((filter) => {
+        {availableSpecialties.map((filter) => {
           const isSelected = selectedSpecialties.includes(filter);
           return (
             <Badge

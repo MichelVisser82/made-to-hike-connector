@@ -61,6 +61,51 @@ export function GuidesSearchPage() {
     return locations.sort();
   }, [guides]);
 
+  // Extract available specialties from guides
+  const availableSpecialties = useMemo(() => {
+    if (!guides) return [];
+    const specialties = new Set<string>();
+    guides.forEach(guide => {
+      guide.specialties?.forEach(s => specialties.add(s));
+    });
+    return Array.from(specialties).sort();
+  }, [guides]);
+
+  // Extract available certifications from guides
+  const availableCertifications = useMemo(() => {
+    if (!guides) return [];
+    const certIds = new Set<string>();
+    guides.forEach(guide => {
+      guide.certifications?.forEach(c => certIds.add(c.certificationId));
+    });
+    return Array.from(certIds);
+  }, [guides]);
+
+  // Extract available difficulty levels from guides
+  const availableDifficultyLevels = useMemo(() => {
+    if (!guides) return [];
+    const levels = new Set<string>();
+    guides.forEach(guide => {
+      guide.difficulty_levels?.forEach(d => levels.add(d));
+    });
+    return Array.from(levels).sort();
+  }, [guides]);
+
+  // Calculate available price ranges based on actual guide pricing
+  const availablePriceRanges = useMemo(() => {
+    if (!guides) return [];
+    const rates = guides.map(g => g.daily_rate).filter(Boolean);
+    if (rates.length === 0) return [];
+    
+    const ranges = [];
+    if (rates.some(r => r <= 200)) ranges.push({ value: '0-200', label: '€0 - €200' });
+    if (rates.some(r => r > 200 && r <= 400)) ranges.push({ value: '200-400', label: '€200 - €400' });
+    if (rates.some(r => r > 400 && r <= 600)) ranges.push({ value: '400-600', label: '€400 - €600' });
+    if (rates.some(r => r > 600)) ranges.push({ value: '600+', label: '€600+' });
+    
+    return ranges;
+  }, [guides]);
+
   // Filter and sort guides
   const filteredGuides = useMemo(() => {
     if (!guides) return [];
@@ -202,6 +247,7 @@ export function GuidesSearchPage() {
           <QuickFilters
             selectedSpecialties={filters.specialties}
             onToggleSpecialty={handleToggleSpecialty}
+            availableSpecialties={availableSpecialties}
           />
         </div>
       </section>
@@ -214,6 +260,10 @@ export function GuidesSearchPage() {
             filters={filters}
             onFilterChange={setFilters}
             availableLocations={availableLocations}
+            availableSpecialties={availableSpecialties}
+            availableCertifications={availableCertifications}
+            availableDifficultyLevels={availableDifficultyLevels}
+            availablePriceRanges={availablePriceRanges}
           />
 
           <div className="flex items-center gap-4">

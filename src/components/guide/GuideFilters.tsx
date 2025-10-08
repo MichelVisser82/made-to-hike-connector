@@ -26,35 +26,28 @@ interface GuideFiltersProps {
   };
   onFilterChange: (filters: GuideFiltersProps['filters']) => void;
   availableLocations: string[];
+  availableSpecialties: string[];
+  availableCertifications: string[];
+  availableDifficultyLevels: string[];
+  availablePriceRanges: Array<{ value: string; label: string }>;
 }
 
-const SPECIALTIES = [
-  'Highland',
-  'Alpine',
-  'Winter',
-  'Photography',
-  'Family',
-  'Multi-day',
-  'Via Ferrata',
-  'Glacier',
-];
+const DIFFICULTY_LEVEL_LABELS: Record<string, string> = {
+  'easy': 'Level A - Easy',
+  'moderate': 'Level B - Moderate',
+  'challenging': 'Level C - Challenging',
+  'difficult': 'Level D - Difficult',
+};
 
-const PRICE_RANGES = [
-  { value: 'all', label: 'All Prices' },
-  { value: '0-200', label: '€0 - €200' },
-  { value: '200-400', label: '€200 - €400' },
-  { value: '400-600', label: '€400 - €600' },
-  { value: '600+', label: '€600+' },
-];
-
-const DIFFICULTY_LEVELS = [
-  { value: 'easy', label: 'Level A - Easy' },
-  { value: 'moderate', label: 'Level B - Moderate' },
-  { value: 'challenging', label: 'Level C - Challenging' },
-  { value: 'difficult', label: 'Level D - Difficult' },
-];
-
-export function GuideFilters({ filters, onFilterChange, availableLocations }: GuideFiltersProps) {
+export function GuideFilters({ 
+  filters, 
+  onFilterChange, 
+  availableLocations,
+  availableSpecialties,
+  availableCertifications,
+  availableDifficultyLevels,
+  availablePriceRanges,
+}: GuideFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSpecialty = (specialty: string) => {
@@ -153,102 +146,114 @@ export function GuideFilters({ filters, onFilterChange, availableLocations }: Gu
           </div>
 
           {/* Specialties */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Specialties</label>
-            <div className="flex flex-wrap gap-2">
-              {SPECIALTIES.map((specialty) => {
-                const isSelected = filters.specialties.includes(specialty);
-                return (
-                  <Badge
-                    key={specialty}
-                    variant={isSelected ? 'default' : 'outline'}
-                    className={`
-                      cursor-pointer transition-all
-                      ${isSelected 
-                        ? 'bg-[#881337] hover:bg-[#7f1d1d] text-white' 
-                        : 'hover:bg-accent'
-                      }
-                    `}
-                    onClick={() => toggleSpecialty(specialty)}
-                  >
-                    {specialty}
-                  </Badge>
-                );
-              })}
+          {availableSpecialties.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Specialties</label>
+              <div className="flex flex-wrap gap-2">
+                {availableSpecialties.map((specialty) => {
+                  const isSelected = filters.specialties.includes(specialty);
+                  return (
+                    <Badge
+                      key={specialty}
+                      variant={isSelected ? 'default' : 'outline'}
+                      className={`
+                        cursor-pointer transition-all
+                        ${isSelected 
+                          ? 'bg-[#881337] hover:bg-[#7f1d1d] text-white' 
+                          : 'hover:bg-accent'
+                        }
+                      `}
+                      onClick={() => toggleSpecialty(specialty)}
+                    >
+                      {specialty}
+                    </Badge>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Certifications */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Certifications</label>
-            <div className="flex flex-wrap gap-2">
-              {PRELOADED_CERTIFICATIONS.slice(0, 8).map((cert) => {
-                const isSelected = filters.certifications.includes(cert.id);
-                return (
-                  <Badge
-                    key={cert.id}
-                    variant={isSelected ? 'default' : 'outline'}
-                    className={`
-                      cursor-pointer transition-all
-                      ${isSelected 
-                        ? 'bg-[#881337] hover:bg-[#7f1d1d] text-white' 
-                        : 'hover:bg-accent'
-                      }
-                    `}
-                    onClick={() => toggleCertification(cert.id)}
-                  >
-                    {cert.name.split('(')[0].trim()}
-                  </Badge>
-                );
-              })}
+          {availableCertifications.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Certifications</label>
+              <div className="flex flex-wrap gap-2">
+                {PRELOADED_CERTIFICATIONS
+                  .filter(cert => availableCertifications.includes(cert.id))
+                  .map((cert) => {
+                    const isSelected = filters.certifications.includes(cert.id);
+                    return (
+                      <Badge
+                        key={cert.id}
+                        variant={isSelected ? 'default' : 'outline'}
+                        className={`
+                          cursor-pointer transition-all
+                          ${isSelected 
+                            ? 'bg-[#881337] hover:bg-[#7f1d1d] text-white' 
+                            : 'hover:bg-accent'
+                          }
+                        `}
+                        onClick={() => toggleCertification(cert.id)}
+                      >
+                        {cert.name.split('(')[0].trim()}
+                      </Badge>
+                    );
+                  })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Price Range */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Daily Rate</label>
-            <Select
-              value={filters.priceRange}
-              onValueChange={(value) => onFilterChange({ ...filters, priceRange: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All Prices" />
-              </SelectTrigger>
-              <SelectContent>
-                {PRICE_RANGES.map((range) => (
-                  <SelectItem key={range.value} value={range.value}>
-                    {range.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {availablePriceRanges.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Daily Rate</label>
+              <Select
+                value={filters.priceRange}
+                onValueChange={(value) => onFilterChange({ ...filters, priceRange: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Prices" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Prices</SelectItem>
+                  {availablePriceRanges.map((range) => (
+                    <SelectItem key={range.value} value={range.value}>
+                      {range.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Difficulty Levels */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Difficulty Levels</label>
-            <div className="flex flex-wrap gap-2">
-              {DIFFICULTY_LEVELS.map((level) => {
-                const isSelected = filters.difficultyLevels.includes(level.value);
-                return (
-                  <Badge
-                    key={level.value}
-                    variant={isSelected ? 'default' : 'outline'}
-                    className={`
-                      cursor-pointer transition-all
-                      ${isSelected 
-                        ? 'bg-[#881337] hover:bg-[#7f1d1d] text-white' 
-                        : 'hover:bg-accent'
-                      }
-                    `}
-                    onClick={() => toggleDifficulty(level.value)}
-                  >
-                    {level.label}
-                  </Badge>
-                );
-              })}
+          {availableDifficultyLevels.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Difficulty Levels</label>
+              <div className="flex flex-wrap gap-2">
+                {availableDifficultyLevels.map((level) => {
+                  const isSelected = filters.difficultyLevels.includes(level);
+                  const label = DIFFICULTY_LEVEL_LABELS[level] || level;
+                  return (
+                    <Badge
+                      key={level}
+                      variant={isSelected ? 'default' : 'outline'}
+                      className={`
+                        cursor-pointer transition-all
+                        ${isSelected 
+                          ? 'bg-[#881337] hover:bg-[#7f1d1d] text-white' 
+                          : 'hover:bg-accent'
+                        }
+                      `}
+                      onClick={() => toggleDifficulty(level)}
+                    >
+                      {label}
+                    </Badge>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </CollapsibleContent>
     </Collapsible>
