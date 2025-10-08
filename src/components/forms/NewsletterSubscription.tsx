@@ -4,18 +4,27 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { useNewsletter } from '@/hooks/useEmail'
 import { Mail, Loader2, CheckCircle } from 'lucide-react'
+import { newsletterSchema, type NewsletterData } from '@/lib/validationSchemas'
 
 export const NewsletterSubscription = () => {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
+  const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof NewsletterData, string>>>({})
   const { subscribeToNewsletter, isLoading, error, success, reset } = useNewsletter()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setValidationErrors({})
     
     try {
-      await subscribeToNewsletter({ email, name })
+      // Validate with Zod - parse() throws on error with correct types
+      const validatedData = newsletterSchema.parse({ email, name }) as {
+        email: string;
+        name?: string;
+      };
+      
+      await subscribeToNewsletter(validatedData)
       
       toast({
         title: "Welcome to the Adventure! 🏔️",
@@ -24,8 +33,27 @@ export const NewsletterSubscription = () => {
       
       setEmail('')
       setName('')
+      setValidationErrors({})
       
-    } catch (err) {
+    } catch (err: any) {
+      // Handle Zod validation errors
+      if (err.errors) {
+        const errors: Partial<Record<keyof NewsletterData, string>> = {}
+        err.errors.forEach((error: any) => {
+          if (error.path[0]) {
+            errors[error.path[0] as keyof NewsletterData] = error.message
+          }
+        })
+        setValidationErrors(errors)
+        toast({
+          title: "Invalid Email",
+          description: errors.email || "Please enter a valid email address.",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      // Handle other errors
       toast({
         title: "Subscription Failed",
         description: error || "Failed to subscribe. Please try again.",
@@ -36,7 +64,17 @@ export const NewsletterSubscription = () => {
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value)
+    if (validationErrors.email) {
+      setValidationErrors(prev => ({ ...prev, email: undefined }))
+    }
     if (error) reset()
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value)
+    if (validationErrors.name) {
+      setValidationErrors(prev => ({ ...prev, name: undefined }))
+    }
   }
 
   return (
@@ -48,23 +86,34 @@ export const NewsletterSubscription = () => {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-3">
-        <Input
-          type="text"
-          placeholder="Your Name (Optional)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={isLoading}
-        />
+        <div>
+          <Input
+            type="text"
+            placeholder="Your Name (Optional)"
+            value={name}
+            onChange={handleNameChange}
+            disabled={isLoading}
+            className={validationErrors.name ? 'border-destructive' : ''}
+          />
+          {validationErrors.name && (
+            <p className="text-xs text-destructive mt-1">{validationErrors.name}</p>
+          )}
+        </div>
         
-        <Input
-          type="email"
-          placeholder="Your Email Address"
-          value={email}
-          onChange={handleEmailChange}
-          required
-          disabled={isLoading}
-          className={error ? 'border-destructive' : ''}
-        />
+        <div>
+          <Input
+            type="email"
+            placeholder="Your Email Address"
+            value={email}
+            onChange={handleEmailChange}
+            required
+            disabled={isLoading}
+            className={validationErrors.email ? 'border-destructive' : ''}
+          />
+          {validationErrors.email && (
+            <p className="text-xs text-destructive mt-1">{validationErrors.email}</p>
+          )}
+        </div>
         
         <Button 
           type="submit" 

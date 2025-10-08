@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { userSignupSchema, type UserSignupData } from '@/lib/validationSchemas';
 
 export const CustomSignup = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export const CustomSignup = () => {
     name: '',
     phone: '',
   });
+  const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof UserSignupData, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { toast } = useToast();
@@ -21,50 +23,55 @@ export const CustomSignup = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear validation error for this field
+    if (validationErrors[name as keyof UserSignupData]) {
+      setValidationErrors(prev => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('=== FORM SUBMITTED ===');
-    console.log('Form data:', formData);
+    setValidationErrors({});
     setIsLoading(true);
 
-    try {
-      console.log('Starting custom signup process...');
-      console.log('Calling supabase.functions.invoke with:', {
-        functionName: 'custom-signup',
-        body: {
-          email: formData.email,
-          password: formData.password,
-          metadata: {
-            name: formData.name,
-            phone: formData.phone,
-            role: 'hiker'
-          }
+    // Validate with Zod
+    const result = userSignupSchema.safeParse(formData);
+    
+    if (!result.success) {
+      const errors: Partial<Record<keyof UserSignupData, string>> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as keyof UserSignupData] = err.message;
         }
       });
+      setValidationErrors(errors);
+      toast({
+        title: 'Validation Error',
+        description: 'Please check the form for errors.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
 
-      // Call our custom signup function
+    try {
+      // Call our custom signup function with validated data
       const { data, error } = await supabase.functions.invoke('custom-signup', {
         body: {
-          email: formData.email,
-          password: formData.password,
+          email: result.data.email,
+          password: result.data.password,
           metadata: {
-            name: formData.name,
-            phone: formData.phone,
+            name: result.data.name,
+            phone: result.data.phone,
             role: 'hiker'
           }
         }
       });
 
-      console.log('Supabase function response:', { data, error });
-
       if (error) {
-        console.error('Signup error:', error);
         throw new Error(error.message || 'Signup failed');
       }
 
-      console.log('Signup successful:', data);
       setSuccess(true);
       toast({
         title: 'Account Created!',
@@ -72,7 +79,7 @@ export const CustomSignup = () => {
       });
 
     } catch (error: any) {
-      console.error('Signup failed:', error);
+      // SECURITY: Don't log full error details that might contain PII
       toast({
         title: 'Signup Failed',
         description: error.message || 'An error occurred during signup',
@@ -134,7 +141,11 @@ export const CustomSignup = () => {
               onChange={handleInputChange}
               required
               placeholder="Enter your full name"
+              className={validationErrors.name ? 'border-destructive' : ''}
             />
+            {validationErrors.name && (
+              <p className="text-sm text-destructive">{validationErrors.name}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -147,7 +158,11 @@ export const CustomSignup = () => {
               onChange={handleInputChange}
               required
               placeholder="Enter your email"
+              className={validationErrors.email ? 'border-destructive' : ''}
             />
+            {validationErrors.email && (
+              <p className="text-sm text-destructive">{validationErrors.email}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -161,7 +176,11 @@ export const CustomSignup = () => {
               required
               placeholder="Enter your password"
               minLength={6}
+              className={validationErrors.password ? 'border-destructive' : ''}
             />
+            {validationErrors.password && (
+              <p className="text-sm text-destructive">{validationErrors.password}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -173,7 +192,11 @@ export const CustomSignup = () => {
               value={formData.phone}
               onChange={handleInputChange}
               placeholder="Enter your phone number"
+              className={validationErrors.phone ? 'border-destructive' : ''}
             />
+            {validationErrors.phone && (
+              <p className="text-sm text-destructive">{validationErrors.phone}</p>
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>

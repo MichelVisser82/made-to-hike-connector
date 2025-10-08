@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { useContactForm } from '@/hooks/useEmail'
 import { Loader2, Send, CheckCircle } from 'lucide-react'
+import { contactFormSchema, type ContactFormData } from '@/lib/validationSchemas'
 
 export const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -13,15 +14,25 @@ export const ContactForm = () => {
     subject: '',
     message: ''
   })
+  const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({})
 
   const { sendContactEmail, isLoading, error, success, reset } = useContactForm()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setValidationErrors({})
     
     try {
-      await sendContactEmail(formData)
+      // Validate with Zod - parse() throws on error with correct types
+      const validatedData = contactFormSchema.parse(formData) as {
+        name: string;
+        email: string;
+        subject?: string;
+        message: string;
+      };
+      
+      await sendContactEmail(validatedData)
       
       toast({
         title: "Message Sent! 🎉",
@@ -30,8 +41,27 @@ export const ContactForm = () => {
       
       // Reset form
       setFormData({ name: '', email: '', subject: '', message: '' })
+      setValidationErrors({})
       
-    } catch (err) {
+    } catch (err: any) {
+      // Handle Zod validation errors
+      if (err.errors) {
+        const errors: Partial<Record<keyof ContactFormData, string>> = {}
+        err.errors.forEach((error: any) => {
+          if (error.path[0]) {
+            errors[error.path[0] as keyof ContactFormData] = error.message
+          }
+        })
+        setValidationErrors(errors)
+        toast({
+          title: "Validation Error",
+          description: "Please check the form for errors.",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      // Handle other errors
       toast({
         title: "Oops! Something went wrong",
         description: error || "Failed to send message. Please try again.",
@@ -43,6 +73,11 @@ export const ContactForm = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    
+    // Clear validation errors for this field
+    if (validationErrors[name as keyof ContactFormData]) {
+      setValidationErrors(prev => ({ ...prev, [name]: undefined }))
+    }
     
     // Clear previous errors when user starts typing
     if (error) reset()
@@ -64,10 +99,10 @@ export const ContactForm = () => {
             onChange={handleChange}
             required
             disabled={isLoading}
-            className={error ? 'border-destructive' : ''}
+            className={validationErrors.name ? 'border-destructive' : ''}
           />
-          {formData.name.length > 0 && formData.name.length < 2 && (
-            <p className="text-sm text-destructive mt-1">Name must be at least 2 characters</p>
+          {validationErrors.name && (
+            <p className="text-sm text-destructive mt-1">{validationErrors.name}</p>
           )}
         </div>
         
@@ -80,8 +115,11 @@ export const ContactForm = () => {
             onChange={handleChange}
             required
             disabled={isLoading}
-            className={error ? 'border-destructive' : ''}
+            className={validationErrors.email ? 'border-destructive' : ''}
           />
+          {validationErrors.email && (
+            <p className="text-sm text-destructive mt-1">{validationErrors.email}</p>
+          )}
         </div>
         
         <div>
@@ -92,7 +130,11 @@ export const ContactForm = () => {
             value={formData.subject}
             onChange={handleChange}
             disabled={isLoading}
+            className={validationErrors.subject ? 'border-destructive' : ''}
           />
+          {validationErrors.subject && (
+            <p className="text-sm text-destructive mt-1">{validationErrors.subject}</p>
+          )}
         </div>
         
         <div>
@@ -104,10 +146,10 @@ export const ContactForm = () => {
             required
             disabled={isLoading}
             rows={4}
-            className={error ? 'border-destructive' : ''}
+            className={validationErrors.message ? 'border-destructive' : ''}
           />
-          {formData.message.length > 0 && formData.message.length < 10 && (
-            <p className="text-sm text-destructive mt-1">Message must be at least 10 characters</p>
+          {validationErrors.message && (
+            <p className="text-sm text-destructive mt-1">{validationErrors.message}</p>
           )}
         </div>
         

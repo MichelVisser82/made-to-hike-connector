@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { X, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { hikerRegistrationSchema, type HikerRegistrationData } from '@/lib/validationSchemas';
 
 interface HikerRegistrationModalProps {
   onClose: () => void;
@@ -22,37 +23,44 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
     emergency_contact: '',
     emergency_phone: ''
   });
+  const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof HikerRegistrationData, string>>>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setValidationErrors({});
 
-    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.emergency_contact || !formData.emergency_phone) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+    // Validate with Zod
+    const result = hikerRegistrationSchema.safeParse(formData);
+    
+    if (!result.success) {
+      const errors: Partial<Record<keyof HikerRegistrationData, string>> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as keyof HikerRegistrationData] = err.message;
+        }
+      });
+      setValidationErrors(errors);
+      setError('Please correct the errors in the form.');
       return;
     }
 
     try {
       setLoading(true);
       
-      // Use custom signup function like guide registration
+      // Use custom signup function with validated data
       const { data, error: supabaseError } = await supabase.functions.invoke('custom-signup', {
         body: {
-          email: formData.email,
-          password: formData.password,
+          email: result.data.email,
+          password: result.data.password,
           metadata: {
-            name: formData.name,
+            name: result.data.name,
             role: 'hiker',
-            phone: formData.phone,
-            emergency_contact: formData.emergency_contact,
-            emergency_phone: formData.emergency_phone
+            phone: result.data.phone,
+            emergency_contact: result.data.emergency_contact,
+            emergency_phone: result.data.emergency_phone
           }
         }
       });
@@ -68,10 +76,11 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
       }
 
       toast.success('Account created! Please check your email to verify your account.');
-      onRegister({ email: formData.email }); // Pass email for pending booking flow
+      onRegister({ email: result.data.email });
       onClose();
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+      // SECURITY: Don't log full error that might contain PII
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -79,6 +88,10 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear validation error for this field
+    if (validationErrors[field as keyof HikerRegistrationData]) {
+      setValidationErrors(prev => ({ ...prev, [field]: undefined }));
+    }
   };
 
   return (
@@ -115,7 +128,11 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                   required
                   placeholder="Your full name"
                   disabled={loading}
+                  className={validationErrors.name ? 'border-destructive' : ''}
                 />
+                {validationErrors.name && (
+                  <p className="text-xs text-destructive mt-1">{validationErrors.name}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="hiker-email">Email</Label>
@@ -127,7 +144,11 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                   required
                   placeholder="Your email"
                   disabled={loading}
+                  className={validationErrors.email ? 'border-destructive' : ''}
                 />
+                {validationErrors.email && (
+                  <p className="text-xs text-destructive mt-1">{validationErrors.email}</p>
+                )}
               </div>
             </div>
             
@@ -141,7 +162,11 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                 required
                 placeholder="Minimum 6 characters"
                 disabled={loading}
+                className={validationErrors.password ? 'border-destructive' : ''}
               />
+              {validationErrors.password && (
+                <p className="text-xs text-destructive mt-1">{validationErrors.password}</p>
+              )}
             </div>
             
             <div>
@@ -154,7 +179,11 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                 required
                 placeholder="Your phone number"
                 disabled={loading}
+                className={validationErrors.phone ? 'border-destructive' : ''}
               />
+              {validationErrors.phone && (
+                <p className="text-xs text-destructive mt-1">{validationErrors.phone}</p>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -168,7 +197,11 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                   required
                   placeholder="Contact name"
                   disabled={loading}
+                  className={validationErrors.emergency_contact ? 'border-destructive' : ''}
                 />
+                {validationErrors.emergency_contact && (
+                  <p className="text-xs text-destructive mt-1">{validationErrors.emergency_contact}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="emergency-phone">Emergency Phone</Label>
@@ -180,7 +213,11 @@ export function HikerRegistrationModal({ onClose, onRegister, tourTitle }: Hiker
                   required
                   placeholder="Contact phone"
                   disabled={loading}
+                  className={validationErrors.emergency_phone ? 'border-destructive' : ''}
                 />
+                {validationErrors.emergency_phone && (
+                  <p className="text-xs text-destructive mt-1">{validationErrors.emergency_phone}</p>
+                )}
               </div>
             </div>
             
