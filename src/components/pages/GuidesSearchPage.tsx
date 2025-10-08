@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Mountain } from 'lucide-react';
+import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -21,6 +22,24 @@ type SortOption = 'featured' | 'rating' | 'experience' | 'price';
 export function GuidesSearchPage() {
   const navigate = useNavigate();
   const { data: guides, isLoading } = useAllGuides();
+  const { fetchImages, getImageUrl } = useWebsiteImages();
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadHeroImage = async () => {
+      const images = await fetchImages({ category: 'hero', usage_context: 'guides-page' });
+      if (images && images.length > 0) {
+        setHeroImageUrl(getImageUrl(images[0]));
+      } else {
+        // Fallback to any hero or landscape image
+        const fallbackImages = await fetchImages({ category: 'hero' });
+        if (fallbackImages && fallbackImages.length > 0) {
+          setHeroImageUrl(getImageUrl(fallbackImages[0]));
+        }
+      }
+    };
+    loadHeroImage();
+  }, [fetchImages, getImageUrl]);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('featured');
@@ -144,7 +163,9 @@ export function GuidesSearchPage() {
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80)',
+            backgroundImage: heroImageUrl 
+              ? `url(${heroImageUrl})` 
+              : 'url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80)',
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-transparent" />
