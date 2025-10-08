@@ -287,6 +287,24 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
         </div>
       </section>
 
+      {/* Discover Guides CTA */}
+      <section className="py-20 bg-burgundy">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <h2 className="text-4xl md:text-5xl font-serif mb-8 text-white" style={{fontFamily: 'Playfair Display, serif'}}>
+              Discover all our community of Guides
+            </h2>
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/guides')}
+              className="bg-white text-burgundy hover:bg-white/90 font-semibold"
+            >
+              Browse Guides
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Certifications & Trust Indicators */}
       <section className="py-20">
         <div className="container mx-auto px-4">
