@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { GuidesSearchPage } from '@/components/pages/GuidesSearchPage';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 export default function GuidesPage() {
   return (
@@ -44,7 +45,9 @@ export default function GuidesPage() {
         })}
       </script>
 
-      <GuidesSearchPage />
+      <MainLayout>
+        <GuidesSearchPage />
+      </MainLayout>
     </>
   );
 }
