@@ -1,8 +1,9 @@
 import { Star, MapPin } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SmartImage } from '@/components/SmartImage';
+import { CertificationBadge } from '@/components/ui/certification-badge';
 
 interface MockGuideCardProps {
   name: string;
@@ -64,9 +65,19 @@ export function MockGuideCard({
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2">
-          <Badge variant="secondary" className="text-xs">
-            {certification}
-          </Badge>
+          <CertificationBadge
+            certification={{
+              title: certification,
+              certifyingBody: certification === 'IFMGA' 
+                ? 'International Federation of Mountain Guides Associations'
+                : certification === 'IML'
+                ? 'International Mountain Leader'
+                : certification,
+              certificationType: 'standard',
+            }}
+            displayMode="simple"
+            showTooltip={true}
+          />
         </div>
       </div>
     </Card>
