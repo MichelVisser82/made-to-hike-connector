@@ -17,6 +17,7 @@ interface ImageSelectorModalProps {
 interface WebsiteImage {
   id: string;
   file_path: string;
+  bucket_id: string;
   category: string;
   alt_text: string | null;
 }
@@ -48,7 +49,7 @@ export function ImageSelectorModal({
 
       const { data, error } = await supabase
         .from('website_images')
-        .select('id, file_path, category, alt_text')
+        .select('id, file_path, bucket_id, category, alt_text')
         .eq('uploaded_by', user.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
@@ -62,9 +63,9 @@ export function ImageSelectorModal({
     }
   };
 
-  const getImageUrl = (filePath: string) => {
+  const getImageUrl = (filePath: string, bucketId: string) => {
     const { data } = supabase.storage
-      .from('website-images')
+      .from(bucketId)
       .getPublicUrl(filePath);
     return data.publicUrl;
   };
@@ -73,7 +74,7 @@ export function ImageSelectorModal({
     if (!selectedImageId) return;
     const selectedImage = images.find(img => img.id === selectedImageId);
     if (selectedImage) {
-      const imageUrl = getImageUrl(selectedImage.file_path);
+      const imageUrl = getImageUrl(selectedImage.file_path, selectedImage.bucket_id);
       onSelect(selectedImageId, imageUrl);
       onClose();
     }
@@ -100,7 +101,7 @@ export function ImageSelectorModal({
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {images.map((image) => {
-                const imageUrl = getImageUrl(image.file_path);
+                const imageUrl = getImageUrl(image.file_path, image.bucket_id);
                 const isCurrentImage = currentImageUrl === imageUrl;
                 const isSelected = selectedImageId === image.id;
                 
