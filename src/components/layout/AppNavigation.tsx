@@ -37,12 +37,8 @@ export function AppNavigation({
     if (onDashboardClick) {
       onDashboardClick();
     } else {
-      // Default navigation based on role
-      if (user?.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+      // Navigate to homepage - MadeToHikeApp will handle routing to correct dashboard
+      navigate('/');
     }
   };
 

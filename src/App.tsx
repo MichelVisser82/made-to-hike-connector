@@ -13,7 +13,6 @@ import GuideSignupPage from "./pages/GuideSignupPage";
 import { EmailTest } from "./components/EmailTest";
 import { Auth } from "./pages/Auth";
 import { VerifyEmail } from "./pages/VerifyEmail";
-import { AdminDashboard } from "./components/admin/AdminDashboard";
 import CertificationsPage from "./pages/CertificationsPage";
 
 const queryClient = new QueryClient();
@@ -31,7 +30,6 @@ const App: React.FC = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/email-test" element={<EmailTest />} />
-              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/tours/:slug" element={<TourPage />} />
               <Route path="/guide/signup" element={<GuideSignupPage />} />
               <Route path="/certifications" element={<CertificationsPage />} />
