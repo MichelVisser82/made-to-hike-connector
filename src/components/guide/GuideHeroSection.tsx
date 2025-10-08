@@ -70,9 +70,9 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
 
       {/* Content */}
       <div className="relative container mx-auto px-4 py-8 lg:py-0 lg:min-h-[480px]">
-        <div className="lg:h-full lg:flex lg:items-center lg:justify-between lg:gap-6">
-          {/* Main Content - Vertical Stack */}
-          <div className="flex flex-col items-center md:items-start lg:flex-1 gap-4">
+        <div className="lg:h-full lg:flex lg:items-center lg:justify-center lg:gap-6">
+          {/* Main Content - Vertical Stack - Center Aligned */}
+          <div className="flex flex-col items-center lg:flex-1 gap-4">
             {/* Profile Picture + Name Row */}
             <div className="flex items-center gap-4 md:gap-6">
               {/* Profile Image */}
@@ -97,8 +97,8 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
               </h1>
             </div>
 
-            {/* All other info below - centered on mobile, left-aligned on desktop */}
-            <div className="w-full text-center md:text-left md:pl-[10.5rem] lg:pl-[11.5rem]">
+            {/* All other info below - centered */}
+            <div className="w-full text-center">
               {/* Subtitle */}
               <p className="text-white text-sm sm:text-base mb-1 md:mb-2">
                 Certified Mountain Guide · {experienceYears} Years Experience
@@ -106,14 +106,14 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
 
               {/* Location */}
               {guide.location && (
-                <div className="flex items-center justify-center md:justify-start gap-2 text-white/90 text-xs sm:text-sm mb-3 md:mb-4">
+                <div className="flex items-center justify-center gap-2 text-white/90 text-xs sm:text-sm mb-3 md:mb-4">
                   <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>{guide.location}</span>
                 </div>
               )}
 
               {/* Stats Bar - All in one row */}
-              <div className="inline-flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3 bg-white/90 backdrop-blur-md rounded-full px-4 py-2 md:px-5 md:py-2.5 shadow-lg">
+              <div className="inline-flex flex-wrap items-center justify-center gap-2 md:gap-3 bg-white/90 backdrop-blur-md rounded-full px-4 py-2 md:px-5 md:py-2.5 shadow-lg">
                 {/* Rating */}
                 <div className="flex items-center gap-1.5">
                   <Star className="w-3.5 h-3.5 md:w-4 md:h-4 text-gold fill-gold flex-shrink-0" />
@@ -151,7 +151,7 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           </div>
 
           {/* Contact Card - Compact version on Desktop */}
-          <Card className="hidden lg:block lg:flex-shrink-0 lg:w-60 bg-white/95 backdrop-blur-sm shadow-xl rounded-xl p-4">
+          <Card className="hidden lg:block lg:flex-shrink-0 lg:w-60 lg:absolute lg:right-8 bg-white/95 backdrop-blur-sm shadow-xl rounded-xl p-4">
             <h3 className="text-lg font-semibold text-charcoal mb-3">
               Contact {guide.display_name.split(' ')[0]}
             </h3>
