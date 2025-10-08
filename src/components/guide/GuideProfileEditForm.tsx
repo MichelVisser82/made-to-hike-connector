@@ -13,7 +13,8 @@ import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { CertificationBadge } from '../ui/certification-badge';
-import { Loader2, X, Mail, Lock, AlertCircle, Plus, Eye, Star, Upload } from 'lucide-react';
+import { ThumbnailSelectorModal } from './ThumbnailSelectorModal';
+import { Loader2, X, Mail, Lock, AlertCircle, Plus, Eye, Star, Upload, Video, ExternalLink, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '../ui/alert';
 import { 
@@ -99,6 +100,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [heroImage, setHeroImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
   const [heroImagePreview, setHeroImagePreview] = useState<string>('');
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoType, setVideoType] = useState<'upload' | 'external'>('external');
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [thumbnailSelectorOpen, setThumbnailSelectorOpen] = useState(false);
   const [newCert, setNewCert] = useState<GuideCertification>({
     certificationType: 'custom',
     title: '', 
@@ -145,6 +151,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       });
       setProfileImagePreview(profile.profile_image_url || '');
       setHeroImagePreview(profile.hero_background_url || '');
+      setVideoType((profile as any).video_type || 'external');
     }
     if (user?.email) {
       setNewEmail(user.email);
@@ -456,6 +463,97 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     }
   };
 
+  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Video file must be less than 100MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validTypes = ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload MP4, MOV, WebM, or AVI format",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setVideoFile(file);
+    toast({
+      title: "Video ready",
+      description: "Click 'Save Changes' to upload your video",
+    });
+  };
+
+  const handleDeleteVideo = async () => {
+    if (!user) return;
+
+    try {
+      if (videoType === 'upload' && (profile as any)?.intro_video_file_path) {
+        const { error: deleteError } = await supabase.storage
+          .from('guide-videos')
+          .remove([(profile as any).intro_video_file_path]);
+
+        if (deleteError) throw deleteError;
+      }
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          intro_video_url: null,
+          intro_video_file_path: null,
+          video_type: null,
+          intro_video_size_bytes: null,
+          intro_video_duration_seconds: null,
+          intro_video_thumbnail_url: null,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setFormData(prev => ({
+        ...prev,
+        intro_video_url: '',
+        intro_video_thumbnail_url: '',
+      }));
+      setVideoFile(null);
+      
+      await refetch();
+      
+      toast({
+        title: "Video deleted",
+        description: "Your video has been removed",
+      });
+    } catch (error: any) {
+      console.error('Error deleting video:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete video",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleThumbnailSelect = (imageId: string, imageUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      intro_video_thumbnail_url: imageUrl,
+    }));
+    toast({
+      title: "Thumbnail selected",
+      description: "Custom thumbnail has been set",
+    });
+  };
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -464,6 +562,9 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       let profileImageUrl = profile?.profile_image_url;
       let heroImageUrl = profile?.hero_background_url;
+      let videoUrl = formData.intro_video_url;
+      let videoFilePath = (profile as any)?.intro_video_file_path;
+      let videoSizeBytes: number | null = null;
 
       if (profileImage) {
         profileImageUrl = await uploadImage(profileImage, 'hero-images');
@@ -471,6 +572,30 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       if (heroImage) {
         heroImageUrl = await uploadImage(heroImage, 'hero-images');
+      }
+
+      if (videoType === 'upload' && videoFile) {
+        setIsUploadingVideo(true);
+        const fileExt = videoFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('guide-videos')
+          .upload(fileName, videoFile, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('guide-videos')
+          .getPublicUrl(fileName);
+
+        videoUrl = urlData.publicUrl;
+        videoFilePath = fileName;
+        videoSizeBytes = videoFile.size;
+        setIsUploadingVideo(false);
       }
 
       console.log('Saving guide profile with experience_years:', formData.experience_years);
@@ -546,7 +671,10 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           instagram_url: formData.instagram_url,
           facebook_url: formData.facebook_url,
           website_url: formData.website_url,
-          intro_video_url: formData.intro_video_url || null,
+          intro_video_url: videoType === 'external' ? formData.intro_video_url : videoUrl,
+          intro_video_file_path: videoType === 'upload' ? videoFilePath : null,
+          video_type: videoType,
+          intro_video_size_bytes: videoType === 'upload' ? videoSizeBytes : null,
           intro_video_thumbnail_url: formData.intro_video_thumbnail_url || null,
           updated_at: new Date().toISOString(),
         } as any, {
@@ -832,75 +960,147 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           <CardDescription>Add a video introduction to help hikers get to know you</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="intro_video_url">Video URL</Label>
-            <Input
-              id="intro_video_url"
-              placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-              value={formData.intro_video_url}
-              onChange={(e) => setFormData({ ...formData, intro_video_url: e.target.value })}
-            />
-            <p className="text-sm text-muted-foreground">
-              Link to your introduction video on YouTube, Vimeo, or other platform
-            </p>
+          {/* Video Type Selection */}
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant={videoType === 'upload' ? 'default' : 'outline'}
+              onClick={() => setVideoType('upload')}
+              className="flex-1"
+            >
+              <Video className="w-4 h-4 mr-2" />
+              Upload Video
+            </Button>
+            <Button
+              type="button"
+              variant={videoType === 'external' ? 'default' : 'outline'}
+              onClick={() => setVideoType('external')}
+              className="flex-1"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              External URL
+            </Button>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="intro_video_thumbnail_url">Custom Thumbnail URL (Optional)</Label>
-            <Input
-              id="intro_video_thumbnail_url"
-              placeholder="https://example.com/thumbnail.jpg"
-              value={formData.intro_video_thumbnail_url}
-              onChange={(e) => setFormData({ ...formData, intro_video_thumbnail_url: e.target.value })}
-            />
-            <p className="text-sm text-muted-foreground">
-              Provide a custom thumbnail URL for your video
-            </p>
-          </div>
-
-          {/* Preview */}
-          {(formData.intro_video_url || formData.intro_video_thumbnail_url) && (
-            <div className="space-y-2">
-              <Label>Preview</Label>
-              <div className="border rounded-lg overflow-hidden max-w-md">
-                <div className="relative aspect-video bg-muted">
-                  {formData.intro_video_thumbnail_url ? (
-                    <img
-                      src={formData.intro_video_thumbnail_url}
-                      alt="Video thumbnail preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Upload className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                  {formData.intro_video_url && (
-                    <div className="absolute inset-0 bg-charcoal/30 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-burgundy flex items-center justify-center">
-                        <span className="text-white text-xl">▶</span>
+          {/* Upload Video Option */}
+          {videoType === 'upload' && (
+            <>
+              {!(profile as any)?.intro_video_file_path && !videoFile ? (
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  <Input
+                    type="file"
+                    accept="video/mp4,video/quicktime,video/webm,video/x-msvideo"
+                    onChange={handleVideoFileChange}
+                    className="hidden"
+                    id="video-upload"
+                  />
+                  <Label htmlFor="video-upload" className="cursor-pointer">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="p-3 rounded-full bg-primary/10">
+                        <Video className="w-8 h-8 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Click to upload video</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          MP4, MOV, WebM, AVI (max 100MB)
+                        </p>
                       </div>
                     </div>
-                  )}
-                  {!formData.intro_video_url && (
-                    <div className="absolute top-2 right-2 bg-burgundy text-white px-2 py-1 rounded text-xs">
-                      Coming Soon
+                  </Label>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+                    <div className="flex items-center gap-3">
+                      <Video className="w-6 h-6 text-primary" />
+                      <div>
+                        <p className="font-medium">
+                          {videoFile ? videoFile.name : 'Video uploaded'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {videoFile
+                            ? `${(videoFile.size / (1024 * 1024)).toFixed(2)} MB`
+                            : 'Stored in system'}
+                        </p>
+                      </div>
                     </div>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDeleteVideo}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                  
+                  {(profile as any)?.intro_video_url && videoType === 'upload' && !videoFile && (
+                    <video
+                      src={(profile as any).intro_video_url}
+                      controls
+                      className="w-full rounded-lg"
+                      poster={formData.intro_video_thumbnail_url}
+                    />
                   )}
                 </div>
-                <div className="p-3 bg-background">
-                  <p className="text-sm font-medium">Meet {formData.display_name || 'Your Name'}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formData.intro_video_url 
-                      ? 'Watch introduction to learn more about my guiding style'
-                      : 'Video introduction coming soon'}
-                  </p>
-                </div>
+              )}
+            </>
+          )}
+
+          {/* External URL Option */}
+          {videoType === 'external' && (
+            <div className="space-y-2">
+              <Label htmlFor="intro_video_url">Video URL</Label>
+              <Input
+                id="intro_video_url"
+                value={formData.intro_video_url}
+                onChange={(e) => setFormData({ ...formData, intro_video_url: e.target.value })}
+                placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+              />
+              <p className="text-sm text-muted-foreground">
+                Supports YouTube, Vimeo, and other video platforms
+              </p>
+            </div>
+          )}
+
+          {/* Thumbnail Selection */}
+          {(formData.intro_video_url || (profile as any)?.intro_video_file_path || videoFile) && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Custom Thumbnail</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setThumbnailSelectorOpen(true)}
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Select from Image Library
+                </Button>
               </div>
+              
+              {formData.intro_video_thumbnail_url && (
+                <div className="border rounded-lg p-3 bg-muted/30">
+                  <p className="text-sm text-muted-foreground mb-2">Selected thumbnail:</p>
+                  <img
+                    src={formData.intro_video_thumbnail_url}
+                    alt="Video thumbnail"
+                    className="w-full max-w-sm aspect-video object-cover rounded-lg"
+                  />
+                </div>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      <ThumbnailSelectorModal
+        open={thumbnailSelectorOpen}
+        onClose={() => setThumbnailSelectorOpen(false)}
+        onSelect={handleThumbnailSelect}
+        currentThumbnailUrl={formData.intro_video_thumbnail_url}
+      />
 
       <Card>
         <CardHeader>

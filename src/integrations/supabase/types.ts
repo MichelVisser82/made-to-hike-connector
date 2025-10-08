@@ -87,6 +87,9 @@ export type Database = {
           hero_background_url: string | null
           id: string
           instagram_url: string | null
+          intro_video_duration_seconds: number | null
+          intro_video_file_path: string | null
+          intro_video_size_bytes: number | null
           intro_video_thumbnail_url: string | null
           intro_video_url: string | null
           languages_spoken: string[] | null
@@ -107,6 +110,7 @@ export type Database = {
           updated_at: string
           user_id: string
           verified: boolean | null
+          video_type: string | null
           website_url: string | null
         }
         Insert: {
@@ -124,6 +128,9 @@ export type Database = {
           hero_background_url?: string | null
           id?: string
           instagram_url?: string | null
+          intro_video_duration_seconds?: number | null
+          intro_video_file_path?: string | null
+          intro_video_size_bytes?: number | null
           intro_video_thumbnail_url?: string | null
           intro_video_url?: string | null
           languages_spoken?: string[] | null
@@ -144,6 +151,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           verified?: boolean | null
+          video_type?: string | null
           website_url?: string | null
         }
         Update: {
@@ -161,6 +169,9 @@ export type Database = {
           hero_background_url?: string | null
           id?: string
           instagram_url?: string | null
+          intro_video_duration_seconds?: number | null
+          intro_video_file_path?: string | null
+          intro_video_size_bytes?: number | null
           intro_video_thumbnail_url?: string | null
           intro_video_url?: string | null
           languages_spoken?: string[] | null
@@ -181,6 +192,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           verified?: boolean | null
+          video_type?: string | null
           website_url?: string | null
         }
         Relationships: []
