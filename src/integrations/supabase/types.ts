@@ -597,12 +597,129 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      guide_profiles_public: {
+        Row: {
+          active_since: string | null
+          bio: string | null
+          certifications: Json | null
+          created_at: string | null
+          daily_rate: number | null
+          daily_rate_currency: Database["public"]["Enums"]["currency"] | null
+          difficulty_levels: string[] | null
+          display_name: string | null
+          experience_years: number | null
+          facebook_url: string | null
+          guiding_areas: string[] | null
+          hero_background_url: string | null
+          id: string | null
+          instagram_url: string | null
+          intro_video_thumbnail_url: string | null
+          intro_video_url: string | null
+          languages_spoken: string[] | null
+          location: string | null
+          max_group_size: number | null
+          min_group_size: number | null
+          onboarding_step: number | null
+          phone: string | null
+          portfolio_images: string[] | null
+          profile_completed: boolean | null
+          profile_image_url: string | null
+          seasonal_availability: string | null
+          slug: string | null
+          specialties: string[] | null
+          terrain_capabilities: string[] | null
+          upcoming_availability_end: string | null
+          upcoming_availability_start: string | null
+          updated_at: string | null
+          user_id: string | null
+          verified: boolean | null
+          website_url: string | null
+        }
+        Insert: {
+          active_since?: string | null
+          bio?: string | null
+          certifications?: Json | null
+          created_at?: string | null
+          daily_rate?: number | null
+          daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
+          difficulty_levels?: string[] | null
+          display_name?: string | null
+          experience_years?: number | null
+          facebook_url?: string | null
+          guiding_areas?: string[] | null
+          hero_background_url?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          intro_video_thumbnail_url?: string | null
+          intro_video_url?: string | null
+          languages_spoken?: string[] | null
+          location?: string | null
+          max_group_size?: number | null
+          min_group_size?: number | null
+          onboarding_step?: number | null
+          phone?: never
+          portfolio_images?: string[] | null
+          profile_completed?: boolean | null
+          profile_image_url?: string | null
+          seasonal_availability?: string | null
+          slug?: string | null
+          specialties?: string[] | null
+          terrain_capabilities?: string[] | null
+          upcoming_availability_end?: string | null
+          upcoming_availability_start?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          website_url?: string | null
+        }
+        Update: {
+          active_since?: string | null
+          bio?: string | null
+          certifications?: Json | null
+          created_at?: string | null
+          daily_rate?: number | null
+          daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
+          difficulty_levels?: string[] | null
+          display_name?: string | null
+          experience_years?: number | null
+          facebook_url?: string | null
+          guiding_areas?: string[] | null
+          hero_background_url?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          intro_video_thumbnail_url?: string | null
+          intro_video_url?: string | null
+          languages_spoken?: string[] | null
+          location?: string | null
+          max_group_size?: number | null
+          min_group_size?: number | null
+          onboarding_step?: number | null
+          phone?: never
+          portfolio_images?: string[] | null
+          profile_completed?: boolean | null
+          profile_image_url?: string | null
+          seasonal_availability?: string | null
+          slug?: string | null
+          specialties?: string[] | null
+          terrain_capabilities?: string[] | null
+          upcoming_availability_end?: string | null
+          upcoming_availability_start?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_admin_role_if_user_exists: {
         Args: { user_email: string }
         Returns: undefined
+      }
+      can_view_guide_phone: {
+        Args: { _guide_user_id: string }
+        Returns: boolean
       }
       generate_guide_slug: {
         Args: { guide_name: string }
