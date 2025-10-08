@@ -69,12 +69,12 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
         <div className="absolute bottom-0 left-0 right-0 h-32 md:h-40 bg-gradient-to-b from-transparent to-cream-light" />
         <div className="relative container mx-auto px-4 h-full flex items-center justify-center">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+            <h1 className="text-5xl md:text-6xl font-serif text-white mb-6 leading-tight" style={{fontFamily: 'Playfair Display, serif'}}>
               Find Your Next
               <br />
-              <span className="text-accent">Hiking Adventure</span>
+              Hiking Adventure
             </h1>
-            <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
+            <p className="text-white text-base md:text-lg mb-8 max-w-2xl mx-auto">
               One hiking step away from nature. Join hand-selected, certified
               guides for unforgettable experiences across Europe's most
               stunning mountain ranges.
@@ -82,7 +82,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
             <Button 
               size="lg" 
               onClick={() => onNavigateToSearch()}
-              className="text-lg px-8 py-6 h-auto bg-primary hover:bg-primary/90"
+              className="text-lg px-8 py-6 h-auto bg-burgundy hover:bg-burgundy/90 text-white"
             >
               Find Your Next Hiking Adventure
             </Button>
