@@ -150,7 +150,54 @@ serve(async (req) => {
       }
     }
 
-    // Create or update guide profile with portfolio image IDs
+    // Process certification documents: upload to guide-documents bucket
+    const certificationsWithUrls = await Promise.all(
+      (guideData.certifications || []).map(async (cert: any) => {
+        if (cert.certificateDocumentBase64) {
+          try {
+            const buffer = Uint8Array.from(atob(cert.certificateDocumentBase64), c => c.charCodeAt(0));
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(7);
+            const fileName = `cert-${timestamp}-${random}.jpg`;
+            const filePath = `${userId}/certificates/${fileName}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('guide-documents')
+              .upload(filePath, buffer, { 
+                contentType: 'image/jpeg',
+                upsert: false 
+              });
+
+            if (uploadError) {
+              console.error('Certificate upload error:', uploadError);
+              return {
+                ...cert,
+                certificateDocument: null,
+                certificateDocumentBase64: undefined,
+              };
+            }
+
+            return {
+              ...cert,
+              certificateDocument: filePath,
+              certificateDocumentBase64: undefined,
+              certificateDocumentName: undefined,
+              certificateDocumentType: undefined,
+            };
+          } catch (error) {
+            console.error('Certificate processing error:', error);
+            return {
+              ...cert,
+              certificateDocument: null,
+              certificateDocumentBase64: undefined,
+            };
+          }
+        }
+        return cert;
+      })
+    );
+
+    // Create or update guide profile with portfolio image IDs and processed certifications
     const { error: guideProfileError } = await supabase
       .from('guide_profiles')
       .upsert({
@@ -161,7 +208,7 @@ serve(async (req) => {
         location: guideData.location,
         profile_image_url: profileImageUrl,
         experience_years: guideData.experience_years,
-        certifications: guideData.certifications || [],
+        certifications: certificationsWithUrls,
         specialties: guideData.specialties || [],
         guiding_areas: guideData.guiding_areas || [],
         terrain_capabilities: guideData.terrain_capabilities || [],

@@ -83,6 +83,23 @@ export function useGuideSignup() {
         profileImageBase64 = await fileToBase64(formData.profile_image);
       }
 
+      // Convert certification documents to base64
+      const certificationsWithBase64 = await Promise.all(
+        (formData.certifications || []).map(async (cert) => {
+          if (cert.certificateDocument instanceof File) {
+            const base64 = await fileToBase64(cert.certificateDocument);
+            return {
+              ...cert,
+              certificateDocument: undefined,
+              certificateDocumentBase64: base64,
+              certificateDocumentName: cert.certificateDocument.name,
+              certificateDocumentType: cert.certificateDocument.type,
+            };
+          }
+          return cert;
+        })
+      );
+
       // Call edge function to create guide account
       const { data, error } = await supabase.functions.invoke('guide-signup', {
         body: {
@@ -94,7 +111,7 @@ export function useGuideSignup() {
             bio: formData.bio,
             location: formData.location,
             experience_years: formData.experience_years,
-            certifications: formData.certifications || [],
+            certifications: certificationsWithBase64,
             specialties: formData.specialties || [],
             guiding_areas: formData.guiding_areas || [],
             terrain_capabilities: formData.terrain_capabilities || [],

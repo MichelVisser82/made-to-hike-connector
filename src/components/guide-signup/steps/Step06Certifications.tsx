@@ -131,39 +131,18 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
     setIsUploading(true);
     
     try {
-      let certToAdd: GuideCertification = {
+      // Store the certificate with the File object - will be uploaded during final signup
+      const certToAdd: GuideCertification = {
         ...newCert,
         addedDate: new Date().toISOString(),
       } as GuideCertification;
       
-      // Upload certificate document if provided
-      if (newCert.certificateDocument instanceof File) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-        
-        toast({
-          title: "Optimizing document...",
-          description: "This may take a moment for large files.",
-        });
-        
-        const filePath = await uploadCertificateDocument(
-          newCert.certificateDocument,
-          user.id,
-          true // optimize
-        );
-        
-        certToAdd = {
-          ...certToAdd,
-          certificateDocument: filePath
-        };
-        
-        toast({
-          title: "Document uploaded",
-          description: "Certificate document optimized and uploaded successfully.",
-        });
-      }
-      
       updateData({ certifications: [...certifications, certToAdd] });
+      
+      toast({
+        title: "Certification added",
+        description: "Document will be uploaded when you complete signup.",
+      });
       
       // Reset form
       setNewCert({ 
@@ -180,10 +159,10 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
       setCertNumberError('');
       setFileError('');
     } catch (error) {
-      console.error('Error uploading certificate:', error);
+      console.error('Error adding certification:', error);
       toast({
-        title: "Upload failed",
-        description: "Failed to upload certificate document. Please try again.",
+        title: "Failed to add",
+        description: "Failed to add certification. Please try again.",
         variant: "destructive"
       });
     } finally {
