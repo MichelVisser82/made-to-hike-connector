@@ -63,14 +63,14 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
             : 'linear-gradient(135deg, #1a4d2e 0%, #2d5f3e 25%, #4a7c59 50%, #6b9377 75%, #8ba888 100%)',
         }}
       >
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-40 md:h-56 bg-gradient-to-b from-transparent to-cream-light" />
+        {/* Lighter gradient overlays to show more of the image */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 md:h-40 bg-gradient-to-b from-transparent to-cream-light" />
       </div>
 
-      {/* Content */}
-      <div className="relative container mx-auto px-4 py-8 lg:py-10 lg:h-full">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between lg:gap-6 lg:h-full">
+      {/* Content - Positioned at bottom */}
+      <div className="relative container mx-auto px-4 lg:h-full lg:flex lg:items-end lg:pb-8">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between lg:gap-6 w-full py-8 lg:py-0">
           {/* Left Side - Profile + Info */}
           <div className="flex flex-col md:flex-row gap-6 items-center md:items-start flex-1">
             {/* Profile Image */}
