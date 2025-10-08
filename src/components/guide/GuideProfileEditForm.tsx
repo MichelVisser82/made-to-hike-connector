@@ -1195,7 +1195,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Account Settings
+            Account Email
           </CardTitle>
           <CardDescription>
             Manage your account email and authentication
