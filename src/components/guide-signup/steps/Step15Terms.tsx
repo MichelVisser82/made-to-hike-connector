@@ -16,10 +16,10 @@ interface Step15TermsProps {
 export function Step15Terms({ data, updateData, onSubmit, onBack, isSubmitting }: Step15TermsProps) {
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-6 h-6" />
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+            <CheckCircle className="w-5 h-5 text-burgundy" />
             Terms & Conditions
           </CardTitle>
           <p className="text-muted-foreground">Final step - review and accept our terms</p>
@@ -53,11 +53,12 @@ export function Step15Terms({ data, updateData, onSubmit, onBack, isSubmitting }
           </div>
 
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack} disabled={isSubmitting}>Back</Button>
+            <Button variant="outline" onClick={onBack} disabled={isSubmitting} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back</Button>
             <Button 
               onClick={onSubmit} 
               disabled={!data.terms_accepted || isSubmitting}
               size="lg"
+              className="bg-burgundy hover:bg-burgundy/90 text-white"
             >
               {isSubmitting ? (
                 <>

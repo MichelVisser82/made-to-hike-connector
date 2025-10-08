@@ -18,10 +18,10 @@ export function Step13Bio({ data, updateData, onNext, onBack }: Step13BioProps) 
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-6 h-6" />
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+            <FileText className="w-5 h-5 text-burgundy" />
             Your Bio
           </CardTitle>
           <p className="text-muted-foreground">Tell hikers about yourself (300-500 characters)</p>
@@ -43,8 +43,8 @@ export function Step13Bio({ data, updateData, onNext, onBack }: Step13BioProps) 
           </div>
 
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack}>Back</Button>
-            <Button onClick={onNext} disabled={charCount < 300 || charCount > 500}>
+            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back</Button>
+            <Button onClick={onNext} disabled={charCount < 300 || charCount > 500} className="bg-burgundy hover:bg-burgundy/90 text-white">
               Continue
             </Button>
           </div>

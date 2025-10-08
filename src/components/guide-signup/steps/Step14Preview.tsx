@@ -13,10 +13,10 @@ interface Step14PreviewProps {
 export function Step14Preview({ data, onNext, onBack }: Step14PreviewProps) {
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="w-6 h-6" />
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+            <Eye className="w-6 h-6 text-burgundy" />
             Preview Your Profile
           </CardTitle>
           <p className="text-muted-foreground">Review your information before submitting</p>
@@ -64,8 +64,8 @@ export function Step14Preview({ data, onNext, onBack }: Step14PreviewProps) {
           </div>
 
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack}>Back to Edit</Button>
-            <Button onClick={onNext}>Looks Good!</Button>
+            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back to Edit</Button>
+            <Button onClick={onNext} className="bg-burgundy hover:bg-burgundy/90 text-white">Looks Good!</Button>
           </div>
         </CardContent>
       </Card>

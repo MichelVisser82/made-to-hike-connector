@@ -29,9 +29,9 @@ export function Step12TerrainCapabilities({ data, updateData, onNext, onBack }: 
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle>Terrain Capabilities</CardTitle>
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>Terrain Capabilities</CardTitle>
           <p className="text-muted-foreground">What types of terrain do you guide on?</p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -53,8 +53,8 @@ export function Step12TerrainCapabilities({ data, updateData, onNext, onBack }: 
           </div>
 
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack}>Back</Button>
-            <Button onClick={onNext}>Continue</Button>
+            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back</Button>
+            <Button onClick={onNext} className="bg-burgundy hover:bg-burgundy/90 text-white">Continue</Button>
           </div>
         </CardContent>
       </Card>

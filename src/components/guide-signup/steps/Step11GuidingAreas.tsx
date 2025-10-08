@@ -29,9 +29,9 @@ export function Step11GuidingAreas({ data, updateData, onNext, onBack }: Step11G
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle>Guiding Areas</CardTitle>
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>Guiding Areas</CardTitle>
           <p className="text-muted-foreground">Where do you guide? (select at least 1)</p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -53,8 +53,8 @@ export function Step11GuidingAreas({ data, updateData, onNext, onBack }: Step11G
           </div>
 
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack}>Back</Button>
-            <Button onClick={onNext} disabled={selected.length === 0}>Continue</Button>
+            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back</Button>
+            <Button onClick={onNext} disabled={selected.length === 0} className="bg-burgundy hover:bg-burgundy/90 text-white">Continue</Button>
           </div>
         </CardContent>
       </Card>

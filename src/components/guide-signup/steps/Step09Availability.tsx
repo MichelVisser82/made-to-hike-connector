@@ -16,10 +16,10 @@ interface Step09AvailabilityProps {
 export function Step09Availability({ data, updateData, onNext, onBack }: Step09AvailabilityProps) {
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-6 h-6" />
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+            <Calendar className="w-5 h-5 text-burgundy" />
             Availability
           </CardTitle>
           <p className="text-muted-foreground">When are you typically available to guide?</p>
@@ -57,8 +57,8 @@ export function Step09Availability({ data, updateData, onNext, onBack }: Step09A
           </div>
 
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack}>Back</Button>
-            <Button onClick={onNext}>Continue</Button>
+            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back</Button>
+            <Button onClick={onNext} className="bg-burgundy hover:bg-burgundy/90 text-white">Continue</Button>
           </div>
         </CardContent>
       </Card>

@@ -18,10 +18,10 @@ export function Step07GroupPreferences({ data, updateData, onNext, onBack }: Ste
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-6 h-6" />
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+            <Users className="w-5 h-5 text-burgundy" />
             Group Size Preferences
           </CardTitle>
           <p className="text-muted-foreground">What group sizes do you prefer to guide?</p>
@@ -51,8 +51,8 @@ export function Step07GroupPreferences({ data, updateData, onNext, onBack }: Ste
           </div>
 
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack}>Back</Button>
-            <Button onClick={onNext}>Continue</Button>
+            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back</Button>
+            <Button onClick={onNext} className="bg-burgundy hover:bg-burgundy/90 text-white">Continue</Button>
           </div>
         </CardContent>
       </Card>

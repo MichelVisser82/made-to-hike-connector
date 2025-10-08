@@ -47,9 +47,9 @@ export function Step02BasicInfo({ data, updateData, onNext, onBack }: Step02Basi
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>Basic Information</CardTitle>
           <p className="text-muted-foreground">Let's start with your essential details</p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -155,8 +155,8 @@ export function Step02BasicInfo({ data, updateData, onNext, onBack }: Step02Basi
 
           {/* Navigation */}
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack}>Back</Button>
-            <Button onClick={handleNext}>Continue</Button>
+            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back</Button>
+            <Button onClick={handleNext} className="bg-burgundy hover:bg-burgundy/90 text-white">Continue</Button>
           </div>
         </CardContent>
       </Card>

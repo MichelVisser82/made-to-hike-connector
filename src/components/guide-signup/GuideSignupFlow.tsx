@@ -39,12 +39,12 @@ export function GuideSignupFlow() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-cream-light">
       {/* Progress Bar */}
-      <div className="sticky top-0 z-50 bg-background border-b">
+      <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4 mb-2">
-            <span className="text-sm font-medium">Step {signup.currentStep} of 15</span>
+            <span className="text-sm font-medium text-charcoal">Step {signup.currentStep} of 15</span>
             <span className="text-sm text-muted-foreground ml-auto">{Math.round(signup.progress)}%</span>
           </div>
           <Progress value={signup.progress} className="h-2" />
