@@ -69,112 +69,114 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
       </div>
 
       {/* Content */}
-      <div className="relative container mx-auto px-4 py-8 lg:py-0 lg:min-h-[480px]">
-        <div className="lg:h-full lg:flex lg:items-center lg:justify-center lg:gap-6">
-          {/* Main Content - Vertical Stack - Center Aligned */}
-          <div className="flex flex-col items-center lg:flex-1 gap-4">
-            {/* Profile Picture + Name Row */}
-            <div className="flex items-center gap-4 md:gap-6">
-              {/* Profile Image */}
-              <div className="flex-shrink-0">
-                <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40">
-                  <img
-                    src={guide.profile_image_url || 'https://via.placeholder.com/176'}
-                    alt={guide.display_name}
-                    className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
-                  />
-                  {guide.verified && (
-                    <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-burgundy rounded-full p-1.5 md:p-2 shadow-lg border-2 md:border-3 border-white">
-                      <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                    </div>
-                  )}
-                </div>
+      <div className="relative container mx-auto px-4 py-8 lg:py-12">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between lg:gap-8">
+          {/* Left Side - Profile + Info */}
+          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start flex-1">
+            {/* Profile Image */}
+            <div className="flex-shrink-0">
+              <div className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48">
+                <img
+                  src={guide.profile_image_url || 'https://via.placeholder.com/176'}
+                  alt={guide.display_name}
+                  className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
+                />
+                {guide.verified && (
+                  <div className="absolute bottom-2 right-2 bg-burgundy rounded-full p-2.5 shadow-lg border-3 border-white">
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                )}
               </div>
-
-              {/* Name - Centered with profile picture */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white leading-tight" style={{fontFamily: 'Playfair Display, serif'}}>
-                {guide.display_name}
-              </h1>
             </div>
 
-            {/* All other info below - centered */}
-            <div className="w-full text-center">
+            {/* Name, Location & Stats */}
+            <div className="flex-1 text-center md:text-left">
+              {/* Name */}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif text-white mb-2 leading-tight" style={{fontFamily: 'Playfair Display, serif'}}>
+                {guide.display_name}
+              </h1>
+
               {/* Subtitle */}
-              <p className="text-white text-sm sm:text-base mb-1 md:mb-2">
-                Certified Mountain Guide · {experienceYears} Years Experience
+              <p className="text-white text-base md:text-lg mb-3">
+                Certified Mountain Guide - {experienceYears} Years Experience
               </p>
 
               {/* Location */}
               {guide.location && (
-                <div className="flex items-center justify-center gap-2 text-white/90 text-xs sm:text-sm mb-3 md:mb-4">
-                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <div className="flex items-center justify-center md:justify-start gap-2 text-white text-base mb-6">
+                  <MapPin className="w-5 h-5" />
                   <span>{guide.location}</span>
                 </div>
               )}
 
-              {/* Stats Bar - All in one row */}
-              <div className="inline-flex flex-wrap items-center justify-center gap-2 md:gap-3 bg-white/90 backdrop-blur-md rounded-full px-4 py-2 md:px-5 md:py-2.5 shadow-lg">
-                {/* Rating */}
-                <div className="flex items-center gap-1.5">
-                  <Star className="w-3.5 h-3.5 md:w-4 md:h-4 text-gold fill-gold flex-shrink-0" />
-                  <span className="font-bold text-charcoal text-xs md:text-sm">{stats.average_rating.toFixed(1)}</span>
-                  <span className="text-charcoal/60 text-xs hidden sm:inline">({reviewCount})</span>
+              {/* Stats Card - White background with 2x2 grid */}
+              <Card className="bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-6 max-w-2xl">
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Rating */}
+                  <div className="flex items-center gap-3">
+                    <Star className="w-6 h-6 text-gold fill-gold flex-shrink-0" />
+                    <div>
+                      <span className="font-bold text-charcoal text-lg">{stats.average_rating.toFixed(1)}</span>
+                      <span className="text-charcoal/60 text-sm ml-1">({reviewCount} reviews)</span>
+                    </div>
+                  </div>
+
+                  {/* Tours */}
+                  <div className="flex items-center gap-3">
+                    <Users className="w-6 h-6 text-burgundy flex-shrink-0" />
+                    <div>
+                      <span className="font-bold text-charcoal text-lg">{stats.tours_completed}+</span>
+                      <span className="text-charcoal/60 text-sm ml-1">tours</span>
+                    </div>
+                  </div>
+
+                  {/* Response Time */}
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-6 h-6 text-burgundy flex-shrink-0" />
+                    <div>
+                      <span className="font-bold text-charcoal text-lg">{responseTime}</span>
+                      <span className="text-charcoal/60 text-sm ml-1">response</span>
+                    </div>
+                  </div>
+
+                  {/* Experience */}
+                  <div className="flex items-center gap-3">
+                    <Award className="w-6 h-6 text-burgundy flex-shrink-0" />
+                    <div>
+                      <span className="font-bold text-charcoal text-lg">{experienceYears}</span>
+                      <span className="text-charcoal/60 text-sm ml-1">years experience</span>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="w-px h-4 bg-charcoal/20" />
-
-                {/* Tours */}
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 md:w-4 md:h-4 text-burgundy flex-shrink-0" />
-                  <span className="font-bold text-charcoal text-xs md:text-sm">{stats.tours_completed}+</span>
-                  <span className="text-charcoal/60 text-xs">tours</span>
-                </div>
-
-                <div className="w-px h-4 bg-charcoal/20" />
-
-                {/* Response Time */}
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 text-burgundy flex-shrink-0" />
-                  <span className="font-bold text-charcoal text-xs md:text-sm">{responseTime}</span>
-                </div>
-
-                <div className="w-px h-4 bg-charcoal/20" />
-
-                {/* Experience */}
-                <div className="flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5 md:w-4 md:h-4 text-burgundy flex-shrink-0" />
-                  <span className="font-bold text-charcoal text-xs md:text-sm">{experienceYears}</span>
-                  <span className="text-charcoal/60 text-xs">years</span>
-                </div>
-              </div>
+              </Card>
             </div>
           </div>
 
-          {/* Contact Card - Compact version on Desktop */}
-          <Card className="hidden lg:block lg:flex-shrink-0 lg:w-60 lg:absolute lg:right-8 bg-white/95 backdrop-blur-sm shadow-xl rounded-xl p-4">
-            <h3 className="text-lg font-semibold text-charcoal mb-3">
+          {/* Contact Card - Right Side on Desktop */}
+          <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-6 mt-16">
+            <h3 className="text-2xl font-semibold text-charcoal mb-5">
               Contact {guide.display_name.split(' ')[0]}
             </h3>
             
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-charcoal/70">
-                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="text-xs">Responds in 2h</span>
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-3 text-charcoal/70">
+                <Clock className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm">Responds within 2 hours</span>
               </div>
-              <div className="flex items-center gap-2 text-green-600">
-                <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="text-xs font-medium">99% response</span>
+              <div className="flex items-center gap-3 text-green-600">
+                <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">99% response rate</span>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm py-2">
-                <MessageCircle className="w-3.5 h-3.5 mr-2" />
-                Message
+            <div className="space-y-3">
+              <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white py-3">
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Send Message
               </Button>
-              <Button variant="outline" className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 text-sm py-2">
-                <Mail className="w-3.5 h-3.5 mr-2" />
-                Custom Tour
+              <Button variant="outline" className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 py-3">
+                <Mail className="w-4 h-4 mr-2" />
+                Request Custom Tour
               </Button>
             </div>
           </Card>
