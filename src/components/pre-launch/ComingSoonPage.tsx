@@ -449,7 +449,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'IML',
-                        certifyingBody: 'International Mountain Leader',
+                        certifyingBody: 'Union of International Mountain Leader Associations',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -466,7 +466,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'AMM',
-                        certifyingBody: 'Alpine Mountain Managment',
+                        certifyingBody: 'UK Mountain Training - Alpine Mountain Management',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -475,7 +475,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'ML',
-                        certifyingBody: 'Mountain Leader',
+                        certifyingBody: 'UK Mountain Training - Mountain Leader Award',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -484,7 +484,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'WML',
-                        certifyingBody: 'Winter Mountain Leader',
+                        certifyingBody: 'UK Mountain Training - Winter Mountain Leader Award',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -501,7 +501,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'WEMT',
-                        certifyingBody: 'Wilderness Emergency Medical Technician',
+                        certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -510,7 +510,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'WFR',
-                        certifyingBody: 'Wilderness First Responder',
+                        certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -519,7 +519,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'WFA',
-                        certifyingBody: 'Wilderness First Aid',
+                        certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -528,7 +528,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'CPR/AED',
-                        certifyingBody: 'Cardiopulmonary Resuscitation / Automated External Defibrillator',
+                        certifyingBody: 'American Heart Association / Red Cross',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -537,7 +537,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'FAW',
-                        certifyingBody: 'First Aid at Work',
+                        certifyingBody: 'Health and Safety Executive (HSE) - UK',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
@@ -546,7 +546,7 @@ export function ComingSoonPage() {
                     <CertificationBadge
                       certification={{
                         title: 'EFAW',
-                        certifyingBody: 'Emergency First Aid at Work',
+                        certifyingBody: 'Health and Safety Executive (HSE) - UK',
                         certificationType: 'standard',
                       }}
                       displayMode="detailed"
