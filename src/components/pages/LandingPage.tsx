@@ -224,11 +224,9 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
             <p className="text-xl opacity-90 mb-8">
               Turn your passion for hiking into income. Join our community of hand-selected, certified mountain guides.
             </p>
-            {!user && (
-              <Button size="lg" onClick={() => navigate('/guide/signup')} className="bg-primary hover:bg-primary/90">
-                Become a Guide
-              </Button>
-            )}
+            <Button size="lg" onClick={() => navigate('/guide/signup')} className="bg-white text-[#881337] hover:bg-white/90 font-semibold">
+              Become a Guide
+            </Button>
           </div>
         </div>
       </section>
