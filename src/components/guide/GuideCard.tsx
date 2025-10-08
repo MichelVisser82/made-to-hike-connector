@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Star, Users, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import type { GuideWithStats } from '@/hooks/useAllGuides';
 import { getCertificationMetadata } from '@/constants/certificationMetadata';
 
@@ -11,6 +13,21 @@ interface GuideCardProps {
 
 export function GuideCard({ guide }: GuideCardProps) {
   const navigate = useNavigate();
+  const { fetchImages, getImageUrl } = useWebsiteImages();
+  const [guideHeroImage, setGuideHeroImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadGuideImage = async () => {
+      // Try to get guide's portfolio or hero images
+      const images = await fetchImages({ guide_id: guide.user_id, limit: 1 });
+      if (images && images.length > 0) {
+        setGuideHeroImage(getImageUrl(images[0]));
+      } else if (guide.hero_background_url) {
+        setGuideHeroImage(guide.hero_background_url);
+      }
+    };
+    loadGuideImage();
+  }, [guide.user_id, guide.hero_background_url, fetchImages, getImageUrl]);
 
   const handleViewProfile = () => {
     if (guide.slug) {
@@ -24,16 +41,17 @@ export function GuideCard({ guide }: GuideCardProps) {
   return (
     <article className="group relative bg-card rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border">
       {/* Hero Image */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[3/4] overflow-hidden">
         <img
-          src={guide.hero_background_url || guide.profile_image_url || '/placeholder.svg'}
+          src={guideHeroImage || guide.hero_background_url || guide.profile_image_url || '/placeholder.svg'}
           alt={`${guide.display_name} - Mountain Guide`}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
         />
         
         {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-cream-light" />
 
         {/* Badges - Top Left */}
         <div className="absolute top-3 left-3 flex gap-2">
