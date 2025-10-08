@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -37,9 +37,9 @@ interface ExtendedWebsiteImage {
 }
 
 export const ImageOverview = () => {
-  const { images, loading, fetchImages } = useWebsiteImages();
   const [extendedImages, setExtendedImages] = useState<ExtendedWebsiteImage[]>([]);
   const [filteredImages, setFilteredImages] = useState<ExtendedWebsiteImage[]>([]);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [uploaderFilter, setUploaderFilter] = useState('all');
@@ -95,75 +95,71 @@ export const ImageOverview = () => {
     location: 'none'
   });
 
-  // Fetch extended image data with uploader info
-  useEffect(() => {
-    const fetchExtendedImages = async () => {
-      try {
-        const { data: imageData, error } = await supabase
-          .from('website_images')
-          .select('*')
-          .order('created_at', { ascending: false });
+  // Fetch all images with uploader info - independent of useWebsiteImages hook
+  const fetchAllImages = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch ALL images from database (including inactive ones for admin view)
+      const { data: imageData, error } = await supabase
+        .from('website_images')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Fetch uploader info separately for images that have uploaded_by
-        const uploaderIds = [...new Set(imageData?.filter(img => img.uploaded_by).map(img => img.uploaded_by))];
-        
-        let uploaderInfo: Record<string, { name?: string; email?: string; role?: string }> = {};
-        if (uploaderIds.length > 0) {
-          const [profilesData, rolesData] = await Promise.all([
-            supabase.from('profiles').select('id, name, email').in('id', uploaderIds),
-            supabase.from('user_roles').select('user_id, role').in('user_id', uploaderIds)
-          ]);
+      // Fetch uploader info separately for images that have uploaded_by
+      const uploaderIds = [...new Set(imageData?.filter(img => img.uploaded_by).map(img => img.uploaded_by))];
+      
+      let uploaderInfo: Record<string, { name?: string; email?: string; role?: string }> = {};
+      if (uploaderIds.length > 0) {
+        const [profilesData, rolesData] = await Promise.all([
+          supabase.from('profiles').select('id, name, email').in('id', uploaderIds),
+          supabase.from('user_roles').select('user_id, role').in('user_id', uploaderIds)
+        ]);
 
-          if (profilesData.data) {
-            profilesData.data.forEach(profile => {
-              uploaderInfo[profile.id] = { name: profile.name, email: profile.email };
-            });
-          }
-
-          if (rolesData.data) {
-            rolesData.data.forEach(role => {
-              if (!uploaderInfo[role.user_id]) {
-                uploaderInfo[role.user_id] = {};
-              }
-              uploaderInfo[role.user_id].role = role.role;
-            });
-          }
+        if (profilesData.data) {
+          profilesData.data.forEach(profile => {
+            uploaderInfo[profile.id] = { name: profile.name, email: profile.email };
+          });
         }
 
-        const extended = imageData?.map(img => {
-          const info = img.uploaded_by ? uploaderInfo[img.uploaded_by] : null;
-          return {
-            ...img,
-            uploader_name: info?.name || (img.uploaded_by ? 'Unknown' : 'System'),
-            uploader_email: info?.email || (img.uploaded_by ? 'unknown@system' : 'system@admin'),
-            uploader_role: info?.role || (img.uploaded_by ? 'unknown' : 'admin')
-          } as ExtendedWebsiteImage;
-        }) || [];
-
-        setExtendedImages(extended);
-        setFilteredImages(extended);
-      } catch (error) {
-        console.error('Error fetching extended images:', error);
-        const fallbackImages = images.map(img => ({ 
-          ...img, 
-          uploader_name: 'Unknown',
-          uploader_email: 'unknown@system',
-          uploader_role: 'unknown' 
-        } as ExtendedWebsiteImage));
-        setExtendedImages(fallbackImages);
-        setFilteredImages(fallbackImages);
+        if (rolesData.data) {
+          rolesData.data.forEach(role => {
+            if (!uploaderInfo[role.user_id]) {
+              uploaderInfo[role.user_id] = {};
+            }
+            uploaderInfo[role.user_id].role = role.role;
+          });
+        }
       }
-    };
 
-    if (images.length > 0) {
-      fetchExtendedImages();
-    } else {
+      const extended = imageData?.map(img => {
+        const info = img.uploaded_by ? uploaderInfo[img.uploaded_by] : null;
+        return {
+          ...img,
+          uploader_name: info?.name || (img.uploaded_by ? 'Unknown' : 'System'),
+          uploader_email: info?.email || (img.uploaded_by ? 'unknown@system' : 'system@admin'),
+          uploader_role: info?.role || (img.uploaded_by ? 'unknown' : 'admin')
+        } as ExtendedWebsiteImage;
+      }) || [];
+
+      setExtendedImages(extended);
+      setFilteredImages(extended);
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      toast.error('Failed to load images');
       setExtendedImages([]);
       setFilteredImages([]);
+    } finally {
+      setLoading(false);
     }
-  }, [images]);
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchAllImages();
+  }, [fetchAllImages]);
 
   // Filter images based on search and filters
   useEffect(() => {
@@ -251,7 +247,7 @@ export const ImageOverview = () => {
 
       toast.success(`${section} updated successfully`);
       setEditingSections(prev => ({ ...prev, [section]: false }));
-      fetchImages();
+      await fetchAllImages();
       
       // Update the selected image to reflect changes
       setSelectedImage(prev => prev ? { ...prev, ...data } : null);
@@ -324,7 +320,7 @@ export const ImageOverview = () => {
 
       toast.success('Image deleted successfully');
       setSelectedImage(null);
-      fetchImages();
+      await fetchAllImages();
     } catch (error) {
       console.error('Error deleting image:', error);
       toast.error('Failed to delete image');
@@ -437,7 +433,7 @@ export const ImageOverview = () => {
         
         // Clear selections and refresh images
         setSelectedImages(new Set());
-        await fetchImages();
+        await fetchAllImages();
       }
 
       if (errorCount > 0) {
