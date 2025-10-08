@@ -443,8 +443,8 @@ export function ComingSoonPage() {
                         certifyingBody: 'International Federation of Mountain Guides Associations',
                         certificationType: 'standard',
                       }}
-                      displayMode="simple"
-                      showTooltip={false}
+                      displayMode="card"
+                      showTooltip={true}
                     />
                     <CertificationBadge
                       certification={{
@@ -452,8 +452,8 @@ export function ComingSoonPage() {
                         certifyingBody: 'International Mountain Leader',
                         certificationType: 'standard',
                       }}
-                      displayMode="simple"
-                      showTooltip={false}
+                      displayMode="card"
+                      showTooltip={true}
                     />
                   </div>
                 </div>
@@ -469,8 +469,8 @@ export function ComingSoonPage() {
                         certifyingBody: 'Alpine Mountain Managment',
                         certificationType: 'standard',
                       }}
-                      displayMode="simple"
-                      showTooltip={false}
+                      displayMode="card"
+                      showTooltip={true}
                     />
                     <CertificationBadge
                       certification={{
@@ -478,8 +478,8 @@ export function ComingSoonPage() {
                         certifyingBody: 'Mountain Leader',
                         certificationType: 'standard',
                       }}
-                      displayMode="simple"
-                      showTooltip={false}
+                      displayMode="card"
+                      showTooltip={true}
                     />
                     <CertificationBadge
                       certification={{
@@ -487,8 +487,8 @@ export function ComingSoonPage() {
                         certifyingBody: 'Winter Mountain Leader',
                         certificationType: 'standard',
                       }}
-                      displayMode="simple"
-                      showTooltip={false}
+                      displayMode="card"
+                      showTooltip={true}
                     />
                   </div>
                 </div>
