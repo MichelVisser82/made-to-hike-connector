@@ -65,7 +65,8 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
           alt="Hikers on mountain trail with dramatic alpine landscape"
           priority="high"
         />
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 md:h-40 bg-gradient-to-b from-transparent to-cream-light" />
         <div className="relative container mx-auto px-4 h-full flex items-center justify-center">
           <div className="max-w-4xl mx-auto text-center text-white">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
