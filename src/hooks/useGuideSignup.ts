@@ -42,7 +42,23 @@ export function useGuideSignup() {
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+    // Don't store File objects in localStorage - they'll be handled separately
+    const dataToStore = { ...formData };
+    if (dataToStore.certifications) {
+      dataToStore.certifications = dataToStore.certifications.map(cert => {
+        if (cert.certificateDocument instanceof File) {
+          // Store file info but not the actual File object
+          return {
+            ...cert,
+            certificateDocument: undefined,
+            _hasFile: true,
+            _fileName: cert.certificateDocument.name,
+          };
+        }
+        return cert;
+      });
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));
   }, [formData]);
 
   const updateFormData = (data: Partial<GuideSignupData>) => {

@@ -158,11 +158,11 @@ export function Step06Certifications({ data, updateData, onNext, onBack }: Step0
       setIsAdding(false);
       setCertNumberError('');
       setFileError('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding certification:', error);
       toast({
         title: "Failed to add",
-        description: "Failed to add certification. Please try again.",
+        description: error?.message || "Failed to add certification. Please try again.",
         variant: "destructive"
       });
     } finally {
