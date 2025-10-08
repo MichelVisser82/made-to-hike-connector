@@ -1,6 +1,7 @@
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
+import { useNavigate } from 'react-router-dom';
 import { 
   Mountain, 
   Mail, 
@@ -19,6 +20,7 @@ interface FooterProps {
 }
 
 export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
+  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -136,7 +138,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigate('guides')}
+                  onClick={() => navigate('/guides')}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Our Guides
