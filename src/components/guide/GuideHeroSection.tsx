@@ -148,8 +148,8 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
             </div>
           </div>
 
-          {/* Contact Card - Floating on Desktop */}
-          <Card className="hidden lg:block absolute right-8 top-8 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-5 w-72">
+          {/* Contact Card - Floating on Desktop, aligned to bottom */}
+          <Card className="hidden lg:block absolute right-8 bottom-20 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-5 w-72">
             <h3 className="text-xl font-semibold text-charcoal mb-4">
               Contact {guide.display_name.split(' ')[0]}
             </h3>
