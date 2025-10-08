@@ -2,6 +2,7 @@ import { Heart, Star, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { SmartImage } from '@/components/SmartImage';
 
 interface MockTourCardProps {
   title: string;
@@ -10,7 +11,6 @@ interface MockTourCardProps {
   duration: string;
   price: number;
   rating: number;
-  imageUrl: string;
 }
 
 export function MockTourCard({
@@ -20,7 +20,6 @@ export function MockTourCard({
   duration,
   price,
   rating,
-  imageUrl,
 }: MockTourCardProps) {
   const difficultyColors = {
     Easy: 'bg-green-600',
@@ -28,13 +27,19 @@ export function MockTourCard({
     Challenging: 'bg-red-600',
   };
 
+  const locationTag = location.includes('Swiss') ? 'switzerland' : 
+                      location.includes('Dolomites') ? 'dolomites' : 
+                      location.includes('Scottish') ? 'scotland' : 'pyrenees';
+
   return (
     <Card className="overflow-hidden group cursor-pointer transition-shadow duration-300 hover:shadow-elegant">
       <div className="relative aspect-[3/4] overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={title}
+        <SmartImage
+          category="adventure"
+          usageContext="tours"
+          tags={[locationTag, 'hiking', 'trail']}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          alt={title}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
         

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { SmartImage } from '@/components/SmartImage';
 import { EmailSignupCard } from './EmailSignupCard';
 import { MockGuideCard } from './MockGuideCard';
 import { MockTourCard } from './MockTourCard';
@@ -58,10 +59,13 @@ export function ComingSoonPage() {
         {/* Hero Section */}
         <section className="relative pt-24 pb-20 min-h-[90vh] flex items-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <img
-              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80"
-              alt="Mountain landscape"
+            <SmartImage
+              category="hero"
+              usageContext="landing"
+              tags={['mountain', 'landscape', 'adventure']}
+              priority="high"
               className="w-full h-full object-cover"
+              alt="Mountain landscape"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/50 to-cream-light" />
           </div>
@@ -144,10 +148,12 @@ export function ComingSoonPage() {
 
               <div className="relative">
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80"
-                    alt="Professional mountain guide"
+                  <SmartImage
+                    category="portrait"
+                    usageContext="landing"
+                    tags={['guide', 'professional', 'mountain']}
                     className="w-full h-full object-cover"
+                    alt="Professional mountain guide"
                   />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
@@ -211,13 +217,15 @@ export function ComingSoonPage() {
           <div className="container mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
               <div className="relative order-2 md:order-1">
-                <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80"
-                    alt="Hikers on mountain trail"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
+            <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
+              <SmartImage
+                category="hiking"
+                usageContext="landing"
+                tags={['trail', 'adventure', 'group']}
+                className="w-full h-full object-cover"
+                alt="Hikers on mountain trail"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
 
                 <Card className="absolute bottom-6 left-6 p-4 bg-white max-w-xs">
@@ -281,10 +289,12 @@ export function ComingSoonPage() {
               <div className="grid md:grid-cols-2 gap-12 items-start">
                 <div className="relative">
                   <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                    <img
-                      src="https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&q=80"
-                      alt="Founder"
+                    <SmartImage
+                      category="portrait"
+                      usageContext="about"
+                      tags={['guide', 'professional', 'outdoor']}
                       className="w-full h-full object-cover"
+                      alt="Founder"
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                   </div>
@@ -360,7 +370,6 @@ export function ComingSoonPage() {
                     location="Dolomites, Italy"
                     experience={12}
                     rating={4.9}
-                    imageUrl="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80"
                     verified={true}
                   />
                   <MockGuideCard
@@ -369,7 +378,6 @@ export function ComingSoonPage() {
                     location="Chamonix, France"
                     experience={8}
                     rating={5.0}
-                    imageUrl="https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=600&q=80"
                     verified={true}
                   />
                 </div>
@@ -388,7 +396,6 @@ export function ComingSoonPage() {
                     duration="3 days"
                     price={450}
                     rating={4.8}
-                    imageUrl="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80"
                   />
                   <MockTourCard
                     title="Dolomites Trail Adventure"
@@ -397,7 +404,6 @@ export function ComingSoonPage() {
                     duration="5 days"
                     price={620}
                     rating={4.9}
-                    imageUrl="https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=600&q=80"
                   />
                   <MockTourCard
                     title="Highlands Discovery Trek"
@@ -406,7 +412,6 @@ export function ComingSoonPage() {
                     duration="2 days"
                     price={280}
                     rating={5.0}
-                    imageUrl="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80"
                   />
                 </div>
               </div>
@@ -529,16 +534,18 @@ export function ComingSoonPage() {
 
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { name: 'Swiss Alps', guides: 120, image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80' },
-                  { name: 'French Alps', guides: 85, image: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=600&q=80' },
-                  { name: 'Italian Dolomites', guides: 95, image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80' },
+                  { name: 'Swiss Alps', guides: 120, tags: ['switzerland'] },
+                  { name: 'French Alps', guides: 85, tags: ['pyrenees'] },
+                  { name: 'Italian Dolomites', guides: 95, tags: ['dolomites'] },
                 ].map((region, idx) => (
                   <Card key={idx} className="overflow-hidden group cursor-pointer hover:shadow-elegant transition-shadow">
                     <div className="relative aspect-[3/4] overflow-hidden">
-                      <img
-                        src={region.image}
-                        alt={region.name}
+                      <SmartImage
+                        category="landscape"
+                        usageContext="landing"
+                        tags={region.tags}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        alt={region.name}
                       />
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                     </div>

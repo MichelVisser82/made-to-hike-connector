@@ -2,6 +2,7 @@ import { Star, MapPin } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SmartImage } from '@/components/SmartImage';
 
 interface MockGuideCardProps {
   name: string;
@@ -9,7 +10,6 @@ interface MockGuideCardProps {
   location: string;
   experience: number;
   rating: number;
-  imageUrl: string;
   verified: boolean;
 }
 
@@ -19,16 +19,17 @@ export function MockGuideCard({
   location,
   experience,
   rating,
-  imageUrl,
   verified,
 }: MockGuideCardProps) {
   return (
     <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-elegant">
       <div className="relative aspect-[3/4]">
-        <img
-          src={imageUrl}
-          alt={`${name} - Mountain Guide`}
+        <SmartImage
+          category="portrait"
+          usageContext="landing"
+          tags={['guide', 'professional', 'mountain']}
           className="w-full h-full object-cover"
+          alt={`${name} - Mountain Guide`}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
         
@@ -42,7 +43,6 @@ export function MockGuideCard({
       <div className="p-4 space-y-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={imageUrl} alt={name} />
             <AvatarFallback>{name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
