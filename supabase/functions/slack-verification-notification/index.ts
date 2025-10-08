@@ -107,14 +107,17 @@ serve(async (req: Request) => {
     // Attach profile to verification for compatibility
     verification.profiles = profile;
 
-    // Check if user is admin
-    const { data: userRole } = await serviceSupabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    const isAdmin = userRole?.role === 'admin';
+    // Check if user is admin (only if not service role)
+    let isAdmin = false;
+    if (!isServiceRole && user) {
+      const { data: userRole } = await serviceSupabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      isAdmin = userRole?.role === 'admin';
+    }
 
     // Handle different actions with authorization checks
     if (action === 'send') {
