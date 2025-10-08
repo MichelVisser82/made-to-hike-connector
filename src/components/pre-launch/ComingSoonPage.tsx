@@ -93,14 +93,10 @@ export function ComingSoonPage() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-3 gap-8 pt-12 max-w-2xl mx-auto">
+              <div className="grid grid-cols-2 gap-8 pt-12 max-w-2xl mx-auto">
                 <div className="text-center">
                   <div className="text-4xl font-playfair font-bold text-white">500+</div>
                   <div className="text-sm text-white/80">Guides</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl font-playfair font-bold text-white">12</div>
-                  <div className="text-sm text-white/80">Countries</div>
                 </div>
                 <div className="text-center">
                   <div className="text-4xl font-playfair font-bold text-white">1000+</div>
