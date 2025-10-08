@@ -215,6 +215,30 @@ export type Database = {
         }
         Relationships: []
       }
+      launch_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          source_section: string | null
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          source_section?: string | null
+          user_type: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          source_section?: string | null
+          user_type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
