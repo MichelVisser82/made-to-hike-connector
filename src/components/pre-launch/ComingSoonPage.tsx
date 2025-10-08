@@ -88,7 +88,7 @@ export function ComingSoonPage() {
                 <Button onClick={() => scrollToSection('for-guides')} size="lg" className="bg-burgundy hover:bg-burgundy-dark text-lg">
                   I'm a Guide
                 </Button>
-                <Button onClick={() => scrollToSection('for-hikers')} size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-burgundy text-lg">
+                <Button onClick={() => scrollToSection('for-hikers')} size="lg" variant="outline" className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-burgundy text-lg">
                   I'm a Hiker
                 </Button>
               </div>
