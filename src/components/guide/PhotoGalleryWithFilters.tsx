@@ -84,12 +84,43 @@ export function PhotoGalleryWithFilters({ photos, guideName }: PhotoGalleryWithF
         </div>
       )}
 
-      {/* Photo Grid */}
-      <div className={`grid gap-4 ${
+      {/* Photo Grid - Mobile: Horizontal Scroll | Desktop: Grid */}
+      <div className="lg:hidden">
+        {/* Mobile: Horizontal Scroll with Peek */}
+        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 pb-4">
+          {displayedPhotos.map((photo, index) => (
+            <div 
+              key={index} 
+              className="relative flex-shrink-0 w-[85%] aspect-square rounded-lg overflow-hidden group cursor-pointer shadow-lg active:shadow-elegant transition-all duration-300 snap-start"
+              onClick={() => setSelectedImage(photo)}
+            >
+              <img
+                src={photo.url}
+                alt={photo.alt || `${guideName} tour photo ${index + 1}`}
+                className="w-full h-full object-cover active:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-charcoal/0 active:bg-charcoal/20 transition-colors" />
+              
+              {/* Eye Icon Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 active:opacity-100 transition-opacity duration-300">
+                <div className="bg-white/90 rounded-full p-3 backdrop-blur-sm">
+                  <Eye className="h-6 w-6 text-burgundy" />
+                </div>
+              </div>
+              
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-charcoal/60 to-transparent" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop: Grid Layout */}
+      <div className={`hidden lg:grid gap-4 ${
         displayedPhotos.length === 1 ? 'grid-cols-1 max-w-md mx-auto' :
-        displayedPhotos.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto' :
-        displayedPhotos.length <= 4 ? 'grid-cols-2 lg:grid-cols-2 max-w-3xl mx-auto' :
-        'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+        displayedPhotos.length === 2 ? 'grid-cols-2 max-w-2xl mx-auto' :
+        displayedPhotos.length <= 4 ? 'grid-cols-2 max-w-3xl mx-auto' :
+        'grid-cols-3'
       }`}>
         {displayedPhotos.map((photo, index) => (
           <div 

@@ -180,6 +180,16 @@
   .animate-fade-in-delay-2 {
     animation: fadeIn 1s ease-in-out 0.6s both;
   }
+
+  /* Hide scrollbar while maintaining scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes fadeIn {
