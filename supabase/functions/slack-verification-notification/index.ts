@@ -84,14 +84,7 @@ serve(async (req: Request) => {
     console.log(`[${FUNCTION_VERSION}] Fetching verification:`, verificationId);
     const { data: verification, error: verificationError } = await serviceSupabase
       .from('user_verifications')
-      .select(`
-        *,
-        profiles:user_id (
-          id,
-          email,
-          name
-        )
-      `)
+      .select('*')
       .eq('id', verificationId)
       .single();
 
@@ -99,6 +92,20 @@ serve(async (req: Request) => {
       console.error('[verification-error]', verificationError);
       throw new Error(`Verification not found: ${verificationError?.message}`);
     }
+
+    // Fetch profile separately for more reliability
+    const { data: profile, error: profileError } = await serviceSupabase
+      .from('profiles')
+      .select('id, email, name')
+      .eq('id', verification.user_id)
+      .single();
+
+    if (profileError) {
+      console.warn('[profile-fetch-warning]', profileError);
+    }
+
+    // Attach profile to verification for compatibility
+    verification.profiles = profile;
 
     // Check if user is admin
     const { data: userRole } = await serviceSupabase
@@ -248,7 +255,7 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
         },
         {
           type: 'mrkdwn',
-          text: `*Email:*\n${verification.profiles?.email || 'N/A'}`,
+          text: `*Email:*\n${verification.profiles?.email || verification.user_id || 'N/A'}`,
         },
       ],
     },
