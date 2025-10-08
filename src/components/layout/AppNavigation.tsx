@@ -119,7 +119,7 @@ export function AppNavigation({
                 </Link>
                 <button
                   onClick={() => navigate('/guide/signup')}
-                  className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90"
+                  className="bg-burgundy text-white px-4 py-2 rounded-lg text-sm hover:bg-burgundy/90"
                 >
                   Become a Guide
                 </button>

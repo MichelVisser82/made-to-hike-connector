@@ -122,8 +122,8 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Explore Our Regions</h2>
-            <p className="text-xl text-muted-foreground">
+            <h2 className="text-4xl md:text-5xl font-serif mb-4" style={{fontFamily: 'Playfair Display, serif'}}>Explore Our Regions</h2>
+            <p className="text-lg text-muted-foreground">
               Three incredible mountain ranges, countless adventures waiting for you
             </p>
           </div>
@@ -151,14 +151,16 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                     alt={`${currentRegion.name} mountain landscape - ${currentRegion.description}`}
                     priority="high"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-muted/30" />
                   <div className="absolute bottom-8 left-8 text-white">
-                    <Badge className="mb-3 bg-primary/90">Most Popular</Badge>
-                    <h3 className="text-4xl font-bold mb-2">{currentRegion.name}</h3>
-                    <p className="text-lg opacity-90 mb-4">{currentRegion.description}</p>
+                    <Badge className="mb-3 bg-burgundy/90">Most Popular</Badge>
+                    <h3 className="text-4xl font-serif mb-2" style={{fontFamily: 'Playfair Display, serif'}}>{currentRegion.name}</h3>
+                    <p className="text-base text-white mb-4">{currentRegion.description}</p>
                     <Button 
                       variant="secondary" 
                       onClick={() => onNavigateToSearch({ region: currentRegion.id })}
+                      className="bg-white text-burgundy hover:bg-white/90"
                     >
                       Explore {currentRegion.name}
                     </Button>
@@ -217,12 +219,13 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
             className="w-full h-full object-cover"
             alt="Professional mountain guide teaching hiking techniques to a group"
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-cream-light" />
         </div>
         <div className="relative container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h2 className="text-4xl font-bold mb-4">Share Your Mountain Expertise</h2>
-            <p className="text-xl opacity-90 mb-8">
+            <h2 className="text-4xl md:text-5xl font-serif text-white mb-4" style={{fontFamily: 'Playfair Display, serif'}}>Share Your Mountain Expertise</h2>
+            <p className="text-base md:text-lg text-white mb-8">
               Turn your passion for hiking into income. Join our community of hand-selected, certified mountain guides.
             </p>
             <Button size="lg" onClick={() => navigate('/guide/signup')} className="bg-white text-[#881337] hover:bg-white/90 font-semibold">
@@ -236,8 +239,8 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Hand-Selected & Verified Guides</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-serif mb-4" style={{fontFamily: 'Playfair Display, serif'}}>Hand-Selected & Verified Guides</h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               We hand-check all certifications and display them prominently. Every guide is personally 
               vetted for safety, expertise, and authentic mountain experience.
             </p>
@@ -291,7 +294,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               {/* Certifications */}
               <div>
-                <h3 className="text-2xl font-bold mb-8">Recognised Certifications</h3>
+                <h3 className="text-2xl md:text-3xl font-serif mb-8" style={{fontFamily: 'Playfair Display, serif'}}>Recognised Certifications</h3>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <CheckCircle className="h-5 w-5 text-green-600" />
@@ -322,7 +325,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
 
               {/* Verified Features */}
               <div>
-                <h3 className="text-2xl font-bold mb-8">Verified Features</h3>
+                <h3 className="text-2xl md:text-3xl font-serif mb-8" style={{fontFamily: 'Playfair Display, serif'}}>Verified Features</h3>
                 <div className="space-y-6">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -377,8 +380,8 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">What Our Hikers Say</h2>
-            <p className="text-xl text-muted-foreground">Real experiences from real adventurers</p>
+            <h2 className="text-4xl md:text-5xl font-serif mb-4" style={{fontFamily: 'Playfair Display, serif'}}>What Our Hikers Say</h2>
+            <p className="text-lg text-muted-foreground">Real experiences from real adventurers</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -455,8 +458,8 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Featured Adventures</h2>
-            <p className="text-xl text-muted-foreground">Discover breathtaking moments from recent expeditions</p>
+            <h2 className="text-4xl md:text-5xl font-serif mb-4" style={{fontFamily: 'Playfair Display, serif'}}>Featured Adventures</h2>
+            <p className="text-lg text-muted-foreground">Discover breathtaking moments from recent expeditions</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -513,7 +516,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
           </div>
 
           <div className="text-center mt-12">
-            <Button size="lg" onClick={() => onNavigateToSearch()} className="bg-primary hover:bg-primary/90">
+            <Button size="lg" onClick={() => onNavigateToSearch()} className="bg-burgundy hover:bg-burgundy/90 text-white">
               Explore All Adventures
             </Button>
           </div>
@@ -521,10 +524,10 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground">
+      <section className="py-20 bg-burgundy text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-4">Ready for Your Next Adventure?</h2>
-          <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-serif text-white mb-4" style={{fontFamily: 'Playfair Display, serif'}}>Ready for Your Next Adventure?</h2>
+          <p className="text-base md:text-lg text-white mb-8 max-w-2xl mx-auto">
             Join thousands of hikers who've discovered amazing trails with expert guides
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -532,7 +535,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
               size="lg" 
               variant="secondary"
               onClick={() => onNavigateToSearch()}
-              className="bg-white text-primary hover:bg-white/90"
+              className="bg-white text-burgundy hover:bg-white/90 font-semibold"
             >
               Browse All Tours
             </Button>
@@ -541,7 +544,7 @@ export function LandingPage({ onNavigateToSearch, onShowGuideSignup, user, onNav
                 size="lg" 
                 variant="outline"
                 onClick={() => navigate('/guide/signup')}
-                className="border-white text-white hover:bg-white hover:text-primary"
+                className="border-white text-white hover:bg-white hover:text-burgundy"
               >
                 Become a Guide
               </Button>
