@@ -12,19 +12,18 @@ import { MockTourCard } from './MockTourCard';
 import { TopographicLines } from './decorations/TopographicLines';
 import { MountainRidge } from './decorations/MountainRidge';
 import { CertificationBadge } from '@/components/ui/certification-badge';
-
 export function ComingSoonPage() {
   const [activeSection, setActiveSection] = useState('');
-
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
     }
   };
-
-  return (
-    <>
+  return <>
       <Helmet>
         <title>Made to Hike - Coming Soon | Certified Mountain Guides Marketplace</title>
         <meta name="description" content="Connect with certified mountain guides across Europe. Join our waitlist to be first to experience the premium hiking guide marketplace." />
@@ -59,14 +58,7 @@ export function ComingSoonPage() {
         {/* Hero Section */}
         <section className="relative pt-24 pb-20 min-h-[90vh] flex items-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <SmartImage
-              category="hero"
-              usageContext="landing"
-              tags={['mountain', 'landscape', 'adventure']}
-              priority="high"
-              className="w-full h-full object-cover"
-              alt="Mountain landscape"
-            />
+            <SmartImage category="hero" usageContext="landing" tags={['mountain', 'landscape', 'adventure']} priority="high" className="w-full h-full object-cover" alt="Mountain landscape" />
             <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/50 to-cream-light" />
           </div>
 
@@ -95,7 +87,7 @@ export function ComingSoonPage() {
 
               <div className="grid grid-cols-2 gap-8 pt-12 max-w-2xl mx-auto">
                 <div className="text-center">
-                  <div className="text-4xl font-playfair font-bold text-white">500+</div>
+                  <div className="text-4xl font-playfair font-bold text-white">100+</div>
                   <div className="text-sm text-white/80">Guides</div>
                 </div>
                 <div className="text-center">
@@ -121,13 +113,23 @@ export function ComingSoonPage() {
                 </h2>
 
                 <div className="space-y-4">
-                  {[
-                    { icon: DollarSign, title: 'Keep More of What You Earn', desc: 'Lowest commission rates in the industry' },
-                    { icon: Award, title: 'Showcase Your Certifications', desc: 'Display IFMGA, IML, and regional qualifications' },
-                    { icon: Users, title: 'Build Your Community', desc: 'Connect directly with your ideal clients' },
-                    { icon: Globe, title: 'Reach Beyond Borders', desc: 'Access hikers across Europe' },
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex gap-4">
+                  {[{
+                  icon: DollarSign,
+                  title: 'Keep More of What You Earn',
+                  desc: 'Lowest commission rates in the industry'
+                }, {
+                  icon: Award,
+                  title: 'Showcase Your Certifications',
+                  desc: 'Display IFMGA, IML, and regional qualifications'
+                }, {
+                  icon: Users,
+                  title: 'Build Your Community',
+                  desc: 'Connect directly with your ideal clients'
+                }, {
+                  icon: Globe,
+                  title: 'Reach Beyond Borders',
+                  desc: 'Access hikers across Europe'
+                }].map((item, idx) => <div key={idx} className="flex gap-4">
                       <div className="flex-shrink-0 p-2 bg-burgundy/10 rounded-lg h-fit">
                         <item.icon className="h-5 w-5 text-burgundy" />
                       </div>
@@ -135,8 +137,7 @@ export function ComingSoonPage() {
                         <h3 className="font-semibold text-charcoal">{item.title}</h3>
                         <p className="text-muted-foreground">{item.desc}</p>
                       </div>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
                 <EmailSignupCard userType="guide" sectionName="For Guides Section" />
@@ -144,13 +145,7 @@ export function ComingSoonPage() {
 
               <div className="relative">
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                  <SmartImage
-                    category="portrait"
-                    usageContext="landing"
-                    tags={['guide', 'professional', 'mountain']}
-                    className="w-full h-full object-cover"
-                    alt="Professional mountain guide"
-                  />
+                  <SmartImage category="portrait" usageContext="landing" tags={['guide', 'professional', 'mountain']} className="w-full h-full object-cover" alt="Professional mountain guide" />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
 
@@ -188,12 +183,19 @@ export function ComingSoonPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
-                {[
-                  { icon: Shield, title: '100% Verified', desc: 'All guides manually verified by our team' },
-                  { icon: Award, title: 'Professional Standards', desc: 'Recognized international certifications' },
-                  { icon: Heart, title: 'Sustainability First', desc: 'Support local communities and environment' },
-                ].map((item, idx) => (
-                  <Card key={idx} className="p-6 bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors">
+                {[{
+                icon: Shield,
+                title: '100% Verified',
+                desc: 'All guides manually verified by our team'
+              }, {
+                icon: Award,
+                title: 'Professional Standards',
+                desc: 'Recognized international certifications'
+              }, {
+                icon: Heart,
+                title: 'Sustainability First',
+                desc: 'Support local communities and environment'
+              }].map((item, idx) => <Card key={idx} className="p-6 bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors">
                     <div className="space-y-3 text-center">
                       <div className="inline-flex p-3 bg-white/10 rounded-lg">
                         <item.icon className="h-6 w-6 text-white" />
@@ -201,8 +203,7 @@ export function ComingSoonPage() {
                       <h3 className="font-semibold text-white">{item.title}</h3>
                       <p className="text-sm text-white/80">{item.desc}</p>
                     </div>
-                  </Card>
-                ))}
+                  </Card>)}
               </div>
             </div>
           </div>
@@ -214,22 +215,14 @@ export function ComingSoonPage() {
             <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
               <div className="relative order-2 md:order-1">
             <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-              <SmartImage
-                category="hiking"
-                usageContext="landing"
-                tags={['trail', 'adventure', 'group']}
-                className="w-full h-full object-cover"
-                alt="Hikers on mountain trail"
-              />
+              <SmartImage category="hiking" usageContext="landing" tags={['trail', 'adventure', 'group']} className="w-full h-full object-cover" alt="Hikers on mountain trail" />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
 
                 <Card className="absolute bottom-6 left-6 p-4 bg-white max-w-xs">
                   <div className="space-y-2">
                     <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <Star key={i} className="h-4 w-4 fill-gold text-gold" />
-                      ))}
+                      {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-4 w-4 fill-gold text-gold" />)}
                     </div>
                     <p className="text-sm">"An unforgettable experience with a knowledgeable guide."</p>
                     <p className="text-xs text-muted-foreground">— Sarah K., Munich</p>
@@ -247,13 +240,23 @@ export function ComingSoonPage() {
                 </h2>
 
                 <div className="space-y-4">
-                  {[
-                    { icon: MapPin, title: 'Authentic Local Expertise', desc: 'Experience mountains through local eyes' },
-                    { icon: Shield, title: 'Safety Guaranteed', desc: 'All guides certified and insured' },
-                    { icon: Compass, title: 'Personalized Adventures', desc: 'Custom experiences for your skill level' },
-                    { icon: Heart, title: 'Support Local Communities', desc: 'Your bookings directly benefit guides' },
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex gap-4">
+                  {[{
+                  icon: MapPin,
+                  title: 'Authentic Local Expertise',
+                  desc: 'Experience mountains through local eyes'
+                }, {
+                  icon: Shield,
+                  title: 'Safety Guaranteed',
+                  desc: 'All guides certified and insured'
+                }, {
+                  icon: Compass,
+                  title: 'Personalized Adventures',
+                  desc: 'Custom experiences for your skill level'
+                }, {
+                  icon: Heart,
+                  title: 'Support Local Communities',
+                  desc: 'Your bookings directly benefit guides'
+                }].map((item, idx) => <div key={idx} className="flex gap-4">
                       <div className="flex-shrink-0 p-2 bg-burgundy/10 rounded-lg h-fit">
                         <item.icon className="h-5 w-5 text-burgundy" />
                       </div>
@@ -261,8 +264,7 @@ export function ComingSoonPage() {
                         <h3 className="font-semibold text-charcoal">{item.title}</h3>
                         <p className="text-muted-foreground">{item.desc}</p>
                       </div>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
                 <EmailSignupCard userType="hiker" sectionName="For Hikers Section" />
@@ -285,13 +287,7 @@ export function ComingSoonPage() {
               <div className="grid md:grid-cols-2 gap-12 items-start">
                 <div className="relative">
                   <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                    <SmartImage
-                      category="portrait"
-                      usageContext="about"
-                      tags={['guide', 'professional', 'outdoor']}
-                      className="w-full h-full object-cover"
-                      alt="Founder"
-                    />
+                    <SmartImage category="portrait" usageContext="about" tags={['guide', 'professional', 'outdoor']} className="w-full h-full object-cover" alt="Founder" />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                   </div>
                   <Badge className="absolute top-4 right-4 bg-burgundy text-white border-0">
@@ -326,16 +322,10 @@ export function ComingSoonPage() {
                   </Card>
 
                   <div className="grid grid-cols-3 gap-4 pt-4">
-                    {[
-                      'Guide-First Platform',
-                      'Authentic Experiences',
-                      'Built on Trust',
-                    ].map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
+                    {['Guide-First Platform', 'Authentic Experiences', 'Built on Trust'].map((item, idx) => <div key={idx} className="flex items-center gap-2">
                         <CheckCircle className="h-5 w-5 text-burgundy flex-shrink-0" />
                         <span className="text-sm text-charcoal">{item}</span>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                 </div>
               </div>
@@ -360,22 +350,8 @@ export function ComingSoonPage() {
                   Verified Guide Profiles
                 </h3>
                 <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-                  <MockGuideCard
-                    name="Marco Bianchi"
-                    certification="IFMGA"
-                    location="Dolomites, Italy"
-                    experience={12}
-                    rating={4.9}
-                    verified={true}
-                  />
-                  <MockGuideCard
-                    name="Sophie Durand"
-                    certification="IML"
-                    location="Chamonix, France"
-                    experience={8}
-                    rating={5.0}
-                    verified={true}
-                  />
+                  <MockGuideCard name="Marco Bianchi" certification="IFMGA" location="Dolomites, Italy" experience={12} rating={4.9} verified={true} />
+                  <MockGuideCard name="Sophie Durand" certification="IML" location="Chamonix, France" experience={8} rating={5.0} verified={true} />
                 </div>
               </div>
 
@@ -385,30 +361,9 @@ export function ComingSoonPage() {
                   Curated Mountain Adventures
                 </h3>
                 <div className="grid md:grid-cols-3 gap-6">
-                  <MockTourCard
-                    title="Alpine Peak Expedition"
-                    location="Swiss Alps"
-                    difficulty="Challenging"
-                    duration="3 days"
-                    price={450}
-                    rating={4.8}
-                  />
-                  <MockTourCard
-                    title="Dolomites Trail Adventure"
-                    location="Italian Dolomites"
-                    difficulty="Moderate"
-                    duration="5 days"
-                    price={620}
-                    rating={4.9}
-                  />
-                  <MockTourCard
-                    title="Highlands Discovery Trek"
-                    location="Scottish Highlands"
-                    difficulty="Easy"
-                    duration="2 days"
-                    price={280}
-                    rating={5.0}
-                  />
+                  <MockTourCard title="Alpine Peak Expedition" location="Swiss Alps" difficulty="Challenging" duration="3 days" price={450} rating={4.8} />
+                  <MockTourCard title="Dolomites Trail Adventure" location="Italian Dolomites" difficulty="Moderate" duration="5 days" price={620} rating={4.9} />
+                  <MockTourCard title="Highlands Discovery Trek" location="Scottish Highlands" difficulty="Easy" duration="2 days" price={280} rating={5.0} />
                 </div>
               </div>
             </div>
@@ -433,24 +388,16 @@ export function ComingSoonPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-charcoal mb-4 text-center">International Certifications</h3>
                   <div className="flex flex-wrap justify-center gap-4">
-                    <CertificationBadge
-                      certification={{
-                        title: 'IFMGA',
-                        certifyingBody: 'International Federation of Mountain Guides Associations',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
-                    <CertificationBadge
-                      certification={{
-                        title: 'IML',
-                        certifyingBody: 'Union of International Mountain Leader Associations',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
+                    <CertificationBadge certification={{
+                    title: 'IFMGA',
+                    certifyingBody: 'International Federation of Mountain Guides Associations',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
+                    <CertificationBadge certification={{
+                    title: 'IML',
+                    certifyingBody: 'Union of International Mountain Leader Associations',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
                   </div>
                 </div>
 
@@ -459,33 +406,21 @@ export function ComingSoonPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-charcoal mb-4 text-center">Regional Certifications</h3>
                   <div className="flex flex-wrap justify-center gap-4">
-                    <CertificationBadge
-                      certification={{
-                        title: 'AMM',
-                        certifyingBody: 'UK Mountain Training - Alpine Mountain Management',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
-                    <CertificationBadge
-                      certification={{
-                        title: 'ML',
-                        certifyingBody: 'UK Mountain Training - Mountain Leader Award',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
-                    <CertificationBadge
-                      certification={{
-                        title: 'WML',
-                        certifyingBody: 'UK Mountain Training - Winter Mountain Leader Award',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
+                    <CertificationBadge certification={{
+                    title: 'AMM',
+                    certifyingBody: 'UK Mountain Training - Alpine Mountain Management',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
+                    <CertificationBadge certification={{
+                    title: 'ML',
+                    certifyingBody: 'UK Mountain Training - Mountain Leader Award',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
+                    <CertificationBadge certification={{
+                    title: 'WML',
+                    certifyingBody: 'UK Mountain Training - Winter Mountain Leader Award',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
                   </div>
                 </div>
 
@@ -494,60 +429,36 @@ export function ComingSoonPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-charcoal mb-4 text-center">Medical Certifications</h3>
                   <div className="flex flex-wrap justify-center gap-4">
-                    <CertificationBadge
-                      certification={{
-                        title: 'WEMT',
-                        certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
-                    <CertificationBadge
-                      certification={{
-                        title: 'WFR',
-                        certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
-                    <CertificationBadge
-                      certification={{
-                        title: 'WFA',
-                        certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
-                    <CertificationBadge
-                      certification={{
-                        title: 'CPR/AED',
-                        certifyingBody: 'American Heart Association / Red Cross',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
-                    <CertificationBadge
-                      certification={{
-                        title: 'FAW',
-                        certifyingBody: 'Health and Safety Executive (HSE) - UK',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
-                    <CertificationBadge
-                      certification={{
-                        title: 'EFAW',
-                        certifyingBody: 'Health and Safety Executive (HSE) - UK',
-                        certificationType: 'standard',
-                      }}
-                      displayMode="detailed"
-                      showTooltip={true}
-                    />
+                    <CertificationBadge certification={{
+                    title: 'WEMT',
+                    certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
+                    <CertificationBadge certification={{
+                    title: 'WFR',
+                    certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
+                    <CertificationBadge certification={{
+                    title: 'WFA',
+                    certifyingBody: 'Wilderness Medical Associates / NOLS Wilderness Medicine',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
+                    <CertificationBadge certification={{
+                    title: 'CPR/AED',
+                    certifyingBody: 'American Heart Association / Red Cross',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
+                    <CertificationBadge certification={{
+                    title: 'FAW',
+                    certifyingBody: 'Health and Safety Executive (HSE) - UK',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
+                    <CertificationBadge certification={{
+                    title: 'EFAW',
+                    certifyingBody: 'Health and Safety Executive (HSE) - UK',
+                    certificationType: 'standard'
+                  }} displayMode="detailed" showTooltip={true} />
                   </div>
                 </div>
               </div>
@@ -578,28 +489,28 @@ export function ComingSoonPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  { name: 'Swiss Alps', guides: 120, tags: ['switzerland'] },
-                  { name: 'French Alps', guides: 85, tags: ['pyrenees'] },
-                  { name: 'Italian Dolomites', guides: 95, tags: ['dolomites'] },
-                ].map((region, idx) => (
-                  <Card key={idx} className="overflow-hidden group cursor-pointer hover:shadow-elegant transition-shadow">
+                {[{
+                name: 'Swiss Alps',
+                guides: 120,
+                tags: ['switzerland']
+              }, {
+                name: 'French Alps',
+                guides: 85,
+                tags: ['pyrenees']
+              }, {
+                name: 'Italian Dolomites',
+                guides: 95,
+                tags: ['dolomites']
+              }].map((region, idx) => <Card key={idx} className="overflow-hidden group cursor-pointer hover:shadow-elegant transition-shadow">
                     <div className="relative aspect-[3/4] overflow-hidden">
-                      <SmartImage
-                        category="landscape"
-                        usageContext="landing"
-                        tags={region.tags}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        alt={region.name}
-                      />
+                      <SmartImage category="landscape" usageContext="landing" tags={region.tags} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt={region.name} />
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                     </div>
                     <div className="p-4">
                       <h3 className="font-playfair text-xl font-bold text-charcoal">{region.name}</h3>
                       <p className="text-muted-foreground">{region.guides}+ guides available</p>
                     </div>
-                  </Card>
-                ))}
+                  </Card>)}
               </div>
             </div>
           </div>
@@ -640,6 +551,5 @@ export function ComingSoonPage() {
           </div>
         </footer>
       </div>
-    </>
-  );
+    </>;
 }
