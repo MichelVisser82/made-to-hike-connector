@@ -244,33 +244,31 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
 
           {/* Sidebar Column (1/3 width) */}
           <div className="lg:col-span-1">
-            <div className="space-y-6">
-              {/* Video Introduction - sticky but hides on scroll */}
-              <div className="sticky top-24 z-10">
-                <VideoIntroductionCard 
-                  videoUrl={guide.intro_video_url}
-                  thumbnailUrl={
-                    guide.intro_video_thumbnail_url || 
-                    (guide.portfolio_images && guide.portfolio_images.length > 0 
-                      ? getImageUrl({ file_path: guide.portfolio_images[0] } as any)
-                      : guide.profile_image_url)
-                  }
-                  guideName={guide.display_name}
-                />
-              </div>
+            {/* Video Introduction */}
+            <div className="mb-6">
+              <VideoIntroductionCard 
+                videoUrl={guide.intro_video_url}
+                thumbnailUrl={
+                  guide.intro_video_thumbnail_url || 
+                  (guide.portfolio_images && guide.portfolio_images.length > 0 
+                    ? getImageUrl({ file_path: guide.portfolio_images[0] } as any)
+                    : guide.profile_image_url)
+                }
+                guideName={guide.display_name}
+              />
+            </div>
 
-              {/* Calendar Widget & Trust Indicators - sticky container */}
-              <div className="sticky top-24 z-20 space-y-6">
-                <EnhancedCalendarWidget />
-                
-                <TrustIndicatorsCard 
-                  guideName={guide.display_name}
-                  isVerified={guide.verified}
-                  averageRating={stats.average_rating}
-                  totalReviews={reviews.length}
-                  totalClients={stats.total_hikers}
-                />
-              </div>
+            {/* Calendar Widget & Trust Indicators - sticky container */}
+            <div className="sticky top-24 space-y-6">
+              <EnhancedCalendarWidget />
+              
+              <TrustIndicatorsCard 
+                guideName={guide.display_name}
+                isVerified={guide.verified}
+                averageRating={stats.average_rating}
+                totalReviews={reviews.length}
+                totalClients={stats.total_hikers}
+              />
             </div>
           </div>
         </div>

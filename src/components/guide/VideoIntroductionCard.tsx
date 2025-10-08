@@ -1,6 +1,7 @@
 import { Play, Video, X } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface VideoIntroductionCardProps {
   videoUrl?: string;
@@ -77,10 +78,10 @@ export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: Vid
         </CardContent>
       </Card>
 
-      {/* Fixed Position Modal */}
-      {isModalOpen && videoUrl && (
+      {/* Fixed Position Modal - Rendered in Portal */}
+      {isModalOpen && videoUrl && createPortal(
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4"
           onClick={handleClose}
         >
           <div 
@@ -107,7 +108,8 @@ export function VideoIntroductionCard({ videoUrl, thumbnailUrl, guideName }: Vid
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
