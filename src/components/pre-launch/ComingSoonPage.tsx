@@ -498,11 +498,60 @@ export function ComingSoonPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-charcoal mb-4 text-center">Medical Certifications</h3>
                   <div className="flex flex-wrap justify-center gap-4">
-                    {['WFR', 'WEMT', 'WFA', 'CPR/AED', 'FAW', 'EFAW'].map((cert) => (
-                      <Badge key={cert} variant="secondary" className="px-4 py-2">
-                        {cert}
-                      </Badge>
-                    ))}
+                    <CertificationBadge
+                      certification={{
+                        title: 'WEMT',
+                        certifyingBody: 'Wilderness Emergency Medical Technician',
+                        certificationType: 'standard',
+                      }}
+                      displayMode="detailed"
+                      showTooltip={true}
+                    />
+                    <CertificationBadge
+                      certification={{
+                        title: 'WFR',
+                        certifyingBody: 'Wilderness First Responder',
+                        certificationType: 'standard',
+                      }}
+                      displayMode="detailed"
+                      showTooltip={true}
+                    />
+                    <CertificationBadge
+                      certification={{
+                        title: 'WFA',
+                        certifyingBody: 'Wilderness First Aid',
+                        certificationType: 'standard',
+                      }}
+                      displayMode="detailed"
+                      showTooltip={true}
+                    />
+                    <CertificationBadge
+                      certification={{
+                        title: 'CPR/AED',
+                        certifyingBody: 'Cardiopulmonary Resuscitation / Automated External Defibrillator',
+                        certificationType: 'standard',
+                      }}
+                      displayMode="detailed"
+                      showTooltip={true}
+                    />
+                    <CertificationBadge
+                      certification={{
+                        title: 'FAW',
+                        certifyingBody: 'First Aid at Work',
+                        certificationType: 'standard',
+                      }}
+                      displayMode="detailed"
+                      showTooltip={true}
+                    />
+                    <CertificationBadge
+                      certification={{
+                        title: 'EFAW',
+                        certifyingBody: 'Emergency First Aid at Work',
+                        certificationType: 'standard',
+                      }}
+                      displayMode="detailed"
+                      showTooltip={true}
+                    />
                   </div>
                 </div>
               </div>
