@@ -494,9 +494,9 @@ export function ComingSoonPage() {
                 guides: 120,
                 tags: ['scotland', 'highlands']
               }, {
-                name: 'French Alps',
+                name: 'French Pyrenees',
                 guides: 85,
-                tags: ['pyrenees']
+                tags: ['pyrenees', 'france']
               }, {
                 name: 'Italian Dolomites',
                 guides: 95,
