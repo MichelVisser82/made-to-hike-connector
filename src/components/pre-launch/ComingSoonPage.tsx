@@ -490,9 +490,9 @@ export function ComingSoonPage() {
 
               <div className="grid md:grid-cols-3 gap-8">
                 {[{
-                name: 'Swiss Alps',
+                name: 'Scottish Highlands',
                 guides: 120,
-                tags: ['switzerland']
+                tags: ['scotland', 'highlands']
               }, {
                 name: 'French Alps',
                 guides: 85,
