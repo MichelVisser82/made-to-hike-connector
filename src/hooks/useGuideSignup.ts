@@ -50,7 +50,7 @@ export function useGuideSignup() {
   };
 
   const nextStep = () => {
-    if (currentStep < 15) {
+    if (currentStep < 14) {
       setCurrentStep(prev => prev + 1);
       window.scrollTo(0, 0);
     }
@@ -64,7 +64,7 @@ export function useGuideSignup() {
   };
 
   const goToStep = (step: number) => {
-    if (step >= 1 && step <= 15) {
+    if (step >= 1 && step <= 14) {
       setCurrentStep(step);
       window.scrollTo(0, 0);
     }
@@ -76,27 +76,11 @@ export function useGuideSignup() {
       // Check if user is already logged in
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Convert images to base64 for edge function
+      // Convert profile image to base64 for edge function
       let profileImageBase64: string | undefined;
-      const portfolioImagesBase64: Array<{ base64: string; metadata: any }> = [];
 
       if (formData.profile_image) {
         profileImageBase64 = await fileToBase64(formData.profile_image);
-      }
-
-      if (formData.portfolio_images && formData.portfolio_images.length > 0) {
-        for (const image of formData.portfolio_images) {
-          const base64 = await fileToBase64(image);
-          // For now, include basic metadata - will be enhanced with AI suggestions
-          portfolioImagesBase64.push({
-            base64,
-            metadata: {
-              alt_text: '',
-              description: '',
-              tags: []
-            }
-          });
-        }
       }
 
       // Call edge function to create guide account
@@ -123,7 +107,6 @@ export function useGuideSignup() {
             min_group_size: formData.min_group_size,
             languages_spoken: formData.languages_spoken || ['English'],
             profile_image_base64: profileImageBase64,
-            portfolio_images_base64: portfolioImagesBase64,
           },
         },
       });
@@ -150,7 +133,7 @@ export function useGuideSignup() {
     }
   };
 
-  const progress = (currentStep / 15) * 100;
+  const progress = (currentStep / 14) * 100;
 
   return {
     currentStep,

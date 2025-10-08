@@ -80,7 +80,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     languages_spoken: [] as string[],
     difficulty_levels: [] as string[],
     certifications: [] as GuideCertification[],
-    portfolio_images: [] as string[],
     min_group_size: 1,
     max_group_size: 8,
     seasonal_availability: '',
@@ -100,9 +99,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [heroImage, setHeroImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
   const [heroImagePreview, setHeroImagePreview] = useState<string>('');
-  const [portfolioFiles, setPortfolioFiles] = useState<File[]>([]);
-  const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>([]);
-  const [newCert, setNewCert] = useState<GuideCertification>({ 
+  const [newCert, setNewCert] = useState<GuideCertification>({
     certificationType: 'custom',
     title: '', 
     certifyingBody: '', 
@@ -132,7 +129,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         languages_spoken: profile.languages_spoken || [],
         difficulty_levels: (profile as any).difficulty_levels || [],
         certifications: profile.certifications || [],
-        portfolio_images: profile.portfolio_images || [],
         min_group_size: profile.min_group_size || 1,
         max_group_size: profile.max_group_size || 8,
         seasonal_availability: profile.seasonal_availability || '',
@@ -149,7 +145,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       });
       setProfileImagePreview(profile.profile_image_url || '');
       setHeroImagePreview(profile.hero_background_url || '');
-      setPortfolioPreviews(profile.portfolio_images || []);
     }
     if (user?.email) {
       setNewEmail(user.email);
@@ -193,45 +188,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
       : [...array, item];
   };
 
-  const handlePortfolioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    const totalImages = portfolioFiles.length + portfolioPreviews.length + files.length;
-    if (totalImages > 10) {
-      toast({
-        title: "Error",
-        description: "Maximum 10 portfolio images allowed",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newFiles = Array.from(files);
-    setPortfolioFiles([...portfolioFiles, ...newFiles]);
-
-    newFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPortfolioPreviews((prev) => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const removePortfolioImage = (index: number) => {
-    if (index < formData.portfolio_images.length) {
-      setFormData({
-        ...formData,
-        portfolio_images: formData.portfolio_images.filter((_, i) => i !== index),
-      });
-      setPortfolioPreviews((prev) => prev.filter((_, i) => i !== index));
-    } else {
-      const fileIndex = index - formData.portfolio_images.length;
-      setPortfolioFiles((prev) => prev.filter((_, i) => i !== fileIndex));
-      setPortfolioPreviews((prev) => prev.filter((_, i) => i !== index));
-    }
-  };
 
   const handleCertificationSelect = (certId: string) => {
     setSelectedCertId(certId);
@@ -508,7 +464,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       let profileImageUrl = profile?.profile_image_url;
       let heroImageUrl = profile?.hero_background_url;
-      let portfolioUrls = [...formData.portfolio_images];
 
       if (profileImage) {
         profileImageUrl = await uploadImage(profileImage, 'hero-images');
@@ -516,11 +471,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       if (heroImage) {
         heroImageUrl = await uploadImage(heroImage, 'hero-images');
-      }
-
-      for (const file of portfolioFiles) {
-        const url = await uploadImage(file, 'hero-images');
-        if (url) portfolioUrls.push(url);
       }
 
       console.log('Saving guide profile with experience_years:', formData.experience_years);
@@ -585,7 +535,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           languages_spoken: formData.languages_spoken,
           difficulty_levels: formData.difficulty_levels,
           certifications: cleanedCertifications,
-          portfolio_images: portfolioUrls,
           min_group_size: formData.min_group_size,
           max_group_size: formData.max_group_size,
           seasonal_availability: formData.seasonal_availability,
@@ -876,41 +825,6 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Portfolio Images</CardTitle>
-          <CardDescription>Upload up to 10 images showcasing your guiding experience</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {portfolioPreviews.map((preview, index) => (
-              <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
-                <img src={preview} alt={`Portfolio ${index + 1}`} className="w-full h-full object-cover" />
-                <button
-                  onClick={() => removePortfolioImage(index)}
-                  className="absolute top-2 right-2 rounded-full bg-destructive p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="h-4 w-4 text-destructive-foreground" />
-                </button>
-              </div>
-            ))}
-          </div>
-          {portfolioPreviews.length < 10 && (
-            <div>
-              <Input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handlePortfolioChange}
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                {portfolioPreviews.length} / 10 images uploaded
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Video Introduction Section */}
       <Card>
         <CardHeader>
@@ -940,19 +854,19 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               onChange={(e) => setFormData({ ...formData, intro_video_thumbnail_url: e.target.value })}
             />
             <p className="text-sm text-muted-foreground">
-              If not provided, we'll use your first portfolio image
+              Provide a custom thumbnail URL for your video
             </p>
           </div>
 
           {/* Preview */}
-          {(formData.intro_video_url || formData.intro_video_thumbnail_url || portfolioPreviews.length > 0) && (
+          {(formData.intro_video_url || formData.intro_video_thumbnail_url) && (
             <div className="space-y-2">
               <Label>Preview</Label>
               <div className="border rounded-lg overflow-hidden max-w-md">
                 <div className="relative aspect-video bg-muted">
-                  {(formData.intro_video_thumbnail_url || portfolioPreviews[0]) ? (
+                  {formData.intro_video_thumbnail_url ? (
                     <img
-                      src={formData.intro_video_thumbnail_url || portfolioPreviews[0]}
+                      src={formData.intro_video_thumbnail_url}
                       alt="Video thumbnail preview"
                       className="w-full h-full object-cover"
                     />

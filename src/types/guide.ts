@@ -44,7 +44,6 @@ export interface GuideProfile {
   guiding_areas: string[];
   terrain_capabilities: string[];
   difficulty_levels: string[];
-  portfolio_images: string[];
   seasonal_availability?: string;
   upcoming_availability_start?: string;
   upcoming_availability_end?: string;
@@ -100,16 +99,13 @@ export interface GuideSignupData {
   upcoming_availability_start?: string;
   upcoming_availability_end?: string;
   
-  // Step 10: Portfolio
-  portfolio_images: File[];
-  
-  // Step 11: Guiding Areas
+  // Step 10: Guiding Areas
   guiding_areas: string[];
   
-  // Step 12: Terrain Capabilities
+  // Step 11: Terrain Capabilities
   terrain_capabilities: string[];
   
-  // Step 13: Bio
+  // Step 12: Bio
   bio: string;
   
   // Step 14: Languages

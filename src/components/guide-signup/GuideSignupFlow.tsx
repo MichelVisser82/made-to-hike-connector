@@ -9,7 +9,6 @@ import { Step06Certifications } from './steps/Step06Certifications';
 import { Step07GroupPreferences } from './steps/Step07GroupPreferences';
 import { Step08DayRates } from './steps/Step08DayRates';
 import { Step09Availability } from './steps/Step09Availability';
-import { Step10Portfolio } from './steps/Step10Portfolio';
 import { Step11GuidingAreas } from './steps/Step11GuidingAreas';
 import { Step12TerrainCapabilities } from './steps/Step12TerrainCapabilities';
 import { Step13Bio } from './steps/Step13Bio';
@@ -30,12 +29,11 @@ export function GuideSignupFlow() {
       case 7: return <Step07GroupPreferences data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
       case 8: return <Step08DayRates data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
       case 9: return <Step09Availability data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
-      case 10: return <Step10Portfolio data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
-      case 11: return <Step11GuidingAreas data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
-      case 12: return <Step12TerrainCapabilities data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
-      case 13: return <Step13Bio data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
-      case 14: return <Step14Preview data={signup.formData} onNext={signup.nextStep} onBack={signup.previousStep} />;
-      case 15: return <Step15Terms data={signup.formData} updateData={signup.updateFormData} onSubmit={signup.submitSignup} onBack={signup.previousStep} isSubmitting={signup.isSubmitting} />;
+      case 10: return <Step11GuidingAreas data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
+      case 11: return <Step12TerrainCapabilities data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
+      case 12: return <Step13Bio data={signup.formData} updateData={signup.updateFormData} onNext={signup.nextStep} onBack={signup.previousStep} />;
+      case 13: return <Step14Preview data={signup.formData} onNext={signup.nextStep} onBack={signup.previousStep} />;
+      case 14: return <Step15Terms data={signup.formData} updateData={signup.updateFormData} onSubmit={signup.submitSignup} onBack={signup.previousStep} isSubmitting={signup.isSubmitting} />;
       default: return <Step01Welcome onNext={signup.nextStep} />;
     }
   };

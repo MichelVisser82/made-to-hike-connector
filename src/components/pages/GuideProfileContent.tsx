@@ -249,10 +249,7 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
               <VideoIntroductionCard 
                 videoUrl={guide.intro_video_url}
                 thumbnailUrl={
-                  guide.intro_video_thumbnail_url || 
-                  (guide.portfolio_images && guide.portfolio_images.length > 0 
-                    ? getImageUrl({ file_path: guide.portfolio_images[0] } as any)
-                    : guide.profile_image_url)
+                  guide.intro_video_thumbnail_url || guide.profile_image_url
                 }
                 guideName={guide.display_name}
               />
