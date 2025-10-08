@@ -10,6 +10,11 @@ export function useGuideProfile(guideId: string | undefined) {
 
       console.log('useGuideProfile - Fetching for guideId:', guideId);
 
+      // Check if current user is the guide owner or authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      const isOwner = user?.id === guideId;
+      const isAuthenticated = !!user;
+
       const { data, error } = await supabase
         .from('guide_profiles')
         .select('*')
@@ -24,8 +29,10 @@ export function useGuideProfile(guideId: string | undefined) {
         certifications: data.certifications
       });
 
+      // For privacy: only include phone if user is the guide owner or authenticated
       return {
         ...data,
+        phone: (isOwner || isAuthenticated) ? data.phone : null,
         certifications: Array.isArray(data.certifications) ? data.certifications : [],
       } as unknown as GuideProfile;
     },

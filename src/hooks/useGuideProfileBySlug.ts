@@ -8,6 +8,10 @@ export function useGuideProfileBySlug(slug: string | undefined) {
     queryFn: async () => {
       if (!slug) throw new Error('Guide slug is required');
 
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      const isAuthenticated = !!user;
+
       const { data, error } = await supabase
         .from('guide_profiles')
         .select('*')
@@ -18,8 +22,10 @@ export function useGuideProfileBySlug(slug: string | undefined) {
       if (error) throw error;
       if (!data) throw new Error('Guide profile not found');
 
+      // For privacy: exclude phone number from unauthenticated users
       return {
         ...data,
+        phone: isAuthenticated ? data.phone : null,
         certifications: Array.isArray(data.certifications) ? data.certifications : [],
       } as unknown as GuideProfile;
     },
