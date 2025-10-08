@@ -85,7 +85,7 @@ export function GuideCard({ guide }: GuideCardProps) {
           <img
             src={guide.profile_image_url || '/placeholder.svg'}
             alt={guide.display_name}
-            className="w-12 h-12 rounded-full border-2 border-white shadow-lg object-cover"
+            className="w-24 h-24 rounded-full border-2 border-white shadow-lg object-cover"
           />
         </div>
       </div>
