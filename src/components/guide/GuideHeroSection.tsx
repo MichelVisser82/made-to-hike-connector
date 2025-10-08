@@ -70,9 +70,9 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
 
       {/* Content */}
       <div className="relative container mx-auto px-4 py-8 lg:py-0 lg:min-h-[480px]">
-        <div className="lg:h-full lg:flex lg:items-center">
+        <div className="lg:h-full lg:flex lg:items-end lg:justify-between lg:gap-8">
           {/* Main Content - Flex Layout */}
-          <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center md:items-start w-full">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center md:items-start lg:items-end lg:flex-1">
             {/* Profile Image */}
             <div className="flex-shrink-0">
               <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44">
@@ -90,7 +90,7 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
             </div>
 
             {/* Guide Info - Center Content */}
-            <div className="flex-1 text-center md:text-left">
+            <div className="flex-1 text-center md:text-left lg:pb-2">
               {/* Name */}
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-white mb-1 md:mb-2 leading-tight" style={{fontFamily: 'Playfair Display, serif'}}>
                 {guide.display_name}
@@ -149,7 +149,7 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           </div>
 
           {/* Contact Card - Floating on Desktop, aligned to bottom */}
-          <Card className="hidden lg:block absolute right-8 bottom-20 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-5 w-72">
+          <Card className="hidden lg:block lg:flex-shrink-0 lg:w-72 lg:mb-2 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-5">
             <h3 className="text-xl font-semibold text-charcoal mb-4">
               Contact {guide.display_name.split(' ')[0]}
             </h3>
