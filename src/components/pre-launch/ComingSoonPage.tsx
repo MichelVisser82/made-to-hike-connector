@@ -443,7 +443,7 @@ export function ComingSoonPage() {
                         certifyingBody: 'International Federation of Mountain Guides Associations',
                         certificationType: 'standard',
                       }}
-                      displayMode="card"
+                      displayMode="detailed"
                       showTooltip={true}
                     />
                     <CertificationBadge
@@ -452,7 +452,7 @@ export function ComingSoonPage() {
                         certifyingBody: 'International Mountain Leader',
                         certificationType: 'standard',
                       }}
-                      displayMode="card"
+                      displayMode="detailed"
                       showTooltip={true}
                     />
                   </div>
@@ -469,7 +469,7 @@ export function ComingSoonPage() {
                         certifyingBody: 'Alpine Mountain Managment',
                         certificationType: 'standard',
                       }}
-                      displayMode="card"
+                      displayMode="detailed"
                       showTooltip={true}
                     />
                     <CertificationBadge
@@ -478,7 +478,7 @@ export function ComingSoonPage() {
                         certifyingBody: 'Mountain Leader',
                         certificationType: 'standard',
                       }}
-                      displayMode="card"
+                      displayMode="detailed"
                       showTooltip={true}
                     />
                     <CertificationBadge
@@ -487,7 +487,7 @@ export function ComingSoonPage() {
                         certifyingBody: 'Winter Mountain Leader',
                         certificationType: 'standard',
                       }}
-                      displayMode="card"
+                      displayMode="detailed"
                       showTooltip={true}
                     />
                   </div>
