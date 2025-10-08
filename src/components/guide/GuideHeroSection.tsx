@@ -71,31 +71,34 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
       {/* Content */}
       <div className="relative container mx-auto px-4 py-8 lg:py-0 lg:min-h-[480px]">
         <div className="lg:h-full lg:flex lg:items-center lg:justify-between lg:gap-6">
-          {/* Main Content - Flex Layout */}
-          <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center md:items-center lg:flex-1">
-            {/* Profile Image */}
-            <div className="flex-shrink-0">
-              <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40">
-                <img
-                  src={guide.profile_image_url || 'https://via.placeholder.com/176'}
-                  alt={guide.display_name}
-                  className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
-                />
-                {guide.verified && (
-                  <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-burgundy rounded-full p-1.5 md:p-2 shadow-lg border-2 md:border-3 border-white">
-                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                  </div>
-                )}
+          {/* Main Content - Vertical Stack */}
+          <div className="flex flex-col items-center md:items-start lg:flex-1 gap-4">
+            {/* Profile Picture + Name Row */}
+            <div className="flex items-center gap-4 md:gap-6">
+              {/* Profile Image */}
+              <div className="flex-shrink-0">
+                <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40">
+                  <img
+                    src={guide.profile_image_url || 'https://via.placeholder.com/176'}
+                    alt={guide.display_name}
+                    className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
+                  />
+                  {guide.verified && (
+                    <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-burgundy rounded-full p-1.5 md:p-2 shadow-lg border-2 md:border-3 border-white">
+                      <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Guide Info - Centered from profile middle */}
-            <div className="flex-1 text-center md:text-left">
-              {/* Name */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white mb-1 md:mb-2 leading-tight" style={{fontFamily: 'Playfair Display, serif'}}>
+              {/* Name - Centered with profile picture */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white leading-tight" style={{fontFamily: 'Playfair Display, serif'}}>
                 {guide.display_name}
               </h1>
+            </div>
 
+            {/* All other info below - centered on mobile, left-aligned on desktop */}
+            <div className="w-full text-center md:text-left md:pl-[10.5rem] lg:pl-[11.5rem]">
               {/* Subtitle */}
               <p className="text-white text-sm sm:text-base mb-1 md:mb-2">
                 Certified Mountain Guide · {experienceYears} Years Experience
