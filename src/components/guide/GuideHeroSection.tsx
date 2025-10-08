@@ -51,7 +51,7 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   }, [guide.hero_background_url, guide.user_id, fetchImages, getImageUrl]);
 
   return (
-    <section className="relative h-[480px] w-full overflow-hidden">
+    <section className="relative min-h-[400px] md:h-[480px] w-full overflow-hidden">
       {/* Hero Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
@@ -64,82 +64,84 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
         }}
       >
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-56 bg-gradient-to-b from-transparent to-white" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-40 md:h-56 bg-gradient-to-b from-transparent to-white" />
       </div>
 
       {/* Content */}
-      <div className="relative h-full container mx-auto px-4">
+      <div className="relative h-full container mx-auto px-4 py-8 md:py-0">
         <div className="h-full flex items-center">
           {/* Main Content - Flex Layout */}
-          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start w-full">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center md:items-start w-full">
             {/* Profile Image */}
             <div className="flex-shrink-0">
-              <div className="relative w-36 h-36 md:w-44 md:h-44">
+              <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44">
                 <img
                   src={guide.profile_image_url || 'https://via.placeholder.com/176'}
                   alt={guide.display_name}
                   className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
                 />
                 {guide.verified && (
-                  <div className="absolute bottom-2 right-2 bg-burgundy rounded-full p-2 shadow-lg border-3 border-white">
-                    <CheckCircle className="w-5 h-5 text-white" />
+                  <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-burgundy rounded-full p-1.5 md:p-2 shadow-lg border-2 md:border-3 border-white">
+                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />
                   </div>
                 )}
               </div>
             </div>
 
             {/* Guide Info - Center Content */}
-            <div className="flex-1">
+            <div className="flex-1 text-center md:text-left">
               {/* Name */}
-              <h1 className="text-5xl lg:text-6xl font-serif text-white mb-2">{guide.display_name}</h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-white mb-1 md:mb-2 leading-tight" style={{fontFamily: 'Playfair Display, serif'}}>
+                {guide.display_name}
+              </h1>
 
               {/* Subtitle */}
-              <p className="text-white text-base mb-3">
+              <p className="text-white text-sm sm:text-base mb-2 md:mb-3">
                 Certified Mountain Guide · {experienceYears} Years Experience
               </p>
 
               {/* Location */}
               {guide.location && (
-                <div className="flex items-center gap-2 text-white/90 text-sm mb-8">
-                  <MapPin className="w-4 h-4" />
+                <div className="flex items-center justify-center md:justify-start gap-2 text-white/90 text-xs sm:text-sm mb-4 md:mb-8">
+                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>{guide.location}</span>
                 </div>
               )}
 
-              {/* Stats Bar - Inline Pill Design */}
-              <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-full px-6 py-2.5 shadow-lg">
+              {/* Stats Bar - Mobile: Grid Layout | Desktop: Inline */}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center md:justify-start sm:gap-3 bg-white/90 backdrop-blur-md rounded-2xl sm:rounded-full px-4 py-3 sm:px-6 sm:py-2.5 shadow-lg max-w-md sm:max-w-none mx-auto md:mx-0">
                 {/* Rating */}
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-gold fill-gold" />
-                  <span className="font-bold text-charcoal text-base">{stats.average_rating.toFixed(1)}</span>
-                  <span className="text-charcoal/60 text-xs">({reviewCount})</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 justify-center sm:justify-start">
+                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold fill-gold flex-shrink-0" />
+                  <span className="font-bold text-charcoal text-sm sm:text-base">{stats.average_rating.toFixed(1)}</span>
+                  <span className="text-charcoal/60 text-xs hidden sm:inline">({reviewCount})</span>
                 </div>
 
-                <div className="w-px h-5 bg-charcoal/20" />
+                <div className="hidden sm:block w-px h-5 bg-charcoal/20" />
 
                 {/* Tours */}
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-burgundy" />
-                  <span className="font-bold text-charcoal text-base">{stats.tours_completed}+</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 justify-center sm:justify-start">
+                  <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-burgundy flex-shrink-0" />
+                  <span className="font-bold text-charcoal text-sm sm:text-base">{stats.tours_completed}+</span>
                   <span className="text-charcoal/60 text-xs">tours</span>
                 </div>
 
-                <div className="w-px h-5 bg-charcoal/20" />
+                <div className="hidden sm:block w-px h-5 bg-charcoal/20" />
 
                 {/* Response Time */}
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-burgundy" />
-                  <span className="font-bold text-charcoal text-base">{responseTime}</span>
-                  <span className="text-charcoal/60 text-xs">response</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 justify-center sm:justify-start">
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-burgundy flex-shrink-0" />
+                  <span className="font-bold text-charcoal text-sm sm:text-base">{responseTime}</span>
+                  <span className="text-charcoal/60 text-xs hidden sm:inline">response</span>
                 </div>
 
-                <div className="w-px h-5 bg-charcoal/20" />
+                <div className="hidden sm:block w-px h-5 bg-charcoal/20" />
 
                 {/* Experience */}
-                <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-burgundy" />
-                  <span className="font-bold text-charcoal text-base">{experienceYears}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 justify-center sm:justify-start">
+                  <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-burgundy flex-shrink-0" />
+                  <span className="font-bold text-charcoal text-sm sm:text-base">{experienceYears}</span>
                   <span className="text-charcoal/60 text-xs">years</span>
                 </div>
               </div>
@@ -177,28 +179,28 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
         </div>
 
         {/* Contact Card - Mobile/Tablet */}
-        <Card className="lg:hidden mt-8 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-6">
-          <h3 className="text-xl font-semibold text-charcoal mb-4">
+        <Card className="lg:hidden mt-6 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl p-5 sm:p-6">
+          <h3 className="text-lg sm:text-xl font-semibold text-charcoal mb-3 sm:mb-4">
             Contact {guide.display_name.split(' ')[0]}
           </h3>
           
-          <div className="space-y-3 mb-6">
+          <div className="space-y-2 sm:space-y-3 mb-5 sm:mb-6">
             <div className="flex items-center gap-2 text-charcoal/70">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm">Responds within 2 hours</span>
+              <Clock className="w-4 h-4 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">Responds within 2 hours</span>
             </div>
             <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle className="w-4 h-4" />
-              <span className="text-sm font-medium">99% response rate</span>
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-medium">99% response rate</span>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white">
+          <div className="space-y-2 sm:space-y-3">
+            <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm sm:text-base py-2.5 sm:py-3">
               <MessageCircle className="w-4 h-4 mr-2" />
               Send Message
             </Button>
-            <Button variant="outline" className="w-full border-burgundy text-burgundy hover:bg-burgundy/10">
+            <Button variant="outline" className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 text-sm sm:text-base py-2.5 sm:py-3">
               <Mail className="w-4 h-4 mr-2" />
               Request Custom Tour
             </Button>
