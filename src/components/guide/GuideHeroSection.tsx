@@ -51,10 +51,10 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   }, [guide.hero_background_url, guide.user_id, fetchImages, getImageUrl]);
 
   return (
-    <section className="relative min-h-[400px] md:h-[480px] w-full overflow-hidden">
-      {/* Hero Background */}
+    <section className="relative w-full overflow-hidden">
+      {/* Hero Background - Fixed height only on desktop */}
       <div 
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 lg:h-[480px] bg-cover bg-center"
         style={{
           backgroundImage: guide.hero_background_url 
             ? `url(${guide.hero_background_url})` 
@@ -69,8 +69,8 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
       </div>
 
       {/* Content */}
-      <div className="relative h-full container mx-auto px-4 py-8 md:py-0">
-        <div className="h-full flex items-center">
+      <div className="relative container mx-auto px-4 py-8 lg:py-0 lg:min-h-[480px]">
+        <div className="lg:h-full lg:flex lg:items-center">
           {/* Main Content - Flex Layout */}
           <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center md:items-start w-full">
             {/* Profile Image */}
