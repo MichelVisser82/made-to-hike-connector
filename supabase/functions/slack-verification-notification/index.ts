@@ -30,7 +30,6 @@ serve(async (req: Request) => {
   try {
     console.log(`[${FUNCTION_VERSION}] Request received:`, req.method);
 
-    // Extract JWT token from Authorization header
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       console.error('[auth-error] No authorization header');
@@ -40,27 +39,35 @@ serve(async (req: Request) => {
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    // Check if this is a service role authentication (server-to-server call)
+    const isServiceRole = authHeader.includes(supabaseServiceKey);
+    let user: any = null;
 
-    // Create authenticated Supabase client using JWT
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
-      global: {
-        headers: { Authorization: authHeader },
-      },
-    });
+    if (!isServiceRole) {
+      // JWT authentication for frontend/admin calls
+      const token = authHeader.replace('Bearer ', '');
 
-    // Verify user identity
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.error('[auth-error]', authError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized: Invalid token' }),
-        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      });
+
+      const { data: { user: authUser }, error: authError } = await supabaseClient.auth.getUser(token);
+      
+      if (authError || !authUser) {
+        console.error('[auth-error]', authError);
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: Invalid token' }),
+          { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+
+      user = authUser;
+      console.log(`[${FUNCTION_VERSION}] Authenticated user:`, user.id);
+    } else {
+      console.log(`[${FUNCTION_VERSION}] Service role authentication`);
     }
-
-    console.log(`[${FUNCTION_VERSION}] Authenticated user:`, user.id);
 
     // Parse request payload
     const payload: RequestPayload = await req.json();
@@ -104,8 +111,8 @@ serve(async (req: Request) => {
 
     // Handle different actions with authorization checks
     if (action === 'send') {
-      // Authorization: User must own the verification OR be admin
-      if (verification.user_id !== user.id && !isAdmin) {
+      // Authorization: Service role OR user must own the verification OR be admin
+      if (!isServiceRole && verification.user_id !== user?.id && !isAdmin) {
         console.error('[auth-error] User does not own verification and is not admin');
         return new Response(
           JSON.stringify({ error: 'Forbidden: You can only send notifications for your own verifications' }),
@@ -189,23 +196,20 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
   console.log(`[sendSlackNotification] Starting v${FUNCTION_VERSION}`);
   
   const certifications = guideProfile?.certifications || [];
-  const priorityCerts = certifications.filter((cert: any) => 
-    cert.verificationPriority === 1 || cert.verificationPriority === 2
-  );
 
-  // Separate into new vs already verified
-  const newCerts = priorityCerts.filter((cert: any) => 
+  // Separate into new vs already verified (for ALL certifications)
+  const newCerts = certifications.filter((cert: any) => 
     !cert.verified && !cert.verifiedDate
   );
-  const verifiedCerts = priorityCerts.filter((cert: any) => 
+  const verifiedCerts = certifications.filter((cert: any) => 
     cert.verified || cert.verifiedDate
   );
 
-  console.log(`[sendSlackNotification] Found ${newCerts.length} NEW priority certs, ${verifiedCerts.length} already verified`);
+  console.log(`[sendSlackNotification] Found ${newCerts.length} NEW certifications, ${verifiedCerts.length} already verified`);
 
-  // Generate signed URLs for certification documents (for ALL priority certs)
+  // Generate signed URLs for certification documents (for ALL certifications)
   const certsWithUrls = await Promise.all(
-    priorityCerts.map(async (cert: any) => {
+    certifications.map(async (cert: any) => {
       if (cert.certificateDocument) {
         try {
           const { data: signedUrlData } = await serviceSupabase.storage
@@ -274,7 +278,7 @@ async function sendSlackNotification(verification: any, guideProfile: any, servi
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `*🔍 New Certifications Requiring Verification (${newCertsWithUrls.length}):*`,
+        text: `*🔍 New Certifications for Review (${newCertsWithUrls.length}):*`,
       },
     });
 

@@ -229,33 +229,48 @@ serve(async (req) => {
 
     if (guideProfileError) throw guideProfileError;
 
-    // Check if guide has Priority 1 or 2 certifications to auto-request verification
-    const hasPriorityCerts = guideData.certifications?.some((cert: any) => 
-      cert.verificationPriority === 1 || cert.verificationPriority === 2
-    );
+    // Check if guide has any certifications to auto-request verification
+    const hasCertifications = guideData.certifications && guideData.certifications.length > 0;
 
-    const verificationStatus = hasPriorityCerts ? 'pending' : 'not_requested';
+    const verificationStatus = hasCertifications ? 'pending' : 'not_requested';
 
-    // Create or update user_verifications record
-    const { error: verificationError } = await supabase
+    // Create or update user_verifications record and get the ID
+    const { data: verificationData, error: verificationError } = await supabase
       .from('user_verifications')
       .upsert({
         user_id: userId,
         verification_status: verificationStatus,
-        admin_notes: hasPriorityCerts 
+        admin_notes: hasCertifications 
           ? `Auto-requested verification: Guide signed up with ${guideData.certifications?.length || 0} certification(s)`
           : null,
       }, {
         onConflict: 'user_id'
-      });
+      })
+      .select('id')
+      .single();
 
     if (verificationError) {
       console.error('Error creating verification record:', verificationError);
       // Don't fail signup if verification record fails
     }
 
-    // Send admin notification if verification was auto-requested
-    if (hasPriorityCerts) {
+    // Send Slack notification if verification was auto-requested
+    if (hasCertifications && verificationData?.id) {
+      try {
+        console.log('Sending Slack notification for verification:', verificationData.id);
+        await supabase.functions.invoke('slack-verification-notification', {
+          body: {
+            verificationId: verificationData.id,
+            action: 'send',
+          }
+        });
+        console.log('Slack notification sent successfully');
+      } catch (slackError) {
+        console.error('Failed to send Slack notification:', slackError);
+        // Don't fail signup if Slack notification fails
+      }
+
+      // Also send email notification
       try {
         await supabase.functions.invoke('send-email', {
           body: {
