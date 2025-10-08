@@ -20,6 +20,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/colla
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '../ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 import { 
   PRELOADED_CERTIFICATIONS, 
   getCertificationsByCategory, 
@@ -72,6 +73,8 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [newEmail, setNewEmail] = useState('');
   const [hasPendingCertifications, setHasPendingCertifications] = useState(false);
   const [newCertificationsCount, setNewCertificationsCount] = useState(0);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
   
   const [openSections, setOpenSections] = useState({
     basicInfo: true,
@@ -881,6 +884,97 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     } finally {
       setSavingStates(prev => ({ ...prev, videoIntro: false }));
       setIsUploadingVideo(false);
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    if (deleteConfirmation !== 'DELETE') {
+      toast({
+        title: "Confirmation Required",
+        description: "Please type DELETE in capitals to confirm.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      if (!user?.id) throw new Error('Not authenticated');
+
+      // Delete all connected data in order
+      // 1. Delete website images uploaded by this guide
+      await supabase
+        .from('website_images')
+        .delete()
+        .eq('uploaded_by', user.id);
+
+      // 2. Get all tours by this guide
+      const { data: guideTours } = await supabase
+        .from('tours')
+        .select('id')
+        .eq('guide_id', user.id);
+
+      if (guideTours && guideTours.length > 0) {
+        const tourIds = guideTours.map(t => t.id);
+        
+        // Delete reviews and bookings for these tours
+        await supabase
+          .from('reviews')
+          .delete()
+          .in('tour_id', tourIds);
+        
+        await supabase
+          .from('bookings')
+          .delete()
+          .in('tour_id', tourIds);
+      }
+
+      // 3. Delete all tours
+      await supabase
+        .from('tours')
+        .delete()
+        .eq('guide_id', user.id);
+
+      // 4. Delete guide profile
+      await supabase
+        .from('guide_profiles')
+        .delete()
+        .eq('user_id', user.id);
+
+      // 5. Delete user verification
+      await supabase
+        .from('user_verifications')
+        .delete()
+        .eq('user_id', user.id);
+
+      // 6. Delete user roles
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', user.id);
+
+      // 7. Delete profile
+      await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+
+      toast({
+        title: "Profile Deleted",
+        description: "Your profile and all associated data have been permanently deleted."
+      });
+
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete profile. Please try again or contact support.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -2396,7 +2490,14 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     </Card>
   </Collapsible>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-end">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <button
+          onClick={() => setIsDeleteDialogOpen(true)}
+          className="text-sm text-destructive hover:underline transition-colors"
+        >
+          Delete Profile
+        </button>
+        
         {profile && (
           <Button
             variant="outline"
@@ -2414,6 +2515,40 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           </Button>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={(open) => {
+        setIsDeleteDialogOpen(open);
+        if (!open) setDeleteConfirmation('');
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Your Profile?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your guide profile, 
+              all tours, bookings, reviews, and associated data.
+              <br /><br />
+              Type <strong>DELETE</strong> in capitals to confirm.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            value={deleteConfirmation}
+            onChange={(e) => setDeleteConfirmation(e.target.value)}
+            placeholder="Type DELETE to confirm"
+            className="mt-4"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProfile}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteConfirmation !== 'DELETE'}
+            >
+              Delete Profile Permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
