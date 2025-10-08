@@ -147,7 +147,8 @@ export function GuidesSearchPage() {
             backgroundImage: 'url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80)',
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-32 md:h-40 bg-gradient-to-b from-transparent to-cream-light" />
         </div>
         
         <div className="relative container mx-auto px-4 text-center">
