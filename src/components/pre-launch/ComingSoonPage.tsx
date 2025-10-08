@@ -547,7 +547,6 @@ export function ComingSoonPage() {
         <footer className="py-8 bg-charcoal text-white/60 text-center text-sm">
           <div className="container mx-auto px-4">
             <p>© 2025 Made to Hike. Built with passion for the mountains.</p>
-            <p className="mt-2">Press Ctrl+Shift+L for preview access</p>
           </div>
         </footer>
       </div>
