@@ -92,6 +92,7 @@ export type Database = {
           intro_video_size_bytes: number | null
           intro_video_thumbnail_url: string | null
           intro_video_url: string | null
+          is_featured: boolean | null
           languages_spoken: string[] | null
           location: string | null
           max_group_size: number | null
@@ -133,6 +134,7 @@ export type Database = {
           intro_video_size_bytes?: number | null
           intro_video_thumbnail_url?: string | null
           intro_video_url?: string | null
+          is_featured?: boolean | null
           languages_spoken?: string[] | null
           location?: string | null
           max_group_size?: number | null
@@ -174,6 +176,7 @@ export type Database = {
           intro_video_size_bytes?: number | null
           intro_video_thumbnail_url?: string | null
           intro_video_url?: string | null
+          is_featured?: boolean | null
           languages_spoken?: string[] | null
           location?: string | null
           max_group_size?: number | null
