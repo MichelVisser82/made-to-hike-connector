@@ -22,7 +22,9 @@ export function useGuideProfileBySlug(slug: string | undefined) {
       if (error) throw error;
       if (!data) throw new Error('Guide profile not found');
 
-      // For privacy: exclude phone number from unauthenticated users
+      // SECURITY: Explicitly null out phone for unauthenticated users to prevent scraping
+      // This provides defense-in-depth alongside database RLS policies
+      // Note: Database also has guide_profiles_public view available for future use
       return {
         ...data,
         phone: isAuthenticated ? data.phone : null,
