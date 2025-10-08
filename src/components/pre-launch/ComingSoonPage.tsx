@@ -116,7 +116,7 @@ export function ComingSoonPage() {
                   {[{
                   icon: DollarSign,
                   title: 'Keep More of What You Earn',
-                  desc: 'Lowest commission rates in the industry'
+                  desc: 'Low commission rates'
                 }, {
                   icon: Award,
                   title: 'Showcase Your Certifications',
