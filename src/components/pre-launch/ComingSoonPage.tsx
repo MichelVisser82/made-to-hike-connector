@@ -292,27 +292,17 @@ export function ComingSoonPage() {
                 </div>
 
                 <div className="space-y-6">
-                  <p className="text-lg text-charcoal leading-relaxed">
-                    As a UK-trained Mountain Leader and entrepreneur, I've spent years guiding groups through some of Europe's most stunning landscapes.
-                  </p>
-                  <p className="text-lg text-charcoal leading-relaxed">
-                    For years, I searched for a platform where certified guides could truly own their brand, set their own rates, and connect directly with adventurers without losing half their earnings to middlemen.
-                  </p>
-                  <p className="text-lg text-charcoal leading-relaxed font-semibold">
-                    So I built it.
-                  </p>
-                  <p className="text-lg text-charcoal leading-relaxed">
-                    Made to Hike isn't just another booking platform—it's a movement to empower professional mountain guides across Europe while ensuring hikers get authentic, safe experiences with verified experts.
-                  </p>
+                  <p className="text-lg text-charcoal leading-relaxed">As a UK-trained Mountain Leader (currently starting my IML training) and entrepreneur, I've been hiking through Europe's most stunning landscapes.  </p>
+                  <p className="text-lg text-charcoal leading-relaxed">For years, I searched for a platform where I could set up my own hiking trips as an independent certified guide. A place where I could truly own the experience, set my own rates, and connect directly with adventurers without losing half the earnings to the middlemen.</p>
+                  <p className="text-lg text-charcoal leading-relaxed font-semibold">So I built it. And here to share!</p>
+                  <p className="text-lg text-charcoal leading-relaxed">Made to Hike isn't just another booking platform—it's a movement to empower professional mountain guides while ensuring hikers get authentic, safe experiences with verified experts.</p>
 
                   <Card className="p-6 border-2 border-burgundy bg-burgundy/5">
                     <div className="flex gap-3">
                       <Compass className="h-6 w-6 text-burgundy flex-shrink-0 mt-1" />
                       <div>
-                        <p className="text-charcoal font-semibold mb-2">Our Mission</p>
-                        <p className="text-muted-foreground">
-                          To create a sustainable marketplace where guides thrive, hikers explore safely, and mountain communities prosper.
-                        </p>
+                        <p className="text-charcoal font-semibold mb-2">The Mission</p>
+                        <p className="text-muted-foreground">To create a marketplace where guides thrive, hikers explore safely, and community is at it's core. Promoting sustainable mountain tourism and supporting local communities.</p>
                       </div>
                     </div>
                   </Card>
