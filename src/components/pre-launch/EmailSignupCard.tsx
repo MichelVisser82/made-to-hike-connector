@@ -76,11 +76,12 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting email:', error);
+      const errorMessage = error?.message || 'Please try again later';
       toast({
         title: 'Something went wrong',
-        description: 'Please try again later',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
