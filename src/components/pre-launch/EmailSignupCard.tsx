@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { GuideFollowUpModal } from './GuideFollowUpModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EmailSignupCardProps {
   userType: 'guide' | 'hiker';
@@ -35,26 +36,16 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        'https://ohecxwxumzpfcfsokfkg.supabase.co/functions/v1/waitlist-signup',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oZWN4d3h1bXpwZmNmc29rZmtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMTE4NjMsImV4cCI6MjA3MzU4Nzg2M30.yh8OplVdcPI4YowgkmHBDHqqGrGJalrM1Z4NbXt_HNM',
-          },
-          body: JSON.stringify({
-            email: email.toLowerCase().trim(),
-            user_type: userType,
-            source_section: sectionName,
-          }),
-        }
-      );
+      const { data: result, error } = await supabase.functions.invoke('waitlist-signup', {
+        body: {
+          email: email.toLowerCase().trim(),
+          user_type: userType,
+          source_section: sectionName,
+        },
+      });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to join waitlist');
+      if (error) {
+        throw new Error(error.message || 'Failed to join waitlist');
       }
 
       // Handle duplicate email
