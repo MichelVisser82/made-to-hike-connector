@@ -130,7 +130,7 @@ export function ComingSoonPage() {
                   For Professional Guides
                 </Badge>
                 
-                <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">Grow Your Mountain Guiding Business with IFMGA Platform</h2>
+                <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">Grow Your Mountain Guiding Business</h2>
 
                 <div className="space-y-4">
                   {[{
