@@ -314,25 +314,25 @@ export function ComingSoonPage() {
                   UK Mountain Leader
                 </Badge>
 
-                <Card className="absolute bottom-6 left-6 right-6 p-4 bg-white border-burgundy/20">
-                  <div className="flex items-center gap-3">
+                <Card className="absolute bottom-6 left-6 right-6 p-6 bg-white border-burgundy/20">
+                  <div className="flex items-center gap-4">
                     {isLoadingFounder ? (
-                      <div className="h-12 w-12 rounded-full bg-burgundy/10 animate-pulse" />
+                      <div className="h-24 w-24 rounded-full bg-burgundy/10 animate-pulse flex-shrink-0" />
                     ) : founderProfile?.profile_image_url ? (
                       <img 
                         src={founderProfile.profile_image_url}
-                        className="h-12 w-12 rounded-full object-cover border-2 border-burgundy/20" 
+                        className="h-24 w-24 rounded-full object-cover border-2 border-burgundy/20 flex-shrink-0" 
                         alt="Michel Visser UK Mountain Leader and Made to Hike founder"
                       />
                     ) : (
                       <img 
                         src="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/hero-images/201c8159-4778-454f-b719-0cd9a61a6fbc/profile-1759929621269.jpg"
-                        className="h-12 w-12 rounded-full object-cover border-2 border-burgundy/20" 
+                        className="h-24 w-24 rounded-full object-cover border-2 border-burgundy/20 flex-shrink-0" 
                         alt="Michel Visser UK Mountain Leader and Made to Hike founder"
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-charcoal">{founderProfile?.display_name || 'Michel Visser'}</p>
+                      <p className="font-semibold text-charcoal text-lg">{founderProfile?.display_name || 'Michel Visser'}</p>
                       <p className="text-sm text-muted-foreground">Mountain Guide & Founder</p>
                     </div>
                     <CertificationBadge
