@@ -326,7 +326,7 @@ export function ComingSoonPage() {
                       />
                     ) : (
                       <img 
-                        src="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/hero-images/fff8cf91-e3e2-4dbd-b54f-bb3fa822542b/profile-1759245204137.jpg"
+                        src="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/hero-images/201c8159-4778-454f-b719-0cd9a61a6fbc/profile-1759929621269.jpg"
                         className="h-12 w-12 rounded-full object-cover border-2 border-burgundy/20" 
                         alt="Michel Visser UK Mountain Leader and Made to Hike founder"
                       />
