@@ -3,7 +3,6 @@ import { Mail, CheckCircle, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { GuideFollowUpModal } from './GuideFollowUpModal';
 
@@ -36,30 +35,39 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from('launch_signups')
-        .insert({
-          email: email.toLowerCase().trim(),
-          user_type: userType,
-          source_section: sectionName,
-        })
-        .select('id')
-        .single();
-
-      if (error) {
-        if (error.code === '23505') {
-          toast({
-            title: "You're already on the list!",
-            description: "We'll notify you when we launch.",
-          });
-          return;
+      const response = await fetch(
+        'https://ohecxwxumzpfcfsokfkg.supabase.co/functions/v1/waitlist-signup',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email.toLowerCase().trim(),
+            user_type: userType,
+            source_section: sectionName,
+          }),
         }
-        throw error;
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to join waitlist');
+      }
+
+      // Handle duplicate email
+      if (result.duplicate) {
+        toast({
+          title: "You're already on the list!",
+          description: "We'll notify you when we launch.",
+        });
+        return;
       }
 
       // Success
-      if (userType === 'guide' && data?.id) {
-        setSignupId(data.id);
+      if (userType === 'guide' && result.id) {
+        setSignupId(result.id);
         setShowGuideModal(true);
         setEmail('');
       } else {
@@ -72,11 +80,10 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
         });
       }
     } catch (error: any) {
-      console.error('[EmailSignup] Error submitting email:', error);
-      const errorMessage = error?.message || 'Please try again later';
+      console.error('[EmailSignup] Error:', error);
       toast({
         title: 'Something went wrong',
-        description: errorMessage,
+        description: error.message || 'Please try again later',
         variant: 'destructive',
       });
     } finally {
