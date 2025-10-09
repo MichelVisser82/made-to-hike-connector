@@ -4,6 +4,7 @@ import { hasValidBypass } from '@/utils/bypassAuth';
 import { ComingSoonPage } from './ComingSoonPage';
 import { SecretAccessModal } from './SecretAccessModal';
 import { SEOWrapper } from '@/components/seo/SEOWrapper';
+import { clearStaleAuthState } from '@/utils/authCleanup';
 
 interface LaunchGateProps {
   children: ReactNode;
@@ -22,6 +23,11 @@ export function LaunchGate({ children }: LaunchGateProps) {
   const [hasBypass, setHasBypass] = useState(false);
 
   useEffect(() => {
+    // Clear stale auth state on mount for anonymous users
+    if (!IS_LAUNCHED && !hasValidBypass()) {
+      clearStaleAuthState();
+    }
+    
     // Check bypass status on mount
     setHasBypass(hasValidBypass());
 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { GuideFollowUpModal } from './GuideFollowUpModal';
+import { ensureAnonymousContext } from '@/utils/authCleanup';
 
 interface EmailSignupCardProps {
   userType: 'guide' | 'hiker';
@@ -36,6 +37,15 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
     setIsLoading(true);
 
     try {
+      // Ensure we're operating as anonymous user
+      await ensureAnonymousContext();
+
+      console.log('[EmailSignup] Submitting as anonymous:', { 
+        email: email.toLowerCase().trim(), 
+        userType, 
+        sectionName 
+      });
+
       const { data, error } = await supabase
         .from('launch_signups')
         .insert({
@@ -47,6 +57,46 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
         .single();
 
       if (error) {
+        console.error('[EmailSignup] Insert error:', error);
+        
+        // Check for RLS policy violation
+        if (error.message?.includes('row-level security')) {
+          // Try one more time after clearing all auth state
+          console.log('[EmailSignup] RLS error detected, clearing auth and retrying...');
+          localStorage.clear();
+          
+          const { data: retryData, error: retryError } = await supabase
+            .from('launch_signups')
+            .insert({
+              email: email.toLowerCase().trim(),
+              user_type: userType,
+              source_section: sectionName,
+            })
+            .select('id')
+            .single();
+          
+          if (retryError) {
+            console.error('[EmailSignup] Retry failed:', retryError);
+            throw retryError;
+          }
+          
+          // Retry succeeded
+          if (userType === 'guide' && retryData?.id) {
+            setSignupId(retryData.id);
+            setShowGuideModal(true);
+            setEmail('');
+          } else {
+            setIsSuccess(true);
+            setEmail('');
+            setTimeout(() => setIsSuccess(false), 3000);
+            toast({
+              title: 'Success!',
+              description: "You're on the list. We'll email you when we launch!",
+            });
+          }
+          return;
+        }
+        
         if (error.code === '23505') {
           toast({
             title: "You're already on the list!",
@@ -57,19 +107,13 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
         }
       } else {
         if (userType === 'guide' && data?.id) {
-          // Show follow-up modal for guides
           setSignupId(data.id);
           setShowGuideModal(true);
           setEmail('');
         } else {
-          // Show success for hikers
           setIsSuccess(true);
           setEmail('');
-          
-          setTimeout(() => {
-            setIsSuccess(false);
-          }, 3000);
-
+          setTimeout(() => setIsSuccess(false), 3000);
           toast({
             title: 'Success!',
             description: "You're on the list. We'll email you when we launch!",
@@ -77,7 +121,7 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
         }
       }
     } catch (error: any) {
-      console.error('Error submitting email:', error);
+      console.error('[EmailSignup] Error submitting email:', error);
       const errorMessage = error?.message || 'Please try again later';
       toast({
         title: 'Something went wrong',
