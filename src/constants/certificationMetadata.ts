@@ -18,7 +18,8 @@ export interface CertificationMetadata {
 /**
  * Extract country from certifying body name
  */
-export function getCountryFromCertifyingBody(certifyingBody: string): string {
+export function getCountryFromCertifyingBody(certifyingBody: string | undefined): string {
+  if (!certifyingBody) return 'International';
   const body = certifyingBody.toLowerCase();
   
   // UK organizations
