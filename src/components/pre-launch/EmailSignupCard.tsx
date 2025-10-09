@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { GuideFollowUpModal } from './GuideFollowUpModal';
 
 interface EmailSignupCardProps {
   userType: 'guide' | 'hiker';
@@ -16,6 +17,8 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [signupId, setSignupId] = useState<string>('');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,13 +36,15 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('launch_signups')
         .insert({
           email: email.toLowerCase().trim(),
           user_type: userType,
           source_section: sectionName,
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) {
         if (error.code === '23505') {
@@ -51,17 +56,25 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
           throw error;
         }
       } else {
-        setIsSuccess(true);
-        setEmail('');
-        
-        setTimeout(() => {
-          setIsSuccess(false);
-        }, 3000);
+        if (userType === 'guide' && data?.id) {
+          // Show follow-up modal for guides
+          setSignupId(data.id);
+          setShowGuideModal(true);
+          setEmail('');
+        } else {
+          // Show success for hikers
+          setIsSuccess(true);
+          setEmail('');
+          
+          setTimeout(() => {
+            setIsSuccess(false);
+          }, 3000);
 
-        toast({
-          title: 'Success!',
-          description: "You're on the list. We'll email you when we launch!",
-        });
+          toast({
+            title: 'Success!',
+            description: "You're on the list. We'll email you when we launch!",
+          });
+        }
       }
     } catch (error) {
       console.error('Error submitting email:', error);
@@ -75,9 +88,18 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
     }
   };
 
+  const handleModalClose = () => {
+    setShowGuideModal(false);
+    setIsSuccess(true);
+    setTimeout(() => {
+      setIsSuccess(false);
+    }, 3000);
+  };
+
   return (
-    <Card className={`p-6 bg-gradient-to-br from-burgundy to-burgundy-dark text-white ${className}`}>
-      <div className="space-y-4">
+    <>
+      <Card className={`p-6 bg-gradient-to-br from-burgundy to-burgundy-dark text-white ${className}`}>
+        <div className="space-y-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-white/20 rounded-lg">
             <Mail className="h-5 w-5" />
@@ -118,5 +140,15 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
         )}
       </div>
     </Card>
+
+    {userType === 'guide' && (
+      <GuideFollowUpModal
+        open={showGuideModal}
+        onClose={handleModalClose}
+        signupId={signupId}
+        email={email}
+      />
+    )}
+    </>
   );
 }

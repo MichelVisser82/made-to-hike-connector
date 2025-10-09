@@ -217,23 +217,32 @@ export type Database = {
       }
       launch_signups: {
         Row: {
+          certifications: string[] | null
           created_at: string
+          early_tester_interest: boolean | null
           email: string
           id: string
+          regions: string[] | null
           source_section: string | null
           user_type: string
         }
         Insert: {
+          certifications?: string[] | null
           created_at?: string
+          early_tester_interest?: boolean | null
           email: string
           id?: string
+          regions?: string[] | null
           source_section?: string | null
           user_type: string
         }
         Update: {
+          certifications?: string[] | null
           created_at?: string
+          early_tester_interest?: boolean | null
           email?: string
           id?: string
+          regions?: string[] | null
           source_section?: string | null
           user_type?: string
         }
