@@ -92,7 +92,7 @@ export function ComingSoonPage() {
                 Coming Soon
               </Badge>
 
-              <h1 className="font-playfair text-5xl md:text-7xl font-bold text-white leading-tight">Europe's Premium Marketplace for Certified Mountain Guides</h1>
+              <h1 className="font-playfair text-5xl md:text-7xl font-bold text-white leading-tight">Europe's Marketplace for Certified Mountain Guides</h1>
 
               <p className="text-xl text-white/90 max-w-2xl mx-auto">
                 Europe's first premium marketplace connecting certified mountain guides with adventurers seeking authentic, safe mountain experiences.
