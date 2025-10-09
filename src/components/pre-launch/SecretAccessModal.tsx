@@ -6,6 +6,7 @@ import { Lock, AlertCircle } from 'lucide-react';
 import { hashPassword, setBypassToken, recordFailedAttempt, getRemainingAttempts } from '@/utils/bypassAuth';
 import { BYPASS_PASSWORD_HASH } from '@/config/launchConfig';
 import { useToast } from '@/hooks/use-toast';
+import { testPasswordHash } from '@/utils/hashTester';
 
 interface SecretAccessModalProps {
   open: boolean;
