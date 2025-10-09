@@ -41,6 +41,7 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oZWN4d3h1bXpwZmNmc29rZmtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMTE4NjMsImV4cCI6MjA3MzU4Nzg2M30.yh8OplVdcPI4YowgkmHBDHqqGrGJalrM1Z4NbXt_HNM',
           },
           body: JSON.stringify({
             email: email.toLowerCase().trim(),
