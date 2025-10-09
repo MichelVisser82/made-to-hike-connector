@@ -281,15 +281,27 @@ export function ComingSoonPage() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-12 items-start">
-                <div className="relative">
-                  <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                    <SmartImage category="portrait" usageContext="about" tags={['guide', 'professional', 'outdoor']} className="w-full h-full object-cover" alt="Founder" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
-                  </div>
-                  <Badge className="absolute top-4 right-4 bg-burgundy text-white border-0">
-                    UK Mountain Leader
-                  </Badge>
+              <div className="relative">
+                <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
+                  <SmartImage category="portrait" usageContext="about" tags={['guide', 'professional', 'outdoor']} className="w-full h-full object-cover" alt="Founder" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
+                <Badge className="absolute top-4 right-4 bg-burgundy text-white border-0">
+                  UK Mountain Leader
+                </Badge>
+
+                <Card className="absolute bottom-6 left-6 right-6 p-4 bg-white border-burgundy/20">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-full bg-burgundy/10 flex items-center justify-center">
+                      <Mountain className="h-6 w-6 text-burgundy" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-charcoal">Michel Visser</p>
+                      <p className="text-sm text-muted-foreground">Mountain Guide & Founder</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
 
                 <div className="space-y-6">
                   <p className="text-lg text-charcoal leading-relaxed">As a UK-trained Mountain Leader (currently starting my IML training) and entrepreneur, I've been hiking through Europe's most stunning landscapes.  </p>
