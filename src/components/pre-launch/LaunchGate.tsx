@@ -1,9 +1,10 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { IS_LAUNCHED } from '@/config/launchConfig';
-import { hasValidBypass } from '@/utils/bypassAuth';
+import { hasValidBypass, clearBypassToken } from '@/utils/bypassAuth';
 import { ComingSoonPage } from './ComingSoonPage';
 import { SecretAccessModal } from './SecretAccessModal';
 import { SEOWrapper } from '@/components/seo/SEOWrapper';
+import { toast } from '@/hooks/use-toast';
 
 interface LaunchGateProps {
   children: ReactNode;
@@ -25,11 +26,22 @@ export function LaunchGate({ children }: LaunchGateProps) {
     // Check bypass status on mount
     setHasBypass(hasValidBypass());
 
-    // Add keyboard shortcut listener (Ctrl+Shift+L)
+    // Add keyboard shortcut listener (Ctrl+Shift+L) - Toggle bypass
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'L') {
         e.preventDefault();
-        setShowSecretModal(true);
+        
+        // Toggle: If user has bypass, clear it. Otherwise, open modal.
+        if (hasBypass) {
+          clearBypassToken();
+          setHasBypass(false);
+          toast({
+            title: 'Returning to Coming Soon page',
+            description: 'Press Ctrl+Shift+L again to access the site',
+          });
+        } else {
+          setShowSecretModal(true);
+        }
       }
     };
 
@@ -38,7 +50,7 @@ export function LaunchGate({ children }: LaunchGateProps) {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, []);
+  }, [hasBypass]);
 
   // If already launched, show full app with SEO wrapper
   if (IS_LAUNCHED) {
