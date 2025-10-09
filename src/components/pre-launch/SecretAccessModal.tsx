@@ -21,9 +21,16 @@ export function SecretAccessModal({ open, onClose }: SecretAccessModalProps) {
 
   useEffect(() => {
     if (open) {
-      setRemainingAttempts(getRemainingAttempts());
+      // Clear attempts when modal opens (for testing)
+      sessionStorage.removeItem('mth_bypass_attempts');
+      setRemainingAttempts(3);
       setPassword('');
       setError('');
+      
+      // Debug: Log the expected hash
+      console.log('Expected password hash:', BYPASS_PASSWORD_HASH);
+      console.log('To generate hash for a password, run in console:');
+      console.log('crypto.subtle.digest("SHA-256", new TextEncoder().encode("your-password")).then(h => console.log(Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, "0")).join("")))');
     }
   }, [open]);
 
