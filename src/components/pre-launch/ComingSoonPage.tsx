@@ -68,9 +68,7 @@ export function ComingSoonPage() {
                 Coming Soon
               </Badge>
 
-              <h1 className="font-playfair text-5xl md:text-7xl font-bold text-white leading-tight">
-                Connect Certified Guides with Adventure Seekers
-              </h1>
+              <h1 className="font-playfair text-5xl md:text-7xl font-bold text-white leading-tight">Connecting Guides with adventure seekers</h1>
 
               <p className="text-xl text-white/90 max-w-2xl mx-auto">
                 Europe's first premium marketplace connecting certified mountain guides with adventurers seeking authentic, safe mountain experiences.
@@ -108,9 +106,7 @@ export function ComingSoonPage() {
                   For Professional Guides
                 </Badge>
                 
-                <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">
-                  Own Your Business. Share Your Passion.
-                </h2>
+                <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">Own your business. share your passion.</h2>
 
                 <div className="space-y-4">
                   {[{
