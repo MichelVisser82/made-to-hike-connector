@@ -41,6 +41,12 @@ export function SecretAccessModal({ open, onClose }: SecretAccessModalProps) {
     try {
       const hashedInput = await hashPassword(password);
       
+      console.log('🔐 Password Debug Info:');
+      console.log('Entered password:', password);
+      console.log('Generated hash:', hashedInput);
+      console.log('Expected hash:', BYPASS_PASSWORD_HASH);
+      console.log('Hashes match:', hashedInput === BYPASS_PASSWORD_HASH);
+      
       if (hashedInput === BYPASS_PASSWORD_HASH) {
         setBypassToken();
         toast({
