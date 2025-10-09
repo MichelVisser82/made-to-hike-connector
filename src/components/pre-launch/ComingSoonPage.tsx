@@ -325,9 +325,11 @@ export function ComingSoonPage() {
                         alt="Michel Visser UK Mountain Leader and Made to Hike founder"
                       />
                     ) : (
-                      <div className="h-12 w-12 rounded-full bg-burgundy/10 flex items-center justify-center">
-                        <Mountain className="h-6 w-6 text-burgundy" />
-                      </div>
+                      <img 
+                        src="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/hero-images/fff8cf91-e3e2-4dbd-b54f-bb3fa822542b/profile-1759245204137.jpg"
+                        className="h-12 w-12 rounded-full object-cover border-2 border-burgundy/20" 
+                        alt="Michel Visser UK Mountain Leader and Made to Hike founder"
+                      />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-charcoal">{founderProfile?.display_name || 'Michel Visser'}</p>
