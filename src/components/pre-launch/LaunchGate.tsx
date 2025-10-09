@@ -3,6 +3,7 @@ import { IS_LAUNCHED } from '@/config/launchConfig';
 import { hasValidBypass } from '@/utils/bypassAuth';
 import { ComingSoonPage } from './ComingSoonPage';
 import { SecretAccessModal } from './SecretAccessModal';
+import { SEOWrapper } from '@/components/seo/SEOWrapper';
 
 interface LaunchGateProps {
   children: ReactNode;
@@ -39,14 +40,14 @@ export function LaunchGate({ children }: LaunchGateProps) {
     };
   }, []);
 
-  // If already launched, show full app
+  // If already launched, show full app with SEO wrapper
   if (IS_LAUNCHED) {
-    return <>{children}</>;
+    return <SEOWrapper>{children}</SEOWrapper>;
   }
 
-  // If user has bypass token, show full app
+  // If user has bypass token, show full app with SEO wrapper
   if (hasBypass) {
-    return <>{children}</>;
+    return <SEOWrapper>{children}</SEOWrapper>;
   }
 
   // Otherwise show Coming Soon page with secret access modal

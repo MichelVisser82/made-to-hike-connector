@@ -14,6 +14,8 @@ import { MountainRidge } from './decorations/MountainRidge';
 import { CertificationBadge } from '@/components/ui/certification-badge';
 import type { GuideCertification } from '@/types/guide';
 import { useGuideProfileByEmail } from '@/hooks/useGuideProfileByEmail';
+import { PreLaunchStructuredData } from '@/components/seo/PreLaunchStructuredData';
+import { FAQSection } from './FAQSection';
 
 export function ComingSoonPage() {
   const [activeSection, setActiveSection] = useState('');
@@ -30,10 +32,27 @@ export function ComingSoonPage() {
   };
   return <>
       <Helmet>
-        <title>Made to Hike - Coming Soon | Certified Mountain Guides Marketplace</title>
-        <meta name="description" content="Connect with certified mountain guides across Europe. Join our waitlist to be first to experience the premium hiking guide marketplace." />
-        <meta name="robots" content="noindex, nofollow" />
+        <title>Made to Hike - Certified Mountain Guides Marketplace Europe | Coming Soon</title>
+        <meta name="description" content="Connect with IFMGA certified mountain guides across Europe. Premium hiking marketplace launching soon. Join waitlist for authentic mountain adventures in Dolomites, Pyrenees, Alps." />
+        <meta name="keywords" content="mountain guides Europe, IFMGA guides, certified mountain guides, hiking marketplace, book mountain guide, IML guides, alpine hiking tours, verified guides" />
+        <meta name="robots" content="index, follow" />
+        <meta name="geo.region" content="EU" />
+        <meta httpEquiv="content-language" content="en-EU" />
+        <link rel="canonical" href="https://madetohike.com/" />
+        
+        {/* Enhanced Open Graph */}
+        <meta property="og:title" content="Made to Hike - Europe's Premium Mountain Guide Marketplace" />
+        <meta property="og:description" content="Join the waitlist for Europe's first guide-centric marketplace. Connect with certified IFMGA & IML mountain guides for authentic alpine adventures." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://madetohike.com/" />
+        
+        {/* Enhanced Twitter Card */}
+        <meta name="twitter:title" content="Made to Hike - Certified Mountain Guides Europe" />
+        <meta name="twitter:description" content="Premium marketplace connecting certified mountain guides with adventurers. Launching soon across Europe." />
       </Helmet>
+
+      {/* Add Structured Data */}
+      <PreLaunchStructuredData />
 
       <div className="min-h-screen bg-cream-light">
         
@@ -63,7 +82,7 @@ export function ComingSoonPage() {
         {/* Hero Section */}
         <section className="relative pt-24 pb-20 min-h-[90vh] flex items-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <SmartImage category="hero" usageContext="landing" tags={['mountain', 'landscape', 'adventure']} priority="high" className="w-full h-full object-cover" alt="Mountain landscape" />
+            <SmartImage category="hero" usageContext="landing" tags={['mountain', 'landscape', 'adventure']} priority="high" className="w-full h-full object-cover" alt="Certified mountain guide leading hikers on European alpine trail" />
             <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/50 to-cream-light" />
           </div>
 
@@ -73,7 +92,7 @@ export function ComingSoonPage() {
                 Coming Soon
               </Badge>
 
-              <h1 className="font-playfair text-5xl md:text-7xl font-bold text-white leading-tight">Connecting guides with adventure seekers</h1>
+              <h1 className="font-playfair text-5xl md:text-7xl font-bold text-white leading-tight">Europe's Premium Marketplace for Certified Mountain Guides</h1>
 
               <p className="text-xl text-white/90 max-w-2xl mx-auto">
                 Europe's first premium marketplace connecting certified mountain guides with adventurers seeking authentic, safe mountain experiences.
@@ -111,7 +130,7 @@ export function ComingSoonPage() {
                   For Professional Guides
                 </Badge>
                 
-                <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">Own your business. Share your passion.</h2>
+                <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">Grow Your Mountain Guiding Business with IFMGA Platform</h2>
 
                 <div className="space-y-4">
                   {[{
@@ -146,7 +165,7 @@ export function ComingSoonPage() {
 
               <div className="relative">
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                  <SmartImage category="portrait" usageContext="landing" tags={['guide', 'professional', 'mountain']} className="w-full h-full object-cover" alt="Professional mountain guide" />
+                  <SmartImage category="portrait" usageContext="landing" tags={['guide', 'professional', 'mountain']} className="w-full h-full object-cover" alt="IFMGA certified mountain guide in European Alps" />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
 
@@ -216,7 +235,7 @@ export function ComingSoonPage() {
             <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
               <div className="relative order-2 md:order-1">
             <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-              <SmartImage category="hiking" usageContext="landing" tags={['trail', 'adventure', 'group']} className="w-full h-full object-cover" alt="Hikers on mountain trail" />
+              <SmartImage category="hiking" usageContext="landing" tags={['trail', 'adventure', 'group']} className="w-full h-full object-cover" alt="Group of hikers with certified guide in Dolomites Italy" />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
 
@@ -288,7 +307,7 @@ export function ComingSoonPage() {
               <div className="grid md:grid-cols-2 gap-12 items-start">
               <div className="relative">
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                  <SmartImage category="portrait" usageContext="about" tags={['guide', 'professional', 'outdoor']} className="w-full h-full object-cover" alt="Founder" />
+                  <SmartImage category="portrait" usageContext="about" tags={['guide', 'professional', 'outdoor']} className="w-full h-full object-cover" alt="Michel Visser UK Mountain Leader and Made to Hike founder" />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
                 <Badge className="absolute top-4 right-4 bg-burgundy text-white border-0">
@@ -303,7 +322,7 @@ export function ComingSoonPage() {
                       <img 
                         src={founderProfile.profile_image_url}
                         className="h-12 w-12 rounded-full object-cover border-2 border-burgundy/20" 
-                        alt="Michel Visser - Mountain Guide"
+                        alt="Michel Visser UK Mountain Leader and Made to Hike founder"
                       />
                     ) : (
                       <div className="h-12 w-12 rounded-full bg-burgundy/10 flex items-center justify-center">
@@ -501,32 +520,46 @@ export function ComingSoonPage() {
           </div>
         </section>
 
+        {/* FAQ Section */}
+        <FAQSection />
+
         {/* Featured Regions Section */}
         <section className="py-24 bg-cream">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto space-y-12">
               <div className="text-center">
                 <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">
-                  Explore Europe's Finest Mountains
+                  Explore Europe's Most Iconic Mountain Ranges
                 </h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
+                  From the peaks of the Alps to the dramatic Scottish Highlands, certified guides are ready to lead your adventure
+                </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-4 gap-6">
                 {[{
-                name: 'Scottish Highlands',
-                guides: 120,
-                tags: ['scotland', 'highlands']
-              }, {
-                name: 'French Pyrenees',
-                guides: 85,
-                tags: ['pyrenees', 'france']
+                name: 'Swiss Alps',
+                guides: 150,
+                tags: ['alps', 'switzerland'],
+                alt: 'Swiss Alps mountain peaks with certified IFMGA guides available'
               }, {
                 name: 'Italian Dolomites',
                 guides: 95,
-                tags: ['dolomites']
+                tags: ['dolomites', 'italy'],
+                alt: 'Italian Dolomites dramatic limestone peaks with mountain guides'
+              }, {
+                name: 'Pyrenees',
+                guides: 85,
+                tags: ['pyrenees', 'spain', 'france'],
+                alt: 'Pyrenees mountain range Spain France with certified hiking guides'
+              }, {
+                name: 'Scottish Highlands',
+                guides: 120,
+                tags: ['scotland', 'highlands'],
+                alt: 'Scottish Highlands rugged mountains with UK Mountain Leader guides'
               }].map((region, idx) => <Card key={idx} className="overflow-hidden group cursor-pointer hover:shadow-elegant transition-shadow">
                     <div className="relative aspect-[3/4] overflow-hidden">
-                      <SmartImage category="landscape" usageContext="landing" tags={region.tags} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt={region.name} />
+                      <SmartImage category="landscape" usageContext="landing" tags={region.tags} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt={region.alt} />
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                     </div>
                     <div className="p-4">

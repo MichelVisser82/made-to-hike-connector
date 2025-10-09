@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- Homepage -->
+  <url>
+    <loc>https://madetohike.com/</loc>
+    <lastmod>2025-10-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en-eu" href="https://madetohike.com/" />
+  </url>
+  
+  <!-- Guides Search Page -->
+  <url>
+    <loc>https://madetohike.com/guides</loc>
+    <lastmod>2025-10-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Certifications Page -->
+  <url>
+    <loc>https://madetohike.com/certifications</loc>
+    <lastmod>2025-10-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Guide Signup Page -->
+  <url>
+    <loc>https://madetohike.com/guide/signup</loc>
+    <lastmod>2025-10-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Note: Individual guide profiles and tour pages will be dynamically added -->
+  <!-- This sitemap should be generated dynamically on launch to include all guide profiles -->
+  <!-- Format: https://madetohike.com/[guide-slug] -->
+  <!-- Format: https://madetohike.com/tours/[tour-slug] -->
+</urlset>

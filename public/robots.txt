@@ -1,14 +1,29 @@
-User-agent: Googlebot
-Allow: /
+# Pre-launch configuration - Only allow homepage
+User-agent: *
+Allow: /$
+Allow: /assets/
+Allow: /favicon.ico
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.webp$
+Disallow: /tours/
+Disallow: /guides/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /guide/signup/
+Disallow: /certifications/
+Disallow: /verify-email/
 
-User-agent: Bingbot
-Allow: /
-
+# Social media crawlers - allow access
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Sitemap for pre-launch (only homepage)
+Sitemap: https://madetohike.com/sitemap-prelaunch.xml

@@ -21,3 +21,15 @@ export const IS_LAUNCHED = false;
  * Current password hash is for: "preview2025"
  */
 export const BYPASS_PASSWORD_HASH = "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5";
+
+/**
+ * SEO Configuration
+ * Controls sitemap URLs and canonical base for the website
+ */
+export const SEO_CONFIG = {
+  isLaunched: IS_LAUNCHED,
+  sitemapUrl: IS_LAUNCHED 
+    ? 'https://madetohike.com/sitemap.xml' 
+    : 'https://madetohike.com/sitemap-prelaunch.xml',
+  canonicalBase: 'https://madetohike.com',
+};
