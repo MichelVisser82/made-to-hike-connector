@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { GuideFollowUpModal } from './GuideFollowUpModal';
-import { clearSupabaseAuthCache } from '@/utils/authCleanup';
 
 interface EmailSignupCardProps {
   userType: 'guide' | 'hiker';
@@ -48,71 +47,29 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
         .single();
 
       if (error) {
-        // Check for RLS policy violation
-        if (error.message?.includes('row-level security') || error.message?.includes('policy')) {
-          console.log('[EmailSignup] RLS error detected, clearing cache and retrying...');
-          
-          // Clear auth cache silently (no notifications)
-          clearSupabaseAuthCache();
-          
-          // Wait a moment for cache clear to take effect
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Retry the insert
-          const { data: retryData, error: retryError } = await supabase
-            .from('launch_signups')
-            .insert({
-              email: email.toLowerCase().trim(),
-              user_type: userType,
-              source_section: sectionName,
-            })
-            .select('id')
-            .single();
-          
-          if (retryError) {
-            console.error('[EmailSignup] Retry failed:', retryError);
-            throw retryError;
-          }
-          
-          // Retry succeeded
-          if (userType === 'guide' && retryData?.id) {
-            setSignupId(retryData.id);
-            setShowGuideModal(true);
-            setEmail('');
-          } else {
-            setIsSuccess(true);
-            setEmail('');
-            setTimeout(() => setIsSuccess(false), 3000);
-            toast({
-              title: 'Success!',
-              description: "You're on the list. We'll email you when we launch!",
-            });
-          }
-          return;
-        }
-        
         if (error.code === '23505') {
           toast({
             title: "You're already on the list!",
             description: "We'll notify you when we launch.",
           });
-        } else {
-          throw error;
+          return;
         }
+        throw error;
+      }
+
+      // Success
+      if (userType === 'guide' && data?.id) {
+        setSignupId(data.id);
+        setShowGuideModal(true);
+        setEmail('');
       } else {
-        if (userType === 'guide' && data?.id) {
-          setSignupId(data.id);
-          setShowGuideModal(true);
-          setEmail('');
-        } else {
-          setIsSuccess(true);
-          setEmail('');
-          setTimeout(() => setIsSuccess(false), 3000);
-          toast({
-            title: 'Success!',
-            description: "You're on the list. We'll email you when we launch!",
-          });
-        }
+        setIsSuccess(true);
+        setEmail('');
+        setTimeout(() => setIsSuccess(false), 3000);
+        toast({
+          title: 'Success!',
+          description: "You're on the list. We'll email you when we launch!",
+        });
       }
     } catch (error: any) {
       console.error('[EmailSignup] Error submitting email:', error);
