@@ -564,7 +564,6 @@ export function ComingSoonPage() {
                     </div>
                     <div className="p-4">
                       <h3 className="font-playfair text-xl font-bold text-charcoal">{region.name}</h3>
-                      <p className="text-muted-foreground">{region.guides}+ guides available</p>
                     </div>
                   </Card>)}
               </div>
