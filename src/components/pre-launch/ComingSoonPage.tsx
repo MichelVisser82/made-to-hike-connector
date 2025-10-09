@@ -12,6 +12,7 @@ import { MockTourCard } from './MockTourCard';
 import { TopographicLines } from './decorations/TopographicLines';
 import { MountainRidge } from './decorations/MountainRidge';
 import { CertificationBadge } from '@/components/ui/certification-badge';
+import type { GuideCertification } from '@/types/guide';
 export function ComingSoonPage() {
   const [activeSection, setActiveSection] = useState('');
   const scrollToSection = (id: string) => {
@@ -292,13 +293,27 @@ export function ComingSoonPage() {
 
                 <Card className="absolute bottom-6 left-6 right-6 p-4 bg-white border-burgundy/20">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-burgundy/10 flex items-center justify-center">
-                      <Mountain className="h-6 w-6 text-burgundy" />
-                    </div>
-                    <div className="flex-1">
+                    <SmartImage 
+                      category="portrait" 
+                      usageContext="guide_profile" 
+                      tags={['guide', 'professional', 'portrait', 'michel']} 
+                      className="h-12 w-12 rounded-full object-cover border-2 border-burgundy/20" 
+                      alt="Michel Visser - Mountain Guide"
+                    />
+                    <div className="flex-1 min-w-0">
                       <p className="font-semibold text-charcoal">Michel Visser</p>
                       <p className="text-sm text-muted-foreground">Mountain Guide & Founder</p>
                     </div>
+                    <CertificationBadge
+                      certification={{
+                        certificationType: 'standard',
+                        title: 'Mountain Leader',
+                        certifyingBody: 'Mountain Training UK'
+                      } as GuideCertification}
+                      displayMode="simple"
+                      size="mini"
+                      isGuideVerified={true}
+                    />
                   </div>
                 </Card>
               </div>
