@@ -154,7 +154,7 @@ export function GuideFollowUpModal({ open, onClose, signupId, email }: GuideFoll
               className="w-full border-burgundy/30 hover:bg-burgundy/10 hover:text-burgundy hover:border-burgundy"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Another Region
+              Add another region
             </Button>
           </div>
 
@@ -192,14 +192,14 @@ export function GuideFollowUpModal({ open, onClose, signupId, email }: GuideFoll
               className="w-full border-burgundy/30 hover:bg-burgundy/10 hover:text-burgundy hover:border-burgundy"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Another Certification
+              Add another certification
             </Button>
           </div>
 
           {/* Early Tester Interest */}
           <div className="space-y-4 p-4 rounded-lg border border-burgundy/10 bg-gradient-to-br from-burgundy/5 to-transparent">
             <Label className="text-base font-semibold text-foreground">
-              Can we contact you to be one of the first Guides to test the platform?
+              Can we contact you to be one of the first guides to test the platform?
             </Label>
             <RadioGroup value={earlyTesterInterest} onValueChange={setEarlyTesterInterest} className="space-y-3">
               <div className="flex items-center space-x-3 p-3 rounded-md border border-burgundy/20 hover:border-burgundy/40 hover:bg-burgundy/5 transition-all cursor-pointer">
@@ -226,7 +226,7 @@ export function GuideFollowUpModal({ open, onClose, signupId, email }: GuideFoll
             disabled={isSubmitting}
             className="flex-1 border-burgundy/30 hover:bg-burgundy/5"
           >
-            Skip for Now
+            Skip for now
           </Button>
           <Button
             type="button"
