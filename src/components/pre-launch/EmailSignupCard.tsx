@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { GuideFollowUpModal } from './GuideFollowUpModal';
-import { ensureAnonymousContext } from '@/utils/authCleanup';
+import { clearSupabaseAuthCache } from '@/utils/authCleanup';
 
 interface EmailSignupCardProps {
   userType: 'guide' | 'hiker';
@@ -37,15 +37,6 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
     setIsLoading(true);
 
     try {
-      // Ensure we're operating as anonymous user
-      await ensureAnonymousContext();
-
-      console.log('[EmailSignup] Submitting as anonymous:', { 
-        email: email.toLowerCase().trim(), 
-        userType, 
-        sectionName 
-      });
-
       const { data, error } = await supabase
         .from('launch_signups')
         .insert({
@@ -57,14 +48,17 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
         .single();
 
       if (error) {
-        console.error('[EmailSignup] Insert error:', error);
-        
         // Check for RLS policy violation
-        if (error.message?.includes('row-level security')) {
-          // Try one more time after clearing all auth state
-          console.log('[EmailSignup] RLS error detected, clearing auth and retrying...');
-          localStorage.clear();
+        if (error.message?.includes('row-level security') || error.message?.includes('policy')) {
+          console.log('[EmailSignup] RLS error detected, clearing cache and retrying...');
           
+          // Clear auth cache silently (no notifications)
+          clearSupabaseAuthCache();
+          
+          // Wait a moment for cache clear to take effect
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Retry the insert
           const { data: retryData, error: retryError } = await supabase
             .from('launch_signups')
             .insert({
