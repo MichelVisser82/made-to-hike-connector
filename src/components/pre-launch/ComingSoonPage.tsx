@@ -68,7 +68,7 @@ export function ComingSoonPage() {
                 Coming Soon
               </Badge>
 
-              <h1 className="font-playfair text-5xl md:text-7xl font-bold text-white leading-tight">Connecting Guides with adventure seekers</h1>
+              <h1 className="font-playfair text-5xl md:text-7xl font-bold text-white leading-tight">Connecting guides with adventure seekers</h1>
 
               <p className="text-xl text-white/90 max-w-2xl mx-auto">
                 Europe's first premium marketplace connecting certified mountain guides with adventurers seeking authentic, safe mountain experiences.
@@ -106,24 +106,24 @@ export function ComingSoonPage() {
                   For Professional Guides
                 </Badge>
                 
-                <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">Own your business. share your passion.</h2>
+                <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">Own your business. Share your passion.</h2>
 
                 <div className="space-y-4">
                   {[{
                   icon: DollarSign,
-                  title: 'Keep More of What You Earn',
+                  title: 'Keep more of what you earn',
                   desc: 'Low commission rates'
                 }, {
                   icon: Award,
-                  title: 'Showcase Your Certifications',
+                  title: 'Showcase your certifications',
                   desc: 'Display IFMGA, IML, and regional qualifications'
                 }, {
                   icon: Users,
-                  title: 'Build Your Community',
+                  title: 'Build your community',
                   desc: 'Connect directly with your ideal clients'
                 }, {
                   icon: Globe,
-                  title: 'Reach Beyond Borders',
+                  title: 'Reach beyond borders',
                   desc: 'Access hikers across Europe'
                 }].map((item, idx) => <div key={idx} className="flex gap-4">
                       <div className="flex-shrink-0 p-2 bg-burgundy/10 rounded-lg h-fit">
@@ -181,15 +181,15 @@ export function ComingSoonPage() {
               <div className="grid md:grid-cols-3 gap-6">
                 {[{
                 icon: Shield,
-                title: '100% Verified',
+                title: '100% verified',
                 desc: 'All guides manually verified by our team'
               }, {
                 icon: Award,
-                title: 'Professional Standards',
+                title: 'Professional standards',
                 desc: 'Recognized international certifications'
               }, {
                 icon: Heart,
-                title: 'Sustainability First',
+                title: 'Sustainability first',
                 desc: 'Support local communities and environment'
               }].map((item, idx) => <Card key={idx} className="p-6 bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors">
                     <div className="space-y-3 text-center">
@@ -232,25 +232,25 @@ export function ComingSoonPage() {
                 </Badge>
                 
                 <h2 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal">
-                  Discover Your Next Mountain Adventure
+                  Discover your next mountain adventure
                 </h2>
 
                 <div className="space-y-4">
                   {[{
                   icon: MapPin,
-                  title: 'Authentic Local Expertise',
+                  title: 'Authentic local expertise',
                   desc: 'Experience mountains through local eyes'
                 }, {
                   icon: Shield,
-                  title: 'Safety Guaranteed',
+                  title: 'Safety guaranteed',
                   desc: 'All guides certified and insured'
                 }, {
                   icon: Compass,
-                  title: 'Personalized Adventures',
+                  title: 'Personalized adventures',
                   desc: 'Custom experiences for your skill level'
                 }, {
                   icon: Heart,
-                  title: 'Support Local Communities',
+                  title: 'Support local communities',
                   desc: 'Your bookings directly benefit guides'
                 }].map((item, idx) => <div key={idx} className="flex gap-4">
                       <div className="flex-shrink-0 p-2 bg-burgundy/10 rounded-lg h-fit">
@@ -318,7 +318,7 @@ export function ComingSoonPage() {
                   </Card>
 
                   <div className="grid grid-cols-3 gap-4 pt-4">
-                    {['Guide-First Platform', 'Authentic Experiences', 'Built on Trust'].map((item, idx) => <div key={idx} className="flex items-center gap-2">
+                    {['Guide-first platform', 'Authentic experiences', 'Built on trust'].map((item, idx) => <div key={idx} className="flex items-center gap-2">
                         <CheckCircle className="h-5 w-5 text-burgundy flex-shrink-0" />
                         <span className="text-sm text-charcoal">{item}</span>
                       </div>)}
