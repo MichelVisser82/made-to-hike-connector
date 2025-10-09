@@ -28,10 +28,17 @@ export function SecretAccessModal({ open, onClose }: SecretAccessModalProps) {
       setPassword('');
       setError('');
       
-      // Debug: Log the expected hash
-      console.log('Expected password hash:', BYPASS_PASSWORD_HASH);
-      console.log('To generate hash for a password, run in console:');
-      console.log('crypto.subtle.digest("SHA-256", new TextEncoder().encode("your-password")).then(h => console.log(Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, "0")).join("")))');
+      // Test hash generation
+      hashPassword('preview2025').then(hash => {
+        console.log('============================================');
+        console.log('🔐 BYPASS PASSWORD DEBUG INFO');
+        console.log('============================================');
+        console.log('Test password: "preview2025"');
+        console.log('Generated hash:', hash);
+        console.log('Expected hash:', BYPASS_PASSWORD_HASH);
+        console.log('Hashes match:', hash === BYPASS_PASSWORD_HASH);
+        console.log('============================================');
+      });
     }
   }, [open]);
 
