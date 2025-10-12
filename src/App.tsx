@@ -16,6 +16,7 @@ import { EmailTest } from "./components/EmailTest";
 import { Auth } from "./pages/Auth";
 import { VerifyEmail } from "./pages/VerifyEmail";
 import CertificationsPage from "./pages/CertificationsPage";
+import DashboardPage from "./pages/DashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App: React.FC = () => {
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/guide/signup" element={<GuideSignupPage />} />
                 <Route path="/certifications" element={<CertificationsPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 {/* Dynamic guide profile route - BEFORE NotFound */}
                 <Route path="/:slug" element={<GuidePage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
