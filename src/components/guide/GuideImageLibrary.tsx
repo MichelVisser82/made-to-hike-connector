@@ -287,13 +287,65 @@ export function GuideImageLibrary() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    // Filter out unsupported files
+    const supportedFiles = files.filter(file => {
+      const isSupported = file.type.startsWith('image/') || 
+                         file.name.toLowerCase().endsWith('.heic');
+      if (!isSupported) {
+        toast({
+          title: "Unsupported file type",
+          description: `${file.name} is not a supported image format`,
+          variant: "destructive",
+        });
+      }
+      return isSupported;
+    });
+
+    if (supportedFiles.length === 0) return;
+
+    toast({
+      title: "Processing images",
+      description: "Step 1/3: Extracting GPS data from images...",
+    });
+
     const processedImages: ImageWithMetadata[] = [];
 
-    for (const file of files) {
+    // STEP 1: Extract GPS data from ALL original files FIRST (before HEIC conversion)
+    const fileGPSData: Array<{ file: File; gpsData: any; detectedLocation: string }> = [];
+    
+    for (let i = 0; i < supportedFiles.length; i++) {
+      const file = supportedFiles[i];
+      console.log(`Extracting GPS from file: ${file.name}`);
+      
+      const gpsData = await extractGPSData(file);
+      let detectedLocation = '';
+      
+      if (gpsData) {
+        console.log(`GPS found for ${file.name}:`, gpsData);
+        detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+        console.log(`Detected location for ${file.name}:`, detectedLocation);
+      } else {
+        console.log(`No GPS data found for ${file.name}`);
+      }
+      
+      fileGPSData.push({ file, gpsData, detectedLocation });
+    }
+
+    // STEP 2: Process each file with GPS data already available
+    toast({
+      title: "Processing images",
+      description: "Step 2/3: Converting and preparing images...",
+    });
+
+    for (let i = 0; i < supportedFiles.length; i++) {
+      const file = supportedFiles[i];
+      const { gpsData, detectedLocation } = fileGPSData[i];
+      
       try {
-        const gpsData = await extractGPSData(file);
+        // Convert HEIC after GPS extraction
         const convertedFile = await convertHEIC(file);
         
+        // Show conversion notification if file was converted
         if (file.name !== convertedFile.name) {
           toast({
             title: "Image converted",
@@ -304,6 +356,15 @@ export function GuideImageLibrary() {
         const imageData: ImageWithMetadata = {
           file: convertedFile,
           preview: URL.createObjectURL(convertedFile),
+          suggestions: {
+            category: 'tour',
+            tags: [],
+            alt_text: '',
+            description: '',
+            usage_context: [],
+            priority: 5,
+            location: detectedLocation // Set GPS-detected location immediately
+          },
           metadata: {
             category: 'tour',
             tags: '',
@@ -313,12 +374,12 @@ export function GuideImageLibrary() {
             priority: '5',
           },
           analyzing: true,
-          gpsData: gpsData || undefined
+          gpsData // Store GPS data with the image
         };
 
         processedImages.push(imageData);
       } catch (error) {
-        console.error('Failed to process file:', error);
+        console.error(`Failed to process ${file.name}:`, error);
         toast({
           title: "Processing failed",
           description: `Failed to process ${file.name}`,
@@ -329,19 +390,35 @@ export function GuideImageLibrary() {
 
     setPendingImages(prev => [...prev, ...processedImages]);
 
+    // STEP 3: Analyze images with AI (GPS data already available)
+    toast({
+      title: "Processing images",
+      description: "Step 3/3: Analyzing images with AI...",
+    });
+
     const startIndex = pendingImages.length;
+    
     for (let i = 0; i < processedImages.length; i++) {
       const imageData = processedImages[i];
-      await analyzeImage(imageData.file, startIndex + i, imageData.gpsData);
+      const imageIndex = startIndex + i;
+      const { gpsData } = fileGPSData[i];
       
-      if (i < processedImages.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        // Analyze with AI using the converted file and GPS data
+        await analyzeImage(imageData.file, imageIndex, gpsData);
+        
+        // Small delay between analyses to avoid rate limiting
+        if (i < processedImages.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } catch (error) {
+        console.error(`Failed to analyze ${imageData.file.name}:`, error);
       }
     }
 
     toast({
-      title: "AI analysis complete",
-      description: `Analyzed ${processedImages.length} image(s)`,
+      title: "Processing complete",
+      description: `Processed ${processedImages.length} image(s) with GPS location detection`,
     });
   };
 
