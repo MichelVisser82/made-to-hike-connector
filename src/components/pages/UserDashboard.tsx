@@ -21,6 +21,7 @@ export function UserDashboard({ user, onNavigateToSearch }: UserDashboardProps) 
       onSectionChange={setActiveSection}
       showVerificationBadge={false}
       isVerified={false}
+      userRole="hiker"
     >
       <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">

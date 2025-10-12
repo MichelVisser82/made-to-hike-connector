@@ -11,6 +11,7 @@ interface MainLayoutProps {
   onSectionChange?: (section: DashboardSection) => void;
   showVerificationBadge?: boolean;
   isVerified?: boolean;
+  userRole?: 'hiker' | 'guide' | 'admin';
 }
 
 export function MainLayout({ 
@@ -19,7 +20,8 @@ export function MainLayout({
   activeSection,
   onSectionChange,
   showVerificationBadge,
-  isVerified 
+  isVerified,
+  userRole
 }: MainLayoutProps) {
   const navigate = useNavigate();
 
@@ -47,6 +49,7 @@ export function MainLayout({
         onSectionChange={onSectionChange}
         showVerificationBadge={showVerificationBadge}
         isVerified={isVerified}
+        userRole={userRole}
       />
       <main className="flex-1">{children}</main>
       {!isDashboardMode && (
