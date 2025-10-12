@@ -4,7 +4,28 @@ import { useProfile } from '@/hooks/useProfile';
 import { type User } from '@/types';
 import type { DashboardSection } from '@/types/dashboard';
 import { Badge } from '@/components/ui/badge';
-import { Mountain, Home, Users as UsersIcon, Euro, MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
+import { 
+  Mountain, 
+  Home, 
+  Users as UsersIcon, 
+  Euro, 
+  MessageSquare,
+  ChevronDown,
+  User as UserIcon,
+  Settings,
+  LogOut,
+  Bell,
+  HelpCircle
+} from 'lucide-react';
 
 interface AppNavigationProps {
   onDashboardClick?: () => void;
@@ -121,25 +142,81 @@ export function AppNavigation({
               })}
             </nav>
 
-            {/* Right: Verification Badge + User */}
+            {/* Right: Notifications, Help, and User Profile Dropdown */}
             <div className="flex items-center gap-3">
+              {/* Notifications Bell */}
+              <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+                <Bell className="w-5 h-5" />
+                {/* Red dot indicator for unread notifications */}
+                <span className="absolute top-1 right-1 w-2 h-2 bg-burgundy rounded-full" />
+              </Button>
+
+              {/* Help Button */}
+              <Button variant="ghost" size="icon" className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+                <HelpCircle className="w-5 h-5" />
+              </Button>
+
+              {/* Verification Badge */}
               {showVerificationBadge && (
                 <Badge variant={isVerified ? 'default' : 'secondary'}>
                   {isVerified ? 'Verified' : 'Pending Verification'}
                 </Badge>
               )}
+
+              {/* User Profile Dropdown */}
               {user && (
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="text-sm text-muted-foreground hover:text-foreground"
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-[200px] justify-between border-burgundy/20 hover:bg-burgundy/5 hover:border-burgundy/40"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={(user as any).avatarUrl} />
+                          <AvatarFallback className="bg-burgundy text-white text-sm">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm text-charcoal font-medium truncate">
+                          {user.name}
+                        </span>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-charcoal/50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-[200px] bg-white border-burgundy/20"
                   >
-                    Logout
-                  </button>
-                </div>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/profile')}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
+                    >
+                      <UserIcon className="w-4 h-4 mr-2" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/settings')}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator className="bg-burgundy/10" />
+                    
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5 text-burgundy focus:text-burgundy"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </div>
