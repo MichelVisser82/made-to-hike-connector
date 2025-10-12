@@ -851,10 +851,21 @@ See you soon!
 
           {/* INBOX Section */}
           {activeSection === 'inbox' && (
-            <div className="p-8 bg-white rounded-lg shadow-md border border-burgundy/10">
-              <h2 className="text-2xl font-playfair text-charcoal mb-4">Inbox Section</h2>
-              <p className="text-charcoal/60">Messages and reviews coming soon...</p>
-            </div>
+            <InboxSection
+              conversations={conversations}
+              reviews={reviews}
+              reviewStats={reviewStats}
+              templates={templates}
+              notificationPreferences={notificationPreferences}
+              unreadCount={conversations.filter(c => c.is_unread).length}
+              loading={loadingInbox}
+              onSendMessage={handleSendMessage}
+              onCallGuest={handleCallGuest}
+              onReplyToReview={handleReplyToReview}
+              onToggleTemplate={handleToggleTemplate}
+              onEditTemplate={handleEditTemplate}
+              onUpdateNotificationPreference={handleUpdateNotificationPreference}
+            />
           )}
         </main>
 
