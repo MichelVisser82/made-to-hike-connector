@@ -440,6 +440,29 @@ export function GuideImageLibrary() {
     });
   };
 
+  const applyAISuggestionsToPending = (index: number) => {
+    setPendingImages(prev => prev.map((img, i) => {
+      if (i !== index || !img.suggestions) return img;
+      
+      return {
+        ...img,
+        metadata: {
+          category: img.suggestions.category || 'tour',
+          tags: img.suggestions.tags.join(', '),
+          alt_text: img.suggestions.alt_text || '',
+          description: img.suggestions.description || '',
+          usage_context: img.suggestions.usage_context.join(', '),
+          priority: img.suggestions.priority?.toString() || '5',
+        }
+      };
+    }));
+    
+    toast({
+      title: "AI suggestions applied",
+      description: "All AI suggestions have been applied to this image",
+    });
+  };
+
   const handleBulkUpload = async () => {
     if (pendingImages.length === 0) return;
 
@@ -734,6 +757,12 @@ export function GuideImageLibrary() {
                       >
                         <X className="w-3 h-3" />
                       </button>
+                      {image.gpsData && (
+                        <Badge className="absolute top-1 left-1 text-xs bg-green-600 text-white border-green-700">
+                          <MapPin className="w-2 h-2 mr-1" />
+                          GPS
+                        </Badge>
+                      )}
                       {image.suggestions?.location && (
                         <Badge className="absolute bottom-1 left-1 text-xs" variant="secondary">
                           <MapPin className="w-2 h-2 mr-1" />
@@ -741,19 +770,81 @@ export function GuideImageLibrary() {
                         </Badge>
                       )}
                     </div>
-                    <div className="space-y-1">
-                      <Input
-                        placeholder="Category"
-                        value={image.metadata.category}
-                        onChange={(e) => updatePendingMetadata(index, 'category', e.target.value)}
-                        className="text-xs h-7"
-                      />
-                      <Input
-                        placeholder="Alt text"
-                        value={image.metadata.alt_text}
-                        onChange={(e) => updatePendingMetadata(index, 'alt_text', e.target.value)}
-                        className="text-xs h-7"
-                      />
+                    
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium truncate">{image.file.name}</div>
+                      
+                      {!image.analyzing && image.suggestions && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full h-7 text-xs"
+                          onClick={() => applyAISuggestionsToPending(index)}
+                        >
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Apply AI
+                        </Button>
+                      )}
+
+                      <div className="space-y-1">
+                        <Select
+                          value={image.metadata.category}
+                          onValueChange={(value) => updatePendingMetadata(index, 'category', value)}
+                        >
+                          <SelectTrigger className="text-xs h-7">
+                            <SelectValue placeholder="Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map(cat => (
+                              <SelectItem key={cat} value={cat} className="text-xs">{cat}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        <Input
+                          placeholder="Alt text"
+                          value={image.metadata.alt_text}
+                          onChange={(e) => updatePendingMetadata(index, 'alt_text', e.target.value)}
+                          className="text-xs h-7"
+                        />
+                        
+                        <Input
+                          placeholder="Usage context (e.g., landing, tours, gallery)"
+                          value={image.metadata.usage_context}
+                          onChange={(e) => updatePendingMetadata(index, 'usage_context', e.target.value)}
+                          className="text-xs h-7"
+                        />
+                        
+                        <Input
+                          placeholder="Priority (0-10)"
+                          type="number"
+                          min="0"
+                          max="10"
+                          value={image.metadata.priority}
+                          onChange={(e) => updatePendingMetadata(index, 'priority', e.target.value)}
+                          className="text-xs h-7"
+                        />
+                      </div>
+
+                      {!image.analyzing && image.suggestions && image.suggestions.tags.length > 0 && (
+                        <div className="space-y-1 pt-1 border-t">
+                          <p className="text-xs text-muted-foreground font-medium">AI Suggestions:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {image.suggestions.tags.slice(0, 4).map((tag: string, tagIdx: number) => (
+                              <Badge key={tagIdx} variant="secondary" className="text-xs">
+                                <Tag className="w-2 h-2 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                          {image.suggestions.category !== image.metadata.category && (
+                            <Badge variant="outline" className="text-xs">
+                              <Sparkles className="w-2 h-2 mr-1" />
+                              {image.suggestions.category}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
