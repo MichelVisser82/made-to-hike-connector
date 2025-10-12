@@ -105,10 +105,9 @@ export interface BookingWithDetails extends Booking {
 export interface Message {
   id: string;
   booking_id: string;
-  sender_id: string;
-  sender_type: 'guide' | 'hiker';
-  message: string;
-  created_at: string;
+  sender: 'guide' | 'guest';
+  content: string;
+  timestamp: string;
   read: boolean;
 }
 
@@ -157,4 +156,57 @@ export interface TaxDocument {
   year: number;
   file_path: string;
   created_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  guest_id: string;
+  guest_name: string;
+  guest_avatar?: string;
+  tour_id: string;
+  tour_title: string;
+  last_message: string;
+  last_message_time: string;
+  is_unread: boolean;
+  messages: Message[];
+}
+
+export interface Review {
+  id: string;
+  guest_name: string;
+  guest_avatar?: string;
+  tour_title: string;
+  rating: number;
+  comment: string;
+  date: string;
+  reply?: string;
+}
+
+export interface ReviewStats {
+  overall: number;
+  total: number;
+  breakdown: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
+}
+
+export interface MessageTemplate {
+  id: string;
+  name: string;
+  description: string;
+  content: string;
+  enabled: boolean;
+}
+
+export interface NotificationPreference {
+  id: string;
+  title: string;
+  description: string;
+  email: boolean;
+  sms: boolean;
+  push: boolean;
 }

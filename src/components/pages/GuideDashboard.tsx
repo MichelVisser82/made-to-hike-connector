@@ -9,12 +9,18 @@ import {
   type Balances,
   type TopEarningTour,
   type Payout,
-  type TaxDocument
+  type TaxDocument,
+  type Conversation,
+  type Review,
+  type ReviewStats,
+  type MessageTemplate,
+  type NotificationPreference,
 } from '../../types';
 import type { DashboardSection, DashboardStats, TodayScheduleItem, Notification } from '@/types/dashboard';
 import { MainLayout } from '../layout/MainLayout';
 import { BookingsSection } from '../dashboard/BookingsSection';
 import { MoneySection } from '../dashboard/MoneySection';
+import { InboxSection } from '../dashboard/InboxSection';
 import { TodaySection } from '../dashboard/TodaySection';
 import { ToursSection } from '../dashboard/ToursSection';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -63,6 +69,18 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
   const [nextPayout, setNextPayout] = useState<Payout | undefined>(undefined);
   const [taxDocuments, setTaxDocuments] = useState<TaxDocument[]>([]);
   const [loadingMoney, setLoadingMoney] = useState(false);
+
+  // Inbox state
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewStats, setReviewStats] = useState<ReviewStats>({
+    overall: 0,
+    total: 0,
+    breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+  });
+  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreference[]>([]);
+  const [loadingInbox, setLoadingInbox] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -78,6 +96,12 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
   useEffect(() => {
     if (activeSection === 'money') {
       fetchFinancialData();
+    }
+  }, [activeSection, user.id]);
+
+  useEffect(() => {
+    if (activeSection === 'inbox') {
+      fetchInboxData();
     }
   }, [activeSection, user.id]);
 
@@ -447,6 +471,282 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
       title: 'Download',
       description: `Downloading ${doc?.name || 'document'}...`,
     });
+  };
+
+  // Fetch inbox data
+  const fetchInboxData = async () => {
+    try {
+      setLoadingInbox(true);
+
+      // Fetch reviews for this guide
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          profiles!reviews_hiker_id_fkey(name),
+          tours!inner(title, guide_id)
+        `)
+        .eq('tours.guide_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (reviewsError) throw reviewsError;
+
+      // Transform reviews
+      const transformedReviews: Review[] = reviewsData?.map(review => ({
+        id: review.id,
+        guest_name: review.profiles?.name || 'Anonymous',
+        tour_title: review.tours.title,
+        rating: review.rating,
+        comment: review.comment || '',
+        date: review.created_at,
+        reply: undefined, // TODO: Add reply functionality
+      })) || [];
+
+      setReviews(transformedReviews);
+
+      // Calculate review stats
+      const total = transformedReviews.length;
+      const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      let sum = 0;
+
+      transformedReviews.forEach(review => {
+        breakdown[review.rating as keyof typeof breakdown]++;
+        sum += review.rating;
+      });
+
+      setReviewStats({
+        overall: total > 0 ? sum / total : 0,
+        total,
+        breakdown,
+      });
+
+      // Mock conversations (TODO: Implement real messaging system)
+      setConversations([
+        {
+          id: 'conv-1',
+          guest_id: 'guest-1',
+          guest_name: 'Sarah Johnson',
+          tour_id: 'tour-1',
+          tour_title: 'Mont Blanc Summit Trek',
+          last_message: 'Thanks for the gear recommendations!',
+          last_message_time: new Date(Date.now() - 3600000).toISOString(),
+          is_unread: true,
+          messages: [
+            {
+              id: 'msg-1',
+              sender: 'guest',
+              content: "Hi! I'm looking forward to the trek. Any specific gear recommendations?",
+              timestamp: new Date(Date.now() - 7200000).toISOString(),
+              booking_id: 'booking-1',
+              read: true,
+            },
+            {
+              id: 'msg-2',
+              sender: 'guide',
+              content: 'Great! Make sure you have well-fitted mountaineering boots and layers for changing weather.',
+              timestamp: new Date(Date.now() - 3600000).toISOString(),
+              booking_id: 'booking-1',
+              read: true,
+            },
+            {
+              id: 'msg-3',
+              sender: 'guest',
+              content: "Thanks for the recommendations! I'll make sure to pack accordingly.",
+              timestamp: new Date(Date.now() - 3600000).toISOString(),
+              booking_id: 'booking-1',
+              read: false,
+            },
+          ],
+        },
+        {
+          id: 'conv-2',
+          guest_id: 'guest-2',
+          guest_name: 'Michael Chen',
+          tour_id: 'tour-2',
+          tour_title: 'Alpine Lakes Discovery',
+          last_message: 'What time should we arrive?',
+          last_message_time: new Date(Date.now() - 10800000).toISOString(),
+          is_unread: true,
+          messages: [
+            {
+              id: 'msg-4',
+              sender: 'guest',
+              content: 'What time should we arrive?',
+              timestamp: new Date(Date.now() - 10800000).toISOString(),
+              booking_id: 'booking-2',
+              read: false,
+            },
+          ],
+        },
+        {
+          id: 'conv-3',
+          guest_id: 'guest-3',
+          guest_name: 'Emma Williams',
+          tour_id: 'tour-3',
+          tour_title: 'Highland Photography Tour',
+          last_message: 'Looking forward to the trek!',
+          last_message_time: new Date(Date.now() - 86400000).toISOString(),
+          is_unread: false,
+          messages: [
+            {
+              id: 'msg-5',
+              sender: 'guest',
+              content: 'Looking forward to the trek!',
+              timestamp: new Date(Date.now() - 86400000).toISOString(),
+              booking_id: 'booking-3',
+              read: true,
+            },
+          ],
+        },
+      ]);
+
+      // Mock message templates
+      setTemplates([
+        {
+          id: 'template-1',
+          name: 'Booking Confirmation',
+          description: 'Sent immediately after booking is confirmed',
+          content: `Welcome {guest_name}, your booking for {tour_name} is confirmed!
+
+We're excited to have you join us. Here are the key details:
+
+📅 Date: {tour_date}
+📍 Meeting Point: {meeting_point}
+⏰ Start Time: {start_time}
+
+What to bring:
+• Hiking boots
+• Layered clothing
+• Water and snacks
+• Camera (optional)
+
+If you have any questions, feel free to reach out!
+
+Best regards,
+{guide_name}`,
+          enabled: true,
+        },
+        {
+          id: 'template-2',
+          name: 'Pre-trip Reminder',
+          description: 'Sent 2 days before tour date',
+          content: `Hi {guest_name}, your trek is coming up in 2 days! Here's what you need to know:
+
+📅 Date: {tour_date}
+📍 Meeting Point: {meeting_point}
+⏰ Arrive by: {arrival_time}
+
+Weather forecast: {weather}
+
+Don't forget to bring:
+✓ Proper hiking boots
+✓ Rain gear (just in case)
+✓ Water bottle
+✓ Sun protection
+
+See you soon!
+{guide_name}`,
+          enabled: true,
+        },
+      ]);
+
+      // Mock notification preferences
+      setNotificationPreferences([
+        {
+          id: 'pref-1',
+          title: 'New Booking Requests',
+          description: 'Get notified when someone requests to book your tour',
+          email: true,
+          sms: true,
+          push: true,
+        },
+        {
+          id: 'pref-2',
+          title: 'Messages from Guests',
+          description: 'Receive notifications for new messages',
+          email: true,
+          sms: false,
+          push: true,
+        },
+        {
+          id: 'pref-3',
+          title: 'Reviews',
+          description: 'Get notified when guests leave reviews',
+          email: true,
+          sms: false,
+          push: true,
+        },
+        {
+          id: 'pref-4',
+          title: 'Payout Updates',
+          description: 'Track your earnings and payouts',
+          email: true,
+          sms: false,
+          push: false,
+        },
+      ]);
+
+    } catch (error) {
+      console.error('Error fetching inbox data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch inbox data',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingInbox(false);
+    }
+  };
+
+  // Inbox handlers
+  const handleSendMessage = (conversationId: string, message: string) => {
+    toast({
+      title: 'Message sent',
+      description: 'Your message has been sent to the guest',
+    });
+  };
+
+  const handleCallGuest = (conversationId: string) => {
+    toast({
+      title: 'Call feature',
+      description: 'Call functionality coming soon',
+    });
+  };
+
+  const handleReplyToReview = (reviewId: string) => {
+    toast({
+      title: 'Reply to review',
+      description: 'Reply functionality coming soon',
+    });
+  };
+
+  const handleToggleTemplate = (templateId: string, enabled: boolean) => {
+    setTemplates(prev =>
+      prev.map(t => (t.id === templateId ? { ...t, enabled } : t))
+    );
+    toast({
+      title: enabled ? 'Template enabled' : 'Template disabled',
+      description: `Automated message ${enabled ? 'activated' : 'deactivated'}`,
+    });
+  };
+
+  const handleEditTemplate = (templateId: string) => {
+    toast({
+      title: 'Edit template',
+      description: 'Template editor coming soon',
+    });
+  };
+
+  const handleUpdateNotificationPreference = (
+    preferenceId: string,
+    channel: 'email' | 'sms' | 'push',
+    enabled: boolean
+  ) => {
+    setNotificationPreferences(prev =>
+      prev.map(p =>
+        p.id === preferenceId ? { ...p, [channel]: enabled } : p
+      )
+    );
   };
 
   // Mock data for TODAY section

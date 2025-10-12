@@ -126,7 +126,7 @@ export function MessagesModal({
               <ScrollArea className="h-96 pr-4">
                 <div className="space-y-4">
                   {messages.map((message) =>
-                    message.sender_type === 'hiker' ? (
+                    message.sender === 'guest' ? (
                       // Guest message
                       <div key={message.id} className="flex justify-start">
                         <div className="max-w-[80%]">
@@ -138,10 +138,10 @@ export function MessagesModal({
                             </Avatar>
                             <div>
                               <div className="bg-cream border border-burgundy/10 rounded-lg p-3">
-                                <p className="text-charcoal">{message.message}</p>
+                                <p className="text-charcoal">{message.content}</p>
                               </div>
                               <p className="text-xs text-charcoal/50 mt-1 ml-1">
-                                {format(new Date(message.created_at), 'h:mm a')}
+                                {format(new Date(message.timestamp), 'h:mm a')}
                               </p>
                             </div>
                           </div>
@@ -152,10 +152,10 @@ export function MessagesModal({
                       <div key={message.id} className="flex justify-end">
                         <div className="max-w-[80%]">
                           <div className="bg-gradient-to-br from-burgundy to-burgundy-dark rounded-lg p-3">
-                            <p className="text-white">{message.message}</p>
+                            <p className="text-white">{message.content}</p>
                           </div>
                           <p className="text-xs text-charcoal/50 mt-1 text-right mr-1">
-                            {format(new Date(message.created_at), 'h:mm a')}
+                            {format(new Date(message.timestamp), 'h:mm a')}
                           </p>
                         </div>
                       </div>
