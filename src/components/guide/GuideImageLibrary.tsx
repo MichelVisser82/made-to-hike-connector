@@ -886,7 +886,7 @@ export function GuideImageLibrary() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex flex-col items-center justify-center gap-2">
                       <Button
                         size="sm"
                         variant="secondary"
@@ -895,22 +895,24 @@ export function GuideImageLibrary() {
                         <Eye className="w-4 h-4 mr-1" />
                         View
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => openEditDialog(image)}
-                      >
-                        <Edit3 className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(image.id)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => openEditDialog(image)}
+                        >
+                          <Edit3 className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(image.id)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                     <div className="mt-2 space-y-1">
                       <p className="text-xs font-medium truncate">
