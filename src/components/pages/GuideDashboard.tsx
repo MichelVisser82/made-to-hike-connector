@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { type User, type Tour } from '../../types';
-import type { DashboardSection } from '@/types/dashboard';
+import { type User, type Tour, type BookingWithDetails } from '../../types';
+import type { DashboardSection, DashboardStats, TodayScheduleItem, Notification } from '@/types/dashboard';
 import { MainLayout } from '../layout/MainLayout';
+import { BookingsSection } from '../dashboard/BookingsSection';
 import { TodaySection } from '../dashboard/TodaySection';
 import { ToursSection } from '../dashboard/ToursSection';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -37,11 +38,19 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [activeSection, setActiveSection] = useState<DashboardSection>('today');
+  const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchGuideTours();
   }, [user.id]);
+
+  useEffect(() => {
+    if (activeSection === 'bookings') {
+      fetchBookings();
+    }
+  }, [activeSection, user.id]);
 
   const fetchGuideTours = async () => {
     try {
@@ -195,6 +204,52 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
     navigate('/tour-creation', { state: { tour } });
   };
 
+  const fetchBookings = async () => {
+    try {
+      setLoadingBookings(true);
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          tours!inner(title, duration, region, meeting_point, guide_id),
+          profiles!bookings_hiker_id_fkey(id, name, email, avatar_url)
+        `)
+        .eq('tours.guide_id', user.id)
+        .order('booking_date', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data to match BookingWithDetails type
+      const transformedData = data?.map(booking => ({
+        ...booking,
+        tour: booking.tours,
+        guest: booking.profiles,
+      })) as BookingWithDetails[];
+
+      setBookings(transformedData || []);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch bookings',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+
+  const handleBookingClick = (booking: BookingWithDetails) => {
+    navigate(`/dashboard/booking/${booking.id}`);
+  };
+
+  const handleExportBookings = () => {
+    toast({
+      title: 'Export',
+      description: 'Export functionality coming soon',
+    });
+  };
+
   // Mock data for TODAY section
   const mockStats = {
     todayTours: 0,
@@ -272,10 +327,12 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
 
           {/* BOOKINGS Section */}
           {activeSection === 'bookings' && (
-            <div className="p-8 bg-white rounded-lg shadow-md border border-burgundy/10">
-              <h2 className="text-2xl font-playfair text-charcoal mb-4">Bookings Section</h2>
-              <p className="text-charcoal/60">Bookings management coming soon...</p>
-            </div>
+            <BookingsSection
+              bookings={bookings}
+              loading={loadingBookings}
+              onBookingClick={handleBookingClick}
+              onExport={handleExportBookings}
+            />
           )}
 
           {/* MONEY Section */}

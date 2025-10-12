@@ -60,3 +60,54 @@ export interface SearchFilters {
   dateRange: string;
   maxPrice: string;
 }
+
+export interface Booking {
+  id: string;
+  tour_id: string;
+  hiker_id: string;
+  booking_date: string;
+  participants: number;
+  total_price: number;
+  currency: 'EUR' | 'GBP';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  special_requests?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookingWithDetails extends Booking {
+  tour?: {
+    title: string;
+    duration: string;
+    region: string;
+    meeting_point: string;
+    guide_id: string;
+  };
+  guest?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    avatar_url?: string;
+  };
+  participants_details?: Array<{
+    name: string;
+    age: number;
+    waiver_signed: boolean;
+  }>;
+  emergency_contact?: {
+    name: string;
+    relationship: string;
+    phone: string;
+  };
+}
+
+export interface Message {
+  id: string;
+  booking_id: string;
+  sender_id: string;
+  sender_type: 'guide' | 'hiker';
+  message: string;
+  created_at: string;
+  read: boolean;
+}

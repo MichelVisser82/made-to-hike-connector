@@ -18,6 +18,7 @@ import { VerifyEmail } from "./pages/VerifyEmail";
 import CertificationsPage from "./pages/CertificationsPage";
 import DashboardPage from "./pages/DashboardPage";
 import TourCreationPage from "./pages/TourCreationPage";
+import { BookingDetailPage } from "./components/dashboard/BookingDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,14 @@ const App: React.FC = () => {
                   element={
                     <ProtectedRoute>
                       <TourCreationPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/dashboard/booking/:bookingId" 
+                  element={
+                    <ProtectedRoute>
+                      <BookingDetailPage />
                     </ProtectedRoute>
                   } 
                 />
