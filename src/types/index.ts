@@ -111,3 +111,50 @@ export interface Message {
   created_at: string;
   read: boolean;
 }
+
+export interface Transaction {
+  id: string;
+  booking_id: string;
+  tour_id: string;
+  tour_title: string;
+  guest_name: string;
+  date: string;
+  gross_amount: number;
+  platform_fee: number;
+  net_amount: number;
+  currency: 'EUR' | 'GBP';
+  status: 'pending' | 'completed' | 'refunded';
+  created_at: string;
+}
+
+export interface Balances {
+  pending: number;
+  available: number;
+  lifetime: number;
+  currency: 'EUR' | 'GBP';
+}
+
+export interface TopEarningTour {
+  tour_id: string;
+  tour_title: string;
+  total_earnings: number;
+  booking_count: number;
+}
+
+export interface Payout {
+  id: string;
+  amount: number;
+  currency: 'EUR' | 'GBP';
+  scheduled_date: string;
+  status: 'scheduled' | 'processing' | 'completed';
+  created_at: string;
+}
+
+export interface TaxDocument {
+  id: string;
+  name: string;
+  type: 'PDF' | 'CSV';
+  year: number;
+  file_path: string;
+  created_at: string;
+}
