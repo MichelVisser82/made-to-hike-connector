@@ -71,8 +71,8 @@ export function AppNavigation({
     if (onDashboardClick) {
       onDashboardClick();
     } else {
-      // Navigate to homepage - MadeToHikeApp will handle routing to correct dashboard
-      navigate('/');
+      // Navigate to dashboard route
+      navigate('/dashboard');
     }
   };
 
