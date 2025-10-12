@@ -120,7 +120,7 @@ export function DashboardShell({
             </nav>
 
             {/* Right Side - Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 ml-8">
               {/* Notifications Bell */}
               <DropdownMenu open={showNotifications} onOpenChange={setShowNotifications}>
                 <DropdownMenuTrigger asChild>
