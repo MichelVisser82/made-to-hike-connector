@@ -4,12 +4,22 @@ import { TourDetailPage } from '@/components/pages/TourDetailPage';
 import { TourSEO } from '@/components/seo/TourSEO';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 import { Loader2 } from 'lucide-react';
+import type { DashboardMode } from '@/types/dashboard';
 
 export default function TourPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const { data: tour, isLoading: tourLoading, error } = useTourBySlug(slug);
+  
+  // Determine dashboard mode based on user role
+  const dashboardMode: DashboardMode = user && profile 
+    ? (profile.role as DashboardMode)
+    : null;
 
   const isLoading = tourLoading;
 
@@ -42,7 +52,7 @@ export default function TourPage() {
     <>
       <TourSEO tour={tour} />
       <StructuredData tour={tour} />
-      <MainLayout>
+      <MainLayout dashboardMode={dashboardMode}>
         <TourDetailPage
           tour={tour}
           onBookTour={(selectedTour) => {
