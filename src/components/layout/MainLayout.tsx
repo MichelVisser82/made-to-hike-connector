@@ -2,11 +2,11 @@ import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppNavigation } from './AppNavigation';
 import { Footer } from './Footer';
-import type { DashboardSection } from '@/types/dashboard';
+import type { DashboardSection, DashboardMode } from '@/types/dashboard';
 
 interface MainLayoutProps {
   children: ReactNode;
-  isDashboardMode?: boolean;
+  dashboardMode?: DashboardMode;
   activeSection?: DashboardSection;
   onSectionChange?: (section: DashboardSection) => void;
   showVerificationBadge?: boolean;
@@ -15,7 +15,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ 
   children, 
-  isDashboardMode,
+  dashboardMode,
   activeSection,
   onSectionChange,
   showVerificationBadge,
@@ -42,14 +42,14 @@ export function MainLayout({
   return (
     <div className="min-h-screen flex flex-col">
       <AppNavigation 
-        isDashboardMode={isDashboardMode}
+        dashboardMode={dashboardMode}
         activeSection={activeSection}
         onSectionChange={onSectionChange}
         showVerificationBadge={showVerificationBadge}
         isVerified={isVerified}
       />
       <main className="flex-1">{children}</main>
-      {!isDashboardMode && (
+      {!dashboardMode && (
         <Footer 
           onNavigate={handleNavigate}
           onNavigateToSearch={handleNavigateToSearch}

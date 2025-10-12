@@ -16,7 +16,7 @@ export function UserDashboard({ user, onNavigateToSearch }: UserDashboardProps) 
   
   return (
     <MainLayout
-      isDashboardMode={true}
+      dashboardMode="hiker"
       activeSection={activeSection}
       onSectionChange={setActiveSection}
       showVerificationBadge={false}

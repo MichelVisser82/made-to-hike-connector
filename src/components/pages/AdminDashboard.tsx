@@ -20,7 +20,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   
   return (
     <MainLayout
-      isDashboardMode={true}
+      dashboardMode="admin"
       activeSection={activeSection}
       onSectionChange={setActiveSection}
       showVerificationBadge={false}

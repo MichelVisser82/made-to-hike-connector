@@ -763,7 +763,7 @@ See you soon!
 
   return (
     <MainLayout 
-      isDashboardMode={true}
+      dashboardMode="guide"
       activeSection={activeSection}
       onSectionChange={setActiveSection}
       showVerificationBadge={true}

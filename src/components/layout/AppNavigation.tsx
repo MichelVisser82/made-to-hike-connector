@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { type User } from '@/types';
-import type { DashboardSection } from '@/types/dashboard';
+import type { DashboardSection, DashboardMode } from '@/types/dashboard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -32,7 +32,7 @@ interface AppNavigationProps {
   onSearchClick?: () => void;
   onLogoClick?: () => void;
   currentPage?: string;
-  isDashboardMode?: boolean;
+  dashboardMode?: DashboardMode;
   activeSection?: DashboardSection;
   onSectionChange?: (section: DashboardSection) => void;
   showVerificationBadge?: boolean;
@@ -44,7 +44,7 @@ export function AppNavigation({
   onSearchClick,
   onLogoClick,
   currentPage,
-  isDashboardMode,
+  dashboardMode,
   activeSection,
   onSectionChange,
   showVerificationBadge,
@@ -103,7 +103,8 @@ export function AppNavigation({
     { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
   ];
 
-  if (isDashboardMode) {
+  // Guide Dashboard Mode - Show all navigation items
+  if (dashboardMode === 'guide') {
     return (
       <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-6 py-4">
@@ -226,6 +227,98 @@ export function AppNavigation({
     );
   }
 
+  // Admin or Hiker Dashboard Mode - Show header without dashboard navigation
+  if (dashboardMode === 'admin' || dashboardMode === 'hiker') {
+    return (
+      <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left: Logo */}
+            <a
+              href="/"
+              onClick={handleLogoClick}
+              className="flex items-center gap-3 hover:opacity-80 cursor-pointer"
+            >
+              <Mountain className="w-7 h-7 text-burgundy" />
+              <span className="text-xl text-burgundy font-playfair">Made to Hike</span>
+            </a>
+
+            {/* Right: Notifications, Help, and User Profile Dropdown */}
+            <div className="flex items-center gap-3">
+              {/* Notifications Bell */}
+              <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-burgundy rounded-full" />
+              </Button>
+
+              {/* Help Button */}
+              <Button variant="ghost" size="icon" className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+                <HelpCircle className="w-5 h-5" />
+              </Button>
+
+              {/* User Profile Dropdown */}
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-[200px] justify-between border-burgundy/20 hover:bg-burgundy/5 hover:border-burgundy/40"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={(user as any).avatarUrl} />
+                          <AvatarFallback className="bg-burgundy text-white text-sm">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm text-charcoal font-medium truncate">
+                          {user.name}
+                        </span>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-charcoal/50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-[200px] bg-white border-burgundy/20"
+                  >
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/profile')}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
+                    >
+                      <UserIcon className="w-4 h-4 mr-2" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/settings')}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator className="bg-burgundy/10" />
+                    
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5 text-burgundy focus:text-burgundy"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  // Default public navigation
   return (
     <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
