@@ -222,54 +222,14 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
   ];
 
   return (
-    <MainLayout>
+    <MainLayout 
+      isDashboardMode={true}
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      showVerificationBadge={true}
+      isVerified={user.verified}
+    >
       <div className="min-h-screen bg-cream-light">
-        {/* Top Navigation Bar */}
-        <header className="sticky top-0 z-50 bg-white border-b border-burgundy/10 shadow-sm">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              {/* Left Side - Logo */}
-              <div className="flex items-center gap-3">
-                <Mountain className="w-7 h-7 text-burgundy" />
-                <span className="text-xl text-burgundy font-playfair">Made to Hike</span>
-              </div>
-
-              {/* Center - Navigation (Desktop) */}
-              <nav className="hidden md:flex items-center gap-6">
-                {navigationItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeSection === item.id;
-                  
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveSection(item.id)}
-                      className={`
-                        flex items-center gap-2 px-3 py-2 rounded-lg transition-colors
-                        ${isActive 
-                          ? 'text-burgundy bg-burgundy/5' 
-                          : 'text-charcoal/60 hover:text-burgundy hover:bg-burgundy/5'
-                        }
-                      `}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-
-              {/* Right Side - Verification Badge */}
-              <div className="flex items-center gap-3">
-                <Badge variant={user.verified ? 'default' : 'secondary'}>
-                  {user.verified ? 'Verified' : 'Pending Verification'}
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
         <main className="p-6">
           {/* TODAY Section */}
           {activeSection === 'today' && (

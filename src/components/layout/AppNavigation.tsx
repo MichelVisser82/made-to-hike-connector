@@ -2,19 +2,32 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { type User } from '@/types';
+import type { DashboardSection } from '@/types/dashboard';
+import { Badge } from '@/components/ui/badge';
+import { Mountain, Home, Users as UsersIcon, Euro, MessageSquare } from 'lucide-react';
 
 interface AppNavigationProps {
   onDashboardClick?: () => void;
   onSearchClick?: () => void;
   onLogoClick?: () => void;
   currentPage?: string;
+  isDashboardMode?: boolean;
+  activeSection?: DashboardSection;
+  onSectionChange?: (section: DashboardSection) => void;
+  showVerificationBadge?: boolean;
+  isVerified?: boolean;
 }
 
 export function AppNavigation({ 
   onDashboardClick, 
   onSearchClick,
   onLogoClick,
-  currentPage 
+  currentPage,
+  isDashboardMode,
+  activeSection,
+  onSectionChange,
+  showVerificationBadge,
+  isVerified
 }: AppNavigationProps) {
   const navigate = useNavigate();
   const { user: authUser, signOut } = useAuth();
@@ -59,6 +72,81 @@ export function AppNavigation({
       navigate('/', { replace: true });
     }
   };
+
+  const dashboardNavItems = [
+    { id: 'today' as DashboardSection, label: 'Today', icon: Home },
+    { id: 'tours' as DashboardSection, label: 'Tours', icon: Mountain },
+    { id: 'bookings' as DashboardSection, label: 'Bookings', icon: UsersIcon },
+    { id: 'money' as DashboardSection, label: 'Money', icon: Euro },
+    { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
+  ];
+
+  if (isDashboardMode) {
+    return (
+      <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left: Logo */}
+            <a
+              href="/"
+              onClick={handleLogoClick}
+              className="flex items-center gap-3 hover:opacity-80 cursor-pointer"
+            >
+              <Mountain className="w-7 h-7 text-burgundy" />
+              <span className="text-xl text-burgundy font-playfair">Made to Hike</span>
+            </a>
+
+            {/* Center: Dashboard Navigation (Desktop) */}
+            <nav className="hidden md:flex items-center gap-6">
+              {dashboardNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeSection === item.id;
+                
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onSectionChange?.(item.id)}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 rounded-lg transition-colors
+                      ${isActive 
+                        ? 'text-burgundy bg-burgundy/5' 
+                        : 'text-charcoal/60 hover:text-burgundy hover:bg-burgundy/5'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Right: Verification Badge + User */}
+            <div className="flex items-center gap-3">
+              {showVerificationBadge && (
+                <Badge variant={isVerified ? 'default' : 'secondary'}>
+                  {isVerified ? 'Verified' : 'Pending Verification'}
+                </Badge>
+              )}
+              {user && (
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
