@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { type User, type Tour } from '../../types';
-import { Settings, Plus, Archive, Copy, Trash2, Pencil, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { SmartImage } from '../SmartImage';
-import { GuideImageLibrary } from '../guide/GuideImageLibrary';
+import { type User, type Tour } from '../../types';
+import type { DashboardSection } from '@/types/dashboard';
+import { MainLayout } from '../layout/MainLayout';
+import { TodaySection } from '../dashboard/TodaySection';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Mountain, Home, Users as UsersIcon, Euro, MessageSquare, Eye, Edit as EditIcon, Copy, Archive, Trash2, Plus, EyeOff, User as UserIcon, Pencil } from 'lucide-react';
 import { GuideProfileEditForm } from '../guide/GuideProfileEditForm';
+import { GuideImageLibrary } from '../guide/GuideImageLibrary';
+import { SmartImage } from '../SmartImage';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +39,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
-  const [activeTab, setActiveTab] = useState('tours');
+  const [activeSection, setActiveSection] = useState<DashboardSection>('today');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,12 +56,14 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      if (data) {
-        setTours(data as Tour[]);
-      }
+      setTours(data as Tour[] || []);
     } catch (error) {
       console.error('Error fetching tours:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch tours',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -77,20 +81,20 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
       if (error) throw error;
 
       toast({
-        title: "Tour deleted",
-        description: "The tour has been permanently deleted.",
+        title: 'Success',
+        description: 'Tour deleted successfully',
       });
-
-      fetchGuideTours();
-    } catch (error) {
-      toast({
-        title: "Delete failed",
-        description: "Failed to delete tour. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+      
       setDeleteDialogOpen(false);
       setSelectedTour(null);
+      fetchGuideTours();
+    } catch (error) {
+      console.error('Error deleting tour:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete tour',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -104,16 +108,16 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
       if (error) throw error;
 
       toast({
-        title: "Tour unpublished",
-        description: "The tour is no longer visible in search results.",
+        title: 'Success',
+        description: 'Tour unpublished',
       });
-
       fetchGuideTours();
     } catch (error) {
+      console.error('Error:', error);
       toast({
-        title: "Unpublish failed",
-        description: "Failed to unpublish tour. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to unpublish tour',
+        variant: 'destructive',
       });
     }
   };
@@ -128,16 +132,16 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
       if (error) throw error;
 
       toast({
-        title: "Tour published",
-        description: "The tour is now visible in search results.",
+        title: 'Success',
+        description: 'Tour published',
       });
-
       fetchGuideTours();
     } catch (error) {
+      console.error('Error:', error);
       toast({
-        title: "Publish failed",
-        description: "Failed to publish tour. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to publish tour',
+        variant: 'destructive',
       });
     }
   };
@@ -152,16 +156,16 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
       if (error) throw error;
 
       toast({
-        title: "Tour archived",
-        description: "The tour has been moved to archived tours.",
+        title: 'Success',
+        description: 'Tour archived',
       });
-
       fetchGuideTours();
     } catch (error) {
+      console.error('Error:', error);
       toast({
-        title: "Archive failed",
-        description: "Failed to archive tour. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to archive tour',
+        variant: 'destructive',
       });
     }
   };
@@ -176,81 +180,135 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
       if (error) throw error;
 
       toast({
-        title: "Tour restored",
-        description: "The tour has been moved back to your active tours.",
+        title: 'Success',
+        description: 'Tour restored',
       });
-
       fetchGuideTours();
     } catch (error) {
+      console.error('Error:', error);
       toast({
-        title: "Restore failed",
-        description: "Failed to restore tour. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to restore tour',
+        variant: 'destructive',
       });
     }
   };
 
   const handleCopyTour = (tour: Tour) => {
-    // Pass the tour data to create a copy
     onCreateTour(tour);
   };
 
   const activeTours = tours.filter(t => !t.archived);
   const archivedTours = tours.filter(t => t.archived);
 
+  // Mock data for TODAY section
+  const mockStats = {
+    todayTours: 0,
+    pendingBookings: 5,
+    weekEarnings: 0,
+    unreadMessages: 0,
+  };
+
+  const mockSchedule = [];
+  const mockNotifications = [];
+
+  // Navigation items
+  const navigationItems = [
+    { id: 'today' as DashboardSection, label: 'Today', icon: Home },
+    { id: 'tours' as DashboardSection, label: 'Tours', icon: Mountain },
+    { id: 'bookings' as DashboardSection, label: 'Bookings', icon: UsersIcon },
+    { id: 'money' as DashboardSection, label: 'Money', icon: Euro },
+    { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Guide Dashboard</h1>
-            <p className="text-muted-foreground">Welcome, {user.name}</p>
+    <MainLayout>
+      <div className="min-h-screen bg-cream-light">
+        {/* Top Navigation Bar */}
+        <header className="sticky top-0 z-50 bg-white border-b border-burgundy/10 shadow-sm">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              {/* Left Side - Logo */}
+              <div className="flex items-center gap-3">
+                <Mountain className="w-7 h-7 text-burgundy" />
+                <span className="text-xl text-burgundy font-playfair">Made to Hike</span>
+              </div>
+
+              {/* Center - Navigation (Desktop) */}
+              <nav className="hidden md:flex items-center gap-6">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeSection === item.id;
+                  
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveSection(item.id)}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-lg transition-colors
+                        ${isActive 
+                          ? 'text-burgundy bg-burgundy/5' 
+                          : 'text-charcoal/60 hover:text-burgundy hover:bg-burgundy/5'
+                        }
+                      `}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* Right Side - Verification Badge */}
+              <div className="flex items-center gap-3">
+                <Badge variant={user.verified ? 'default' : 'secondary'}>
+                  {user.verified ? 'Verified' : 'Pending Verification'}
+                </Badge>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setActiveTab('profile')}
-            >
-              <UserIcon className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
-            <Badge variant={user.verified ? 'default' : 'secondary'}>
-              {user.verified ? 'Verified' : 'Pending Verification'}
-            </Badge>
-          </div>
-        </div>
+        </header>
 
-        {!user.verified && (
-          <Card className="mb-6 border-yellow-200 bg-yellow-50">
-            <CardContent className="p-6">
-              <h3 className="font-semibold mb-2">Complete Your Verification</h3>
-              <p className="text-muted-foreground mb-4">
-                You need to complete the verification process to start offering tours.
-              </p>
-              <Button onClick={onStartVerification}>
-                Start Verification Process
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        {/* Main Content */}
+        <main className="p-6">
+          {/* TODAY Section */}
+          {activeSection === 'today' && (
+            <TodaySection
+              guideName={user.name.split(' ')[0] || 'Guide'}
+              currentDate={new Date()}
+              upcomingTours={mockSchedule}
+              stats={mockStats}
+              notifications={mockNotifications}
+              onCreateTour={() => setActiveSection('tours')}
+              onManageAvailability={() => setActiveSection('tours')}
+              onViewEarnings={() => setActiveSection('money')}
+              onSectionNavigate={(section) => setActiveSection(section as DashboardSection)}
+            />
+          )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="tours">Your Tours</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="images">Image Library</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="tours">
+          {/* TOURS Section */}
+          {activeSection === 'tours' && (
             <div className="space-y-6">
+              {!user.verified && (
+                <Card className="border-burgundy/20 bg-cream">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold font-playfair text-lg mb-2">Complete Your Verification</h3>
+                    <p className="text-charcoal/70 mb-4">
+                      You need to complete the verification process to start offering tours.
+                    </p>
+                    <Button onClick={onStartVerification} className="bg-burgundy hover:bg-burgundy-dark text-white">
+                      Start Verification Process
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Active Tours */}
-              <Card>
+              <Card className="border-burgundy/10">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Your Tours</CardTitle>
+                  <CardTitle className="font-playfair">Your Tours</CardTitle>
                   {user.verified && (
-                    <Button onClick={() => onCreateTour()} size="sm">
+                    <Button onClick={() => onCreateTour()} className="bg-burgundy hover:bg-burgundy-dark text-white">
                       <Plus className="w-4 h-4 mr-2" />
                       Create Tour
                     </Button>
@@ -258,23 +316,23 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                 </CardHeader>
                 <CardContent>
                   {loading ? (
-                    <p className="text-muted-foreground">Loading your tours...</p>
+                    <p className="text-charcoal/60">Loading your tours...</p>
                   ) : activeTours.length === 0 ? (
-                    <>
-                      <p className="text-muted-foreground">No tours created yet.</p>
+                    <div className="text-center py-8">
+                      <p className="text-charcoal/60 mb-4">No tours created yet.</p>
                       {user.verified && (
-                        <Button onClick={() => onCreateTour()} className="mt-4" variant="outline">
+                        <Button onClick={() => onCreateTour()} variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5">
                           <Plus className="w-4 h-4 mr-2" />
                           Create Your First Tour
                         </Button>
                       )}
-                    </>
+                    </div>
                   ) : (
                     <div className="space-y-4">
                       {activeTours.map((tour) => (
                         <div
                           key={tour.id}
-                          className="flex gap-4 p-4 border rounded-lg"
+                          className="flex gap-4 p-4 border border-burgundy/10 rounded-lg bg-white hover:shadow-md transition-shadow"
                         >
                           <div 
                             className="w-24 h-24 rounded overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
@@ -298,20 +356,20 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                             className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => onTourClick(tour)}
                           >
-                            <h4 className="font-semibold mb-1">{tour.title}</h4>
-                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                            <h4 className="font-semibold font-playfair text-lg mb-1">{tour.title}</h4>
+                            <p className="text-sm text-charcoal/60 mb-2 line-clamp-2">
                               {tour.description}
                             </p>
                             <div className="flex gap-2 text-xs">
                               <Badge variant="secondary">{tour.difficulty}</Badge>
                               <Badge variant="outline">{tour.region}</Badge>
-                              <Badge variant={tour.is_active ? 'default' : 'secondary'}>
+                              <Badge className={tour.is_active ? 'bg-sage text-white' : 'bg-charcoal/20 text-charcoal'}>
                                 {tour.is_active ? 'Published' : 'Unpublished'}
                               </Badge>
                             </div>
                           </div>
                           <div className="flex flex-col items-end justify-between">
-                            <div className="font-bold text-lg">
+                            <div className="font-bold text-lg font-playfair">
                               {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                             </div>
                             <div className="flex gap-2">
@@ -322,6 +380,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                                   e.stopPropagation();
                                   onEditTour(tour);
                                 }}
+                                className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
                               >
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Edit
@@ -334,6 +393,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                                   handleCopyTour(tour);
                                 }}
                                 title="Copy tour"
+                                className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
                               >
                                 <Copy className="w-4 h-4" />
                               </Button>
@@ -353,7 +413,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                                   onClick={() => handlePublishTour(tour)}
                                   title="Publish tour"
                                 >
-                                  <Plus className="w-4 h-4" />
+                                  <Eye className="w-4 h-4" />
                                 </Button>
                               )}
                               <Button
@@ -386,19 +446,19 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
 
               {/* Archived Tours */}
               {archivedTours.length > 0 && (
-                <Card>
+                <Card className="border-burgundy/10">
                   <CardHeader>
-                    <CardTitle>Archived Tours</CardTitle>
+                    <CardTitle className="font-playfair">Archived Tours</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {archivedTours.map((tour) => (
                         <div
                           key={tour.id}
-                          className="flex gap-4 p-4 border rounded-lg bg-muted/50"
+                          className="flex gap-4 p-4 border rounded-lg bg-cream/50"
                         >
                           <div 
-                            className="w-24 h-24 rounded overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                            className="w-24 h-24 rounded overflow-hidden flex-shrink-0 cursor-pointer"
                             onClick={() => onTourClick(tour)}
                           >
                             {tour.hero_image ? (
@@ -415,12 +475,9 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                               />
                             )}
                           </div>
-                          <div 
-                            className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => onTourClick(tour)}
-                          >
-                            <h4 className="font-semibold mb-1">{tour.title}</h4>
-                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                          <div className="flex-1">
+                            <h4 className="font-semibold font-playfair mb-1">{tour.title}</h4>
+                            <p className="text-sm text-charcoal/60 mb-2 line-clamp-2">
                               {tour.description}
                             </p>
                             <div className="flex gap-2 text-xs">
@@ -430,7 +487,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                             </div>
                           </div>
                           <div className="flex flex-col items-end justify-between">
-                            <div className="font-bold text-lg">
+                            <div className="font-bold text-lg font-playfair">
                               {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                             </div>
                             <div className="flex gap-2">
@@ -470,27 +527,32 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
                 </Card>
               )}
             </div>
-          </TabsContent>
+          )}
 
-          <TabsContent value="profile">
-            <GuideProfileEditForm onNavigateToGuideProfile={onNavigateToGuideProfile} />
-          </TabsContent>
+          {/* BOOKINGS Section */}
+          {activeSection === 'bookings' && (
+            <div className="p-8 bg-white rounded-lg shadow-md border border-burgundy/10">
+              <h2 className="text-2xl font-playfair text-charcoal mb-4">Bookings Section</h2>
+              <p className="text-charcoal/60">Bookings management coming soon...</p>
+            </div>
+          )}
 
-          <TabsContent value="images">
-            <GuideImageLibrary />
-          </TabsContent>
+          {/* MONEY Section */}
+          {activeSection === 'money' && (
+            <div className="p-8 bg-white rounded-lg shadow-md border border-burgundy/10">
+              <h2 className="text-2xl font-playfair text-charcoal mb-4">Money Section</h2>
+              <p className="text-charcoal/60">Financial overview coming soon...</p>
+            </div>
+          )}
 
-          <TabsContent value="bookings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Bookings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">No bookings yet.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          {/* INBOX Section */}
+          {activeSection === 'inbox' && (
+            <div className="p-8 bg-white rounded-lg shadow-md border border-burgundy/10">
+              <h2 className="text-2xl font-playfair text-charcoal mb-4">Inbox Section</h2>
+              <p className="text-charcoal/60">Messages and reviews coming soon...</p>
+            </div>
+          )}
+        </main>
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -511,6 +573,6 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
+    </MainLayout>
   );
 }
