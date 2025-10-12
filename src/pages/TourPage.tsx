@@ -13,7 +13,7 @@ export default function TourPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
   const { data: tour, isLoading: tourLoading, error } = useTourBySlug(slug);
   
   // Determine dashboard mode based on user role
@@ -21,7 +21,7 @@ export default function TourPage() {
     ? (profile.role as DashboardMode)
     : null;
 
-  const isLoading = tourLoading;
+  const isLoading = tourLoading || (user && profileLoading);
 
   if (isLoading) {
     return (
