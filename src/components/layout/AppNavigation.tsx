@@ -64,7 +64,8 @@ export function AppNavigation({
 
   const handleLogout = async () => {
     await signOut();
-    navigate('/');
+    navigate('/', { replace: true });
+    window.location.reload();
   };
 
   const handleDashboard = () => {

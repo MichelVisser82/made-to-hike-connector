@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LaunchGate } from "@/components/pre-launch/LaunchGate";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -19,6 +19,25 @@ import CertificationsPage from "./pages/CertificationsPage";
 import DashboardPage from "./pages/DashboardPage";
 
 const queryClient = new QueryClient();
+
+// Protected Route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/auth?mode=signin" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 const App: React.FC = () => {
   return (
@@ -38,7 +57,14 @@ const App: React.FC = () => {
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/guide/signup" element={<GuideSignupPage />} />
                 <Route path="/certifications" element={<CertificationsPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  } 
+                />
                 {/* Dynamic guide profile route - BEFORE NotFound */}
                 <Route path="/:slug" element={<GuidePage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

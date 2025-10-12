@@ -100,13 +100,8 @@ function AppContent() {
       setShowAuthModal(true);
       return;
     }
-    if (user.role === 'admin') {
-      setCurrentPage('admin-dashboard');
-    } else if (user.role === 'guide') {
-      setCurrentPage('guide-dashboard');
-    } else {
-      setCurrentPage('user-dashboard');
-    }
+    // Use React Router instead of state-based routing
+    navigate('/dashboard');
   };
 
   const navigateToVerification = () => {
@@ -164,30 +159,6 @@ function AppContent() {
             onBackToSearch={() => setCurrentPage('search')}
           />
         ) : null;
-      case 'user-dashboard':
-        return user ? (
-          <UserDashboard
-            user={user}
-            onNavigateToSearch={navigateToSearch}
-            onTourClick={navigateToTour}
-          />
-        ) : null;
-      case 'guide-dashboard':
-        return user ? (
-          <GuideDashboard
-            user={user}
-            onTourClick={navigateToTour}
-            onStartVerification={navigateToVerification}
-            onCreateTour={navigateToTourCreation}
-            onEditTour={(tour) => {
-              setTourToCopy(tour);
-              setIsEditMode(true);
-              setEditingTourId(tour.id);
-              setCurrentPage('tour-creation');
-            }}
-            onNavigateToGuideProfile={navigateToGuideProfile}
-          />
-        ) : null;
       case 'guide-profile':
         return viewingGuideId ? (
           <GuideProfilePageWrapper 
@@ -214,10 +185,6 @@ function AppContent() {
             editMode={isEditMode}
             tourId={editingTourId}
           />
-        ) : null;
-      case 'admin-dashboard':
-        return user && user.role === 'admin' ? (
-          <AdminDashboard user={user} />
         ) : null;
       case 'verification':
         return user && user.role === 'guide' ? (

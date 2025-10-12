@@ -59,8 +59,7 @@ export const Auth = () => {
           title: 'Welcome back!',
           description: 'You have successfully signed in.',
         });
-        // Redirect to dashboard instead of landing page
-        window.location.href = '/';
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
