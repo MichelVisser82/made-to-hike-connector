@@ -25,7 +25,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
       onSectionChange={setActiveSection}
       showVerificationBadge={false}
       isVerified={false}
-      userRole="admin"
     >
       <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">

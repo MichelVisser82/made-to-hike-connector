@@ -37,7 +37,6 @@ interface AppNavigationProps {
   onSectionChange?: (section: DashboardSection) => void;
   showVerificationBadge?: boolean;
   isVerified?: boolean;
-  userRole?: 'hiker' | 'guide' | 'admin';
 }
 
 export function AppNavigation({ 
@@ -49,8 +48,7 @@ export function AppNavigation({
   activeSection,
   onSectionChange,
   showVerificationBadge,
-  isVerified,
-  userRole
+  isVerified
 }: AppNavigationProps) {
   const navigate = useNavigate();
   const { user: authUser, signOut } = useAuth();
@@ -97,21 +95,13 @@ export function AppNavigation({
     }
   };
 
-  const allDashboardNavItems = [
+  const dashboardNavItems = [
     { id: 'today' as DashboardSection, label: 'Today', icon: Home },
     { id: 'tours' as DashboardSection, label: 'Tours', icon: Mountain },
     { id: 'bookings' as DashboardSection, label: 'Bookings', icon: UsersIcon },
     { id: 'money' as DashboardSection, label: 'Money', icon: Euro },
     { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
   ];
-
-  // Filter navigation items based on user role - Inbox is only for guides
-  const dashboardNavItems = allDashboardNavItems.filter(item => {
-    if (item.id === 'inbox') {
-      return userRole === 'guide';
-    }
-    return true;
-  });
 
   if (isDashboardMode) {
     return (

@@ -92,11 +92,11 @@ export function InboxSection({
   return (
     <div>
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-playfair text-charcoal mb-2">
+      <div className="mb-6">
+        <h1 className="text-3xl font-playfair text-charcoal mb-2">
           Inbox &amp; Reviews
         </h1>
-        <p className="text-sm text-charcoal/60">
+        <p className="text-charcoal/60">
           Manage guest communications and reviews
         </p>
       </div>
