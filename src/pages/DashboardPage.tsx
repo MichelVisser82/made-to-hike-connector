@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { TodaySection } from '@/components/dashboard/TodaySection';
 import { GuideDashboard } from '@/components/pages/GuideDashboard';
@@ -12,9 +12,12 @@ import type { User } from '@/types';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
-  const [activeSection, setActiveSection] = useState<DashboardSection>('today');
+  const [activeSection, setActiveSection] = useState<DashboardSection>(
+    (searchParams.get('section') as DashboardSection) || 'today'
+  );
 
   // Redirect if not authenticated
   useEffect(() => {
