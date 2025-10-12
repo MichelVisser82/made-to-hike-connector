@@ -192,7 +192,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
   };
 
   const handleCopyTour = (tour: Tour) => {
-    onCreateTour(tour);
+    navigate('/tour-creation', { state: { tour } });
   };
 
   // Mock data for TODAY section
@@ -225,7 +225,7 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
               upcomingTours={mockSchedule}
               stats={mockStats}
               notifications={mockNotifications}
-              onCreateTour={() => setActiveSection('tours')}
+              onCreateTour={() => navigate('/tour-creation')}
               onManageAvailability={() => setActiveSection('tours')}
               onViewEarnings={() => setActiveSection('money')}
               onSectionNavigate={(section) => setActiveSection(section as DashboardSection)}
@@ -252,8 +252,10 @@ export function GuideDashboard({ user, onTourClick, onStartVerification, onCreat
               <ToursSection
                 tours={tours}
                 loading={loading}
-                onCreateTour={onCreateTour}
-                onEditTour={onEditTour}
+                onCreateTour={() => navigate('/tour-creation')}
+                onEditTour={(tour) => navigate('/tour-creation', { 
+                  state: { tour, editMode: true, tourId: tour.id } 
+                })}
                 onDeleteTour={(tour) => {
                   setSelectedTour(tour);
                   setDeleteDialogOpen(true);

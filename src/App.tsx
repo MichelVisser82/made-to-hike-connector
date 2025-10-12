@@ -17,6 +17,7 @@ import { Auth } from "./pages/Auth";
 import { VerifyEmail } from "./pages/VerifyEmail";
 import CertificationsPage from "./pages/CertificationsPage";
 import DashboardPage from "./pages/DashboardPage";
+import TourCreationPage from "./pages/TourCreationPage";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,14 @@ const App: React.FC = () => {
                   element={
                     <ProtectedRoute>
                       <DashboardPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/tour-creation" 
+                  element={
+                    <ProtectedRoute>
+                      <TourCreationPage />
                     </ProtectedRoute>
                   } 
                 />
