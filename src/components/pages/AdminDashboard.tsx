@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -7,14 +8,25 @@ import { ImageOverview } from '../admin/ImageOverview';
 import { TourTemplateManager } from '../admin/TourTemplateManager';
 import { GuideVerificationManager } from '../admin/GuideVerificationManager';
 import { type User } from '../../types';
+import { MainLayout } from '../layout/MainLayout';
+import type { DashboardSection } from '@/types/dashboard';
 
 interface AdminDashboardProps {
   user: User;
 }
 
 export function AdminDashboard({ user }: AdminDashboardProps) {
+  const [activeSection, setActiveSection] = useState<DashboardSection>('today');
+  
   return (
-    <div className="container mx-auto px-4 py-8">
+    <MainLayout
+      isDashboardMode={true}
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      showVerificationBadge={false}
+      isVerified={false}
+    >
+      <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
@@ -90,6 +102,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+      </div>
+    </MainLayout>
   );
 }

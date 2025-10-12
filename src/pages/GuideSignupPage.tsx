@@ -1,4 +1,5 @@
 import { GuideSignupFlow } from '@/components/guide-signup/GuideSignupFlow';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { useEffect } from 'react';
 
 export default function GuideSignupPage() {
@@ -6,5 +7,9 @@ export default function GuideSignupPage() {
     document.title = 'Become a Guide | MadeToHike';
   }, []);
 
-  return <GuideSignupFlow />;
+  return (
+    <MainLayout>
+      <GuideSignupFlow />
+    </MainLayout>
+  );
 }

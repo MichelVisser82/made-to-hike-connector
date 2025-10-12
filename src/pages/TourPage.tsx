@@ -3,6 +3,7 @@ import { useTourBySlug } from '@/hooks/useTourBySlug';
 import { TourDetailPage } from '@/components/pages/TourDetailPage';
 import { TourSEO } from '@/components/seo/TourSEO';
 import { StructuredData } from '@/components/seo/StructuredData';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { Loader2 } from 'lucide-react';
 
 export default function TourPage() {
@@ -41,14 +42,16 @@ export default function TourPage() {
     <>
       <TourSEO tour={tour} />
       <StructuredData tour={tour} />
-      <TourDetailPage
-        tour={tour}
-        onBookTour={(selectedTour) => {
-          console.log('Booking tour:', selectedTour.id);
-          navigate('/booking', { state: { tour: selectedTour } });
-        }}
-        onBackToSearch={() => navigate('/')}
-      />
+      <MainLayout>
+        <TourDetailPage
+          tour={tour}
+          onBookTour={(selectedTour) => {
+            console.log('Booking tour:', selectedTour.id);
+            navigate('/booking', { state: { tour: selectedTour } });
+          }}
+          onBackToSearch={() => navigate('/')}
+        />
+      </MainLayout>
     </>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CustomSignup } from '@/components/CustomSignup';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,7 +76,8 @@ export const Auth = () => {
 
   if (mode === 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
           <Card className="border-primary/20 shadow-lg">
             <CardHeader className="text-center">
@@ -126,13 +128,15 @@ export const Auth = () => {
             </Button>
           </div>
         </div>
-      </div>
+        </div>
+      </MainLayout>
     );
   }
 
   if (mode === 'guide') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
           <Card className="border-green-600/20 shadow-lg">
             <CardHeader className="text-center">
@@ -183,14 +187,16 @@ export const Auth = () => {
             </Button>
           </div>
         </div>
-      </div>
+        </div>
+      </MainLayout>
     );
   }
 
 
   if (mode === 'signup') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
           <CustomSignup />
           <div className="text-center">
@@ -199,12 +205,14 @@ export const Auth = () => {
             </Button>
           </div>
         </div>
-      </div>
+        </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <MainLayout>
+      <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
         <Card>
           <CardHeader>
@@ -254,6 +262,7 @@ export const Auth = () => {
           </Button>
         </div>
       </div>
-    </div>
+      </div>
+    </MainLayout>
   );
 };

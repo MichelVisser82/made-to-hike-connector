@@ -9,6 +9,7 @@ import { useWebsiteImages } from "@/hooks/useWebsiteImages";
 import { supabase } from "@/integrations/supabase/client";
 import { imageRecommendations } from '@/lib/imageRecommendations';
 import { type User } from '../../types';
+import { MainLayout } from '../layout/MainLayout';
 interface LandingPageProps {
   onNavigateToSearch: (filters?: any) => void;
   onShowGuideSignup: () => void;
@@ -53,7 +54,9 @@ export function LandingPage({
     description: 'Rugged landscapes and ancient castles'
   }];
   const currentRegion = regions.find(r => r.id === selectedRegion) || regions[0];
-  return <div className="min-h-screen">
+  return (
+    <MainLayout>
+      <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-screen">
         <SmartImage category="hero" usageContext="landing" className="absolute inset-0 w-full h-full object-cover" alt="Hikers on mountain trail with dramatic alpine landscape" priority="high" />
@@ -479,5 +482,7 @@ export function LandingPage({
           </div>
         </div>
       </section>
-    </div>;
+      </div>
+    </MainLayout>
+  );
 }

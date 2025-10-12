@@ -15,8 +15,6 @@ import { VerificationFlow } from './pages/VerificationFlow';
 import { TourCreationFlow } from './tour-creation/TourCreationFlow';
 import { GuideProfilePageWrapper } from './pages/GuideProfilePageWrapper';
 import { CertificationsContent } from './pages/CertificationsContent';
-import { AppNavigation } from './layout/AppNavigation';
-import { Footer } from './layout/Footer';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../hooks/useProfile';
 import { type Page, type User, type Tour, type SearchFilters } from '../types';
@@ -268,18 +266,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Global Navigation */}
-      <AppNavigation 
-        onDashboardClick={navigateToDashboard}
-        onSearchClick={() => navigateToSearch()}
-        onLogoClick={() => {
-          window.scrollTo(0, 0);
-          setCurrentPage('landing');
-        }}
-        currentPage={currentPage}
-      />
-
-      {/* Page Content */}
+      {/* Page Content - each page manages its own layout via MainLayout */}
       <main>{renderCurrentPage()}</main>
 
       {/* Modals */}
@@ -311,15 +298,6 @@ function AppContent() {
           tourTitle={selectedTour.title}
         />
       )}
-
-      {/* Footer */}
-      <Footer 
-        onNavigate={(page: string) => {
-          window.scrollTo(0, 0);
-          setCurrentPage(page as Page);
-        }}
-        onNavigateToSearch={navigateToSearch}
-      />
 
       {/* Toast notifications */}
       <Toaster />

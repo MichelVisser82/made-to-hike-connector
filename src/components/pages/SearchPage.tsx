@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { TourCard } from '../tour/TourCard';
 import { type Tour, type SearchFilters } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
+import { MainLayout } from '../layout/MainLayout';
 
 interface SearchPageProps {
   filters: SearchFilters;
@@ -47,8 +48,9 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+    <MainLayout>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Find Your Perfect Hiking Adventure</h1>
@@ -148,7 +150,8 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
             </Button>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }

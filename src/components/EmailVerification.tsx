@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 export const EmailVerification = () => {
   const [searchParams] = useSearchParams();
@@ -93,8 +94,9 @@ export const EmailVerification = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="max-w-md mx-auto text-center">
+    <MainLayout>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md mx-auto text-center">
         <CardHeader>
           <div className="flex justify-center mb-4">
             {getIcon()}
@@ -150,7 +152,8 @@ export const EmailVerification = () => {
             </p>
           )}
         </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </MainLayout>
   );
 };

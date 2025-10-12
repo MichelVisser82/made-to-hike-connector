@@ -2,6 +2,7 @@ import { TourCreationLayout } from './TourCreationLayout';
 import { useTourCreation } from '@/hooks/useTourCreation';
 import { FormProvider } from 'react-hook-form';
 import { type Tour } from '@/types';
+import { MainLayout } from '../layout/MainLayout';
 import Step1Welcome from './steps/Step1Welcome';
 import Step2BasicInfo from './steps/Step2BasicInfo';
 import Step3Location from './steps/Step3Location';
@@ -94,8 +95,9 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
   };
 
   return (
-    <FormProvider {...form}>
-      <TourCreationLayout
+    <MainLayout>
+      <FormProvider {...form}>
+        <TourCreationLayout
         currentStep={currentStep}
         totalSteps={totalSteps}
         onBack={handleBack}
@@ -104,7 +106,8 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
         tourTitle={initialData?.title}
       >
         {renderStep()}
-      </TourCreationLayout>
-    </FormProvider>
+        </TourCreationLayout>
+      </FormProvider>
+    </MainLayout>
   );
 }

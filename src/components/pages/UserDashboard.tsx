@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { type User, type Tour } from '../../types';
+import { MainLayout } from '../layout/MainLayout';
+import type { DashboardSection } from '@/types/dashboard';
 
 interface UserDashboardProps {
   user: User;
@@ -9,8 +12,17 @@ interface UserDashboardProps {
 }
 
 export function UserDashboard({ user, onNavigateToSearch }: UserDashboardProps) {
+  const [activeSection, setActiveSection] = useState<DashboardSection>('today');
+  
   return (
-    <div className="container mx-auto px-4 py-8">
+    <MainLayout
+      isDashboardMode={true}
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      showVerificationBadge={false}
+      isVerified={false}
+    >
+      <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Welcome back, {user.name}!</h1>
         
@@ -41,6 +53,7 @@ export function UserDashboard({ user, onNavigateToSearch }: UserDashboardProps) 
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </MainLayout>
   );
 }

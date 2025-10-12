@@ -10,6 +10,7 @@ import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { useGuideProfile } from '@/hooks/useGuideProfile';
 import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
+import { MainLayout } from '../layout/MainLayout';
 
 interface BookingFlowProps {
   tour: Tour;
@@ -71,8 +72,9 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <MainLayout>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto space-y-6">
         {!user.verified && (
           <Alert>
             <Mail className="h-4 w-4" />
@@ -241,7 +243,8 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }

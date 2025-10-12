@@ -2,6 +2,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { CheckCircle, Upload } from 'lucide-react';
 import { type User } from '../../types';
+import { MainLayout } from '../layout/MainLayout';
 
 interface VerificationFlowProps {
   user: User;
@@ -11,7 +12,8 @@ interface VerificationFlowProps {
 
 export function VerificationFlow({ user, onComplete, onCancel }: VerificationFlowProps) {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <MainLayout>
+      <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Guide Verification</h1>
         
@@ -59,6 +61,7 @@ export function VerificationFlow({ user, onComplete, onCancel }: VerificationFlo
           </Button>
         </div>
       </div>
-    </div>
+      </div>
+    </MainLayout>
   );
 }

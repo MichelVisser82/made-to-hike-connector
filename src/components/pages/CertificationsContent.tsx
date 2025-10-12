@@ -1,6 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Shield, Award, Clock, CheckCircle2, AlertTriangle, Users, ExternalLink } from 'lucide-react';
+import { MainLayout } from '../layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -153,7 +154,7 @@ const firstAidCertifications: FirstAidCertification[] = [
 
 export function CertificationsContent() {
   return (
-    <>
+    <MainLayout>
       <Helmet>
         <title>Mountain Guide Certifications: A Quick Reference Guide | MadeToHike</title>
         <meta 
@@ -685,6 +686,6 @@ export function CertificationsContent() {
         </section>
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }
