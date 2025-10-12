@@ -40,6 +40,8 @@ import { useToast } from '@/hooks/use-toast';
 
 interface GuideDashboardProps {
   user: User;
+  activeSection?: DashboardSection;
+  onSectionChange?: (section: DashboardSection) => void;
   onTourClick: (tour: Tour) => void;
   onStartVerification: () => void;
   onCreateTour: (tourData?: Tour) => void;
@@ -47,13 +49,26 @@ interface GuideDashboardProps {
   onNavigateToGuideProfile?: (guideId: string) => void;
 }
 
-export function GuideDashboard({ user, onTourClick, onStartVerification, onCreateTour, onEditTour, onNavigateToGuideProfile }: GuideDashboardProps) {
+export function GuideDashboard({ 
+  user, 
+  activeSection: externalActiveSection,
+  onSectionChange: externalOnSectionChange,
+  onTourClick, 
+  onStartVerification, 
+  onCreateTour, 
+  onEditTour, 
+  onNavigateToGuideProfile 
+}: GuideDashboardProps) {
   const navigate = useNavigate();
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
-  const [activeSection, setActiveSection] = useState<DashboardSection>('today');
+  const [internalActiveSection, setInternalActiveSection] = useState<DashboardSection>('today');
+  
+  // Use external state if provided, otherwise use internal state
+  const activeSection = externalActiveSection ?? internalActiveSection;
+  const setActiveSection = externalOnSectionChange ?? setInternalActiveSection;
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   

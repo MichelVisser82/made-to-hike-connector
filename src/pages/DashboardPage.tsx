@@ -19,6 +19,14 @@ export default function DashboardPage() {
     (searchParams.get('section') as DashboardSection) || 'today'
   );
 
+  // Update active section when URL parameter changes
+  useEffect(() => {
+    const section = searchParams.get('section') as DashboardSection;
+    if (section) {
+      setActiveSection(section);
+    }
+  }, [searchParams]);
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!user) {
@@ -47,6 +55,8 @@ export default function DashboardPage() {
     return (
       <GuideDashboard
         user={mappedUser}
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
         onTourClick={(tour) => navigate(`/tours/${tour.slug || tour.id}`)}
         onStartVerification={() => navigate('/verification')}
         onCreateTour={() => navigate('/tour-creation')}
