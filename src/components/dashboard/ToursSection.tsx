@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GuideImageLibrary } from '@/components/guide/GuideImageLibrary';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +56,7 @@ export function ToursSection({
   onUnarchiveTour,
   onCopyTour,
 }: ToursSectionProps) {
-  const [activeTab, setActiveTab] = useState<'my-tours' | 'calendar'>('my-tours');
+  const [activeTab, setActiveTab] = useState<'my-tours' | 'calendar' | 'image-library'>('my-tours');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft' | 'archived'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -138,7 +139,7 @@ export function ToursSection({
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'my-tours' | 'calendar')}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'my-tours' | 'calendar' | 'image-library')}>
         <TabsList className="bg-cream p-1 rounded-lg">
           <TabsTrigger 
             value="my-tours"
@@ -151,6 +152,12 @@ export function ToursSection({
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             Calendar
+          </TabsTrigger>
+          <TabsTrigger 
+            value="image-library"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+          >
+            Image Library
           </TabsTrigger>
         </TabsList>
 
@@ -338,6 +345,11 @@ export function ToursSection({
               Calendar functionality coming soon
             </p>
           </div>
+        </TabsContent>
+
+        {/* Image Library Tab Content */}
+        <TabsContent value="image-library" className="mt-6">
+          <GuideImageLibrary />
         </TabsContent>
       </Tabs>
     </div>
