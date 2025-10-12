@@ -59,6 +59,7 @@ export function GuideImageLibrary() {
   });
   const [aiSuggestionsForEdit, setAiSuggestionsForEdit] = useState<any>(null);
   const [isAnalyzingForEdit, setIsAnalyzingForEdit] = useState(false);
+  const [viewingImage, setViewingImage] = useState<any | null>(null);
 
   const categories = [
     'hero', 'landscape', 'hiking', 'portrait', 'detail', 
@@ -890,7 +891,7 @@ export function GuideImageLibrary() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => window.open(getImageUrl(image), '_blank')}
+                        onClick={() => setViewingImage(image)}
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         View
@@ -1089,6 +1090,22 @@ export function GuideImageLibrary() {
               Save Changes
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Viewer Dialog */}
+      <Dialog open={!!viewingImage} onOpenChange={() => setViewingImage(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{viewingImage?.file_name}</DialogTitle>
+          </DialogHeader>
+          <div className="w-full">
+            <img
+              src={viewingImage ? getImageUrl(viewingImage) : ''}
+              alt={viewingImage?.alt_text || viewingImage?.file_name}
+              className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </>
