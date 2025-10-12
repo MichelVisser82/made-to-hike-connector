@@ -44,11 +44,13 @@ export default function DashboardPage() {
     return (
       <GuideDashboard
         user={mappedUser}
-        onTourClick={() => {}}
+        onTourClick={(tour) => navigate(`/tours/${tour.slug || tour.id}`)}
         onStartVerification={() => navigate('/verification')}
         onCreateTour={() => navigate('/tour-creation')}
-        onEditTour={() => {}}
-        onNavigateToGuideProfile={() => {}}
+        onEditTour={(tour) => navigate('/tour-creation', { 
+          state: { tour, editMode: true, tourId: tour.id } 
+        })}
+        onNavigateToGuideProfile={(guideId) => navigate(`/guides/${guideId}`)}
       />
     );
   } else if (role === 'admin') {
