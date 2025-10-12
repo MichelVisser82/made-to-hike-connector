@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, Trash2, Image as ImageIcon, Edit3, Sparkles, Loader2, MapPin, Tag, X } from 'lucide-react';
+import { Upload, Trash2, Image as ImageIcon, Edit3, Sparkles, Loader2, MapPin, Tag, X, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import heic2any from 'heic2any';
 import { gps } from 'exifr';
@@ -887,6 +887,14 @@ export function GuideImageLibrary() {
                       />
                     </div>
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => window.open(getImageUrl(image), '_blank')}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
                       <Button
                         size="sm"
                         variant="secondary"
