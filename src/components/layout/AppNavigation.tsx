@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
+import { supabase } from '@/integrations/supabase/client';
 import { type User } from '@/types';
 import type { DashboardSection, DashboardMode } from '@/types/dashboard';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +55,7 @@ export function AppNavigation({
   const navigate = useNavigate();
   const { user: authUser, signOut } = useAuth();
   const { profile } = useProfile();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const user = profile || (authUser && authUser.email_confirmed_at ? {
     id: authUser.id,
@@ -61,6 +64,51 @@ export function AppNavigation({
     role: (authUser.user_metadata?.role || 'hiker') as 'hiker' | 'guide' | 'admin',
     verified: false
   } as User : null);
+
+  // Fetch unread messages count
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchUnreadCount = async () => {
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`hiker_id.eq.${user.id},guide_id.eq.${user.id}`);
+
+      if (conversations) {
+        const conversationIds = conversations.map(c => c.id);
+        
+        const { count } = await supabase
+          .from('messages')
+          .select('id', { count: 'exact', head: true })
+          .in('conversation_id', conversationIds)
+          .neq('sender_id', user.id)
+          .is('read_receipts', null);
+        
+        setUnreadCount(count || 0);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Subscribe to new messages
+    const channel = supabase
+      .channel('unread-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => fetchUnreadCount()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await signOut();
@@ -153,11 +201,30 @@ export function AppNavigation({
 
             {/* Right: Notifications, Help, and User Profile Dropdown */}
             <div className="flex items-center gap-3">
+              {/* Inbox Button with Unread Badge */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy"
+                onClick={() => {
+                  if (onSectionChange) {
+                    onSectionChange('inbox');
+                  } else {
+                    navigate('/dashboard?section=inbox');
+                  }
+                }}
+              >
+                <MessageSquare className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
+              </Button>
+
               {/* Notifications Bell */}
               <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                 <Bell className="w-5 h-5" />
-                {/* Red dot indicator for unread notifications */}
-                <span className="absolute top-1 right-1 w-2 h-2 bg-burgundy rounded-full" />
               </Button>
 
               {/* Help Button */}
@@ -252,10 +319,24 @@ export function AppNavigation({
 
             {/* Right: Notifications, Help, and User Profile Dropdown */}
             <div className="flex items-center gap-3">
+              {/* Inbox Button with Unread Badge */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy"
+                onClick={() => navigate('/dashboard?section=inbox')}
+              >
+                <MessageSquare className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
+              </Button>
+
               {/* Notifications Bell */}
               <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-burgundy rounded-full" />
               </Button>
 
               {/* Help Button */}

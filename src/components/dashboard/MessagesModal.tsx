@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
-import { X, MessageSquare, Mail, Phone, Calendar, Send, Paperclip } from 'lucide-react';
+import { X, MessageSquare, Mail, Phone, Calendar, Send, Paperclip, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -8,24 +8,75 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import type { BookingWithDetails, Message } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMessages } from '@/hooks/useMessages';
+import { supabase } from '@/integrations/supabase/client';
+import type { BookingWithDetails } from '@/types';
+import { MessageBubble } from '../chat/MessageBubble';
 
 interface MessagesModalProps {
   isOpen: boolean;
   onClose: () => void;
   booking: BookingWithDetails;
-  messages: Message[];
 }
 
 export function MessagesModal({
   isOpen,
   onClose,
   booking,
-  messages,
 }: MessagesModalProps) {
   const [newMessage, setNewMessage] = useState('');
+  const [conversationId, setConversationId] = useState<string | undefined>();
+  const [moderationWarning, setModerationWarning] = useState<string | null>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const { messages, sendMessage, loading } = useMessages(conversationId);
+
+  useEffect(() => {
+    if (isOpen && booking) {
+      fetchOrCreateConversation();
+    }
+  }, [isOpen, booking]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const fetchOrCreateConversation = async () => {
+    const { data: existing } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('tour_id', booking.tour_id)
+      .eq('hiker_id', booking.hiker_id)
+      .eq('guide_id', booking.tour?.guide_id)
+      .eq('conversation_type', 'booking_chat')
+      .maybeSingle();
+
+    if (existing) {
+      setConversationId(existing.id);
+    } else {
+      const { data: newConv } = await supabase
+        .from('conversations')
+        .insert({
+          tour_id: booking.tour_id,
+          hiker_id: booking.hiker_id,
+          guide_id: booking.tour?.guide_id,
+          conversation_type: 'booking_chat'
+        })
+        .select('id')
+        .single();
+
+      if (newConv) {
+        setConversationId(newConv.id);
+      }
+    }
+  };
 
   const getInitials = (name?: string) => {
     if (!name) return '?';
@@ -37,14 +88,35 @@ export function MessagesModal({
       .slice(0, 2);
   };
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !conversationId) return;
     
-    toast({
-      title: 'Message sent',
-      description: 'Your message has been sent to the guest',
-    });
-    setNewMessage('');
+    try {
+      const result = await sendMessage(newMessage, 'guide', user?.email);
+      
+      if (result?.moderated) {
+        setModerationWarning(result.moderationReason);
+        toast({
+          title: 'Message moderated',
+          description: 'Some content was removed for safety. The message was still sent.',
+          variant: 'default'
+        });
+      } else {
+        toast({
+          title: 'Message sent',
+          description: 'Your message has been sent to the guest',
+        });
+      }
+      
+      setNewMessage('');
+      setModerationWarning(null);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to send message. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -112,7 +184,21 @@ export function MessagesModal({
 
           {/* Messages Area */}
           <div className="md:col-span-2">
-            {messages.length === 0 ? (
+            {moderationWarning && (
+              <Alert className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {moderationWarning}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {loading ? (
+              <div className="py-12 text-center">
+                <MessageSquare className="w-16 h-16 text-burgundy/20 mx-auto mb-4 animate-pulse" />
+                <p className="text-sm text-charcoal/60">Loading messages...</p>
+              </div>
+            ) : messages.length === 0 ? (
               <div className="py-12 text-center">
                 <MessageSquare className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
                 <h3 className="text-lg font-playfair text-charcoal mb-2">
@@ -123,44 +209,14 @@ export function MessagesModal({
                 </p>
               </div>
             ) : (
-              <ScrollArea className="h-96 pr-4">
+              <ScrollArea className="h-96 pr-4" ref={scrollRef}>
                 <div className="space-y-4">
-                  {messages.map((message) =>
-                    message.sender === 'guest' ? (
-                      // Guest message
-                      <div key={message.id} className="flex justify-start">
-                        <div className="max-w-[80%]">
-                          <div className="flex items-start gap-2">
-                            <Avatar className="w-8 h-8 bg-burgundy text-white flex-shrink-0">
-                              <AvatarFallback className="bg-burgundy text-white">
-                                {getInitials(booking.guest?.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="bg-cream border border-burgundy/10 rounded-lg p-3">
-                                <p className="text-charcoal">{message.content}</p>
-                              </div>
-                              <p className="text-xs text-charcoal/50 mt-1 ml-1">
-                                {format(new Date(message.timestamp), 'h:mm a')}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // Guide message
-                      <div key={message.id} className="flex justify-end">
-                        <div className="max-w-[80%]">
-                          <div className="bg-gradient-to-br from-burgundy to-burgundy-dark rounded-lg p-3">
-                            <p className="text-white">{message.content}</p>
-                          </div>
-                          <p className="text-xs text-charcoal/50 mt-1 text-right mr-1">
-                            {format(new Date(message.timestamp), 'h:mm a')}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  )}
+                  {messages.map((message) => (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                    />
+                  ))}
                 </div>
               </ScrollArea>
             )}

@@ -11,6 +11,7 @@ import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
 import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
+import { AnonymousChat } from '../chat/AnonymousChat';
 
 interface TourDetailPageProps {
   tour: Tour;
@@ -22,6 +23,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   const [expandedItinerary, setExpandedItinerary] = useState<Record<number, boolean>>({});
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
   
   // Use unified hook for consistent guide data
   const { guideInfo, isLoadingProfessional, guideProfile } = useEnhancedGuideInfo(tour);
@@ -296,9 +298,10 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     variant="outline"
                     className="w-full h-11"
                     size="lg"
+                    onClick={() => setChatOpen(true)}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
-                    Message Guide
+                    Ask the Guide
                   </Button>
                   {selectedDate && (
                     <p className="text-xs text-center text-muted-foreground">You won't be charged yet</p>
@@ -1015,6 +1018,15 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           </section>
         </div>
       </div>
+      
+      {/* Anonymous Chat Modal */}
+      <AnonymousChat
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        tourId={tour.id}
+        guideId={tour.guide_id}
+        tourTitle={tour.title}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import {
   MessageSquare,
@@ -8,6 +8,7 @@ import {
   Edit,
   Mail,
   Bell,
+  Loader2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,25 +18,25 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/contexts/AuthContext';
+import { useConversations } from '@/hooks/useConversations';
+import { ChatWindow } from '../chat/ChatWindow';
 import type {
-  Conversation,
+  Conversation as ChatConversation,
   Review,
   ReviewStats,
   MessageTemplate,
   NotificationPreference,
 } from '@/types';
+import type { Conversation } from '@/types/chat';
 import { LoadingSpinner, ConversationsSkeleton, StatsCardsSkeleton, ListSkeleton } from './LoadingStates';
 
 interface InboxSectionProps {
-  conversations: Conversation[];
   reviews: Review[];
   reviewStats: ReviewStats;
   templates: MessageTemplate[];
   notificationPreferences: NotificationPreference[];
-  unreadCount: number;
   loading: boolean;
-  onSendMessage: (conversationId: string, message: string) => void;
-  onCallGuest: (conversationId: string) => void;
   onReplyToReview: (reviewId: string) => void;
   onToggleTemplate: (templateId: string, enabled: boolean) => void;
   onEditTemplate: (templateId: string) => void;
@@ -47,15 +48,11 @@ interface InboxSectionProps {
 }
 
 export function InboxSection({
-  conversations,
   reviews,
   reviewStats,
   templates,
   notificationPreferences,
-  unreadCount,
   loading,
-  onSendMessage,
-  onCallGuest,
   onReplyToReview,
   onToggleTemplate,
   onEditTemplate,
@@ -63,14 +60,12 @@ export function InboxSection({
 }: InboxSectionProps) {
   const [activeTab, setActiveTab] = useState('messages');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messageInput, setMessageInput] = useState('');
-
-  const handleSendMessage = () => {
-    if (messageInput.trim() && selectedConversation) {
-      onSendMessage(selectedConversation.id, messageInput);
-      setMessageInput('');
-    }
-  };
+  const { user } = useAuth();
+  
+  const { conversations, loading: conversationsLoading } = useConversations(user?.id);
+  
+  // Calculate unread count
+  const unreadCount = conversations.filter(c => c.unread_count && c.unread_count > 0).length;
 
   const renderStarRating = (rating: number, size: number = 16, filled: boolean = true) => {
     return (
@@ -132,8 +127,10 @@ export function InboxSection({
 
         {/* MESSAGES TAB */}
         <TabsContent value="messages">
-          {loading ? (
-            <ConversationsSkeleton />
+          {conversationsLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-burgundy" />
+            </div>
           ) : conversations.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center">
@@ -149,7 +146,7 @@ export function InboxSection({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {/* Conversations List */}
-              <Card className="p-4">
+              <Card className="p-4 h-[600px] overflow-hidden flex flex-col">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-medium text-charcoal">Conversations</h3>
                   {unreadCount > 0 && (
@@ -158,134 +155,69 @@ export function InboxSection({
                     </Badge>
                   )}
                 </div>
-                <div className="space-y-2">
-                  {conversations.map((conv) => (
-                    <div
-                      key={conv.id}
-                      onClick={() => setSelectedConversation(conv)}
-                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                        selectedConversation?.id === conv.id
-                          ? 'bg-burgundy/10'
-                          : 'hover:bg-cream/50'
-                      } ${
-                        conv.is_unread
-                          ? 'bg-burgundy/5 border-l-2 border-l-burgundy'
-                          : ''
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarFallback className="bg-burgundy text-white text-sm">
-                            {conv.guest_name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start mb-1">
-                            <p className="font-medium text-charcoal text-sm">
-                              {conv.guest_name}
-                            </p>
-                            <span className="text-xs text-charcoal/50">
-                              {format(new Date(conv.last_message_time), 'h:mm a')}
-                            </span>
+                <ScrollArea className="flex-1">
+                  <div className="space-y-2 pr-4">
+                    {conversations.map((conv) => {
+                      const isHiker = conv.hiker_id === user?.id;
+                      const displayName = isHiker 
+                        ? (conv.profiles?.name || 'Guide')
+                        : (conv.anonymous_name || conv.profiles?.name || 'Hiker');
+                      
+                      return (
+                        <div
+                          key={conv.id}
+                          onClick={() => setSelectedConversation(conv)}
+                          className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                            selectedConversation?.id === conv.id
+                              ? 'bg-burgundy/10 border-l-2 border-l-burgundy'
+                              : 'hover:bg-cream/50'
+                          } ${
+                            conv.unread_count && conv.unread_count > 0
+                              ? 'bg-burgundy/5'
+                              : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar className="w-10 h-10 flex-shrink-0">
+                              <AvatarFallback className="bg-burgundy text-white text-sm">
+                                {displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start mb-1">
+                                <p className="font-medium text-charcoal text-sm truncate">
+                                  {displayName}
+                                </p>
+                                <span className="text-xs text-charcoal/50 flex-shrink-0 ml-2">
+                                  {format(new Date(conv.last_message_at), 'MMM d')}
+                                </span>
+                              </div>
+                              <p className="text-xs text-charcoal/60 truncate mb-1">
+                                {conv.tours?.title || 'General inquiry'}
+                              </p>
+                              {conv.unread_count && conv.unread_count > 0 && (
+                                <Badge className="bg-burgundy text-white text-xs px-2 py-0.5">
+                                  {conv.unread_count} new
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-sm text-charcoal/70 truncate mb-1">
-                            {conv.last_message}
-                          </p>
-                          {conv.is_unread && (
-                            <Badge className="bg-burgundy text-white text-xs px-2 py-0.5">
-                              New
-                            </Badge>
-                          )}
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               </Card>
 
               {/* Active Conversation */}
-              <Card className="md:col-span-2 flex flex-col h-[600px]">
+              <Card className="md:col-span-2 h-[600px]">
                 {selectedConversation ? (
-                  <>
-                    {/* Header */}
-                    <div className="p-4 border-b flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarFallback className="bg-burgundy text-white">
-                            {selectedConversation.guest_name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-charcoal">
-                            {selectedConversation.guest_name}
-                          </p>
-                          <p className="text-sm text-charcoal/60">
-                            {selectedConversation.tour_title}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onCallGuest(selectedConversation.id)}
-                      >
-                        <Phone className="w-4 h-4 mr-2" />
-                        Call
-                      </Button>
-                    </div>
-
-                    {/* Messages */}
-                    <ScrollArea className="flex-1 p-4">
-                      <div className="space-y-4">
-                        {selectedConversation.messages.map((msg) => (
-                          <div
-                            key={msg.id}
-                            className={`flex ${
-                              msg.sender === 'guide' ? 'justify-end' : 'justify-start'
-                            }`}
-                          >
-                            <div
-                              className={`max-w-[70%] rounded-lg p-3 ${
-                                msg.sender === 'guide'
-                                  ? 'bg-burgundy text-white'
-                                  : 'bg-cream text-charcoal'
-                              }`}
-                            >
-                              <p className="text-sm">{msg.content}</p>
-                              <p
-                                className={`text-xs mt-1 ${
-                                  msg.sender === 'guide'
-                                    ? 'text-white/70'
-                                    : 'text-charcoal/50'
-                                }`}
-                              >
-                                {format(new Date(msg.timestamp), 'h:mm a')}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-
-                    {/* Input */}
-                    <div className="p-4 border-t flex gap-2">
-                      <Input
-                        value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder="Type your message..."
-                        className="flex-1"
-                      />
-                      <Button
-                        onClick={handleSendMessage}
-                        className="bg-burgundy hover:bg-burgundy-dark text-white"
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </>
+                  <ChatWindow
+                    conversation={selectedConversation}
+                    onClose={() => setSelectedConversation(null)}
+                  />
                 ) : (
-                  <CardContent className="flex-1 flex items-center justify-center">
+                  <CardContent className="h-full flex items-center justify-center">
                     <div className="text-center">
                       <MessageSquare className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
                       <p className="text-charcoal/60">

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { MessageSquare } from 'lucide-react';
 import { type User, type Tour } from '../../types';
 import { MainLayout } from '../layout/MainLayout';
 import type { DashboardSection } from '@/types/dashboard';
+import { ConversationList } from '../chat/ConversationList';
 
 interface UserDashboardProps {
   user: User;
@@ -36,6 +38,25 @@ export function UserDashboard({ user, onNavigateToSearch }: UserDashboardProps) 
               <Button onClick={onNavigateToSearch}>
                 Find Your Next Adventure
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                My Messages
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ConversationList
+                userId={user.id}
+                selectedId={null}
+                onSelect={(id) => {
+                  // Navigate to conversation
+                  setActiveSection('inbox');
+                }}
+              />
             </CardContent>
           </Card>
 

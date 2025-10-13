@@ -11,6 +11,7 @@ import { useGuideProfile } from '@/hooks/useGuideProfile';
 import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
 import { MainLayout } from '../layout/MainLayout';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BookingFlowProps {
   tour: Tour;
@@ -54,11 +55,41 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
   const handlePayment = async () => {
     setIsProcessing(true);
     
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Create conversation for booking
+      const { data: conversation } = await supabase
+        .from('conversations')
+        .insert({
+          tour_id: tour.id,
+          hiker_id: user.id,
+          guide_id: tour.guide_id,
+          conversation_type: 'booking_chat'
+        })
+        .select()
+        .single();
+      
+      // Send automated welcome message
+      if (conversation) {
+        await supabase.functions.invoke('send-message', {
+          body: {
+            conversationId: conversation.id,
+            content: `Thanks for booking "${tour.title}"! Looking forward to our adventure. Feel free to ask any questions.`,
+            senderType: 'guide',
+            senderName: tour.guide_display_name,
+            automated: true
+          }
+        });
+      }
+      
       setIsProcessing(false);
       onComplete();
-    }, 2000);
+    } catch (error) {
+      console.error('Booking error:', error);
+      setIsProcessing(false);
+    }
   };
 
   if (isLoading) {

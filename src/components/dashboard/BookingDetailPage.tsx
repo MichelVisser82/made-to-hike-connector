@@ -464,7 +464,6 @@ export function BookingDetailPage() {
         isOpen={messagesOpen}
         onClose={() => setMessagesOpen(false)}
         booking={booking}
-        messages={messages}
       />
     </div>
   );

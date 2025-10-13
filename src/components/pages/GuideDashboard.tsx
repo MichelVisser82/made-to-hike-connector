@@ -867,15 +867,11 @@ See you soon!
           {/* INBOX Section */}
           {activeSection === 'inbox' && (
             <InboxSection
-              conversations={conversations}
               reviews={reviews}
               reviewStats={reviewStats}
               templates={templates}
               notificationPreferences={notificationPreferences}
-              unreadCount={conversations.filter(c => c.is_unread).length}
               loading={loadingInbox}
-              onSendMessage={handleSendMessage}
-              onCallGuest={handleCallGuest}
               onReplyToReview={handleReplyToReview}
               onToggleTemplate={handleToggleTemplate}
               onEditTemplate={handleEditTemplate}
