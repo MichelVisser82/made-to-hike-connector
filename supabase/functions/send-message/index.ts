@@ -237,18 +237,36 @@ serve(async (req) => {
           if (!prefs || prefs.email_on_new_message) {
             await supabase.functions.invoke('send-email', {
               body: {
+                type: 'new_message',
                 to: recipient.email,
-                subject: 'New message in your conversation',
-                html: `
-                  <p>Hi ${recipient.name},</p>
-                  <p>You received a new message:</p>
-                  <blockquote>${moderationResult.moderatedContent}</blockquote>
-                  <p><a href="https://madetohike.com/dashboard?section=inbox">View conversation</a></p>
-                `
+                subject: `New message from ${senderName || 'a user'}`,
+                template_data: {
+                  recipientName: recipient.name,
+                  senderName: senderName || 'Someone',
+                  messagePreview: moderationResult.moderatedContent.substring(0, 150),
+                  conversationUrl: 'https://madetohike.com/dashboard?section=inbox'
+                }
               }
             });
           }
         }
+      }
+
+      // Send email to anonymous users if guide replied
+      if (conversation.anonymous_email && senderType === 'guide') {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'new_message',
+            to: conversation.anonymous_email,
+            subject: 'Reply to your hiking inquiry',
+            template_data: {
+              recipientName: conversation.anonymous_name || 'Guest',
+              senderName: senderName || 'Your guide',
+              messagePreview: moderationResult.moderatedContent.substring(0, 150),
+              conversationUrl: `https://madetohike.com/messages/${conversationId}`
+            }
+          }
+        });
       }
     } catch (emailError) {
       console.error('Email notification error:', emailError);

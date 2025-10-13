@@ -1,4 +1,5 @@
 import { useConversations } from '@/hooks/useConversations';
+import { usePresence } from '@/hooks/usePresence';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,23 +37,32 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
   return (
     <ScrollArea className="h-full">
       <div className="space-y-2 p-2">
-        {conversations.map((conversation) => (
-          <button
-            key={conversation.id}
-            onClick={() => onSelect(conversation)}
-            className={cn(
-              "w-full text-left p-3 rounded-lg transition-colors hover:bg-accent",
-              selectedId === conversation.id && "bg-accent"
-            )}
-          >
-            <div className="flex items-start gap-3">
-              {/* Avatar */}
-              <Avatar className="w-10 h-10 flex-shrink-0">
-                <AvatarImage src={conversation.tours?.hero_image || undefined} />
-                <AvatarFallback>
-                  {conversation.tours?.title?.[0] || conversation.profiles?.name?.[0] || '?'}
-                </AvatarFallback>
-              </Avatar>
+        {conversations.map((conversation) => {
+          const otherUserId = conversation.guide_id || conversation.hiker_id;
+          const presence = usePresence(otherUserId);
+          
+          return (
+            <button
+              key={conversation.id}
+              onClick={() => onSelect(conversation)}
+              className={cn(
+                "w-full text-left p-3 rounded-lg transition-colors hover:bg-accent",
+                selectedId === conversation.id && "bg-accent"
+              )}
+            >
+              <div className="flex items-start gap-3">
+                {/* Avatar with presence indicator */}
+                <div className="relative">
+                  <Avatar className="w-10 h-10 flex-shrink-0">
+                    <AvatarImage src={conversation.tours?.hero_image || undefined} />
+                    <AvatarFallback>
+                      {conversation.tours?.title?.[0] || conversation.profiles?.name?.[0] || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  {presence?.status === 'online' && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
+                  )}
+                </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
@@ -81,8 +91,9 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
                 </div>
               </div>
             </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
     </ScrollArea>
   );

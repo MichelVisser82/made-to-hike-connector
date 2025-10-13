@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Send } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { Conversation } from '@/types/chat';
 
 interface ChatWindowProps {
@@ -21,7 +22,9 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
   const { messages, loading, sendMessage, markAsRead } = useMessages(conversation.id);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -36,6 +39,49 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
       markAsRead(user.id);
     }
   }, [conversation.id, user?.id]);
+
+  // Typing indicators
+  useEffect(() => {
+    const channel = supabase.channel(`typing-${conversation.id}`);
+
+    channel
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if (payload.payload.userId !== user?.id) {
+          setTypingUsers((prev) => {
+            if (!prev.includes(payload.payload.userId)) {
+              return [...prev, payload.payload.userId];
+            }
+            return prev;
+          });
+
+          setTimeout(() => {
+            setTypingUsers((prev) => prev.filter((id) => id !== payload.payload.userId));
+          }, 3000);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversation.id, user?.id]);
+
+  const handleTyping = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    const channel = supabase.channel(`typing-${conversation.id}`);
+    channel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { userId: user?.id, userName: profile?.name }
+    });
+
+    typingTimeoutRef.current = setTimeout(() => {
+      // Stop typing indicator after 3 seconds
+    }, 3000);
+  };
 
   const handleSend = async () => {
     if (!newMessage.trim() || sending) return;
@@ -130,6 +176,18 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
           )}
           <div ref={scrollRef} />
         </div>
+
+        {/* Typing indicator */}
+        {typingUsers.length > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground py-2 px-4">
+            <div className="flex gap-1">
+              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <span>Someone is typing...</span>
+          </div>
+        )}
       </ScrollArea>
 
       {/* Input */}
@@ -137,7 +195,10 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
         <div className="flex gap-2">
           <Textarea
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTyping();
+            }}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
             className="min-h-[60px] resize-none"

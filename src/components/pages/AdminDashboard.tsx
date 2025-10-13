@@ -7,6 +7,9 @@ import { ImageManager } from '../admin/ImageManager';
 import { ImageOverview } from '../admin/ImageOverview';
 import { TourTemplateManager } from '../admin/TourTemplateManager';
 import { GuideVerificationManager } from '../admin/GuideVerificationManager';
+import { TicketDashboard } from '../admin/TicketDashboard';
+import { FlaggedMessagesPanel } from '../admin/FlaggedMessagesPanel';
+import { AllConversationsPanel } from '../admin/AllConversationsPanel';
 import { type User } from '../../types';
 import { MainLayout } from '../layout/MainLayout';
 import type { DashboardSection } from '@/types/dashboard';
@@ -31,13 +34,14 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="images">Image Manager</TabsTrigger>
-            <TabsTrigger value="image-overview">Image Overview</TabsTrigger>
+            <TabsTrigger value="tickets">Tickets</TabsTrigger>
+            <TabsTrigger value="flagged">Flagged</TabsTrigger>
+            <TabsTrigger value="conversations">Conversations</TabsTrigger>
+            <TabsTrigger value="images">Images</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="verifications">Verifications</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -74,12 +78,23 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="images">
-            <ImageManager />
+          <TabsContent value="tickets">
+            <TicketDashboard />
           </TabsContent>
 
-          <TabsContent value="image-overview">
-            <ImageOverview />
+          <TabsContent value="flagged">
+            <FlaggedMessagesPanel />
+          </TabsContent>
+
+          <TabsContent value="conversations">
+            <AllConversationsPanel />
+          </TabsContent>
+
+          <TabsContent value="images">
+            <div className="space-y-6">
+              <ImageManager />
+              <ImageOverview />
+            </div>
           </TabsContent>
 
           <TabsContent value="templates">
@@ -88,17 +103,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
           <TabsContent value="verifications" className="space-y-6">
             <GuideVerificationManager />
-          </TabsContent>
-
-          <TabsContent value="bookings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Booking Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Booking management will be implemented here.</p>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>

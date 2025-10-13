@@ -49,6 +49,16 @@ export function MessageBubble({ message, currentUserId, isAdmin }: MessageBubble
         {/* Message content */}
         <p className="whitespace-pre-wrap break-words">{displayContent}</p>
 
+        {/* Image attachment */}
+        {message.message_type === 'image' && message.attachment_url && (
+          <img
+            src={message.attachment_url}
+            alt="Attached image"
+            className="rounded-lg max-w-full h-auto mt-2"
+            style={{ maxHeight: '300px' }}
+          />
+        )}
+
         {/* Moderation warning */}
         {hasViolations && !isAdmin && !isSender && (
           <div className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1 pt-1">

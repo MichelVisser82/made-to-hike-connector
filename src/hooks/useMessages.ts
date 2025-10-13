@@ -55,7 +55,10 @@ export function useMessages(conversationId: string | undefined) {
 
     const { data, error } = await supabase
       .from('messages')
-      .select('*')
+      .select(`
+        *,
+        read_receipts:message_read_receipts(*)
+      `)
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
@@ -97,15 +100,21 @@ export function useMessages(conversationId: string | undefined) {
     );
 
     for (const msg of unreadMessages) {
-      await supabase
+      const { error } = await supabase
         .from('message_read_receipts')
         .insert({
           message_id: msg.id,
-          user_id: userId
-        })
-        .select()
-        .single();
+          user_id: userId,
+          read_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Failed to mark message as read:', error);
+      }
     }
+
+    // Refetch to update UI with read receipts
+    await fetchMessages();
   }
 
   return { messages, loading, sendMessage, markAsRead, refetch: fetchMessages };
