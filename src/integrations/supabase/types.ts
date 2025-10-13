@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      automated_messages: {
+        Row: {
+          created_at: string | null
+          delay_minutes: number | null
+          guide_id: string
+          id: string
+          is_active: boolean | null
+          message_template: string
+          tour_id: string | null
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delay_minutes?: number | null
+          guide_id: string
+          id?: string
+          is_active?: boolean | null
+          message_template: string
+          tour_id?: string | null
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delay_minutes?: number | null
+          guide_id?: string
+          id?: string
+          is_active?: boolean | null
+          message_template?: string
+          tour_id?: string | null
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_messages_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automated_messages_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -64,6 +115,140 @@ export type Database = {
           },
           {
             foreignKeyName: "bookings_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_attachments: {
+        Row: {
+          blurred_regions: Json | null
+          conversation_id: string
+          created_at: string | null
+          detected_violations: Json | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          message_id: string
+          moderation_status: string | null
+          thumbnail_path: string | null
+          uploader_id: string | null
+        }
+        Insert: {
+          blurred_regions?: Json | null
+          conversation_id: string
+          created_at?: string | null
+          detected_violations?: Json | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          message_id: string
+          moderation_status?: string | null
+          thumbnail_path?: string | null
+          uploader_id?: string | null
+        }
+        Update: {
+          blurred_regions?: Json | null
+          conversation_id?: string
+          created_at?: string | null
+          detected_violations?: Json | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          message_id?: string
+          moderation_status?: string | null
+          thumbnail_path?: string | null
+          uploader_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_attachments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_attachments_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          anonymous_email: string | null
+          anonymous_name: string | null
+          conversation_type: string
+          created_at: string | null
+          guide_id: string | null
+          hiker_id: string | null
+          id: string
+          last_message_at: string | null
+          status: string | null
+          tour_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          anonymous_email?: string | null
+          anonymous_name?: string | null
+          conversation_type?: string
+          created_at?: string | null
+          guide_id?: string | null
+          hiker_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          status?: string | null
+          tour_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          anonymous_email?: string | null
+          anonymous_name?: string | null
+          conversation_type?: string
+          created_at?: string | null
+          guide_id?: string | null
+          hiker_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          status?: string | null
+          tour_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_hiker_id_fkey"
+            columns: ["hiker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_tour_id_fkey"
             columns: ["tour_id"]
             isOneToOne: false
             referencedRelation: "tours"
@@ -248,6 +433,152 @@ export type Database = {
         }
         Relationships: []
       }
+      message_read_receipts: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_read_receipts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_read_receipts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachment_type: string | null
+          attachment_url: string | null
+          content: string
+          conversation_id: string
+          created_at: string | null
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          is_automated: boolean | null
+          message_type: string | null
+          moderated_content: string | null
+          moderation_flags: Json | null
+          moderation_status: string | null
+          sender_id: string | null
+          sender_name: string | null
+          sender_type: string
+        }
+        Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          is_automated?: boolean | null
+          message_type?: string | null
+          moderated_content?: string | null
+          moderation_flags?: Json | null
+          moderation_status?: string | null
+          sender_id?: string | null
+          sender_name?: string | null
+          sender_type: string
+        }
+        Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          is_automated?: boolean | null
+          message_type?: string | null
+          moderated_content?: string | null
+          moderation_flags?: Json | null
+          moderation_status?: string | null
+          sender_id?: string | null
+          sender_name?: string | null
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_digest_frequency: string | null
+          email_on_new_message: boolean | null
+          email_on_ticket_update: boolean | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_digest_frequency?: string | null
+          email_on_new_message?: boolean | null
+          email_on_ticket_update?: boolean | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_digest_frequency?: string | null
+          email_on_new_message?: boolean | null
+          email_on_ticket_update?: boolean | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -351,6 +682,123 @@ export type Database = {
             columns: ["tour_id"]
             isOneToOne: false
             referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_activities: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string | null
+          id: string
+          new_value: string | null
+          note: string | null
+          old_value: string | null
+          ticket_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string | null
+          id?: string
+          new_value?: string | null
+          note?: string | null
+          old_value?: string | null
+          ticket_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string | null
+          id?: string
+          new_value?: string | null
+          note?: string | null
+          old_value?: string | null
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_activities_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_activities_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          conversation_id: string
+          created_at: string | null
+          first_response_at: string | null
+          id: string
+          priority: string | null
+          resolved_at: string | null
+          slack_channel_id: string | null
+          slack_thread_ts: string | null
+          status: string | null
+          ticket_number: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          conversation_id: string
+          created_at?: string | null
+          first_response_at?: string | null
+          id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          slack_channel_id?: string | null
+          slack_thread_ts?: string | null
+          status?: string | null
+          ticket_number: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          conversation_id?: string
+          created_at?: string | null
+          first_response_at?: string | null
+          id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          slack_channel_id?: string | null
+          slack_thread_ts?: string | null
+          status?: string | null
+          ticket_number?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: true
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -508,6 +956,35 @@ export type Database = {
             foreignKeyName: "tours_guide_id_fkey"
             columns: ["guide_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_presence: {
+        Row: {
+          last_seen: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          last_seen?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          last_seen?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_presence_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
