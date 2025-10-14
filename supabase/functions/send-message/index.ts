@@ -98,10 +98,7 @@ serve(async (req) => {
     // Get conversation details
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
-      .select(`
-        *,
-        bookings!inner(status)
-      `)
+      .select('*')
       .eq('id', conversationId)
       .single();
 
@@ -113,7 +110,7 @@ serve(async (req) => {
       );
     }
 
-    // Check if sender is admin or guide with confirmed booking
+    // Check if sender is admin or guide for this conversation
     const { data: userRole } = await supabase
       .from('user_roles')
       .select('role')
@@ -121,13 +118,13 @@ serve(async (req) => {
       .single();
 
     const isAdmin = userRole?.role === 'admin';
-    const isGuideWithBooking = senderType === 'guide' && conversation.bookings?.status === 'confirmed';
+    const isGuideForConversation = senderType === 'guide' && conversation.guide_id === senderId;
 
-    // Moderate content (skip for admins and guides with confirmed bookings)
+    // Moderate content (skip for admins and guides for their conversations)
     let moderationResult: ModerationResult;
     let moderationStatus = 'approved';
 
-    if (isAdmin || isGuideWithBooking) {
+    if (isAdmin || isGuideForConversation) {
       moderationResult = {
         moderatedContent: content,
         violations: [],

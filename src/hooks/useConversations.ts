@@ -41,15 +41,68 @@ export function useConversations(userId: string | undefined) {
 
     const { data, error } = await supabase
       .from('conversations')
-      .select('*')
+      .select(`
+        *,
+        tours (
+          id,
+          title,
+          hero_image
+        ),
+        hiker_profile:profiles!hiker_id (
+          id,
+          name,
+          avatar_url
+        ),
+        guide_profile:profiles!guide_id (
+          id,
+          name,
+          avatar_url
+        )
+      `)
       .or(`hiker_id.eq.${userId},guide_id.eq.${userId}`)
       .order('last_message_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching conversations:', error);
-    } else {
-      setConversations((data || []) as any);
+      setLoading(false);
+      return;
     }
+
+    const conversationsWithUnread = await Promise.all(
+      (data || []).map(async (conv) => {
+        const { data: unreadMessages } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('conversation_id', conv.id)
+          .neq('sender_id', userId);
+
+        let unreadCount = 0;
+        if (unreadMessages) {
+          for (const msg of unreadMessages) {
+            const { data: receipt } = await supabase
+              .from('message_read_receipts')
+              .select('id')
+              .eq('message_id', msg.id)
+              .eq('user_id', userId)
+              .maybeSingle();
+            
+            if (!receipt) {
+              unreadCount++;
+            }
+          }
+        }
+
+        const profiles = conv.hiker_id === userId ? conv.guide_profile : conv.hiker_profile;
+
+        return { 
+          ...conv, 
+          unread_count: unreadCount,
+          profiles: profiles
+        };
+      })
+    );
+
+    setConversations(conversationsWithUnread as any);
     setLoading(false);
   }
 
