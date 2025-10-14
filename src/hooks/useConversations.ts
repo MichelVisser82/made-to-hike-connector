@@ -39,26 +39,10 @@ export function useConversations(userId: string | undefined) {
   async function fetchConversations() {
     if (!userId) return;
 
-    const { data, error } = await supabase
+    // Fetch conversations first
+    const { data: convData, error } = await supabase
       .from('conversations')
-      .select(`
-        *,
-        tours (
-          id,
-          title,
-          hero_image
-        ),
-        hiker_profile:profiles!hiker_id (
-          id,
-          name,
-          avatar_url
-        ),
-        guide_profile:profiles!guide_id (
-          id,
-          name,
-          avatar_url
-        )
-      `)
+      .select('*')
       .or(`hiker_id.eq.${userId},guide_id.eq.${userId}`)
       .order('last_message_at', { ascending: false });
 
@@ -68,8 +52,43 @@ export function useConversations(userId: string | undefined) {
       return;
     }
 
-    const conversationsWithUnread = await Promise.all(
-      (data || []).map(async (conv) => {
+    // Fetch all related data for each conversation
+    const conversationsWithData = await Promise.all(
+      (convData || []).map(async (conv) => {
+        // Get tour info
+        let tourInfo = null;
+        if (conv.tour_id) {
+          const { data: tour } = await supabase
+            .from('tours')
+            .select('id, title, hero_image')
+            .eq('id', conv.tour_id)
+            .maybeSingle();
+          tourInfo = tour;
+        }
+
+        // Get hiker profile
+        let hikerProfile = null;
+        if (conv.hiker_id) {
+          const { data: hiker } = await supabase
+            .from('profiles')
+            .select('id, name, avatar_url')
+            .eq('id', conv.hiker_id)
+            .maybeSingle();
+          hikerProfile = hiker;
+        }
+
+        // Get guide profile
+        let guideProfile = null;
+        if (conv.guide_id) {
+          const { data: guide } = await supabase
+            .from('profiles')
+            .select('id, name, avatar_url')
+            .eq('id', conv.guide_id)
+            .maybeSingle();
+          guideProfile = guide;
+        }
+
+        // Calculate unread count
         const { data: unreadMessages } = await supabase
           .from('messages')
           .select('id')
@@ -92,17 +111,21 @@ export function useConversations(userId: string | undefined) {
           }
         }
 
-        const profiles = conv.hiker_id === userId ? conv.guide_profile : conv.hiker_profile;
+        // Determine which profile to show (the OTHER person)
+        const otherProfile = conv.hiker_id === userId ? guideProfile : hikerProfile;
 
-        return { 
-          ...conv, 
-          unread_count: unreadCount,
-          profiles: profiles
+        return {
+          ...conv,
+          tours: tourInfo,
+          hiker_profile: hikerProfile,
+          guide_profile: guideProfile,
+          profiles: otherProfile,
+          unread_count: unreadCount
         };
       })
     );
 
-    setConversations(conversationsWithUnread as any);
+    setConversations(conversationsWithData as any);
     setLoading(false);
   }
 
