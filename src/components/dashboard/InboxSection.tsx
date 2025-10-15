@@ -158,10 +158,7 @@ export function InboxSection({
                 <ScrollArea className="flex-1">
                   <div className="space-y-2 pr-4">
                     {conversations.map((conv) => {
-                      const isHiker = conv.hiker_id === user?.id;
-                      const displayName = isHiker 
-                        ? (conv.profiles?.name || 'Guide')
-                        : (conv.anonymous_name || conv.profiles?.name || 'Hiker');
+            const displayName = conv.profiles?.name || conv.anonymous_name || 'Unknown User';
                       
                       return (
                         <div
