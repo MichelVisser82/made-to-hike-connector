@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
-import { SearchPage } from './pages/SearchPage';
 import { TourDetailPage } from './pages/TourDetailPage';
+import { MainLayout } from './layout/MainLayout';
 import { AuthModal } from './modals/AuthModal';
 import { GuideSignupModal } from './modals/GuideSignupModal';
 import { HikerRegistrationModal } from './modals/HikerRegistrationModal';
@@ -35,12 +35,6 @@ function AppContent() {
   const [tourToCopy, setTourToCopy] = useState<Tour | undefined>(undefined);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingTourId, setEditingTourId] = useState<string | undefined>(undefined);
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>({
-    region: '',
-    difficulty: '',
-    dateRange: '',
-    maxPrice: ''
-  });
   const [pendingBookingEmail, setPendingBookingEmail] = useState<string | null>(null);
   const [viewingGuideId, setViewingGuideId] = useState<string | null>(null);
   
@@ -77,8 +71,12 @@ function AppContent() {
 
   const navigateToSearch = (filters = {}) => {
     window.scrollTo(0, 0);
-    setSearchFilters({ ...searchFilters, ...filters });
-    setCurrentPage('search');
+    // Build URL with filters
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.set(key, value as string);
+    });
+    navigate(`/tours${params.toString() ? '?' + params.toString() : ''}`);
   };
 
   const navigateToTour = (tour: Tour) => {
@@ -135,21 +133,14 @@ function AppContent() {
     switch (currentPage) {
       case 'landing':
         return (
-          <LandingPage
-            onNavigateToSearch={navigateToSearch}
-            onShowGuideSignup={() => setShowGuideSignupModal(true)}
-            user={user}
-            onNavigateToDashboard={navigateToDashboard}
-          />
-        );
-      case 'search':
-        return (
-          <SearchPage
-            filters={searchFilters}
-            onFiltersChange={setSearchFilters}
-            onTourClick={navigateToTour}
-            onBookTour={navigateToBooking}
-          />
+          <MainLayout>
+            <LandingPage
+              onNavigateToSearch={navigateToSearch}
+              onShowGuideSignup={() => setShowGuideSignupModal(true)}
+              user={user}
+              onNavigateToDashboard={navigateToDashboard}
+            />
+          </MainLayout>
         );
       case 'tour-detail':
         return selectedTour ? (

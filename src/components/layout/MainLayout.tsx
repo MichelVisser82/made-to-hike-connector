@@ -25,7 +25,16 @@ export function MainLayout({
 
   const handleNavigate = (page: string) => {
     window.scrollTo(0, 0);
-    navigate(`/?page=${page}`);
+    // Map page names to actual routes
+    if (page === 'tours') {
+      navigate('/tours');
+    } else if (page === 'guides') {
+      navigate('/guides');
+    } else if (page === 'certifications') {
+      navigate('/certifications');
+    } else {
+      navigate('/');
+    }
   };
 
   const handleNavigateToSearch = (filters?: any) => {
@@ -36,7 +45,7 @@ export function MainLayout({
       });
     }
     window.scrollTo(0, 0);
-    navigate(`/?${params.toString()}`);
+    navigate(`/tours${params.toString() ? '?' + params.toString() : ''}`);
   };
 
   return (

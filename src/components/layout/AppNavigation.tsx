@@ -129,7 +129,7 @@ export function AppNavigation({
     if (onSearchClick) {
       onSearchClick();
     } else {
-      navigate('/');
+      navigate('/tours');
     }
   };
 

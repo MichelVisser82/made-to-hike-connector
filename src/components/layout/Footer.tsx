@@ -69,7 +69,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
             <ul className="space-y-2 text-sm">
               <li>
                 <button 
-                  onClick={() => onNavigateToSearch({ region: 'dolomites' })}
+                  onClick={() => navigate('/tours?region=dolomites')}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
                   <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
@@ -78,7 +78,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigateToSearch({ region: 'pyrenees' })}
+                  onClick={() => navigate('/tours?region=pyrenees')}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
                   <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
@@ -87,7 +87,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigateToSearch({ region: 'scottish-highlands' })}
+                  onClick={() => navigate('/tours?region=scottish-highlands')}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
                   <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
@@ -96,7 +96,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigateToSearch({ difficulty: 'easy' })}
+                  onClick={() => navigate('/tours?difficulty=easy')}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
                   <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
@@ -105,7 +105,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigateToSearch({ difficulty: 'expert' })}
+                  onClick={() => navigate('/tours?difficulty=expert')}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
                   <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
@@ -114,7 +114,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigate('certifications')}
+                  onClick={() => navigate('/certifications')}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
                   <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />

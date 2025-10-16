@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { TourCard } from '../tour/TourCard';
-import { type Tour, type SearchFilters } from '../../types';
+import { type Tour } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
-import { MainLayout } from '../layout/MainLayout';
 
-interface SearchPageProps {
-  filters: SearchFilters;
-  onFiltersChange: (filters: SearchFilters) => void;
-  onTourClick: (tour: Tour) => void;
-  onBookTour: (tour: Tour) => void;
-}
-
-export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }: SearchPageProps) {
+export function SearchPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Read filters from URL
+  const region = searchParams.get('region') || '';
+  const difficulty = searchParams.get('difficulty') || '';
+  const dateRange = searchParams.get('dateRange') || '';
+  const maxPrice = searchParams.get('maxPrice') || '';
 
   useEffect(() => {
     fetchTours();
@@ -42,14 +43,35 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
   };
 
   const filteredTours = tours.filter(tour => {
-    if (filters.region && tour.region !== filters.region.toLowerCase()) return false;
-    if (filters.difficulty && tour.difficulty !== filters.difficulty.toLowerCase()) return false;
+    if (region && tour.region !== region.toLowerCase()) return false;
+    if (difficulty && tour.difficulty !== difficulty.toLowerCase()) return false;
     return true;
   });
+  
+  const updateFilter = (key: string, value: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value) {
+      newParams.set(key, value);
+    } else {
+      newParams.delete(key);
+    }
+    setSearchParams(newParams);
+  };
+  
+  const clearFilters = () => {
+    setSearchParams({});
+  };
+  
+  const handleTourClick = (tour: Tour) => {
+    navigate(`/tours/${tour.slug}`);
+  };
+  
+  const handleBookTour = (tour: Tour) => {
+    navigate(`/tours/${tour.slug}`);
+  };
 
   return (
-    <MainLayout>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -65,8 +87,8 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
             <div>
               <label className="block text-sm font-medium mb-2">Region</label>
               <select
-                value={filters.region}
-                onChange={(e) => onFiltersChange({ ...filters, region: e.target.value })}
+                value={region}
+                onChange={(e) => updateFilter('region', e.target.value)}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               >
                 <option value="">All Regions</option>
@@ -78,8 +100,8 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
             <div>
               <label className="block text-sm font-medium mb-2">Difficulty</label>
               <select
-                value={filters.difficulty}
-                onChange={(e) => onFiltersChange({ ...filters, difficulty: e.target.value })}
+                value={difficulty}
+                onChange={(e) => updateFilter('difficulty', e.target.value)}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               >
                 <option value="">All Levels</option>
@@ -92,8 +114,8 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
             <div>
               <label className="block text-sm font-medium mb-2">Date Range</label>
               <select
-                value={filters.dateRange}
-                onChange={(e) => onFiltersChange({ ...filters, dateRange: e.target.value })}
+                value={dateRange}
+                onChange={(e) => updateFilter('dateRange', e.target.value)}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               >
                 <option value="">Any Time</option>
@@ -105,8 +127,8 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
             <div>
               <label className="block text-sm font-medium mb-2">Max Price</label>
               <select
-                value={filters.maxPrice}
-                onChange={(e) => onFiltersChange({ ...filters, maxPrice: e.target.value })}
+                value={maxPrice}
+                onChange={(e) => updateFilter('maxPrice', e.target.value)}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               >
                 <option value="">Any Price</option>
@@ -131,8 +153,8 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
             <TourCard
               key={tour.id}
               tour={tour}
-              onTourClick={onTourClick}
-              onBookTour={onBookTour}
+              onTourClick={handleTourClick}
+              onBookTour={handleBookTour}
             />
           ))}
         </div>
@@ -144,7 +166,7 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
             </p>
             <Button
               variant="outline"
-              onClick={() => onFiltersChange({ region: '', difficulty: '', dateRange: '', maxPrice: '' })}
+              onClick={clearFilters}
             >
               Clear Filters
             </Button>
@@ -152,6 +174,5 @@ export function SearchPage({ filters, onFiltersChange, onTourClick, onBookTour }
         )}
         </div>
       </div>
-    </MainLayout>
   );
 }

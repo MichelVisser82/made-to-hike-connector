@@ -12,6 +12,7 @@ import TourPage from "./pages/TourPage";
 import GuidePage from "./pages/GuidePage";
 import GuideSignupPage from "./pages/GuideSignupPage";
 import GuidesPage from "./pages/GuidesPage";
+import ToursPage from "./pages/ToursPage";
 import { EmailTest } from "./components/EmailTest";
 import { Auth } from "./pages/Auth";
 import { VerifyEmail } from "./pages/VerifyEmail";
@@ -52,14 +53,15 @@ const App: React.FC = () => {
           <AuthProvider>
             <LaunchGate>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-                <Route path="/email-test" element={<EmailTest />} />
-                <Route path="/tours/:slug" element={<TourPage />} />
-                <Route path="/guides" element={<GuidesPage />} />
-                <Route path="/guide/signup" element={<GuideSignupPage />} />
-                <Route path="/certifications" element={<CertificationsPage />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/email-test" element={<EmailTest />} />
+            <Route path="/tours" element={<ToursPage />} />
+            <Route path="/tours/:slug" element={<TourPage />} />
+            <Route path="/guides" element={<GuidesPage />} />
+            <Route path="/guide/signup" element={<GuideSignupPage />} />
+            <Route path="/certifications" element={<CertificationsPage />} />
                 <Route 
                   path="/dashboard" 
                   element={
