@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import type { DateSlotFormData } from '@/types/tourDateSlot';
 
 const tourSchema = z.object({
   // Step 2: Basic Info
@@ -26,8 +27,18 @@ const tourSchema = z.object({
   distance_km: z.number().min(0.1).optional(),
   elevation_gain_m: z.number().min(0).optional(),
   
-  // Step 6: Available Dates
-  available_dates: z.array(z.date()).min(1, 'Select at least one date'),
+  // Step 6: Available Dates - NEW: Date slots with pricing/capacity
+  available_dates: z.array(z.date()).min(1, 'Select at least one date').optional(), // Kept for backward compatibility
+  date_slots: z.array(z.object({
+    date: z.date(),
+    spotsTotal: z.number().min(1),
+    priceOverride: z.number().optional(),
+    currencyOverride: z.string().optional(),
+    discountPercentage: z.number().min(0).max(100).optional(),
+    discountLabel: z.string().optional(),
+    earlyBirdDate: z.date().optional(),
+    notes: z.string().optional()
+  })).min(1, 'Add at least one date slot'),
   
   // Step 7: Images
   hero_image: z.string().optional(),
@@ -88,6 +99,10 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         distance_km: initialData.distance_km,
         elevation_gain_m: initialData.elevation_gain_m,
         available_dates: initialData.available_dates?.map((d: string) => new Date(d)) || [],
+        date_slots: initialData.available_dates?.map((d: string) => ({
+          date: new Date(d),
+          spotsTotal: initialData.group_size,
+        })) || [],
         hero_image: initialData.hero_image,
         images: initialData.images || [],
         highlights: initialData.highlights || [],
@@ -115,6 +130,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       distance_km: undefined,
       elevation_gain_m: undefined,
       available_dates: [],
+      date_slots: [],
       images: [],
       highlights: [],
       itinerary: [],
@@ -144,6 +160,13 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         // Convert date strings back to Date objects
         if (parsed.available_dates) {
           parsed.available_dates = parsed.available_dates.map((d: string) => new Date(d));
+        }
+        if (parsed.date_slots) {
+          parsed.date_slots = parsed.date_slots.map((slot: any) => ({
+            ...slot,
+            date: new Date(slot.date),
+            earlyBirdDate: slot.earlyBirdDate ? new Date(slot.earlyBirdDate) : undefined
+          }));
         }
         form.reset(parsed);
       } catch (e) {
@@ -197,22 +220,26 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         return { success: false };
       }
 
-      // Format the data for submission
-      const tourData: any = {
-        ...data,
+      // Format the data for submission (exclude date_slots, we'll handle separately)
+      const { date_slots, ...tourData } = data as any;
+      
+      const formattedTourData = {
+        ...tourData,
         guide_id: user.id,
-        available_dates: data.available_dates?.map(date => 
-          typeof date === 'string' ? date : date.toISOString().split('T')[0]
+        available_dates: date_slots?.map((slot: DateSlotFormData) => 
+          slot.date.toISOString().split('T')[0]
         ) || [],
       };
+
+      let createdTourId = tourId;
 
       if (editMode && tourId) {
         // UPDATE existing tour
         const { error } = await supabase
           .from('tours')
-          .update(tourData)
+          .update(formattedTourData)
           .eq('id', tourId)
-          .eq('guide_id', user.id); // Ensure guide can only update their own tours
+          .eq('guide_id', user.id);
 
         if (error) {
           console.error('Error updating tour:', error);
@@ -224,17 +251,19 @@ export function useTourCreation(options?: UseTourCreationOptions) {
           return { success: false };
         }
 
-        toast({
-          title: "Success",
-          description: "Tour updated successfully!",
-        });
-        
-        return { success: true };
+        // Delete existing date slots for this tour
+        await supabase
+          .from('tour_date_slots')
+          .delete()
+          .eq('tour_id', tourId);
+
       } else {
         // INSERT new tour
-        const { error } = await supabase
+        const { data: newTour, error } = await supabase
           .from('tours')
-          .insert([tourData]);
+          .insert([formattedTourData])
+          .select('id')
+          .single();
 
         if (error) {
           console.error('Error creating tour:', error);
@@ -246,16 +275,49 @@ export function useTourCreation(options?: UseTourCreationOptions) {
           return { success: false };
         }
 
-        // Clear draft from local storage on successful submission
-        localStorage.removeItem(STORAGE_KEY);
-
-        toast({
-          title: "Success",
-          description: "Tour published successfully!",
-        });
-        
-        return { success: true };
+        createdTourId = newTour.id;
       }
+
+      // Insert date slots
+      if (date_slots && date_slots.length > 0 && createdTourId) {
+        const dateSlotInserts = date_slots.map((slot: DateSlotFormData) => ({
+          tour_id: createdTourId,
+          slot_date: slot.date.toISOString().split('T')[0],
+          spots_total: slot.spotsTotal,
+          price_override: slot.priceOverride,
+          currency_override: slot.currencyOverride,
+          discount_percentage: slot.discountPercentage,
+          discount_label: slot.discountLabel,
+          early_bird_date: slot.earlyBirdDate?.toISOString().split('T')[0],
+          notes: slot.notes,
+          is_available: true
+        }));
+
+        const { error: slotsError } = await supabase
+          .from('tour_date_slots')
+          .insert(dateSlotInserts);
+
+        if (slotsError) {
+          console.error('Error creating date slots:', slotsError);
+          toast({
+            title: "Warning",
+            description: "Tour created but some dates failed to save. Please edit the tour to add them.",
+            variant: "destructive",
+          });
+        }
+      }
+
+      // Clear draft from local storage on successful submission
+      if (!editMode) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+
+      toast({
+        title: "Success",
+        description: editMode ? "Tour updated successfully!" : "Tour published successfully!",
+      });
+      
+      return { success: true };
     } catch (error) {
       console.error('Error submitting tour:', error);
       toast({

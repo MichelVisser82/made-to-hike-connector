@@ -70,6 +70,7 @@ export type Database = {
           booking_date: string
           created_at: string
           currency: Database["public"]["Enums"]["currency"]
+          date_slot_id: string | null
           hiker_id: string
           id: string
           participants: number
@@ -83,6 +84,7 @@ export type Database = {
           booking_date: string
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
+          date_slot_id?: string | null
           hiker_id: string
           id?: string
           participants?: number
@@ -96,6 +98,7 @@ export type Database = {
           booking_date?: string
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
+          date_slot_id?: string | null
           hiker_id?: string
           id?: string
           participants?: number
@@ -106,6 +109,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_date_slot_id_fkey"
+            columns: ["date_slot_id"]
+            isOneToOne: false
+            referencedRelation: "tour_date_slots"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_hiker_id_fkey"
             columns: ["hiker_id"]
@@ -803,6 +813,65 @@ export type Database = {
           },
         ]
       }
+      tour_date_slots: {
+        Row: {
+          created_at: string
+          currency_override: Database["public"]["Enums"]["currency"] | null
+          discount_label: string | null
+          discount_percentage: number | null
+          early_bird_date: string | null
+          id: string
+          is_available: boolean
+          notes: string | null
+          price_override: number | null
+          slot_date: string
+          spots_booked: number
+          spots_total: number
+          tour_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency_override?: Database["public"]["Enums"]["currency"] | null
+          discount_label?: string | null
+          discount_percentage?: number | null
+          early_bird_date?: string | null
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          price_override?: number | null
+          slot_date: string
+          spots_booked?: number
+          spots_total?: number
+          tour_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency_override?: Database["public"]["Enums"]["currency"] | null
+          discount_label?: string | null
+          discount_percentage?: number | null
+          early_bird_date?: string | null
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          price_override?: number | null
+          slot_date?: string
+          spots_booked?: number
+          spots_total?: number
+          tour_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_date_slots_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tour_step_templates: {
         Row: {
           category: string
@@ -1258,11 +1327,47 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_guide_all_date_slots: {
+        Args: { p_end_date?: string; p_guide_id: string; p_start_date?: string }
+        Returns: {
+          availability_status: string
+          currency: Database["public"]["Enums"]["currency"]
+          discount_percentage: number
+          price: number
+          slot_date: string
+          slot_id: string
+          spots_booked: number
+          spots_remaining: number
+          spots_total: number
+          tour_id: string
+          tour_title: string
+        }[]
+      }
+      get_tour_date_availability: {
+        Args: { p_tour_id: string }
+        Returns: {
+          currency: Database["public"]["Enums"]["currency"]
+          discount_label: string
+          discount_percentage: number
+          is_available: boolean
+          is_early_bird: boolean
+          price: number
+          slot_date: string
+          slot_id: string
+          spots_booked: number
+          spots_remaining: number
+          spots_total: number
+        }[]
+      }
       has_role: {
         Args:
           | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
           | { _role: string; _user_id: string }
         Returns: boolean
+      }
+      migrate_tour_dates_to_slots: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       verify_guide_certification: {
         Args: { p_cert_updates: Json; p_user_id: string; p_verified_by: string }
