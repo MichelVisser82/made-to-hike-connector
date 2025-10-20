@@ -27,19 +27,34 @@ export function useGuideCalendarView({
 
       if (error) throw error;
 
-      return (data || []).map((slot: any) => ({
-        slotId: slot.slot_id,
-        tourId: slot.tour_id,
-        tourTitle: slot.tour_title,
-        date: new Date(slot.slot_date),
-        spotsTotal: slot.spots_total,
-        spotsBooked: slot.spots_booked,
-        spotsRemaining: slot.spots_remaining,
-        price: Number(slot.price),
-        currency: slot.currency,
-        discountPercentage: slot.discount_percentage,
-        availabilityStatus: slot.availability_status as 'available' | 'limited' | 'booked'
-      })) as CalendarDateView[];
+      // Parse duration to days
+      const parseDurationToDays = (duration: string): number => {
+        const match = duration.match(/(\d+)\s*(day|days)/i);
+        return match ? parseInt(match[1]) : 1;
+      };
+
+      return (data || []).map((slot: any) => {
+        const durationDays = parseDurationToDays(slot.tour_duration || '1 day');
+        const startDate = new Date(slot.slot_date);
+        const endDate = addDays(startDate, durationDays - 1);
+
+        return {
+          slotId: slot.slot_id,
+          tourId: slot.tour_id,
+          tourTitle: slot.tour_title,
+          tourDuration: slot.tour_duration,
+          date: startDate,
+          endDate: endDate,
+          durationDays: durationDays,
+          spotsTotal: slot.spots_total,
+          spotsBooked: slot.spots_booked,
+          spotsRemaining: slot.spots_remaining,
+          price: Number(slot.price),
+          currency: slot.currency,
+          discountPercentage: slot.discount_percentage,
+          availabilityStatus: slot.availability_status as 'available' | 'limited' | 'booked'
+        };
+      }) as CalendarDateView[];
     },
     enabled: !!guideId,
     staleTime: 5 * 60 * 1000, // 5 minutes

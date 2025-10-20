@@ -8,7 +8,10 @@ export interface CalendarDateView {
   slotId: string;
   tourId: string;
   tourTitle: string;
+  tourDuration: string;
   date: Date;
+  endDate: Date;
+  durationDays: number;
   spotsTotal: number;
   spotsBooked: number;
   spotsRemaining: number;

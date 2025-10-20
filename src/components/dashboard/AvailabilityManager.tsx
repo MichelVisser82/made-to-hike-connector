@@ -1,14 +1,16 @@
 import { useState, useMemo } from 'react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isBefore, startOfDay, differenceInDays, isSameMonth } from 'date-fns';
+import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useGuideCalendarView } from '@/hooks/useGuideCalendarView';
 import { useGuideTours } from '@/hooks/useGuideTours';
+import { useGuideCalendarView } from '@/hooks/useGuideCalendarView';
 import { useTourDateSlotMutations } from '@/hooks/useTourDateSlotMutations';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, ChevronLeft, ChevronRight, Users, DollarSign, Edit2, Trash2, Plus } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import type { CalendarDateView } from '@/types/tourDateSlot';
 
 export function AvailabilityManager() {
   const { user } = useAuth();
@@ -18,264 +20,316 @@ export function AvailabilityManager() {
 
   const monthStart = startOfMonth(selectedMonth);
   const monthEnd = endOfMonth(selectedMonth);
-  const calendarStart = startOfWeek(monthStart);
-  const calendarEnd = endOfWeek(monthEnd);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
-  // Fetch guide's tours
-  const { data: tours = [] } = useGuideTours(user?.id);
-
-  // Fetch calendar data
-  const { data: dateSlots = [], isLoading } = useGuideCalendarView({
+  const { data: tours = [], isLoading: isLoadingTours } = useGuideTours(user?.id);
+  const { data: calendarSlots = [], isLoading: isLoadingSlots } = useGuideCalendarView({
     guideId: user?.id,
     startDate: calendarStart,
-    endDate: calendarEnd
+    endDate: calendarEnd,
   });
 
-  // Mutations
   const { deleteDateSlot } = useTourDateSlotMutations();
 
   // Filter slots by selected tour
   const filteredSlots = useMemo(() => {
-    if (selectedTourFilter === 'all') return dateSlots;
-    return dateSlots.filter(slot => slot.tourId === selectedTourFilter);
-  }, [dateSlots, selectedTourFilter]);
+    if (selectedTourFilter === 'all') return calendarSlots;
+    return calendarSlots.filter(slot => slot.tourId === selectedTourFilter);
+  }, [calendarSlots, selectedTourFilter]);
 
   // Get slots for selected date
   const selectedDateSlots = useMemo(() => {
     if (!selectedDate) return [];
-    return filteredSlots.filter(slot => isSameDay(slot.date, selectedDate));
+    return filteredSlots.filter(slot => {
+      const slotStart = startOfDay(slot.date);
+      const slotEnd = startOfDay(slot.endDate);
+      const checkDate = startOfDay(selectedDate);
+      return checkDate >= slotStart && checkDate <= slotEnd;
+    });
   }, [filteredSlots, selectedDate]);
 
   // Generate calendar days
   const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  // Get slots for a specific day
-  const getSlotsForDay = (day: Date) => {
-    return filteredSlots.filter(slot => isSameDay(slot.date, day));
-  };
-
-  // Get status color for a day
-  const getDayStatusColor = (day: Date) => {
-    const slots = getSlotsForDay(day);
-    if (slots.length === 0) return '';
-    
-    const hasAvailable = slots.some(s => s.availabilityStatus === 'available');
-    const hasLimited = slots.some(s => s.availabilityStatus === 'limited');
-    const allBooked = slots.every(s => s.availabilityStatus === 'booked');
-
-    if (allBooked) return 'bg-red-500';
-    if (hasLimited) return 'bg-yellow-500';
-    if (hasAvailable) return 'bg-green-500';
-    return '';
-  };
+  // Group calendar days into weeks
+  const calendarWeeks = useMemo(() => {
+    const weeks: Date[][] = [];
+    for (let i = 0; i < calendarDays.length; i += 7) {
+      weeks.push(calendarDays.slice(i, i + 7));
+    }
+    return weeks;
+  }, [calendarDays]);
 
   const handlePreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const handleNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
 
+  const handleDateClick = (day: Date) => {
+    const isPast = isBefore(day, startOfDay(new Date()));
+    if (isPast) return;
+    setSelectedDate(day);
+  };
+
   const handleDeleteSlot = async (slotId: string) => {
-    if (confirm('Are you sure you want to delete this date slot?')) {
-      await deleteDateSlot.mutateAsync(slotId);
+    if (!confirm('Are you sure you want to delete this date slot?')) return;
+    await deleteDateSlot.mutateAsync(slotId);
+  };
+
+  const getStatusDotColor = (status: string) => {
+    switch (status) {
+      case 'available': return 'bg-green-500';
+      case 'limited': return 'bg-yellow-500';
+      case 'booked': return 'bg-red-500';
+      default: return 'bg-gray-400';
     }
   };
 
+  if (isLoadingTours || isLoadingSlots) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <p className="text-muted-foreground">Loading calendar...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="flex gap-4">
-        <Select value={selectedTourFilter} onValueChange={setSelectedTourFilter}>
-          <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="Filter by tour" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tours ({tours.length})</SelectItem>
-            {tours.map(tour => (
-              <SelectItem key={tour.id} value={tour.id}>
-                {tour.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Header with Filters */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Tours & Availability Calendar</CardTitle>
+              <CardDescription>Manage your tour dates and availability</CardDescription>
+            </div>
+            <Select value={selectedTourFilter} onValueChange={setSelectedTourFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by tour" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tours</SelectItem>
+                {tours.map(tour => (
+                  <SelectItem key={tour.id} value={tour.id}>{tour.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar Grid */}
+        {/* Calendar */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-playfair">
-                {format(selectedMonth, 'MMMM yyyy')}
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleNextMonth}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h3 className="text-lg font-semibold">{format(selectedMonth, 'MMMM yyyy')}</h3>
+              <Button variant="outline" size="icon" onClick={handleNextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="text-center py-12 text-muted-foreground">Loading calendar...</div>
-            ) : (
-              <>
-                {/* Day Headers */}
-                <div className="grid grid-cols-7 gap-2 mb-2">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
-                      {day}
-                    </div>
-                  ))}
+            {/* Day Headers */}
+            <div className="grid grid-cols-7 gap-2 mb-2">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
+                  {day}
                 </div>
+              ))}
+            </div>
 
-                {/* Calendar Days */}
-                <div className="grid grid-cols-7 gap-2">
-                  {calendarDays.map((day, index) => {
-                    const slots = getSlotsForDay(day);
-                    const isCurrentMonth = day.getMonth() === selectedMonth.getMonth();
-                    const isSelected = selectedDate && isSameDay(day, selectedDate);
-                    const statusColor = getDayStatusColor(day);
+            {/* Calendar Grid - Week by Week */}
+            <div className="space-y-2">
+              {calendarWeeks.map((week, weekIndex) => (
+                <div key={weekIndex} className="relative">
+                  {/* Day cells for this week */}
+                  <div className="grid grid-cols-7 gap-2">
+                    {week.map((day) => {
+                      const isPast = isBefore(day, startOfDay(new Date()));
+                      const isCurrentMonth = isSameMonth(day, selectedMonth);
+                      const isSelected = selectedDate && isSameDay(day, selectedDate);
 
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedDate(day)}
-                        className={`
-                          aspect-square p-2 rounded-lg border transition-all
-                          ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
-                          ${isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}
-                          ${!isCurrentMonth && 'opacity-50'}
-                        `}
-                      >
-                        <div className="text-sm font-medium mb-1">{format(day, 'd')}</div>
-                        {slots.length > 0 && (
-                          <div className="flex gap-1 justify-center flex-wrap">
-                            {slots.slice(0, 3).map((slot, i) => (
-                              <div
-                                key={i}
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  slot.availabilityStatus === 'available' ? 'bg-green-500' :
-                                  slot.availabilityStatus === 'limited' ? 'bg-yellow-500' :
-                                  'bg-red-500'
-                                }`}
-                              />
-                            ))}
-                            {slots.length > 3 && (
-                              <div className="text-[10px] text-muted-foreground">+{slots.length - 3}</div>
-                            )}
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <div key={day.toISOString()} className="relative">
+                          <button
+                            onClick={() => handleDateClick(day)}
+                            disabled={isPast}
+                            className={`
+                              w-full min-h-[100px] p-2 rounded-lg border text-left
+                              transition-colors relative
+                              ${isPast ? 'opacity-40 cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:bg-accent'}
+                              ${!isCurrentMonth ? 'text-muted-foreground' : ''}
+                              ${isSelected ? 'ring-2 ring-primary' : ''}
+                            `}
+                          >
+                            <span className={`text-sm font-medium ${isPast ? 'line-through' : ''}`}>
+                              {format(day, 'd')}
+                            </span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Tour pills spanning across days */}
+                  <div className="absolute inset-0 pointer-events-none" style={{ top: '28px' }}>
+                    {filteredSlots
+                      .filter(slot => {
+                        // Only render tours that start or span this week
+                        const weekStart = week[0];
+                        const weekEnd = week[6];
+                        return (
+                          (slot.date >= weekStart && slot.date <= weekEnd) ||
+                          (slot.endDate >= weekStart && slot.endDate <= weekEnd) ||
+                          (slot.date < weekStart && slot.endDate > weekEnd)
+                        );
+                      })
+                      .map((slot, idx) => {
+                        const weekStart = week[0];
+                        const weekEnd = week[6];
+                        
+                        // Calculate which days in this week the tour spans
+                        const tourStart = slot.date < weekStart ? weekStart : slot.date;
+                        const tourEnd = slot.endDate > weekEnd ? weekEnd : slot.endDate;
+                        
+                        const startCol = differenceInDays(tourStart, weekStart);
+                        const spanDays = differenceInDays(tourEnd, tourStart) + 1;
+                        
+                        const isPast = isBefore(slot.endDate, startOfDay(new Date()));
+
+                        return (
+                          <TooltipProvider key={`${slot.slotId}-${weekIndex}`}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className={`
+                                    absolute px-2 py-1 rounded-md
+                                    flex items-center gap-1.5 text-xs font-medium
+                                    border shadow-sm z-10 pointer-events-auto
+                                    ${isPast ? 'opacity-50 grayscale' : ''}
+                                    bg-card hover:bg-accent transition-colors cursor-pointer
+                                  `}
+                                  style={{
+                                    left: `calc(${(startCol / 7) * 100}% + ${startCol * 8}px)`,
+                                    width: `calc(${(spanDays / 7) * 100}% + ${(spanDays - 1) * 8}px - 16px)`,
+                                    top: `${idx * 28}px`,
+                                  }}
+                                >
+                                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getStatusDotColor(slot.availabilityStatus)}`} />
+                                  <span className="truncate flex-1">{slot.tourTitle}</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="space-y-1">
+                                  <p className="font-semibold">{slot.tourTitle}</p>
+                                  <p className="text-sm">{format(slot.date, 'MMM d')} - {format(slot.endDate, 'MMM d, yyyy')}</p>
+                                  <p className="text-sm">{slot.spotsBooked}/{slot.spotsTotal} spots booked</p>
+                                  <p className="text-sm">{slot.currency} {slot.price}</p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        );
+                      })}
+                  </div>
                 </div>
+              ))}
+            </div>
 
-                {/* Legend */}
-                <div className="flex gap-4 mt-6 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                    <span className="text-muted-foreground">Available</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <span className="text-muted-foreground">Limited</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <span className="text-muted-foreground">Fully Booked</span>
-                  </div>
-                </div>
-              </>
-            )}
+            {/* Legend */}
+            <div className="mt-6 flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <span>Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                <span>Limited</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span>Fully Booked</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-gray-400 opacity-40" />
+                <span>Past</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {/* Date Details Panel */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-playfair">
-              {selectedDate ? format(selectedDate, 'MMM d, yyyy') : 'Select a Date'}
+            <CardTitle>
+              {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select a date'}
             </CardTitle>
+            <CardDescription>
+              {selectedDate ? `${selectedDateSlots.length} tour(s) scheduled` : 'Click on a date to view details'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {!selectedDate ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Click on a date to view and manage date slots
-              </p>
-            ) : selectedDateSlots.length === 0 ? (
-              <div className="text-center py-8">
-                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-                <p className="text-sm text-muted-foreground mb-4">No tours scheduled</p>
-                <Button size="sm" className="bg-burgundy hover:bg-burgundy-dark">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Date Slot
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
+            {selectedDate && selectedDateSlots.length > 0 ? (
+              <div className="space-y-4">
                 {selectedDateSlots.map(slot => (
-                  <Card key={slot.slotId} className="border-burgundy/20">
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
+                  <Card key={slot.slotId}>
+                    <CardContent className="pt-4">
+                      <div className="space-y-2">
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-sm line-clamp-1">{slot.tourTitle}</h4>
-                            <Badge 
-                              className={`mt-1 text-xs ${
-                                slot.availabilityStatus === 'available' ? 'bg-green-100 text-green-700' :
-                                slot.availabilityStatus === 'limited' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
-                              }`}
-                            >
-                              {slot.availabilityStatus}
-                            </Badge>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${getStatusDotColor(slot.availabilityStatus)}`} />
+                            <h4 className="font-semibold">{slot.tourTitle}</h4>
                           </div>
+                          <Badge variant={slot.availabilityStatus === 'booked' ? 'destructive' : 'default'}>
+                            {slot.availabilityStatus}
+                          </Badge>
                         </div>
-
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Users className="w-4 h-4" />
-                            <span>{slot.spotsBooked}/{slot.spotsTotal} spots booked</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <DollarSign className="w-4 h-4" />
-                            <span>{slot.currency === 'EUR' ? '€' : '£'}{slot.price}</span>
-                            {slot.discountPercentage && (
-                              <Badge variant="secondary" className="text-xs">
-                                -{slot.discountPercentage}%
-                              </Badge>
-                            )}
-                          </div>
+                        
+                        <div className="text-sm space-y-1 text-muted-foreground">
+                          <p>Duration: {format(slot.date, 'MMM d')} - {format(slot.endDate, 'MMM d, yyyy')}</p>
+                          <p>Spots: {slot.spotsBooked}/{slot.spotsTotal} booked ({slot.spotsRemaining} remaining)</p>
+                          <p>Price: {slot.currency} {slot.price}</p>
+                          {slot.discountPercentage && (
+                            <p className="text-green-600">Discount: {slot.discountPercentage}% off</p>
+                          )}
                         </div>
 
                         <div className="flex gap-2 pt-2">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Pencil className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                          >
-                            <Edit2 className="w-3 h-3 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
+                            className="flex-1 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteSlot(slot.slotId)}
-                            className="border-destructive/30 text-destructive hover:bg-destructive/5"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
                           </Button>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
-
-                <Button size="sm" className="w-full bg-burgundy hover:bg-burgundy-dark">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Another Slot
+              </div>
+            ) : selectedDate ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No tours scheduled for this date</p>
+                <Button className="mt-4" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Date Slot
                 </Button>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Select a date to view or manage tour slots</p>
               </div>
             )}
           </CardContent>

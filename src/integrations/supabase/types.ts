@@ -1339,6 +1339,7 @@ export type Database = {
           spots_booked: number
           spots_remaining: number
           spots_total: number
+          tour_duration: string
           tour_id: string
           tour_title: string
         }[]
