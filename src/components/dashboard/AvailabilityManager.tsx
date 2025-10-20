@@ -143,85 +143,71 @@ export function AvailabilityManager() {
               ))}
             </div>
 
-            {/* Calendar Grid - Week by Week */}
-            <div className="space-y-2">
-              {calendarWeeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="relative">
-                  {/* Day cells for this week */}
-                  <div className="grid grid-cols-7 gap-2">
-                    {week.map((day) => {
-                      const isPast = isBefore(day, startOfDay(new Date()));
-                      const isCurrentMonth = isSameMonth(day, selectedMonth);
-                      const isSelected = selectedDate && isSameDay(day, selectedDate);
+            {/* Calendar Grid - Full Month View */}
+            <div className="grid grid-cols-7 gap-2">
+              {calendarDays.map((day) => {
+                const isPast = isBefore(day, startOfDay(new Date()));
+                const isCurrentMonth = isSameMonth(day, selectedMonth);
+                const isSelected = selectedDate && isSameDay(day, selectedDate);
 
-                      return (
-                        <div key={day.toISOString()} className="relative">
-                          <button
-                            onClick={() => handleDateClick(day)}
-                            disabled={isPast}
-                            className={`
-                              w-full min-h-[100px] p-2 rounded-lg border text-left
-                              transition-colors relative
-                              ${isPast ? 'opacity-40 cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:bg-accent'}
-                              ${!isCurrentMonth ? 'text-muted-foreground' : ''}
-                              ${isSelected ? 'ring-2 ring-primary' : ''}
-                            `}
-                          >
-                            <span className={`text-sm font-medium ${isPast ? 'line-through' : ''}`}>
-                              {format(day, 'd')}
-                            </span>
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                // Get tours that include this specific day
+                const dayTours = filteredSlots.filter(slot => {
+                  const slotStart = startOfDay(slot.date);
+                  const slotEnd = startOfDay(slot.endDate);
+                  const checkDate = startOfDay(day);
+                  return checkDate >= slotStart && checkDate <= slotEnd;
+                });
 
-                  {/* Tour pills spanning across days */}
-                  <div className="absolute inset-0 pointer-events-none" style={{ top: '28px' }}>
-                    {filteredSlots
-                      .filter(slot => {
-                        // Only render tours that start or span this week
-                        const weekStart = week[0];
-                        const weekEnd = week[6];
-                        return (
-                          (slot.date >= weekStart && slot.date <= weekEnd) ||
-                          (slot.endDate >= weekStart && slot.endDate <= weekEnd) ||
-                          (slot.date < weekStart && slot.endDate > weekEnd)
-                        );
-                      })
-                      .map((slot, idx) => {
-                        const weekStart = week[0];
-                        const weekEnd = week[6];
-                        
-                        // Calculate which days in this week the tour spans
-                        const tourStart = slot.date < weekStart ? weekStart : slot.date;
-                        const tourEnd = slot.endDate > weekEnd ? weekEnd : slot.endDate;
-                        
-                        const startCol = differenceInDays(tourStart, weekStart);
-                        const spanDays = differenceInDays(tourEnd, tourStart) + 1;
-                        
-                        const isPast = isBefore(slot.endDate, startOfDay(new Date()));
+                return (
+                  <button
+                    key={day.toISOString()}
+                    onClick={() => handleDateClick(day)}
+                    disabled={isPast}
+                    className={`
+                      min-h-[120px] p-2 rounded-lg border text-left
+                      transition-colors flex flex-col gap-1
+                      ${isPast ? 'opacity-40 cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:bg-accent'}
+                      ${!isCurrentMonth ? 'text-muted-foreground' : ''}
+                      ${isSelected ? 'ring-2 ring-primary' : ''}
+                    `}
+                  >
+                    {/* Date number - always at top */}
+                    <div className={`text-sm font-semibold mb-1 ${isPast ? 'line-through' : ''}`}>
+                      {format(day, 'd')}
+                    </div>
+
+                    {/* Tour pills for this day */}
+                    <div className="flex flex-col gap-1 w-full">
+                      {dayTours.map((slot) => {
+                        const isPastTour = isBefore(slot.endDate, startOfDay(new Date()));
+                        const isFirstDay = isSameDay(slot.date, day);
 
                         return (
-                          <TooltipProvider key={`${slot.slotId}-${weekIndex}`}>
+                          <TooltipProvider key={slot.slotId}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div
                                   className={`
-                                    absolute px-2 py-1 rounded-md
-                                    flex items-center gap-1.5 text-xs font-medium
-                                    border shadow-sm z-10 pointer-events-auto
-                                    ${isPast ? 'opacity-50 grayscale' : ''}
-                                    bg-card hover:bg-accent transition-colors cursor-pointer
+                                    px-2 py-1 rounded text-xs font-medium
+                                    flex items-center gap-1.5
+                                    border shadow-sm
+                                    ${isPastTour ? 'opacity-50 grayscale' : ''}
+                                    bg-card hover:bg-accent transition-colors w-full
                                   `}
-                                  style={{
-                                    left: `calc(${(startCol / 7) * 100}% + ${startCol * 8}px)`,
-                                    width: `calc(${(spanDays / 7) * 100}% + ${(spanDays - 1) * 8}px - 16px)`,
-                                    top: `${idx * 28}px`,
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedDate(day);
                                   }}
                                 >
-                                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getStatusDotColor(slot.availabilityStatus)}`} />
-                                  <span className="truncate flex-1">{slot.tourTitle}</span>
+                                  {isFirstDay && (
+                                    <>
+                                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getStatusDotColor(slot.availabilityStatus)}`} />
+                                      <span className="truncate flex-1">{slot.tourTitle}</span>
+                                    </>
+                                  )}
+                                  {!isFirstDay && (
+                                    <div className="w-full h-0.5 bg-border rounded" />
+                                  )}
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -236,9 +222,10 @@ export function AvailabilityManager() {
                           </TooltipProvider>
                         );
                       })}
-                  </div>
-                </div>
-              ))}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Legend */}
