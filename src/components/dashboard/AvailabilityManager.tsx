@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isBefore, startOfDay, differenceInDays, isSameMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isBefore, startOfDay, differenceInDays, isSameMonth, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuideTours } from '@/hooks/useGuideTours';
@@ -17,6 +17,9 @@ export function AvailabilityManager() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTourFilter, setSelectedTourFilter] = useState<string>('all');
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+  
+  const MAX_VISIBLE_TOURS = 2;
 
   const monthStart = startOfMonth(selectedMonth);
   const monthEnd = endOfMonth(selectedMonth);
@@ -52,7 +55,7 @@ export function AvailabilityManager() {
   // Generate calendar days
   const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  // Calculate tour segments with absolute positioning data
+  // Calculate tour segments with absolute positioning and improved lane-based stacking
   const tourSegments = useMemo(() => {
     const segments: Array<{
       tour: CalendarDateView;
@@ -64,18 +67,40 @@ export function AvailabilityManager() {
       isLastSegment: boolean;
     }> = [];
 
-    // Group tours by their starting date to calculate vertical stacking
-    const toursByStartDate = new Map<string, CalendarDateView[]>();
+    // Track which "lanes" (vertical levels) are occupied for each date
+    const occupiedLanes = new Map<string, Set<number>>();
+    
+    // Assign lanes to each tour based on which dates they occupy
+    const tourLanes = new Map<string, number>(); // tourId -> lane
     
     filteredSlots.forEach(tour => {
-      const startDayIndex = differenceInDays(startOfDay(new Date(tour.date)), calendarStart);
+      // Get all days this tour occupies
+      const tourDays = eachDayOfInterval({
+        start: startOfDay(new Date(tour.date)),
+        end: startOfDay(new Date(tour.endDate))
+      });
       
-      if (startDayIndex >= 0 && startDayIndex < calendarDays.length) {
-        const key = format(new Date(tour.date), 'yyyy-MM-dd');
-        if (!toursByStartDate.has(key)) {
-          toursByStartDate.set(key, []);
+      // Find the first available lane across ALL days this tour occupies
+      let lane = 0;
+      while (true) {
+        const canUseLane = tourDays.every(day => {
+          const key = format(day, 'yyyy-MM-dd');
+          return !occupiedLanes.get(key)?.has(lane);
+        });
+        
+        if (canUseLane) {
+          // Mark this lane as occupied for all tour days
+          tourDays.forEach(day => {
+            const key = format(day, 'yyyy-MM-dd');
+            if (!occupiedLanes.has(key)) {
+              occupiedLanes.set(key, new Set());
+            }
+            occupiedLanes.get(key)!.add(lane);
+          });
+          tourLanes.set(tour.slotId, lane);
+          break;
         }
-        toursByStartDate.get(key)!.push(tour);
+        lane++;
       }
     });
 
@@ -91,10 +116,7 @@ export function AvailabilityManager() {
       const endRow = Math.floor(Math.min(endDayIndex, calendarDays.length - 1) / 7);
       const endCol = Math.min(endDayIndex, calendarDays.length - 1) % 7;
 
-      // Calculate stack index (vertical position within day)
-      const startKey = format(new Date(tour.date), 'yyyy-MM-dd');
-      const toursOnSameDate = toursByStartDate.get(startKey) || [];
-      const stackIndex = toursOnSameDate.indexOf(tour);
+      const stackIndex = tourLanes.get(tour.slotId) || 0;
 
       // If tour spans multiple weeks, create multiple segments
       if (startRow !== endRow) {
@@ -128,6 +150,61 @@ export function AvailabilityManager() {
 
     return segments;
   }, [filteredSlots, calendarDays, calendarStart]);
+
+  // Get tours starting on a specific date
+  const getToursStartingOnDate = (date: Date) => {
+    return filteredSlots.filter(tour => isSameDay(new Date(tour.date), date));
+  };
+
+  // Calculate dynamic cell height based on visible tours
+  const getCellHeight = (date: Date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    const toursOnDate = getToursStartingOnDate(date);
+    const isExpanded = expandedDates.has(dateKey);
+    
+    const visibleCount = isExpanded 
+      ? toursOnDate.length 
+      : Math.min(toursOnDate.length, MAX_VISIBLE_TOURS);
+    
+    const dateHeight = 2; // rem for date number
+    const pillHeight = 1.75; // rem per tour pill
+    const collapseButtonHeight = toursOnDate.length > MAX_VISIBLE_TOURS ? 1.5 : 0;
+    
+    return Math.max(
+      5, // minimum 5rem (h-20)
+      dateHeight + (visibleCount * pillHeight) + collapseButtonHeight
+    );
+  };
+
+  // Filter visible tour segments based on collapse state
+  const visibleTourSegments = useMemo(() => {
+    return tourSegments.filter(segment => {
+      const dateKey = format(new Date(segment.tour.date), 'yyyy-MM-dd');
+      const toursOnDate = getToursStartingOnDate(new Date(segment.tour.date));
+      const isExpanded = expandedDates.has(dateKey);
+      
+      if (isExpanded || toursOnDate.length <= MAX_VISIBLE_TOURS) {
+        return true;
+      }
+      
+      // Only show first MAX_VISIBLE_TOURS
+      const tourIndex = toursOnDate.findIndex(t => t.slotId === segment.tour.slotId);
+      return tourIndex < MAX_VISIBLE_TOURS;
+    });
+  }, [tourSegments, expandedDates, MAX_VISIBLE_TOURS, filteredSlots]);
+
+  const toggleExpandDate = (dateKey: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedDates(prev => {
+      const next = new Set(prev);
+      if (next.has(dateKey)) {
+        next.delete(dateKey);
+      } else {
+        next.add(dateKey);
+      }
+      return next;
+    });
+  };
 
   const handlePreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const handleNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -213,51 +290,82 @@ export function AvailabilityManager() {
               </div>
 
               {/* Calendar Container with Absolute Positioned Tours */}
-              <div className="relative" style={{ minHeight: `${Math.ceil(calendarDays.length / 7) * 7}rem` }}>
-                {/* Date Grid */}
+              <div className="relative">
+                {/* Date Grid with Dynamic Heights */}
                 <div className="grid grid-cols-7 gap-2">
                   {calendarDays.map((day, index) => {
                     const isPast = isBefore(day, startOfDay(new Date()));
                     const isCurrentMonth = isSameMonth(day, selectedMonth);
                     const isSelected = selectedDate && isSameDay(day, selectedDate);
+                    const dateKey = format(day, 'yyyy-MM-dd');
+                    const toursOnDate = getToursStartingOnDate(day);
+                    const hiddenCount = toursOnDate.length - MAX_VISIBLE_TOURS;
+                    const isExpanded = expandedDates.has(dateKey);
+                    const cellHeight = getCellHeight(day);
 
                     return (
-                      <button
-                        key={day.toISOString()}
-                        onClick={() => handleDateClick(day)}
-                        disabled={isPast}
-                        className={`
-                          h-20 lg:h-24 p-2 rounded-lg border text-left
-                          transition-all flex items-start justify-start
-                          ${isPast ? 'opacity-40 cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:border-primary'}
-                          ${!isCurrentMonth ? 'text-muted-foreground bg-muted/20' : 'bg-background'}
-                          ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}
-                        `}
-                      >
-                        <div className={`text-sm font-semibold ${isPast ? 'line-through' : ''}`}>
-                          {format(day, 'd')}
-                        </div>
-                      </button>
+                      <div key={day.toISOString()} className="relative">
+                        <button
+                          onClick={() => handleDateClick(day)}
+                          disabled={isPast}
+                          style={{ minHeight: `${cellHeight}rem` }}
+                          className={`
+                            w-full p-2 rounded-lg border text-left
+                            transition-all flex flex-col items-start justify-start
+                            ${isPast ? 'opacity-40 cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:border-primary'}
+                            ${!isCurrentMonth ? 'text-muted-foreground bg-muted/20' : 'bg-background'}
+                            ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}
+                          `}
+                        >
+                          <div className={`text-sm font-semibold mb-1 ${isPast ? 'line-through' : ''}`}>
+                            {format(day, 'd')}
+                          </div>
+                        </button>
+
+                        {/* Collapse/Expand Button */}
+                        {hiddenCount > 0 && (
+                          <button
+                            onClick={(e) => toggleExpandDate(dateKey, e)}
+                            className="absolute bottom-1 left-2 right-2 text-xs text-primary 
+                                     bg-background/95 border border-primary/20 rounded px-2 py-1
+                                     hover:bg-primary/10 transition-colors z-20 font-medium
+                                     shadow-sm"
+                          >
+                            {isExpanded ? 'Show less' : `+${hiddenCount} more`}
+                          </button>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
 
                 {/* Tour Pills Overlay Layer */}
                 <div className="absolute inset-0 pointer-events-none">
-                  {tourSegments.map((segment, idx) => {
+                  {visibleTourSegments.map((segment, idx) => {
                     const { tour, row, col, span, stackIndex, isFirstSegment, isLastSegment } = segment;
                     const isPastTour = isBefore(new Date(tour.endDate), startOfDay(new Date()));
                     
-                    // Calculate positioning
-                    const rowHeight = 5; // 5rem (80px) on mobile, matches h-20
-                    const rowHeightLg = 6; // 6rem (96px) on desktop, matches lg:h-24
+                    // Calculate positioning - pills sit inside cells, below date number
+                    const dateNumberHeight = 2; // 2rem space for date number
+                    const pillHeight = 1.75; // 1.75rem per pill including gap
                     const gapSize = 0.5; // 0.5rem (8px), matches gap-2
-                    const cellWidth = `calc((100% - ${6 * gapSize}rem) / 7)`;
                     
+                    // Get the actual cell height for this row's first day
+                    const rowStartDay = calendarDays[row * 7];
+                    const rowCellHeight = getCellHeight(rowStartDay);
+                    
+                    const cellWidth = `calc((100% - ${6 * gapSize}rem) / 7)`;
                     const left = `calc(${col} * (${cellWidth} + ${gapSize}rem))`;
                     const width = `calc(${span} * ${cellWidth} + ${span - 1} * ${gapSize}rem)`;
-                    const topMobile = `calc(${row * rowHeight}rem + ${stackIndex * 1.75}rem + 2rem)`;
-                    const topDesktop = `calc(${row * rowHeightLg}rem + ${stackIndex * 1.75}rem + 2rem)`;
+                    
+                    // Calculate cumulative top position
+                    let cumulativeTop = 0;
+                    for (let i = 0; i < row; i++) {
+                      const rowDay = calendarDays[i * 7];
+                      cumulativeTop += getCellHeight(rowDay);
+                    }
+                    
+                    const top = `calc(${cumulativeTop}rem + ${dateNumberHeight}rem + ${stackIndex * pillHeight}rem + ${row * gapSize}rem)`;
                     
                     return (
                       <Tooltip key={`${tour.slotId}-${idx}`}>
@@ -279,7 +387,7 @@ export function AvailabilityManager() {
                             style={{
                               left,
                               width,
-                              top: topMobile,
+                              top,
                             }}
                             onClick={() => setSelectedDate(new Date(tour.date))}
                           >
