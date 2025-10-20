@@ -12,6 +12,7 @@ import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
 import { MainLayout } from '../layout/MainLayout';
 import { supabase } from '@/integrations/supabase/client';
+import { useTourDateAvailability } from '@/hooks/useTourDateAvailability';
 
 interface BookingFlowProps {
   tour: Tour;
@@ -19,24 +20,6 @@ interface BookingFlowProps {
   onComplete: () => void;
   onCancel: () => void;
 }
-
-// Mock date options with pricing and availability
-interface DateOption {
-  date: string;
-  spotsLeft: number;
-  price: number;
-  originalPrice?: number;
-  discount?: string;
-  savings?: number;
-}
-
-const mockDateOptions: DateOption[] = [
-  { date: 'April 15-17, 2024', spotsLeft: 4, price: 450 },
-  { date: 'April 22-24, 2024', spotsLeft: 2, price: 480 },
-  { date: 'May 6-8, 2024', spotsLeft: 6, price: 405, originalPrice: 450, discount: 'Early Bird', savings: 45 },
-  { date: 'May 13-15, 2024', spotsLeft: 3, price: 450 },
-  { date: 'May 20-22, 2024', spotsLeft: 5, price: 427, originalPrice: 450, discount: 'Limited Spots', savings: 23 },
-];
 
 export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowProps) {
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -48,7 +31,22 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
   const { data: guideProfile } = useGuideProfile(tour.guide_id);
   const primaryCert = guideProfile?.certifications ? getPrimaryCertification(guideProfile.certifications) : null;
   
-  const selectedDateOption = mockDateOptions.find(d => d.date === selectedDate);
+  // Fetch real date availability
+  const { data: dateSlots } = useTourDateAvailability(tour.id);
+
+  // Transform to format for display
+  const dateOptions = dateSlots?.map(slot => ({
+    date: slot.slotDate.toISOString().split('T')[0],
+    displayDate: slot.slotDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    spotsLeft: slot.spotsRemaining,
+    price: slot.price,
+    originalPrice: slot.discountPercentage ? slot.price / (1 - slot.discountPercentage / 100) : undefined,
+    discount: slot.discountLabel || (slot.isEarlyBird ? 'Early Bird' : undefined),
+    savings: slot.discountPercentage ? (slot.price * slot.discountPercentage / 100) : undefined,
+    slotId: slot.slotId
+  })) || [];
+  
+  const selectedDateOption = dateOptions.find(d => d.date === selectedDate);
   const tourPrice = selectedDateOption?.price || tour.price;
   const totalPrice = tourPrice;
   
@@ -58,6 +56,24 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
     try {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Create booking with date_slot_id
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert([{
+          tour_id: tour.id,
+          hiker_id: user.id,
+          booking_date: new Date(selectedDate).toISOString().split('T')[0],
+          participants: 1,
+          total_price: totalPrice,
+          currency: tour.currency,
+          status: 'pending',
+          date_slot_id: selectedDateOption?.slotId || null
+        }])
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
       
       // Create conversation for booking
       const { data: conversation } = await supabase
@@ -157,7 +173,9 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
                 
                 {showDateOptions && (
                   <div className="absolute z-50 w-full mt-2 bg-background border rounded-lg shadow-lg overflow-hidden">
-                    {mockDateOptions.map((option, index) => (
+                    {dateOptions.length === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground">No dates available</div>
+                    ) : dateOptions.map((option, index) => (
                       <button
                         key={index}
                         onClick={() => {
@@ -168,7 +186,7 @@ export function BookingFlow({ tour, user, onComplete, onCancel }: BookingFlowPro
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="font-semibold mb-1">{option.date}</div>
+                            <div className="font-semibold mb-1">{option.displayDate}</div>
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-muted-foreground">{option.spotsLeft} spots left</span>
                               {option.discount && (

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GuideImageLibrary } from '@/components/guide/GuideImageLibrary';
+import { AvailabilityManager } from './AvailabilityManager';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -336,15 +337,7 @@ export function ToursSection({
 
         {/* Calendar Tab Content */}
         <TabsContent value="calendar" className="mt-6">
-          <div className="py-12 text-center">
-            <CalendarIcon className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
-            <h3 className="text-lg font-playfair text-charcoal mb-2">
-              Calendar View
-            </h3>
-            <p className="text-sm text-charcoal/60">
-              Calendar functionality coming soon
-            </p>
-          </div>
+          <AvailabilityManager />
         </TabsContent>
 
         {/* Image Library Tab Content */}

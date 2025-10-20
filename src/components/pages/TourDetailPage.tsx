@@ -12,6 +12,8 @@ import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
 import { AnonymousChat } from '../chat/AnonymousChat';
+import { useTourDateAvailability } from '@/hooks/useTourDateAvailability';
+import { format, addDays, parse } from 'date-fns';
 
 interface TourDetailPageProps {
   tour: Tour;
@@ -31,6 +33,36 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   // Get primary certification for large badge display
   const primaryCert = guideProfile?.certifications ? getPrimaryCertification(guideProfile.certifications) : null;
 
+  // Fetch real date availability
+  const { data: dateSlots, isLoading: isLoadingDates } = useTourDateAvailability(tour.id);
+
+  // Helper to format date range based on tour duration
+  const formatDateRange = (startDate: Date, duration: string) => {
+    const durationMatch = duration.match(/(\d+)/);
+    const days = durationMatch ? parseInt(durationMatch[0]) : 1;
+    const endDate = addDays(startDate, days - 1);
+    return `${format(startDate, 'MMM d')}${days > 1 ? `-${format(endDate, 'd')}` : ''}`;
+  };
+
+  // Transform real data to match UI format
+  const dateOptions = dateSlots?.map(slot => {
+    const originalPrice = slot.discountPercentage 
+      ? slot.price / (1 - slot.discountPercentage / 100) 
+      : null;
+    const savings = originalPrice ? originalPrice - slot.price : null;
+    
+    return {
+      date: slot.slotDate.toISOString().split('T')[0],
+      dateRange: formatDateRange(slot.slotDate, tour.duration),
+      price: slot.price,
+      originalPrice,
+      discount: slot.discountLabel || (slot.isEarlyBird ? 'Early Bird' : null),
+      spotsLeft: slot.spotsRemaining,
+      savings,
+      slotId: slot.slotId
+    };
+  }) || [];
+
   const toggleItinerary = (index: number) => {
     setExpandedItinerary(prev => ({
       ...prev,
@@ -38,50 +70,12 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
     }));
   };
 
-  // Mock date options with pricing and discounts
-  const dateOptions = [
-    {
-      date: '2025-10-15',
-      dateRange: 'Oct 15-19',
-      price: tour.price - 50,
-      originalPrice: tour.price,
-      discount: 'Early Bird',
-      spotsLeft: 3,
-      savings: 50
-    },
-    {
-      date: '2025-10-22',
-      dateRange: 'Oct 22-26',
-      price: tour.price - 30,
-      originalPrice: tour.price,
-      discount: 'Limited Spots',
-      spotsLeft: 2,
-      savings: 30
-    },
-    {
-      date: '2025-11-05',
-      dateRange: 'Nov 5-9',
-      price: tour.price,
-      originalPrice: null,
-      discount: null,
-      spotsLeft: 6,
-      savings: null
-    },
-    {
-      date: '2025-11-12',
-      dateRange: 'Nov 12-16',
-      price: tour.price,
-      originalPrice: null,
-      discount: null,
-      spotsLeft: 8,
-      savings: null
-    }
-  ];
-
   const selectedDateOption = dateOptions.find(d => d.date === selectedDate);
   
-  // Calculate lowest available price
-  const lowestPrice = Math.min(...dateOptions.map(d => d.price));
+  // Calculate lowest available price from real data
+  const lowestPrice = dateOptions.length > 0 
+    ? Math.min(...dateOptions.map(d => d.price))
+    : tour.price;
 
   return (
     <div className="min-h-screen bg-background">
@@ -198,7 +192,11 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   
                   {showDateDropdown && (
                     <div className="absolute z-[100] w-full mt-2 bg-popover border rounded-lg shadow-lg max-h-80 overflow-auto">
-                      {dateOptions.map((option) => (
+                      {isLoadingDates ? (
+                        <div className="p-4 text-center text-muted-foreground">Loading dates...</div>
+                      ) : dateOptions.length === 0 ? (
+                        <div className="p-4 text-center text-muted-foreground">No dates available</div>
+                      ) : dateOptions.map((option) => (
                         <button
                           key={option.date}
                           type="button"
