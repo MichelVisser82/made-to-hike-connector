@@ -52,14 +52,82 @@ export function AvailabilityManager() {
   // Generate calendar days
   const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  // Group calendar days into weeks
-  const calendarWeeks = useMemo(() => {
-    const weeks: Date[][] = [];
-    for (let i = 0; i < calendarDays.length; i += 7) {
-      weeks.push(calendarDays.slice(i, i + 7));
-    }
-    return weeks;
-  }, [calendarDays]);
+  // Calculate tour segments with absolute positioning data
+  const tourSegments = useMemo(() => {
+    const segments: Array<{
+      tour: CalendarDateView;
+      row: number;
+      col: number;
+      span: number;
+      stackIndex: number;
+      isFirstSegment: boolean;
+      isLastSegment: boolean;
+    }> = [];
+
+    // Group tours by their starting date to calculate vertical stacking
+    const toursByStartDate = new Map<string, CalendarDateView[]>();
+    
+    filteredSlots.forEach(tour => {
+      const startDayIndex = differenceInDays(startOfDay(new Date(tour.date)), calendarStart);
+      
+      if (startDayIndex >= 0 && startDayIndex < calendarDays.length) {
+        const key = format(new Date(tour.date), 'yyyy-MM-dd');
+        if (!toursByStartDate.has(key)) {
+          toursByStartDate.set(key, []);
+        }
+        toursByStartDate.get(key)!.push(tour);
+      }
+    });
+
+    // Calculate segments for each tour
+    filteredSlots.forEach(tour => {
+      const startDayIndex = differenceInDays(startOfDay(new Date(tour.date)), calendarStart);
+      const endDayIndex = differenceInDays(startOfDay(new Date(tour.endDate)), calendarStart);
+      
+      if (startDayIndex < 0 || startDayIndex >= calendarDays.length) return;
+      
+      const startRow = Math.floor(startDayIndex / 7);
+      const startCol = startDayIndex % 7;
+      const endRow = Math.floor(Math.min(endDayIndex, calendarDays.length - 1) / 7);
+      const endCol = Math.min(endDayIndex, calendarDays.length - 1) % 7;
+
+      // Calculate stack index (vertical position within day)
+      const startKey = format(new Date(tour.date), 'yyyy-MM-dd');
+      const toursOnSameDate = toursByStartDate.get(startKey) || [];
+      const stackIndex = toursOnSameDate.indexOf(tour);
+
+      // If tour spans multiple weeks, create multiple segments
+      if (startRow !== endRow) {
+        for (let row = startRow; row <= endRow; row++) {
+          const isFirst = row === startRow;
+          const isLast = row === endRow;
+          
+          segments.push({
+            tour,
+            row,
+            col: isFirst ? startCol : 0,
+            span: isFirst ? (7 - startCol) : isLast ? (endCol + 1) : 7,
+            stackIndex,
+            isFirstSegment: isFirst,
+            isLastSegment: isLast,
+          });
+        }
+      } else {
+        // Single week tour
+        segments.push({
+          tour,
+          row: startRow,
+          col: startCol,
+          span: endCol - startCol + 1,
+          stackIndex,
+          isFirstSegment: true,
+          isLastSegment: true,
+        });
+      }
+    });
+
+    return segments;
+  }, [filteredSlots, calendarDays, calendarStart]);
 
   const handlePreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const handleNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -77,10 +145,10 @@ export function AvailabilityManager() {
 
   const getStatusDotColor = (status: string) => {
     switch (status) {
-      case 'available': return 'bg-green-500';
-      case 'limited': return 'bg-yellow-500';
-      case 'booked': return 'bg-red-500';
-      default: return 'bg-gray-400';
+      case 'available': return 'bg-sage';
+      case 'limited': return 'bg-amber-500';
+      case 'booked': return 'bg-burgundy';
+      default: return 'bg-muted';
     }
   };
 
@@ -134,116 +202,132 @@ export function AvailabilityManager() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Day Headers */}
-            <div className="grid grid-cols-7 gap-2 mb-2">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
-                  {day}
+            <TooltipProvider>
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 gap-2 mb-2">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                  <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Container with Absolute Positioned Tours */}
+              <div className="relative" style={{ minHeight: `${Math.ceil(calendarDays.length / 7) * 7}rem` }}>
+                {/* Date Grid */}
+                <div className="grid grid-cols-7 gap-2">
+                  {calendarDays.map((day, index) => {
+                    const isPast = isBefore(day, startOfDay(new Date()));
+                    const isCurrentMonth = isSameMonth(day, selectedMonth);
+                    const isSelected = selectedDate && isSameDay(day, selectedDate);
+
+                    return (
+                      <button
+                        key={day.toISOString()}
+                        onClick={() => handleDateClick(day)}
+                        disabled={isPast}
+                        className={`
+                          h-20 lg:h-24 p-2 rounded-lg border text-left
+                          transition-all flex items-start justify-start
+                          ${isPast ? 'opacity-40 cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:border-primary'}
+                          ${!isCurrentMonth ? 'text-muted-foreground bg-muted/20' : 'bg-background'}
+                          ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}
+                        `}
+                      >
+                        <div className={`text-sm font-semibold ${isPast ? 'line-through' : ''}`}>
+                          {format(day, 'd')}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
 
-            {/* Calendar Grid - Full Month View */}
-            <div className="grid grid-cols-7 gap-2">
-              {calendarDays.map((day) => {
-                const isPast = isBefore(day, startOfDay(new Date()));
-                const isCurrentMonth = isSameMonth(day, selectedMonth);
-                const isSelected = selectedDate && isSameDay(day, selectedDate);
-
-                // Get tours that include this specific day
-                const dayTours = filteredSlots.filter(slot => {
-                  const slotStart = startOfDay(slot.date);
-                  const slotEnd = startOfDay(slot.endDate);
-                  const checkDate = startOfDay(day);
-                  return checkDate >= slotStart && checkDate <= slotEnd;
-                });
-
-                return (
-                  <button
-                    key={day.toISOString()}
-                    onClick={() => handleDateClick(day)}
-                    disabled={isPast}
-                    className={`
-                      min-h-[120px] p-2 rounded-lg border text-left
-                      transition-colors flex flex-col gap-1
-                      ${isPast ? 'opacity-40 cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:bg-accent'}
-                      ${!isCurrentMonth ? 'text-muted-foreground' : ''}
-                      ${isSelected ? 'ring-2 ring-primary' : ''}
-                    `}
-                  >
-                    {/* Date number - always at top */}
-                    <div className={`text-sm font-semibold mb-1 ${isPast ? 'line-through' : ''}`}>
-                      {format(day, 'd')}
-                    </div>
-
-                    {/* Tour pills for this day */}
-                    <div className="flex flex-col gap-1 w-full">
-                      {dayTours.map((slot) => {
-                        const isPastTour = isBefore(slot.endDate, startOfDay(new Date()));
-                        const isFirstDay = isSameDay(slot.date, day);
-
-                        return (
-                          <TooltipProvider key={slot.slotId}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div
-                                  className={`
-                                    px-2 py-1 rounded text-xs font-medium
-                                    flex items-center gap-1.5
-                                    border shadow-sm
-                                    ${isPastTour ? 'opacity-50 grayscale' : ''}
-                                    bg-card hover:bg-accent transition-colors w-full
-                                  `}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedDate(day);
-                                  }}
-                                >
-                                  {isFirstDay && (
-                                    <>
-                                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getStatusDotColor(slot.availabilityStatus)}`} />
-                                      <span className="truncate flex-1">{slot.tourTitle}</span>
-                                    </>
-                                  )}
-                                  {!isFirstDay && (
-                                    <div className="w-full h-0.5 bg-border rounded" />
-                                  )}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="space-y-1">
-                                  <p className="font-semibold">{slot.tourTitle}</p>
-                                  <p className="text-sm">{format(slot.date, 'MMM d')} - {format(slot.endDate, 'MMM d, yyyy')}</p>
-                                  <p className="text-sm">{slot.spotsBooked}/{slot.spotsTotal} spots booked</p>
-                                  <p className="text-sm">{slot.currency} {slot.price}</p>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        );
-                      })}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                {/* Tour Pills Overlay Layer */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {tourSegments.map((segment, idx) => {
+                    const { tour, row, col, span, stackIndex, isFirstSegment, isLastSegment } = segment;
+                    const isPastTour = isBefore(new Date(tour.endDate), startOfDay(new Date()));
+                    
+                    // Calculate positioning
+                    const rowHeight = 5; // 5rem (80px) on mobile, matches h-20
+                    const rowHeightLg = 6; // 6rem (96px) on desktop, matches lg:h-24
+                    const gapSize = 0.5; // 0.5rem (8px), matches gap-2
+                    const cellWidth = `calc((100% - ${6 * gapSize}rem) / 7)`;
+                    
+                    const left = `calc(${col} * (${cellWidth} + ${gapSize}rem))`;
+                    const width = `calc(${span} * ${cellWidth} + ${span - 1} * ${gapSize}rem)`;
+                    const topMobile = `calc(${row * rowHeight}rem + ${stackIndex * 1.75}rem + 2rem)`;
+                    const topDesktop = `calc(${row * rowHeightLg}rem + ${stackIndex * 1.75}rem + 2rem)`;
+                    
+                    return (
+                      <Tooltip key={`${tour.slotId}-${idx}`}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={`
+                              absolute h-6 px-2 py-1 flex items-center gap-1.5 transition-all 
+                              pointer-events-auto cursor-pointer z-10 text-xs font-medium 
+                              whitespace-nowrap overflow-hidden
+                              ${isPastTour 
+                                ? 'bg-muted/50 border border-muted opacity-50 grayscale' 
+                                : 'bg-burgundy/10 border border-burgundy/20 hover:bg-burgundy/20'
+                              }
+                              ${isFirstSegment && isLastSegment ? 'rounded-md' : ''}
+                              ${isFirstSegment && !isLastSegment ? 'rounded-l-md' : ''}
+                              ${!isFirstSegment && isLastSegment ? 'rounded-r-md' : ''}
+                              ${!isFirstSegment && !isLastSegment ? 'rounded-none' : ''}
+                            `}
+                            style={{
+                              left,
+                              width,
+                              top: topMobile,
+                            }}
+                            onClick={() => setSelectedDate(new Date(tour.date))}
+                          >
+                            {isFirstSegment && (
+                              <>
+                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getStatusDotColor(tour.availabilityStatus)}`} />
+                                <span className="truncate">{tour.tourTitle}</span>
+                              </>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            <p className="font-semibold">{tour.tourTitle}</p>
+                            <p className="text-sm">
+                              {format(new Date(tour.date), 'MMM d')} - {format(new Date(tour.endDate), 'MMM d, yyyy')}
+                            </p>
+                            <p className="text-sm">{tour.durationDays} days</p>
+                            <p className="text-sm">{tour.spotsBooked}/{tour.spotsTotal} spots booked</p>
+                            <p className="text-sm">{tour.currency} {tour.price}</p>
+                            {tour.discountPercentage && (
+                              <p className="text-sm text-green-600">{tour.discountPercentage}% off</p>
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </div>
+            </TooltipProvider>
 
             {/* Legend */}
-            <div className="mt-6 flex items-center gap-4 text-sm">
+            <div className="mt-6 flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <div className="w-3 h-3 rounded-full bg-sage" />
                 <span>Available</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
                 <span>Limited</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <div className="w-3 h-3 rounded-full bg-burgundy" />
                 <span>Fully Booked</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-400 opacity-40" />
+                <div className="w-3 h-3 rounded-full bg-muted opacity-40" />
                 <span>Past</span>
               </div>
             </div>
