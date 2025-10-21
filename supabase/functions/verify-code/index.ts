@@ -25,7 +25,7 @@ serve(async (req) => {
 
     // Retrieve stored code from kv_store
     const { data: kvData, error: kvError } = await supabase
-      .from('kv_store')
+      .from('kv_store_158bb0c0')
       .select('value')
       .eq('key', `verification_code:${email}`)
       .single();
@@ -116,7 +116,7 @@ serve(async (req) => {
 
     // Delete verification code
     await supabase
-      .from('kv_store')
+      .from('kv_store_158bb0c0')
       .delete()
       .eq('key', `verification_code:${email}`);
 

@@ -28,7 +28,7 @@ serve(async (req) => {
 
     // Store code in kv_store with 10-minute expiry
     const { error: kvError } = await supabase
-      .from('kv_store')
+      .from('kv_store_158bb0c0')
       .upsert({
         key: `verification_code:${email}`,
         value: { code, timestamp: Date.now() },
@@ -47,8 +47,7 @@ serve(async (req) => {
     const { error: emailError } = await supabase.functions.invoke('send-email', {
       body: {
         to: email,
-        subject: 'Your MadeToHike Verification Code',
-        template: 'verification-code',
+        type: 'verification-code',
         data: {
           code,
           email

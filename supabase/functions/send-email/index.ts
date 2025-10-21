@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification' | 'verification-code'
   to: string
   from?: string
   name?: string
@@ -286,6 +286,52 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </body>
 </html>`,
       text: `New Guide Verification Request\n\nGuide Information:\nName: ${data.guide_name || 'Unknown'}\nEmail: ${data.guide_email || 'Unknown'}\nCertifications: ${data.certification_count || 0} submitted\n${data.certification_added ? `Latest: ${data.certification_added}\n` : ''}Requested: ${new Date(data.timestamp || Date.now()).toLocaleString()}\n\nPlease review in the admin dashboard:\nhttps://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin\n\n⏰ Please review within 48 hours`
+    },
+
+    'verification-code': {
+      subject: 'Your MadeToHike Verification Code',
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Code</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Made to Hike</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Email Verification</p>
+        </div>
+        
+        <div style="padding: 40px 30px; text-align: center;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Your Verification Code</h2>
+            
+            <p style="margin: 0 0 30px; color: #4a5568; font-size: 16px;">Enter this code to complete your booking:</p>
+            
+            <div style="background: #f0f8f0; border: 2px dashed #2c5530; border-radius: 8px; padding: 30px; margin: 30px 0;">
+                <div style="font-size: 48px; font-weight: bold; color: #2c5530; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+                    ${data.code}
+                </div>
+            </div>
+
+            <p style="margin: 30px 0 0; color: #718096; font-size: 14px;">
+                This code will expire in <strong>10 minutes</strong>
+            </p>
+
+            <p style="margin: 20px 0 0; color: #718096; font-size: 14px;">
+                If you didn't request this code, please ignore this email.
+            </p>
+        </div>
+
+        <div style="text-align: center; padding: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px;">
+            <p style="margin: 0;">© 2025 MadeToHike. Happy hiking! 🏔️</p>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Your MadeToHike Verification Code\n\nYour verification code is: ${data.code}\n\nThis code will expire in 10 minutes.\n\nIf you didn't request this code, please ignore this email.\n\n© 2025 MadeToHike. Happy hiking! 🏔️`
     }
   }
 
@@ -296,7 +342,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request', 'verification-code'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
