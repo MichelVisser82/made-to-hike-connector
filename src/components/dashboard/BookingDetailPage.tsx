@@ -109,14 +109,72 @@ export function BookingDetailPage() {
     }
   };
 
+  const handleAcceptBooking = async () => {
+    if (!booking) return;
+    
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'confirmed' })
+        .eq('id', booking.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Booking Confirmed',
+        description: 'The booking has been confirmed successfully.',
+      });
+      
+      // Refresh booking data
+      fetchBooking();
+    } catch (error) {
+      console.error('Error confirming booking:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to confirm booking',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeclineBooking = async () => {
+    if (!booking) return;
+    
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', booking.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Booking Declined',
+        description: 'The booking has been cancelled.',
+      });
+      
+      navigate('/dashboard?section=bookings');
+    } catch (error) {
+      console.error('Error declining booking:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to decline booking',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'pending':
+      case 'pending_confirmation':
         return 'bg-gold/10 text-gold border-gold/20 text-base px-4 py-2';
       case 'confirmed':
         return 'bg-sage/10 text-sage border-sage/20 text-base px-4 py-2';
       case 'completed':
         return 'bg-burgundy/10 text-burgundy border-burgundy/20 text-base px-4 py-2';
+      case 'cancelled':
+        return 'bg-charcoal/10 text-charcoal border-charcoal/20 text-base px-4 py-2';
       default:
         return 'bg-charcoal/10 text-charcoal border-charcoal/20 text-base px-4 py-2';
     }
@@ -376,9 +434,12 @@ export function BookingDetailPage() {
           <h2 className="text-lg font-playfair text-charcoal mb-4">Actions</h2>
 
           {/* Conditional Buttons Based on Status */}
-          {booking.status === 'pending' && (
+          {(booking.status === 'pending' || booking.status === 'pending_confirmation') && (
             <>
-              <Button className="w-full bg-sage hover:bg-sage/90 text-white">
+              <Button 
+                className="w-full bg-sage hover:bg-sage/90 text-white"
+                onClick={handleAcceptBooking}
+              >
                 <Check className="w-4 h-4 mr-2" />
                 Accept Booking
               </Button>
@@ -389,7 +450,11 @@ export function BookingDetailPage() {
               <Button variant="outline" className="w-full">
                 Counter-offer
               </Button>
-              <Button variant="destructive" className="w-full">
+              <Button 
+                variant="destructive" 
+                className="w-full"
+                onClick={handleDeclineBooking}
+              >
                 <X className="w-4 h-4 mr-2" />
                 Decline Booking
               </Button>

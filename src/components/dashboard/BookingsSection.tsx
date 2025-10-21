@@ -26,19 +26,23 @@ export function BookingsSection({
 
   const counts = useMemo(() => ({
     all: bookings.length,
-    pending: bookings.filter(b => b.status === 'pending').length,
+    pending: bookings.filter(b => b.status === 'pending' || b.status === 'pending_confirmation').length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
     completed: bookings.filter(b => b.status === 'completed').length,
   }), [bookings]);
 
   const filteredBookings = useMemo(() => {
     if (activeTab === 'all') return bookings;
+    if (activeTab === 'pending') {
+      return bookings.filter(b => b.status === 'pending' || b.status === 'pending_confirmation');
+    }
     return bookings.filter(b => b.status === activeTab);
   }, [bookings, activeTab]);
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'pending':
+      case 'pending_confirmation':
         return 'bg-gold/10 text-gold border-gold/20';
       case 'confirmed':
         return 'bg-sage/10 text-sage border-sage/20';
