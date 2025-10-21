@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { MessageSquare } from 'lucide-react';
@@ -9,6 +10,7 @@ import type { Conversation } from '@/types/chat';
 import { ConversationList } from '../chat/ConversationList';
 import { ChatWindow } from '../chat/ChatWindow';
 import { ScrollArea } from '../ui/scroll-area';
+import { toast } from 'sonner';
 
 interface UserDashboardProps {
   user: User;
@@ -19,6 +21,20 @@ interface UserDashboardProps {
 export function UserDashboard({ user, onNavigateToSearch }: UserDashboardProps) {
   const [activeSection, setActiveSection] = useState<DashboardSection>('today');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const location = useLocation();
+  
+  // Show success message if redirected from booking success
+  useEffect(() => {
+    const state = location.state as { bookingSuccess?: boolean; bookingReference?: string };
+    if (state?.bookingSuccess) {
+      toast.success(
+        `Booking confirmed! Reference: ${state.bookingReference}`,
+        { duration: 5000 }
+      );
+      // Clear the state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
   
   return (
     <MainLayout

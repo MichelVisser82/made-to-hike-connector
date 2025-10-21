@@ -139,6 +139,16 @@ export const BookingSuccess = () => {
         toast.success('Booking confirmed!');
         setIsProcessing(false);
 
+        // Redirect to dashboard after a brief delay to show success message
+        setTimeout(() => {
+          navigate('/dashboard', { 
+            state: { 
+              bookingSuccess: true,
+              bookingReference: bookingData.booking.booking_reference 
+            }
+          });
+        }, 2000);
+
       } catch (error) {
         console.error('Booking creation error:', error);
         toast.error('An error occurred. Please contact support.');
