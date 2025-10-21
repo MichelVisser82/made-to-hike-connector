@@ -34,7 +34,13 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Open-Meteo API error:', response.status, errorText);
-      throw new Error(`Open-Meteo API error: ${response.status}`);
+      
+      // Check if error is due to date being out of range
+      if (errorText.includes('out of allowed range')) {
+        throw new Error('Weather forecasts are only available for the next 16 days. Please check closer to your tour date.');
+      }
+      
+      throw new Error(`Unable to fetch weather forecast`);
     }
 
     const data = await response.json();
