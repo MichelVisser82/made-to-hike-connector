@@ -73,7 +73,7 @@ export const ReviewStep = ({
           <Card className="p-6">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-xl font-semibold">Date & Participants</h3>
-              <Button variant="ghost" size="sm" onClick={() => onEdit(3)}>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(1)}>
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
               </Button>
@@ -96,7 +96,7 @@ export const ReviewStep = ({
           <Card className="p-6">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-xl font-semibold">Participants</h3>
-              <Button variant="ghost" size="sm" onClick={() => onEdit(1)}>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(2)}>
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
               </Button>
@@ -104,7 +104,7 @@ export const ReviewStep = ({
             <div className="space-y-3">
               {formData.participants.map((p, idx) => (
                 <div key={idx} className="p-3 bg-muted rounded-lg">
-                  <p className="font-medium">{p.name}</p>
+                  <p className="font-medium">{p.firstName} {p.surname}</p>
                   <div className="text-sm text-muted-foreground">
                     Age {p.age} • {p.experience}
                   </div>
@@ -120,7 +120,7 @@ export const ReviewStep = ({
           <Card className="p-6">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-xl font-semibold">Contact Information</h3>
-              <Button variant="ghost" size="sm" onClick={() => onEdit(2)}>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(3)}>
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
               </Button>

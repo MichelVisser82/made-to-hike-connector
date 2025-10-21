@@ -21,13 +21,14 @@ import { MainLayout } from '@/components/layout/MainLayout';
 // Form validation schema
 const bookingFormSchema = z.object({
   participants: z.array(z.object({
-    name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+    firstName: z.string().min(2, 'First name must be at least 2 characters').max(50),
+    surname: z.string().min(2, 'Surname must be at least 2 characters').max(50),
     age: z.number().min(1, 'Age is required').max(120),
     experience: z.enum(['beginner', 'intermediate', 'advanced', 'expert']),
     medicalConditions: z.string().optional()
   })).min(1, 'At least one participant required').max(20),
   
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number'),
+  phone: z.string().regex(/^[0-9]{6,15}$/, 'Phone number must be 6-15 digits'),
   country: z.string().min(1, 'Country code is required'),
   emergencyContactName: z.string().min(2, 'Emergency contact name is required'),
   emergencyContactPhone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number'),
@@ -64,7 +65,7 @@ export const BookingFlowNew = () => {
     resolver: zodResolver(bookingFormSchema),
     mode: 'onBlur',
     defaultValues: {
-      participants: [{ name: '', age: 0, experience: 'beginner', medicalConditions: '' }],
+      participants: [{ firstName: '', surname: '', age: 0, experience: 'beginner', medicalConditions: '' }],
       dietaryPreferences: [],
       agreedToTerms: false
     }
@@ -80,7 +81,7 @@ export const BookingFlowNew = () => {
         
         if (session) {
           setIsVerified(true);
-          setCurrentStep('participants' as BookingStep);
+          setCurrentStep('date' as BookingStep);
           
           // Load user profile to pre-fill data
           const { data: profile } = await supabase
@@ -99,9 +100,13 @@ export const BookingFlowNew = () => {
             if (profile.dietary_preferences) form.setValue('dietaryPreferences', profile.dietary_preferences as string[]);
             if (profile.accessibility_needs) form.setValue('accessibilityNeeds', profile.accessibility_needs);
             
-            // Pre-fill first participant with user data
+            // Pre-fill first participant with user data (split name into first and surname)
             if (profile.name) {
-              form.setValue('participants.0.name', profile.name);
+              const nameParts = profile.name.trim().split(' ');
+              const firstName = nameParts[0] || '';
+              const surname = nameParts.slice(1).join(' ') || '';
+              form.setValue('participants.0.firstName', firstName);
+              form.setValue('participants.0.surname', surname);
             }
             if (profile.date_of_birth) {
               const age = new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear();
@@ -179,7 +184,7 @@ export const BookingFlowNew = () => {
 
   const handleAccountVerified = () => {
     setIsVerified(true);
-    setCurrentStep('participants' as BookingStep);
+    setCurrentStep('date' as BookingStep);
   };
 
   const handleDateSelected = async (slotId: string) => {
@@ -215,7 +220,7 @@ export const BookingFlowNew = () => {
         currency: slot.currency_override || tourData.currency
       });
 
-      setCurrentStep('special-requests' as BookingStep);
+      setCurrentStep('participants' as BookingStep);
     } catch (error) {
       console.error('Error loading slot:', error);
       toast.error('Failed to load date information');
@@ -306,7 +311,7 @@ export const BookingFlowNew = () => {
 
   const getStepNumber = () => {
     if (currentStep === 'account') return 0;
-    const steps: BookingStep[] = ['participants', 'contact', 'date', 'special-requests', 'review', 'payment'];
+    const steps: BookingStep[] = ['date', 'participants', 'contact', 'special-requests', 'review', 'payment'];
     return steps.indexOf(currentStep) + 1;
   };
 
@@ -330,31 +335,32 @@ export const BookingFlowNew = () => {
             <AccountStep onVerified={handleAccountVerified} />
           )}
           
+          {currentStep === 'date' && (
+            <DateStep
+              form={form}
+              tourId={tourData.id}
+              onNext={handleDateSelected}
+              participantCount={1} // Initial count, will be updated after participants step
+              preselectedSlotId={form.getValues('selectedDateSlotId')}
+            />
+          )}
+          
           {currentStep === 'participants' && (
             <ParticipantsStep
               form={form}
               onNext={() => setCurrentStep('contact')}
+              onBack={() => setCurrentStep('date')}
               minGroupSize={tourData.min_group_size || 1}
               maxGroupSize={tourData.max_group_size || tourData.group_size}
-              spotsRemaining={1000} // Will be updated when date is selected
+              spotsRemaining={selectedSlot?.spots_remaining || 1000}
             />
           )}
           
           {currentStep === 'contact' && (
             <ContactStep
               form={form}
-              onNext={() => setCurrentStep('date')}
+              onNext={() => setCurrentStep('special-requests')}
               onBack={() => setCurrentStep('participants')}
-            />
-          )}
-          
-          {currentStep === 'date' && (
-            <DateStep
-              form={form}
-              tourId={tourData.id}
-              onNext={handleDateSelected}
-              onBack={() => setCurrentStep('contact')}
-              participantCount={form.getValues('participants').length}
             />
           )}
           
@@ -362,7 +368,7 @@ export const BookingFlowNew = () => {
             <SpecialRequestsStep
               form={form}
               onNext={() => setCurrentStep('review')}
-              onBack={() => setCurrentStep('date')}
+              onBack={() => setCurrentStep('contact')}
             />
           )}
           
@@ -376,7 +382,7 @@ export const BookingFlowNew = () => {
               onNext={() => setCurrentStep('payment')}
               onBack={() => setCurrentStep('special-requests')}
               onEdit={(step) => {
-                const steps: BookingStep[] = ['participants', 'contact', 'date', 'special-requests', 'review', 'payment'];
+                const steps: BookingStep[] = ['date', 'participants', 'contact', 'special-requests', 'review', 'payment'];
                 setCurrentStep(steps[step - 1]);
               }}
             />

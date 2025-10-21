@@ -12,6 +12,7 @@ import { Minus, Plus, User } from 'lucide-react';
 interface ParticipantsStepProps {
   form: UseFormReturn<BookingFormData>;
   onNext: () => void;
+  onBack?: () => void;
   minGroupSize: number;
   maxGroupSize: number;
   spotsRemaining: number;
@@ -20,6 +21,7 @@ interface ParticipantsStepProps {
 export const ParticipantsStep = ({
   form,
   onNext,
+  onBack,
   minGroupSize,
   maxGroupSize,
   spotsRemaining
@@ -36,7 +38,8 @@ export const ParticipantsStep = ({
       const newParticipants = [...current];
       for (let i = 0; i < toAdd; i++) {
         newParticipants.push({
-          name: '',
+          firstName: '',
+          surname: '',
           age: 0,
           experience: 'beginner',
           medicalConditions: ''
@@ -106,18 +109,33 @@ export const ParticipantsStep = ({
               </div>
 
               <div className="grid gap-4">
-                <div>
-                  <Label htmlFor={`participant-${index}-name`}>Full Name</Label>
-                  <Input
-                    id={`participant-${index}-name`}
-                    {...form.register(`participants.${index}.name`)}
-                    placeholder="Enter full name"
-                  />
-                  {form.formState.errors.participants?.[index]?.name && (
-                    <p className="text-sm text-destructive mt-1">
-                      {form.formState.errors.participants[index]?.name?.message}
-                    </p>
-                  )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`participant-${index}-firstName`}>First Name</Label>
+                    <Input
+                      id={`participant-${index}-firstName`}
+                      {...form.register(`participants.${index}.firstName`)}
+                      placeholder="First name"
+                    />
+                    {form.formState.errors.participants?.[index]?.firstName && (
+                      <p className="text-sm text-destructive mt-1">
+                        {form.formState.errors.participants[index]?.firstName?.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`participant-${index}-surname`}>Surname</Label>
+                    <Input
+                      id={`participant-${index}-surname`}
+                      {...form.register(`participants.${index}.surname`)}
+                      placeholder="Surname"
+                    />
+                    {form.formState.errors.participants?.[index]?.surname && (
+                      <p className="text-sm text-destructive mt-1">
+                        {form.formState.errors.participants[index]?.surname?.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -170,7 +188,12 @@ export const ParticipantsStep = ({
         </div>
       </Card>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between">
+        {onBack ? (
+          <Button variant="outline" onClick={onBack}>
+            Back
+          </Button>
+        ) : <div />}
         <Button onClick={handleNext} size="lg">
           Continue to Contact Info
         </Button>

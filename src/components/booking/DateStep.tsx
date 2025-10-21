@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { BookingFormData } from '@/types/booking';
 import { useTourDateAvailability } from '@/hooks/useTourDateAvailability';
@@ -11,13 +12,21 @@ interface DateStepProps {
   form: UseFormReturn<BookingFormData>;
   tourId: string;
   onNext: (slotId: string) => void;
-  onBack: () => void;
+  onBack?: () => void;
   participantCount: number;
+  preselectedSlotId?: string;
 }
 
-export const DateStep = ({ form, tourId, onNext, onBack, participantCount }: DateStepProps) => {
+export const DateStep = ({ form, tourId, onNext, onBack, participantCount, preselectedSlotId }: DateStepProps) => {
   const { data: availableDates, isLoading } = useTourDateAvailability(tourId);
-  const selectedSlotId = form.watch('selectedDateSlotId');
+  const selectedSlotId = form.watch('selectedDateSlotId') || preselectedSlotId;
+  
+  // If there's a preselected slot, set it in the form
+  useEffect(() => {
+    if (preselectedSlotId && !form.getValues('selectedDateSlotId')) {
+      form.setValue('selectedDateSlotId', preselectedSlotId);
+    }
+  }, [preselectedSlotId, form]);
 
   const handleSelectDate = (slotId: string) => {
     form.setValue('selectedDateSlotId', slotId);
@@ -45,12 +54,20 @@ export const DateStep = ({ form, tourId, onNext, onBack, participantCount }: Dat
     (slot) => slot.spotsRemaining >= participantCount
   ) || [];
 
+  const selectedSlotData = availableDates?.find(slot => slot.slotId === selectedSlotId);
+  const isConfirmationMode = preselectedSlotId && selectedSlotData;
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Select Your Date</h2>
+        <h2 className="text-2xl font-bold mb-2">
+          {isConfirmationMode ? 'Confirm Your Date' : 'Select Your Date'}
+        </h2>
         <p className="text-muted-foreground">
-          Choose from available dates with {participantCount} spot{participantCount > 1 ? 's' : ''} available
+          {isConfirmationMode 
+            ? 'Please confirm your selected date before continuing'
+            : `Choose from available dates with ${participantCount} spot${participantCount > 1 ? 's' : ''} available`
+          }
         </p>
       </div>
 
@@ -136,11 +153,14 @@ export const DateStep = ({ form, tourId, onNext, onBack, participantCount }: Dat
       )}
 
       <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
+        {onBack && (
+          <Button variant="outline" onClick={onBack}>
+            Back
+          </Button>
+        )}
+        {!onBack && <div />}
         <Button onClick={handleNext} disabled={!selectedSlotId} size="lg">
-          Continue to Special Requests
+          {isConfirmationMode ? 'Confirm & Continue' : 'Continue to Participants'}
         </Button>
       </div>
     </div>

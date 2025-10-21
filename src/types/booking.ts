@@ -1,5 +1,6 @@
 export interface ParticipantDetails {
-  name: string;
+  firstName: string;
+  surname: string;
   age: number;
   experience: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   medicalConditions?: string;
@@ -37,4 +38,4 @@ export type BookingStep =
   | 'review'
   | 'payment';
 
-export const BOOKING_STEPS: BookingStep[] = ['participants', 'contact', 'date', 'special-requests', 'review', 'payment'];
+export const BOOKING_STEPS: BookingStep[] = ['date', 'participants', 'contact', 'special-requests', 'review', 'payment'];

@@ -89,8 +89,11 @@ export const ContactStep = ({ form, onNext, onBack }: ContactStepProps) => {
                 id="phone"
                 type="tel"
                 {...form.register('phone')}
-                placeholder="Enter your phone number"
+                placeholder="Enter your phone number (e.g., 0123456789)"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                You can include a leading 0 if needed
+              </p>
               {form.formState.errors.phone && (
                 <p className="text-sm text-destructive mt-1">
                   {form.formState.errors.phone.message}
@@ -169,7 +172,7 @@ export const ContactStep = ({ form, onNext, onBack }: ContactStepProps) => {
           Back
         </Button>
         <Button onClick={handleNext} size="lg">
-          Continue to Select Date
+          Continue to Special Requests
         </Button>
       </div>
     </div>
