@@ -83,6 +83,16 @@ export const BookingFlowNew = () => {
           setIsVerified(true);
           setCurrentStep('date' as BookingStep);
           
+          // Clear any existing drafts that don't belong to this user
+          if (tourSlug) {
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+              if (key.startsWith('booking-draft-') && !key.includes(session.user.id)) {
+                localStorage.removeItem(key);
+              }
+            });
+          }
+          
           // Load user profile to pre-fill data
           const { data: profile } = await supabase
             .from('profiles')
@@ -146,44 +156,70 @@ export const BookingFlowNew = () => {
 
   // Load draft from localStorage
   useEffect(() => {
-    if (tourData && isVerified) {
-      const draftKey = `booking-draft-${tourData.id}`;
-      const draft = localStorage.getItem(draftKey);
-      
-      if (draft) {
-        try {
-          const parsed = JSON.parse(draft);
-          // Check if draft is less than 24 hours old
-          if (Date.now() - parsed.timestamp < 86400000) {
-            form.reset(parsed.formData);
-            setCurrentStep(parsed.currentStep);
-            toast.info('Draft booking restored');
-          } else {
+    const loadDraft = async () => {
+      if (tourData && isVerified) {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) return;
+        
+        const draftKey = `booking-draft-${tourData.id}-${data.session.user.id}`;
+        const draft = localStorage.getItem(draftKey);
+        
+        if (draft) {
+          try {
+            const parsed = JSON.parse(draft);
+            // Check if draft is less than 24 hours old
+            if (Date.now() - parsed.timestamp < 86400000) {
+              form.reset(parsed.formData);
+              setCurrentStep(parsed.currentStep);
+              toast.info('Draft booking restored');
+            } else {
+              localStorage.removeItem(draftKey);
+            }
+          } catch (error) {
+            console.error('Error parsing draft:', error);
             localStorage.removeItem(draftKey);
           }
-        } catch (error) {
-          console.error('Error parsing draft:', error);
-          localStorage.removeItem(draftKey);
         }
       }
-    }
+    };
+    
+    loadDraft();
   }, [tourData, isVerified]);
 
   // Save draft to localStorage
   useEffect(() => {
-    if (tourData && isVerified && currentStep !== 'account') {
-      const draftKey = `booking-draft-${tourData.id}`;
-      const draft = {
-        formData: form.getValues(),
-        currentStep,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(draftKey, JSON.stringify(draft));
-    }
+    const saveDraft = async () => {
+      if (tourData && isVerified && currentStep !== 'account') {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) return;
+        
+        const draftKey = `booking-draft-${tourData.id}-${data.session.user.id}`;
+        const draft = {
+          formData: form.getValues(),
+          currentStep,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(draftKey, JSON.stringify(draft));
+      }
+    };
+    
+    saveDraft();
   }, [currentStep, tourData, isVerified]);
 
-  const handleAccountVerified = () => {
+  const handleAccountVerified = async () => {
     setIsVerified(true);
+    
+    // Clear old drafts when new user verifies
+    const { data } = await supabase.auth.getSession();
+    if (data.session && tourData) {
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('booking-draft-') && !key.includes(data.session.user.id)) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+    
     setCurrentStep('date' as BookingStep);
   };
 
@@ -286,7 +322,10 @@ export const BookingFlowNew = () => {
       if (createError) throw createError;
 
       // Clear draft
-      localStorage.removeItem(`booking-draft-${tourData.id}`);
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        localStorage.removeItem(`booking-draft-${tourData.id}-${sessionData.session.user.id}`);
+      }
 
       toast.success('Booking confirmed!');
       navigate(`/bookings/${booking.booking_reference}`);
