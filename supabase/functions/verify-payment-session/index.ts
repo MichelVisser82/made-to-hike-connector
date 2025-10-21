@@ -65,7 +65,7 @@ serve(async (req) => {
           guide_id: metadata.guide_id,
           date_slot_id: metadata.date_slot_id,
           participants: JSON.parse(metadata.participants || '[]'),
-          participant_count: parseInt(metadata.participant_count || '1'),
+          participantCount: parseInt(metadata.participant_count || '1'),
           total_price: session.amount_total / 100,
           currency: session.currency?.toUpperCase(),
           payment_status: 'paid',

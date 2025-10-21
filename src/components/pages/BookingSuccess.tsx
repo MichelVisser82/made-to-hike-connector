@@ -163,6 +163,19 @@ export const BookingSuccess = () => {
 
         console.log('BookingSuccess: Calling create-booking with data:', createBookingData);
 
+        // Validate the data before sending
+        if (!createBookingData.tour_id || !createBookingData.date_slot_id || !createBookingData.participants) {
+          console.error('BookingSuccess: Invalid booking data:', {
+            tour_id: createBookingData.tour_id,
+            date_slot_id: createBookingData.date_slot_id,
+            participants: createBookingData.participants,
+            hiker_id: createBookingData.hiker_id
+          });
+          toast.error('Invalid booking data. Please contact support.');
+          setIsProcessing(false);
+          return;
+        }
+
         // Create the booking in database
         const { data: bookingData, error: bookingError } = await supabase.functions.invoke('create-booking', {
           body: createBookingData
