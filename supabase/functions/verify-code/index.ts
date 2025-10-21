@@ -54,6 +54,7 @@ serve(async (req) => {
     );
 
     // Retrieve stored code from kv_store
+    console.log('Looking up verification code for:', email);
     const { data: kvData, error: kvError } = await supabase
       .from('kv_store_158bb0c0')
       .select('value')
@@ -61,16 +62,21 @@ serve(async (req) => {
       .single();
 
     if (kvError || !kvData) {
+      console.error('Code lookup failed:', kvError);
       return new Response(
         JSON.stringify({ error: 'Verification code not found or expired' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('Code found, validating...');
 
     const storedData = kvData.value as { code: string; timestamp: number };
 
     // Check if code matches
+    console.log('Comparing codes - provided:', code, 'stored:', storedData.code);
     if (storedData.code !== code) {
+      console.error('Code mismatch');
       return new Response(
         JSON.stringify({ error: 'Invalid verification code' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -80,12 +86,16 @@ serve(async (req) => {
     // Check if code is still valid (10 minutes)
     const now = Date.now();
     const codeAge = now - storedData.timestamp;
+    console.log('Code age:', codeAge, 'ms');
     if (codeAge > 10 * 60 * 1000) {
+      console.error('Code expired');
       return new Response(
         JSON.stringify({ error: 'Verification code has expired' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('Code validation passed');
 
     // If only verifying code, return success without creating account
     if (verifyOnly) {
@@ -114,15 +124,19 @@ serve(async (req) => {
     }
 
     // Check if user already exists
+    console.log('Checking if user exists:', email);
     const { data: existingUser } = await supabase.auth.admin.listUsers();
     const userExists = existingUser?.users?.some(u => u.email === email);
 
     if (userExists) {
+      console.error('User already exists');
       return new Response(
         JSON.stringify({ error: 'Email already registered. Please log in instead.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('User does not exist, creating account...');
 
     // Create Supabase auth user with metadata
     // The handle_new_user trigger will automatically create profile and assign role
