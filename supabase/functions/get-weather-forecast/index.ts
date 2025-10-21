@@ -1,7 +1,4 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,83 +13,44 @@ serve(async (req) => {
   try {
     const { location, latitude, longitude, date } = await req.json();
     
-    // Build prompt based on whether we have GPS coordinates
-    let weatherPrompt;
-    if (latitude && longitude) {
-      console.log('Fetching weather using GPS:', { latitude, longitude, location, date });
-      weatherPrompt = `Search for the weather forecast for GPS coordinates ${latitude}, ${longitude} on ${date}. 
-                      Use the GPS coordinates in your search query to find the most accurate forecast.
-                      This location is known as "${location}".
-                      
-                      Provide a hiking-specific summary including:
-                      - Overall conditions (sunny, cloudy, rainy, etc.)
-                      - Temperature (actual, high, low in Celsius)
-                      - Any hiking considerations (wind, visibility, precipitation)
-                      Keep it concise and practical for outdoor activities.`;
-    } else {
-      console.log('Fetching weather using location name:', { location, date });
-      weatherPrompt = `What is the weather forecast for ${location} on ${date}? 
-                      Provide a hiking-specific summary including:
-                      - Overall conditions (sunny, cloudy, rainy, etc.)
-                      - Temperature (actual, high, low in Celsius)
-                      - Any hiking considerations (wind, visibility, precipitation)
-                      Keep it concise and practical for outdoor activities.`;
+    if (!latitude || !longitude) {
+      throw new Error('GPS coordinates are required for weather forecast');
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': anthropicApiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1024,
-        messages: [{
-          role: 'user',
-          content: weatherPrompt
-        }],
-        tools: [{
-          type: 'web_search_20250305',
-          name: 'web_search',
-          max_uses: 3
-        }]
-      })
+    console.log('Fetching weather from Open-Meteo:', { latitude, longitude, location, date });
+
+    // Open-Meteo API call
+    const params = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max',
+      timezone: 'auto',
+      start_date: date,
+      end_date: date
     });
+
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Anthropic API error:', response.status, errorText);
-      throw new Error(`Anthropic API error: ${response.status}`);
+      console.error('Open-Meteo API error:', response.status, errorText);
+      throw new Error(`Open-Meteo API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Claude response:', JSON.stringify(data, null, 2));
+    console.log('Open-Meteo response:', JSON.stringify(data, null, 2));
 
-    // Extract the LAST text block - this contains the actual forecast after web search
-    const textBlocks = data.content.filter((c: any) => c.type === 'text');
-    const weatherText = textBlocks.length > 0 ? textBlocks[textBlocks.length - 1].text : '';
-    
-    console.log('Extracted weather text:', weatherText);
-    
-    if (!weatherText) {
-      throw new Error('No text response from Claude');
-    }
-    
-    // Validate that we have actual weather data, not just the "I'll search" message
-    if (weatherText.includes("I'll search for") || weatherText.length < 50) {
-      console.error('Got initial thinking response instead of weather data:', weatherText);
-      throw new Error('Weather forecast not available - received incomplete response');
+    if (!data.daily || data.daily.time.length === 0) {
+      throw new Error('No weather data available for the specified date');
     }
 
-    // Extract structured data from Claude's natural language response
-    const parsed = parseWeatherResponse(weatherText);
+    // Parse the weather data
+    const parsed = parseOpenMeteoResponse(data, location);
 
     return new Response(JSON.stringify({ 
       success: true,
       weather: parsed,
-      rawResponse: weatherText 
+      rawResponse: JSON.stringify(data)
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -109,33 +67,73 @@ serve(async (req) => {
   }
 });
 
-function parseWeatherResponse(text: string) {
-  // Extract key information from Claude's response
-  const tempMatch = text.match(/(\d+)°C/i);
-  const highMatch = text.match(/high[:\s]+(\d+)°C/i);
-  const lowMatch = text.match(/low[:\s]+(\d+)°C/i);
+function parseOpenMeteoResponse(data: any, location: string) {
+  const daily = data.daily;
   
-  let condition = 'Partly Cloudy';
-  const lowerText = text.toLowerCase();
+  // WMO Weather codes mapping
+  const weatherCodeMap: { [key: number]: string } = {
+    0: 'Sunny',
+    1: 'Partly Cloudy',
+    2: 'Partly Cloudy',
+    3: 'Cloudy',
+    45: 'Foggy',
+    48: 'Foggy',
+    51: 'Light Drizzle',
+    53: 'Drizzle',
+    55: 'Heavy Drizzle',
+    61: 'Light Rain',
+    63: 'Rainy',
+    65: 'Heavy Rain',
+    71: 'Light Snow',
+    73: 'Snow',
+    75: 'Heavy Snow',
+    77: 'Snow Grains',
+    80: 'Light Showers',
+    81: 'Showers',
+    82: 'Heavy Showers',
+    85: 'Light Snow Showers',
+    86: 'Snow Showers',
+    95: 'Thunderstorm',
+    96: 'Thunderstorm with Hail',
+    99: 'Thunderstorm with Hail'
+  };
+
+  const weatherCode = daily.weathercode[0];
+  const condition = weatherCodeMap[weatherCode] || 'Partly Cloudy';
+  const high = Math.round(daily.temperature_2m_max[0]);
+  const low = Math.round(daily.temperature_2m_min[0]);
+  const temperature = Math.round((high + low) / 2);
+  const precipitation = daily.precipitation_sum[0];
+  const windSpeed = Math.round(daily.windspeed_10m_max[0]);
+
+  // Build hiking-specific summary
+  let summary = `${condition} with temperatures between ${low}°C and ${high}°C in ${location}.`;
   
-  if (lowerText.includes('sunny') || lowerText.includes('clear')) {
-    condition = 'Sunny';
-  } else if (lowerText.includes('rain') || lowerText.includes('shower')) {
-    condition = 'Rainy';
-  } else if (lowerText.includes('cloud')) {
-    condition = 'Cloudy';
-  } else if (lowerText.includes('snow')) {
-    condition = 'Snow';
-  } else if (lowerText.includes('storm')) {
-    condition = 'Stormy';
+  const considerations = [];
+  if (precipitation > 0) {
+    considerations.push(`${precipitation}mm precipitation expected`);
   }
-  
+  if (windSpeed > 20) {
+    considerations.push(`Strong winds up to ${windSpeed} km/h`);
+  }
+  if (weatherCode >= 95) {
+    considerations.push('Thunderstorms possible - consider rescheduling');
+  } else if (weatherCode >= 71) {
+    considerations.push('Snow expected - bring appropriate gear');
+  } else if (weatherCode >= 61) {
+    considerations.push('Rain expected - waterproof gear recommended');
+  }
+
+  const fullForecast = considerations.length > 0 
+    ? `${summary}\n\nHiking considerations: ${considerations.join(', ')}.`
+    : `${summary} Good conditions for hiking.`;
+
   return {
     condition,
-    temperature: tempMatch ? parseInt(tempMatch[1]) : null,
-    high: highMatch ? parseInt(highMatch[1]) : null,
-    low: lowMatch ? parseInt(lowMatch[1]) : null,
-    summary: text.split('\n').filter(line => line.trim())[0], // First non-empty line
-    fullForecast: text
+    temperature,
+    high,
+    low,
+    summary,
+    fullForecast
   };
 }
