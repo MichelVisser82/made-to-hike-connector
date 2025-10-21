@@ -60,13 +60,39 @@ export const HikingLocationMap = ({
           scrollWheelZoom: false
         });
 
-        console.log('Map created, adding tiles...');
+        console.log('Map created, fetching Thunderforest API key...');
         
-        // Use OpenStreetMap tiles (always available)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          maxZoom: 19
-        }).addTo(map.current);
+        // Try to fetch Thunderforest API key
+        let apiKey: string | null = null;
+        try {
+          const { data, error: functionError } = await supabase.functions.invoke('get-thunderforest-key');
+          if (functionError) {
+            console.warn('Thunderforest key fetch error:', functionError);
+          } else {
+            apiKey = data?.key;
+            console.log('Thunderforest API key fetched successfully');
+          }
+        } catch (keyError) {
+          console.warn('Failed to fetch Thunderforest key, using OpenStreetMap fallback:', keyError);
+        }
+
+        // Use Thunderforest Outdoors if key available, otherwise fallback to OpenStreetMap
+        if (apiKey) {
+          console.log('Adding Thunderforest Outdoors tiles...');
+          L.tileLayer(
+            `https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${apiKey}`,
+            {
+              attribution: 'Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+              maxZoom: 18
+            }
+          ).addTo(map.current);
+        } else {
+          console.log('Using OpenStreetMap fallback tiles...');
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+          }).addTo(map.current);
+        }
 
         console.log('Tiles added, adding marker...');
         
