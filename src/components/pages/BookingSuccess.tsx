@@ -15,44 +15,59 @@ export const BookingSuccess = () => {
 
   useEffect(() => {
     const createBooking = async () => {
+      console.log('BookingSuccess: Starting booking creation process');
+      console.log('BookingSuccess: Session ID:', sessionId);
+      
       if (!sessionId) {
+        console.error('BookingSuccess: No session ID found');
         toast.error('Invalid payment session');
         navigate('/');
         return;
       }
 
       try {
+        console.log('BookingSuccess: Getting authenticated user...');
         // Get authenticated user
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
         if (authError || !user) {
-          console.error('Error getting user:', authError);
+          console.error('BookingSuccess: Error getting user:', authError);
           toast.error('Authentication required');
           navigate('/');
           return;
         }
 
+        console.log('BookingSuccess: User authenticated:', user.id, user.email);
+
         // Verify the session and create booking
+        console.log('BookingSuccess: Calling verify-payment-session...');
         const { data: sessionData, error: sessionError } = await supabase.functions.invoke('verify-payment-session', {
           body: { sessionId }
         });
 
+        console.log('BookingSuccess: verify-payment-session response:', sessionData, sessionError);
+
         if (sessionError || !sessionData) {
-          console.error('Error verifying session:', sessionError);
+          console.error('BookingSuccess: Error verifying session:', sessionError);
           toast.error('Failed to verify payment');
           navigate('/');
           return;
         }
 
+        console.log('BookingSuccess: Session verified, booking data:', sessionData.bookingData);
+
         // Check if profile exists, create if not
+        console.log('BookingSuccess: Checking if profile exists...');
         const { data: existingProfile } = await supabase
           .from('profiles')
           .select('id, date_of_birth')
           .eq('id', user.id)
           .single();
 
+        console.log('BookingSuccess: Existing profile:', existingProfile);
+
         if (!existingProfile) {
-          console.log('Creating profile for user:', user.id);
+          console.log('BookingSuccess: Creating profile for user:', user.id);
           const { error: profileError } = await supabase
             .from('profiles')
             .insert({
@@ -62,7 +77,9 @@ export const BookingSuccess = () => {
             });
 
           if (profileError) {
-            console.error('Error creating profile:', profileError);
+            console.error('BookingSuccess: Error creating profile:', profileError);
+          } else {
+            console.log('BookingSuccess: Profile created successfully');
           }
         }
 
@@ -107,13 +124,16 @@ export const BookingSuccess = () => {
           }
         }
 
+        console.log('BookingSuccess: Updating profile with booking data...');
         const { error: updateError } = await supabase
           .from('profiles')
           .update(profileUpdateData)
           .eq('id', user.id);
 
         if (updateError) {
-          console.error('Error updating profile:', updateError);
+          console.error('BookingSuccess: Error updating profile:', updateError);
+        } else {
+          console.log('BookingSuccess: Profile updated successfully');
         }
 
         // Add hiker_id to booking data
@@ -122,12 +142,14 @@ export const BookingSuccess = () => {
           hiker_id: user.id
         };
 
-        console.log('Creating booking with data:', bookingDataWithHiker);
+        console.log('BookingSuccess: Calling create-booking with data:', bookingDataWithHiker);
 
         // Create the booking in database
         const { data: bookingData, error: bookingError } = await supabase.functions.invoke('create-booking', {
           body: bookingDataWithHiker
         });
+
+        console.log('BookingSuccess: create-booking response:', bookingData, bookingError);
 
         if (bookingError || !bookingData?.booking) {
           console.error('Error creating booking:', bookingError);
