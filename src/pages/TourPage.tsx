@@ -57,7 +57,7 @@ export default function TourPage() {
           tour={tour}
           onBookTour={(selectedTour) => {
             console.log('Booking tour:', selectedTour.id);
-            navigate('/booking', { state: { tour: selectedTour } });
+            navigate(`/tours/${selectedTour.slug}/book`);
           }}
           onBackToSearch={() => navigate('/')}
         />
