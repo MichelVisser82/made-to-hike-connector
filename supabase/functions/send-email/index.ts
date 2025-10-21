@@ -332,6 +332,130 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </body>
 </html>`,
       text: `Your MadeToHike Verification Code\n\nYour verification code is: ${data.code}\n\nThis code will expire in 10 minutes.\n\nIf you didn't request this code, please ignore this email.\n\n© 2025 MadeToHike. Happy hiking! 🏔️`
+    },
+
+    booking_refund_hiker: {
+      subject: `Refund Processed for Your Booking - ${data.tour_title}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Refund Processed</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Made to Hike</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Booking Refund Notification</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Hi ${data.hiker_name || 'there'},</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                We're writing to inform you that your booking has been cancelled and a refund has been processed.
+            </p>
+
+            <div style="background: #f8fffe; border: 1px solid #e2e8f0; border-radius: 6px; padding: 20px; margin: 25px 0;">
+                <h3 style="margin: 0 0 15px; color: #2c5530; font-size: 18px;">Booking Details</h3>
+                <p style="margin: 8px 0;"><strong>Tour:</strong> ${data.tour_title}</p>
+                <p style="margin: 8px 0;"><strong>Booking Reference:</strong> ${data.booking_reference}</p>
+                <p style="margin: 8px 0;"><strong>Tour Date:</strong> ${new Date(data.booking_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p style="margin: 8px 0;"><strong>Guide:</strong> ${data.guide_name || 'Your guide'}</p>
+            </div>
+
+            <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 15px; color: #f57c00; font-size: 18px;">Refund Information</h3>
+                <p style="margin: 8px 0;"><strong>Refund Amount:</strong> ${data.refund_amount} ${data.currency}</p>
+                <p style="margin: 8px 0;"><strong>Original Payment:</strong> ${data.original_amount} ${data.currency}</p>
+                ${data.refund_reason ? `<p style="margin: 8px 0;"><strong>Reason:</strong> ${data.refund_reason}</p>` : ''}
+            </div>
+
+            <div style="background: #f0f8f0; border-radius: 6px; padding: 20px; margin: 25px 0;">
+                <h4 style="margin: 0 0 10px; color: #2c5530; font-size: 16px;">When will I receive my refund?</h4>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    Your refund has been processed and will appear in your original payment method within <strong>3-10 business days</strong>, depending on your bank or card issuer.
+                </p>
+            </div>
+
+            <p style="margin: 25px 0 0; color: #4a5568; font-size: 16px;">
+                We're sorry your plans changed. We hope to see you on the trails soon!
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/tours" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; font-size: 16px;">Browse Other Tours</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0 0 10px; color: #718096; font-size: 14px;">Questions? Contact us at support@madetohike.com</p>
+                <p style="margin: 0; color: #718096; font-size: 14px;"><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Booking Refund Processed\n\nHi ${data.hiker_name || 'there'},\n\nYour booking has been cancelled and a refund has been processed.\n\nBooking Details:\nTour: ${data.tour_title}\nBooking Reference: ${data.booking_reference}\nTour Date: ${new Date(data.booking_date).toLocaleDateString()}\nGuide: ${data.guide_name || 'Your guide'}\n\nRefund Information:\nRefund Amount: ${data.refund_amount} ${data.currency}\nOriginal Payment: ${data.original_amount} ${data.currency}\n${data.refund_reason ? `Reason: ${data.refund_reason}\n` : ''}\nYour refund will appear in your original payment method within 3-10 business days.\n\nWe hope to see you on the trails soon!\n\nThe Made to Hike Team`
+    },
+
+    booking_cancellation_guide: {
+      subject: `Booking Cancelled - ${data.tour_title}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Cancelled</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Made to Hike</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Booking Cancellation Notice</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Hi ${data.guide_name || 'there'},</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                A booking for your tour has been cancelled and the customer has been refunded.
+            </p>
+
+            <div style="background: #f8fffe; border: 1px solid #e2e8f0; border-radius: 6px; padding: 20px; margin: 25px 0;">
+                <h3 style="margin: 0 0 15px; color: #2c5530; font-size: 18px;">Booking Details</h3>
+                <p style="margin: 8px 0;"><strong>Tour:</strong> ${data.tour_title}</p>
+                <p style="margin: 8px 0;"><strong>Booking Reference:</strong> ${data.booking_reference}</p>
+                <p style="margin: 8px 0;"><strong>Tour Date:</strong> ${new Date(data.booking_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p style="margin: 8px 0;"><strong>Customer:</strong> ${data.hiker_name}</p>
+                <p style="margin: 8px 0;"><strong>Cancelled:</strong> ${new Date(data.cancelled_at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+
+            <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 10px; color: #f57c00; font-size: 18px;">Refund Processed</h3>
+                <p style="margin: 0; color: #666;"><strong>Refund Amount:</strong> ${data.refund_amount} ${data.currency}</p>
+            </div>
+
+            <div style="background: #f0f8f0; border-radius: 6px; padding: 20px; margin: 25px 0; text-align: center;">
+                <p style="margin: 0 0 10px; color: #2c5530; font-size: 16px; font-weight: 500;">✅ Date Slot Now Available</p>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    This date is now open for new bookings from other hikers.
+                </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard?section=bookings" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; font-size: 16px;">View Dashboard</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;"><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Booking Cancelled\n\nHi ${data.guide_name || 'there'},\n\nA booking for your tour has been cancelled and the customer has been refunded.\n\nBooking Details:\nTour: ${data.tour_title}\nBooking Reference: ${data.booking_reference}\nTour Date: ${new Date(data.booking_date).toLocaleDateString()}\nCustomer: ${data.hiker_name}\nCancelled: ${new Date(data.cancelled_at).toLocaleString()}\n\nRefund Amount: ${data.refund_amount} ${data.currency}\n\nThis date is now open for new bookings from other hikers.\n\nView your dashboard: https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard?section=bookings\n\nThe Made to Hike Team`
     }
   }
 
@@ -342,7 +466,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request', 'verification-code'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 

@@ -80,11 +80,16 @@ export type Database = {
           participants_details: Json | null
           payment_status: string | null
           primary_contact_id: string | null
+          refund_amount: number | null
+          refund_reason: string | null
+          refund_status: string | null
+          refunded_at: string | null
           service_fee_amount: number | null
           special_requests: string | null
           status: string
           stripe_client_secret: string | null
           stripe_payment_intent_id: string | null
+          stripe_refund_id: string | null
           subtotal: number | null
           total_price: number
           tour_id: string
@@ -104,11 +109,16 @@ export type Database = {
           participants_details?: Json | null
           payment_status?: string | null
           primary_contact_id?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refund_status?: string | null
+          refunded_at?: string | null
           service_fee_amount?: number | null
           special_requests?: string | null
           status?: string
           stripe_client_secret?: string | null
           stripe_payment_intent_id?: string | null
+          stripe_refund_id?: string | null
           subtotal?: number | null
           total_price: number
           tour_id: string
@@ -128,11 +138,16 @@ export type Database = {
           participants_details?: Json | null
           payment_status?: string | null
           primary_contact_id?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refund_status?: string | null
+          refunded_at?: string | null
           service_fee_amount?: number | null
           special_requests?: string | null
           status?: string
           stripe_client_secret?: string | null
           stripe_payment_intent_id?: string | null
+          stripe_refund_id?: string | null
           subtotal?: number | null
           total_price?: number
           tour_id?: string

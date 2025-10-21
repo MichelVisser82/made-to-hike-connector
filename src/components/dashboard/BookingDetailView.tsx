@@ -44,6 +44,11 @@ interface BookingWithDetails {
   currency: string;
   special_requests: string | null;
   participants_details: any;
+  refund_amount?: number;
+  refund_status?: string;
+  refunded_at?: string;
+  stripe_refund_id?: string;
+  refund_reason?: string;
   tour: {
     id: string;
     title: string;
@@ -127,27 +132,44 @@ export function BookingDetailView() {
   };
 
   const handleDeclineBooking = async () => {
-    try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId);
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure you want to decline this booking? This will automatically refund the full payment to the hiker and send them an email notification.'
+    );
+    
+    if (!confirmed) return;
 
-      if (error) throw error;
+    try {
+      setLoading(true);
+
+      // Call refund edge function
+      const { data: refundData, error: refundError } = await supabase.functions.invoke('process-refund', {
+        body: {
+          booking_id: bookingId,
+          reason: 'Booking declined by guide',
+        }
+      });
+
+      if (refundError) {
+        console.error('Refund error:', refundError);
+        throw new Error(refundError.message || 'Failed to process refund');
+      }
 
       toast({
         title: "Success",
-        description: "Booking has been declined",
+        description: refundData.message || "Booking declined and refund processed. The hiker will be notified via email.",
       });
       
       navigate('/dashboard?section=bookings');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error declining booking:', error);
       toast({
         title: "Error",
-        description: "Failed to decline booking",
+        description: error.message || "Failed to decline booking and process refund. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -445,6 +467,54 @@ export function BookingDetailView() {
                 ))}
               </div>
             </div>
+
+            {/* Refund Information - Show when booking is refunded */}
+            {booking.refund_status && booking.refund_status === 'succeeded' && (
+              <>
+                <Separator />
+                <div className="bg-burgundy/10 border border-burgundy/20 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertCircle className="h-5 w-5 text-burgundy" />
+                    <h3 className="font-semibold text-burgundy">Refund Information</h3>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-charcoal/60">Refund Amount:</span>
+                      <span className="font-medium text-charcoal">
+                        {booking.refund_amount} {booking.currency}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-charcoal/60">Refund Status:</span>
+                      <Badge className="bg-burgundy text-white">
+                        {booking.refund_status}
+                      </Badge>
+                    </div>
+                    {booking.refunded_at && (
+                      <div className="flex justify-between">
+                        <span className="text-charcoal/60">Refunded At:</span>
+                        <span className="font-medium text-charcoal">
+                          {format(new Date(booking.refunded_at), 'MMM dd, yyyy HH:mm')}
+                        </span>
+                      </div>
+                    )}
+                    {booking.refund_reason && (
+                      <div className="pt-2 border-t border-burgundy/10">
+                        <span className="text-charcoal/60">Reason:</span>
+                        <p className="text-charcoal mt-1">{booking.refund_reason}</p>
+                      </div>
+                    )}
+                    {booking.stripe_refund_id && (
+                      <div className="pt-2">
+                        <span className="text-xs text-charcoal/40">
+                          Stripe Refund ID: {booking.stripe_refund_id}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
