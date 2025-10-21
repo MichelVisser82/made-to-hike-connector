@@ -80,17 +80,21 @@ function AppContent() {
   };
 
   const navigateToTour = (tour: Tour) => {
-    setSelectedTour(tour);
-    setCurrentPage('tour-detail');
+    if (!tour.slug) {
+      console.error('Tour missing slug, cannot navigate');
+      return;
+    }
+    // Use React Router to navigate to tour detail page
+    navigate(`/tours/${tour.slug}`);
   };
 
   const navigateToBooking = (tour: Tour) => {
-    setSelectedTour(tour);
-    if (!user && !authUser) {
-      setShowHikerRegistrationModal(true);
-    } else {
-      setCurrentPage('booking');
+    if (!tour.slug) {
+      console.error('Tour missing slug, cannot navigate to booking');
+      return;
     }
+    // Use React Router to navigate to booking flow
+    navigate(`/tours/${tour.slug}/book`);
   };
 
   const navigateToDashboard = () => {

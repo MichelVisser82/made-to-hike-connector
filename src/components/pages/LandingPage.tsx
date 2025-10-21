@@ -27,6 +27,10 @@ export function LandingPage({
     getRandomImage,
     getImagesByContext
   } = useWebsiteImages();
+  
+  const handleExploreTours = () => {
+    navigate('/tours');
+  };
   const regions = [{
     id: 'dolomites',
     name: 'Dolomites',
