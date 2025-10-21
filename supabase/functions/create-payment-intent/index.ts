@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, currency, tourId, tourTitle, bookingData } = await req.json();
+    const { amount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId } = await req.json();
     
-    console.log('Creating payment intent with data:', { amount, currency, tourId, bookingData });
+    console.log('Creating Stripe Checkout Session:', { amount, currency, tourId, bookingData });
 
     if (!amount || !currency || !tourId) {
       return new Response(
@@ -24,32 +24,49 @@ serve(async (req) => {
       );
     }
 
-    // Ensure participants is properly stringified
+    const origin = req.headers.get('origin') || 'http://localhost:8080';
+    
+    // Prepare metadata
     const participantsString = typeof bookingData?.participants === 'string' 
       ? bookingData.participants 
       : JSON.stringify(bookingData?.participants || []);
-    
-    console.log('Participants metadata:', participantsString);
 
-    // Create Stripe Payment Intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: currency.toLowerCase(),
-      automatic_payment_methods: {
-        enabled: true,
-      },
+    // Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: currency.toLowerCase(),
+            product_data: {
+              name: tourTitle || 'Hiking Tour',
+              description: `${bookingData?.participantCount || 1} participant(s)`,
+            },
+            unit_amount: Math.round(amount * 100), // Convert to cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/tours/${tourId}/book`,
       metadata: {
         tour_id: tourId,
+        guide_id: guideId || '',
+        date_slot_id: dateSlotId || '',
         tour_title: tourTitle || '',
         participants: participantsString,
-        participant_count: String(bookingData?.participantCount || bookingData?.participants?.length || 1),
+        participant_count: String(bookingData?.participantCount || 1),
+        booking_data: JSON.stringify(bookingData),
       },
     });
 
+    console.log('Checkout session created:', session.id);
+
     return new Response(
       JSON.stringify({
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
+        sessionId: session.id,
+        url: session.url,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

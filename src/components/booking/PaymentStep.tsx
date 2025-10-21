@@ -111,34 +111,51 @@ export const PaymentStep = ({
     setIsProcessing(true);
 
     try {
-      const bookingData = form.getValues();
+      // Get the full booking data from form
+      const fullBookingData = form.getValues();
       
-      // Create Stripe Payment Intent
+      // Create Stripe Checkout Session
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {
           amount: pricing.total,
           currency: pricing.currency,
           tourId: tourId,
-          tourTitle: bookingData.participants.length > 0 
-            ? `Booking for ${bookingData.participants[0].firstName} ${bookingData.participants[0].surname}`
-            : 'Tour Booking',
+          guideId: guideId,
+          dateSlotId: fullBookingData.selectedDateSlotId,
+          tourTitle: `Hiking Tour Booking`,
           bookingData: {
-            participants: bookingData.participants,
-            participantCount: bookingData.participants.length
+            participants: fullBookingData.participants,
+            participantCount: fullBookingData.participants.length,
+            phone: fullBookingData.phone,
+            country: fullBookingData.country,
+            emergencyContactName: fullBookingData.emergencyContactName,
+            emergencyContactPhone: fullBookingData.emergencyContactPhone,
+            emergencyContactRelationship: fullBookingData.emergencyContactRelationship,
+            dietaryPreferences: fullBookingData.dietaryPreferences,
+            accessibilityNeeds: fullBookingData.accessibilityNeeds,
+            specialRequests: fullBookingData.specialRequests,
           }
         }
       });
 
-      if (error) throw error;
-
-      if (data?.clientSecret) {
-        onPaymentSuccess(data.clientSecret);
-      } else {
-        throw new Error('No client secret returned');
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        toast.error('Failed to initiate payment. Please try again.');
+        return;
       }
+
+      if (!data?.url) {
+        toast.error('Failed to initialize payment');
+        return;
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+
     } catch (error) {
-      console.error('Error creating payment intent:', error);
-      toast.error('Failed to initiate payment. Please try again.');
+      console.error('Payment error:', error);
+      toast.error('An error occurred during payment processing');
+    } finally {
       setIsProcessing(false);
     }
   };
