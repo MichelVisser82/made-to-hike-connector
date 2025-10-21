@@ -414,6 +414,9 @@ export type Database = {
           is_featured: boolean | null
           languages_spoken: string[] | null
           location: string | null
+          location_formatted: string | null
+          location_lat: number | null
+          location_lng: number | null
           max_group_size: number | null
           min_group_size: number | null
           onboarding_step: number | null
@@ -456,6 +459,9 @@ export type Database = {
           is_featured?: boolean | null
           languages_spoken?: string[] | null
           location?: string | null
+          location_formatted?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           max_group_size?: number | null
           min_group_size?: number | null
           onboarding_step?: number | null
@@ -498,6 +504,9 @@ export type Database = {
           is_featured?: boolean | null
           languages_spoken?: string[] | null
           location?: string | null
+          location_formatted?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           max_group_size?: number | null
           min_group_size?: number | null
           onboarding_step?: number | null
@@ -1113,6 +1122,9 @@ export type Database = {
           itinerary: Json | null
           max_group_size: number | null
           meeting_point: string
+          meeting_point_formatted: string | null
+          meeting_point_lat: number | null
+          meeting_point_lng: number | null
           meta_description: string | null
           meta_title: string | null
           min_group_size: number | null
@@ -1155,6 +1167,9 @@ export type Database = {
           itinerary?: Json | null
           max_group_size?: number | null
           meeting_point: string
+          meeting_point_formatted?: string | null
+          meeting_point_lat?: number | null
+          meeting_point_lng?: number | null
           meta_description?: string | null
           meta_title?: string | null
           min_group_size?: number | null
@@ -1197,6 +1212,9 @@ export type Database = {
           itinerary?: Json | null
           max_group_size?: number | null
           meeting_point?: string
+          meeting_point_formatted?: string | null
+          meeting_point_lat?: number | null
+          meeting_point_lng?: number | null
           meta_description?: string | null
           meta_title?: string | null
           min_group_size?: number | null
