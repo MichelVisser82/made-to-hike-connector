@@ -576,51 +576,70 @@ export function BookingDetailView() {
 
             {/* Weather Forecast */}
             <div>
-              <h3 className="font-semibold text-charcoal mb-3">Weather Forecast</h3>
+              <h3 className="font-semibold text-charcoal mb-3 flex items-center gap-2">
+                <CloudSun className="h-5 w-5" />
+                Weather Forecast for Tour Date
+              </h3>
               {weatherLoading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span className="text-sm text-charcoal/60">Loading forecast...</span>
                 </div>
               ) : weatherError ? (
-                <p className="text-sm text-charcoal/60">
-                  Weather forecast unavailable
-                </p>
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <p className="text-sm text-amber-800">
+                    Weather forecast unavailable for this location
+                  </p>
+                </div>
               ) : weatherData ? (
                 <>
-                  <div className="flex items-start gap-3 p-3 bg-background/50 rounded-md">
-                    {getWeatherIcon(weatherData.condition)}
-                    <div>
-                      <p className="font-medium text-charcoal">{weatherData.condition}</p>
-                      {weatherData.temperature && (
-                        <p className="text-sm text-charcoal/60">
-                          {weatherData.temperature}°C
-                          {weatherData.high && weatherData.low && 
-                            ` • High: ${weatherData.high}°C • Low: ${weatherData.low}°C`
-                          }
-                        </p>
-                      )}
-                      {weatherData.summary && (
-                        <p className="text-xs text-charcoal/50 mt-1">
-                          {weatherData.summary}
-                        </p>
-                      )}
+                  <div className="p-4 bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-lg">
+                    <div className="flex items-start gap-4">
+                      <div className="text-sky-600">
+                        {getWeatherIcon(weatherData.condition)}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-lg text-charcoal">{weatherData.condition}</p>
+                        {weatherData.temperature && (
+                          <p className="text-base text-charcoal/80 font-medium mt-1">
+                            {weatherData.temperature}°C
+                            {weatherData.high && weatherData.low && 
+                              <span className="text-sm font-normal text-charcoal/60 ml-2">
+                                (High: {weatherData.high}°C • Low: {weatherData.low}°C)
+                              </span>
+                            }
+                          </p>
+                        )}
+                        {weatherData.summary && (
+                          <p className="text-sm text-charcoal/70 mt-2 leading-relaxed">
+                            {weatherData.summary}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
                   {weatherData.fullForecast && (
                     <Collapsible>
-                      <CollapsibleTrigger className="text-xs text-charcoal/60 hover:text-charcoal flex items-center gap-1 mt-2">
-                        <ChevronDown className="h-3 w-3" />
-                        Detailed forecast
+                      <CollapsibleTrigger className="text-sm text-charcoal/70 hover:text-charcoal flex items-center gap-1 mt-3 font-medium">
+                        <ChevronDown className="h-4 w-4" />
+                        View detailed forecast
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="text-xs text-charcoal/70 mt-2 p-2 bg-background/30 rounded">
+                      <CollapsibleContent className="text-sm text-charcoal/80 mt-3 p-4 bg-white border border-sky-100 rounded-lg leading-relaxed">
                         {weatherData.fullForecast}
                       </CollapsibleContent>
                     </Collapsible>
                   )}
+                  
+                  <p className="text-xs text-charcoal/50 mt-3">
+                    Forecast for {format(new Date(booking!.booking_date), 'EEEE, MMMM d, yyyy')}
+                  </p>
                 </>
-              ) : null}
+              ) : (
+                <p className="text-sm text-charcoal/60">
+                  Weather data not available
+                </p>
+              )}
             </div>
 
             <Separator />
