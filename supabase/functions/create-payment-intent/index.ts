@@ -14,6 +14,8 @@ serve(async (req) => {
 
   try {
     const { amount, currency, tourId, tourTitle, bookingData } = await req.json();
+    
+    console.log('Creating payment intent with data:', { amount, currency, tourId, bookingData });
 
     if (!amount || !currency || !tourId) {
       return new Response(
@@ -21,6 +23,13 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Ensure participants is properly stringified
+    const participantsString = typeof bookingData?.participants === 'string' 
+      ? bookingData.participants 
+      : JSON.stringify(bookingData?.participants || []);
+    
+    console.log('Participants metadata:', participantsString);
 
     // Create Stripe Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -32,7 +41,7 @@ serve(async (req) => {
       metadata: {
         tour_id: tourId,
         tour_title: tourTitle || '',
-        participants: JSON.stringify(bookingData?.participants || []),
+        participants: participantsString,
         participant_count: String(bookingData?.participantCount || bookingData?.participants?.length || 1),
       },
     });
