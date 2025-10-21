@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Upload, X, Image as ImageIcon, Sparkles, Loader2, MapPin, Check } from 'lucide-react';
@@ -13,10 +13,12 @@ import heic2any from 'heic2any';
 import { parse, gps } from 'exifr';
 
 interface ImageWithMetadata {
-  file: File;
+  file?: File;
   preview: string;
   url?: string;
+  existingUrl?: string;
   isHero: boolean;
+  isExisting?: boolean;
   suggestions?: {
     alt_text: string;
     description: string;
@@ -43,6 +45,74 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
   const form = useFormContext<TourFormData>();
   const [images, setImages] = useState<ImageWithMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(true);
+
+  // Load existing images in edit mode
+  useEffect(() => {
+    const loadExistingImages = async () => {
+      setLoadingExisting(true);
+      const heroImageUrl = form.getValues('hero_image');
+      const existingImageUrls = form.getValues('images') || [];
+      
+      const allUrls = [
+        ...(heroImageUrl ? [{ url: heroImageUrl, isHero: true }] : []),
+        ...existingImageUrls.map(url => ({ url, isHero: false }))
+      ];
+
+      if (allUrls.length === 0) {
+        setLoadingExisting(false);
+        return;
+      }
+
+      const existingImages: ImageWithMetadata[] = [];
+
+      for (const { url, isHero } of allUrls) {
+        try {
+          // Fetch metadata from website_images table
+          const { data: imageData } = await supabase
+            .from('website_images')
+            .select('alt_text, description, tags')
+            .eq('file_path', url.split('/').slice(-3).join('/'))
+            .single();
+
+          existingImages.push({
+            preview: url,
+            existingUrl: url,
+            isHero,
+            isExisting: true,
+            metadata: {
+              alt_text: imageData?.alt_text || '',
+              description: imageData?.description || ''
+            },
+            analyzing: false,
+            suggestions: imageData ? {
+              alt_text: imageData.alt_text || '',
+              description: imageData.description || '',
+              tags: imageData.tags || []
+            } : undefined
+          });
+        } catch (error) {
+          // If metadata not found, still show the image
+          existingImages.push({
+            preview: url,
+            existingUrl: url,
+            isHero,
+            isExisting: true,
+            metadata: {
+              alt_text: '',
+              description: ''
+            },
+            analyzing: false
+          });
+        }
+      }
+
+      setImages(existingImages);
+      setLoadingExisting(false);
+    };
+
+    loadExistingImages();
+  }, []);
 
   const getLocationFromGPS = (latitude: number, longitude: number): string => {
     const locations = [
@@ -341,7 +411,10 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
   const removeImage = (index: number) => {
     setImages(prev => {
       const updated = [...prev];
-      URL.revokeObjectURL(updated[index].preview);
+      // Only revoke object URL for new uploads, not existing images
+      if (!updated[index].isExisting && updated[index].preview) {
+        URL.revokeObjectURL(updated[index].preview);
+      }
       updated.splice(index, 1);
       return updated;
     });
@@ -359,8 +432,17 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
 
     setUploading(true);
     try {
-      for (let i = 0; i < images.length; i++) {
-        const imageData = images[i];
+      // Separate existing and new images
+      const existingImages = images.filter(img => img.isExisting);
+      const newImages = images.filter(img => !img.isExisting);
+
+      // Upload new images
+      const uploadedUrls: { url: string; isHero: boolean }[] = [];
+      
+      for (let i = 0; i < newImages.length; i++) {
+        const imageData = newImages[i];
+        if (!imageData.file) continue;
+        
         const compressedFile = await compressImage(imageData.file, imageData.isHero);
         
         const metadata = {
@@ -375,18 +457,30 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
         }
 
         const url = await uploadToStorage(compressedFile, imageData.isHero, metadata);
-
-        if (imageData.isHero) {
-          form.setValue('hero_image', url);
-        } else {
-          const current = form.getValues('images') || [];
-          form.setValue('images', [...current, url]);
-        }
+        uploadedUrls.push({ url, isHero: imageData.isHero });
       }
+
+      // Combine existing and new images
+      const existingHero = existingImages.find(img => img.isHero);
+      const newHero = uploadedUrls.find(img => img.isHero);
+      const otherImages = [
+        ...existingImages.filter(img => !img.isHero).map(img => img.existingUrl!),
+        ...uploadedUrls.filter(img => !img.isHero).map(img => img.url)
+      ];
+
+      // Update form values
+      if (existingHero) {
+        form.setValue('hero_image', existingHero.existingUrl!);
+      } else if (newHero) {
+        form.setValue('hero_image', newHero.url);
+      }
+      form.setValue('images', otherImages);
 
       toast({
         title: "Upload complete",
-        description: `Uploaded ${images.length} image(s)`,
+        description: newImages.length > 0 
+          ? `Uploaded ${newImages.length} new image(s), kept ${existingImages.length} existing`
+          : "Images saved successfully",
       });
 
       setImages([]);
@@ -405,6 +499,21 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
 
   const heroImage = images.find(img => img.isHero);
   const additionalImages = images.filter(img => !img.isHero);
+
+  if (loadingExisting) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Tour Images</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -426,6 +535,11 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <Loader2 className="w-8 h-8 text-white animate-spin" />
                     </div>
+                  )}
+                  {heroImage.isExisting && (
+                    <Badge className="absolute top-2 left-2" variant="default">
+                      Current Image
+                    </Badge>
                   )}
                   <button
                     type="button"
@@ -504,6 +618,11 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <Loader2 className="w-6 h-6 text-white animate-spin" />
                           </div>
+                        )}
+                        {image.isExisting && (
+                          <Badge className="absolute top-1 left-1 text-xs" variant="default">
+                            Current
+                          </Badge>
                         )}
                         <button
                           type="button"
