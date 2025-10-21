@@ -47,7 +47,7 @@ export const BookingSuccess = () => {
         // Check if profile exists, create if not
         const { data: existingProfile } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, date_of_birth')
           .eq('id', user.id)
           .single();
 
@@ -83,6 +83,28 @@ export const BookingSuccess = () => {
         // Add accessibility needs if present
         if (sessionData.bookingData.accessibilityNeeds) {
           profileUpdateData.accessibility_needs = sessionData.bookingData.accessibilityNeeds;
+        }
+
+        // Add first participant's data to profile for future pre-population
+        if (sessionData.bookingData.participants?.length > 0) {
+          const firstParticipant = sessionData.bookingData.participants[0];
+          
+          // Save hiking experience level
+          if (firstParticipant.experience) {
+            profileUpdateData.hiking_experience = firstParticipant.experience;
+          }
+          
+          // Save medical conditions
+          if (firstParticipant.medicalConditions) {
+            profileUpdateData.medical_conditions = firstParticipant.medicalConditions;
+          }
+          
+          // Calculate and save date of birth from age if not already set
+          if (firstParticipant.age && !existingProfile?.date_of_birth) {
+            const currentYear = new Date().getFullYear();
+            const birthYear = currentYear - firstParticipant.age;
+            profileUpdateData.date_of_birth = `${birthYear}-01-01`;
+          }
         }
 
         const { error: updateError } = await supabase
