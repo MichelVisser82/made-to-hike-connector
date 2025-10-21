@@ -396,6 +396,7 @@ serve(async (req) => {
     // Get the appropriate email template
     const template = getEmailTemplate(emailRequest.type, {
       ...emailRequest,
+      ...emailRequest.data,
       ...emailRequest.template_data,
       websiteUrl: 'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com'
     })
