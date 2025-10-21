@@ -548,13 +548,6 @@ export function BookingDetailView() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full text-burgundy hover:text-burgundy"
-                >
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Counter-offer
-                </Button>
-                <Button
-                  variant="outline"
                   className="w-full text-burgundy hover:text-burgundy hover:bg-burgundy/10"
                   onClick={() => setShowDeclineDialog(true)}
                 >
