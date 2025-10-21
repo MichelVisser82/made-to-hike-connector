@@ -33,6 +33,7 @@ export const HikingLocationMap = ({
   const map = useRef<L.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mapId = useRef(`map-${Math.random().toString(36).substr(2, 9)}`).current;
 
   useEffect(() => {
     console.log('[HikingLocationMap] Component mounted with:', { latitude, longitude, title });
@@ -55,17 +56,10 @@ export const HikingLocationMap = ({
 
     const initMap = async () => {
       try {
-        // Wait for container to be available
-        if (!mapContainer.current) {
-          console.warn('[HikingLocationMap] Map container not yet available, waiting...');
-          setTimeout(initMap, 100);
-          return;
-        }
-
-        console.log('[HikingLocationMap] Map container ready! Creating Leaflet map instance...');
+        console.log('[HikingLocationMap] Creating Leaflet map with ID:', mapId);
         
-        // Initialize map
-        map.current = L.map(mapContainer.current, {
+        // Initialize map using the element ID
+        map.current = L.map(mapId, {
           center: [latitude, longitude],
           zoom: zoom,
           zoomControl: showControls,
@@ -127,9 +121,8 @@ export const HikingLocationMap = ({
       }
     };
 
-    // Start initialization immediately
-    console.log('[HikingLocationMap] Starting map initialization...');
-    const timer = setTimeout(initMap, 0);
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(initMap, 100);
 
     return () => {
       clearTimeout(timer);
@@ -158,6 +151,7 @@ export const HikingLocationMap = ({
 
   return (
     <div 
+      id={mapId}
       ref={mapContainer} 
       style={{ height, width: '100%' }}
       className="rounded-lg shadow-sm"
