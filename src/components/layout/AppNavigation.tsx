@@ -217,13 +217,6 @@ export function AppNavigation({
                 <HelpCircle className="w-5 h-5" />
               </Button>
 
-              {/* Verification Badge */}
-              {showVerificationBadge && (
-                <Badge variant={isVerified ? 'default' : 'secondary'}>
-                  {isVerified ? 'Verified' : 'Pending Verification'}
-                </Badge>
-              )}
-
               {/* User Profile Dropdown */}
               {user && (
                 <DropdownMenu>
