@@ -163,6 +163,18 @@ export function AccountStep({ onVerified }: AccountStepProps) {
 
       // Check for error in the response data
       if (data?.error) {
+        // If user already exists, redirect to login
+        if (data.error.includes('already registered')) {
+          toast({ 
+            title: 'Account already exists', 
+            description: 'Please log in with your credentials instead.',
+            variant: 'destructive' 
+          });
+          setActiveTab('login');
+          setEmail(email);
+          setLoginPassword(newPassword);
+          return;
+        }
         throw new Error(data.error);
       }
 
@@ -181,6 +193,8 @@ export function AccountStep({ onVerified }: AccountStepProps) {
             variant: 'destructive' 
           });
           setActiveTab('login');
+          setEmail(email);
+          setLoginPassword(newPassword);
           return;
         }
         
