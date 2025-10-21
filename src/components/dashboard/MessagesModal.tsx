@@ -131,10 +131,10 @@ export function MessagesModal({
               </div>
               <div>
                 <h2 className="font-medium text-charcoal">
-                  Messages with {booking.guest?.name}
+                  Messages with {booking.hiker?.name || booking.guest?.name}
                 </h2>
                 <p className="text-sm text-charcoal/60">
-                  Booking #{booking.id.slice(0, 12)} • {booking.tour?.title}
+                  Booking #{booking.booking_reference || 'N/A'} • {booking.tour?.title}
                 </p>
               </div>
             </div>
