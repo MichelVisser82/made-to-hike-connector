@@ -79,8 +79,9 @@ export function TodaySection({
             <p className="text-white/80">{formatDate(currentDate)}</p>
           </div>
           <Button
-            variant="outline"
-            className="border-white/30 text-white hover:bg-white hover:text-burgundy"
+            onClick={onManageAvailability}
+            variant="ghost"
+            className="border border-white/30 text-white hover:bg-white hover:text-burgundy"
           >
             <Calendar className="w-4 h-4 mr-2" />
             View Calendar
