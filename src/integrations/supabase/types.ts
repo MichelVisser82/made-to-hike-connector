@@ -504,6 +504,27 @@ export type Database = {
         }
         Relationships: []
       }
+      kv_store: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          key: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          key: string
+          value: Json
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          key?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       kv_store_158bb0c0: {
         Row: {
           key: string
@@ -1472,6 +1493,10 @@ export type Database = {
       can_view_guide_phone: {
         Args: { _guide_user_id: string }
         Returns: boolean
+      }
+      cleanup_expired_kv_store: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       generate_guide_slug: {
         Args: { guide_name: string }
