@@ -29,6 +29,16 @@ serve(async (req) => {
     } = bookingData;
 
     console.log('Validating required fields...');
+    console.log('Field values:', {
+      tour_id,
+      date_slot_id,
+      hiker_id,
+      participants,
+      total_price,
+      subtotal,
+      currency
+    });
+    
     if (!tour_id || !date_slot_id || !hiker_id || !participants || !total_price) {
       console.error('Missing required fields:', {
         tour_id: !!tour_id,
@@ -57,10 +67,18 @@ serve(async (req) => {
       .from('tours')
       .select('title, guide_id, auto_confirm, region')
       .eq('id', tour_id)
-      .single();
+      .maybeSingle();
 
-    if (tourError || !tour) {
+    if (tourError) {
       console.error('Tour fetch error:', tourError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch tour', details: tourError }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!tour) {
+      console.error('Tour not found for id:', tour_id);
       return new Response(
         JSON.stringify({ error: 'Tour not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -74,10 +92,18 @@ serve(async (req) => {
       .from('tour_date_slots')
       .select('slot_date, spots_booked, spots_total')
       .eq('id', date_slot_id)
-      .single();
+      .maybeSingle();
 
-    if (dateSlotError || !dateSlot) {
+    if (dateSlotError) {
       console.error('Date slot fetch error:', dateSlotError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch date slot', details: dateSlotError }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!dateSlot) {
+      console.error('Date slot not found for id:', date_slot_id);
       return new Response(
         JSON.stringify({ error: 'Date slot not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -90,6 +116,7 @@ serve(async (req) => {
 
     // Check if enough spots are available
     if (spotsRemaining < participants) {
+      console.error('Not enough spots:', { spotsRemaining, requestedParticipants: participants });
       return new Response(
         JSON.stringify({ error: 'Not enough spots available' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
