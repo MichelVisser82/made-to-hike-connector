@@ -65,6 +65,7 @@ export function GuideDashboard({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [internalActiveSection, setInternalActiveSection] = useState<DashboardSection>('today');
+  const [toursActiveTab, setToursActiveTab] = useState<'my-tours' | 'calendar' | 'image-library'>('my-tours');
   
   // Use external state if provided, otherwise use internal state
   const activeSection = externalActiveSection ?? internalActiveSection;
@@ -795,7 +796,10 @@ See you soon!
               stats={mockStats}
               notifications={mockNotifications}
               onCreateTour={() => navigate('/tour-creation')}
-              onManageAvailability={() => setActiveSection('tours')}
+              onManageAvailability={() => {
+                setToursActiveTab('calendar');
+                setActiveSection('tours');
+              }}
               onViewEarnings={() => setActiveSection('money')}
               onSectionNavigate={(section) => setActiveSection(section as DashboardSection)}
             />
@@ -821,6 +825,8 @@ See you soon!
               <ToursSection
                 tours={tours}
                 loading={loading}
+                initialTab={toursActiveTab}
+                onTabChange={setToursActiveTab}
                 onCreateTour={() => navigate('/tour-creation')}
                 onEditTour={(tour) => navigate('/tour-creation', { 
                   state: { tour, editMode: true, tourId: tour.id } 

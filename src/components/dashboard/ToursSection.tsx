@@ -33,6 +33,8 @@ import type { Tour } from '@/types';
 interface ToursSectionProps {
   tours: Tour[];
   loading: boolean;
+  initialTab?: 'my-tours' | 'calendar' | 'image-library';
+  onTabChange?: (tab: 'my-tours' | 'calendar' | 'image-library') => void;
   onCreateTour: () => void;
   onEditTour: (tour: Tour) => void;
   onDeleteTour: (tour: Tour) => void;
@@ -47,6 +49,8 @@ interface ToursSectionProps {
 export function ToursSection({
   tours,
   loading,
+  initialTab = 'my-tours',
+  onTabChange,
   onCreateTour,
   onEditTour,
   onDeleteTour,
@@ -57,7 +61,12 @@ export function ToursSection({
   onUnarchiveTour,
   onCopyTour,
 }: ToursSectionProps) {
-  const [activeTab, setActiveTab] = useState<'my-tours' | 'calendar' | 'image-library'>('my-tours');
+  const [activeTab, setActiveTab] = useState<'my-tours' | 'calendar' | 'image-library'>(initialTab);
+  
+  const handleTabChange = (tab: 'my-tours' | 'calendar' | 'image-library') => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft' | 'archived'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -140,7 +149,7 @@ export function ToursSection({
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'my-tours' | 'calendar' | 'image-library')}>
+      <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as 'my-tours' | 'calendar' | 'image-library')}>
         <TabsList className="bg-cream p-1 rounded-lg">
           <TabsTrigger 
             value="my-tours"
