@@ -16,13 +16,28 @@ serve(async (req) => {
   try {
     const { location, latitude, longitude, date } = await req.json();
     
-    // Build location string with GPS coordinates if available
-    let locationQuery = location;
+    // Build prompt based on whether we have GPS coordinates
+    let weatherPrompt;
     if (latitude && longitude) {
-      locationQuery = `coordinates ${latitude}, ${longitude} (${location})`;
+      console.log('Fetching weather using GPS:', { latitude, longitude, location, date });
+      weatherPrompt = `Search for the weather forecast for GPS coordinates ${latitude}, ${longitude} on ${date}. 
+                      Use the GPS coordinates in your search query to find the most accurate forecast.
+                      This location is known as "${location}".
+                      
+                      Provide a hiking-specific summary including:
+                      - Overall conditions (sunny, cloudy, rainy, etc.)
+                      - Temperature (actual, high, low in Celsius)
+                      - Any hiking considerations (wind, visibility, precipitation)
+                      Keep it concise and practical for outdoor activities.`;
+    } else {
+      console.log('Fetching weather using location name:', { location, date });
+      weatherPrompt = `What is the weather forecast for ${location} on ${date}? 
+                      Provide a hiking-specific summary including:
+                      - Overall conditions (sunny, cloudy, rainy, etc.)
+                      - Temperature (actual, high, low in Celsius)
+                      - Any hiking considerations (wind, visibility, precipitation)
+                      Keep it concise and practical for outdoor activities.`;
     }
-    
-    console.log('Fetching weather for:', { location: locationQuery, date, latitude, longitude });
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -36,12 +51,7 @@ serve(async (req) => {
         max_tokens: 1024,
         messages: [{
           role: 'user',
-          content: `What is the weather forecast for ${locationQuery} on ${date}? 
-                   Provide a hiking-specific summary including:
-                   - Overall conditions (sunny, cloudy, rainy, etc.)
-                   - Temperature (actual, high, low in Celsius)
-                   - Any hiking considerations (wind, visibility, precipitation)
-                   Keep it concise and practical for outdoor activities.`
+          content: weatherPrompt
         }],
         tools: [{
           type: 'web_search_20250305',
