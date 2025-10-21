@@ -158,10 +158,45 @@ export function AccountStep({ onVerified }: AccountStepProps) {
 
       if (error) throw error;
 
-      onVerified(data.user.id);
-      toast({ title: 'Account created successfully!' });
+      // If we got a session, sign in the user
+      if (data?.session) {
+        const { error: setSessionError } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        });
+        
+        if (setSessionError) {
+          console.error('Error setting session:', setSessionError);
+        }
+      }
+
+      // Get current user to verify login
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        onVerified(user.id);
+        toast({ title: 'Account created successfully!' });
+      } else {
+        // Fallback: try to sign in
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: newPassword
+        });
+        
+        if (signInError) throw signInError;
+        
+        if (signInData.user) {
+          onVerified(signInData.user.id);
+          toast({ title: 'Account created successfully!' });
+        }
+      }
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      console.error('Account creation error:', error);
+      toast({ 
+        title: 'Error', 
+        description: error.message || 'Failed to create account',
+        variant: 'destructive' 
+      });
     } finally {
       setIsLoading(false);
     }

@@ -122,7 +122,8 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase auth user with structured name data and password
+    // Create Supabase auth user with metadata
+    // The handle_new_user trigger will automatically create profile and assign role
     const fullName = `${firstName} ${lastName}`.trim();
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
@@ -131,88 +132,52 @@ serve(async (req) => {
       user_metadata: { 
         firstName,
         lastName,
-        name: fullName 
+        name: fullName,
+        role: 'hiker'
       }
     });
 
     if (authError) {
       console.error('Error creating user:', authError);
       return new Response(
-        JSON.stringify({ error: 'Failed to create user account' }),
+        JSON.stringify({ error: authError.message || 'Failed to create user account' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Note: Profile and role are automatically created by the handle_new_user trigger
-    // We just need to wait a moment for the trigger to complete
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Verify profile was created by trigger
-    const { data: profileCheck, error: profileCheckError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', authData.user.id)
-      .single();
-    
-    if (profileCheckError || !profileCheck) {
-      console.error('Profile not created by trigger, creating manually:', profileCheckError);
-      // Fallback: create profile if trigger failed
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email,
-          name: fullName
-        });
-      
-      if (profileError && profileError.code !== '23505') {
-        console.error('Error creating profile:', profileError);
-      }
-    }
-    
-    // Verify role was assigned by trigger
-    const { data: roleCheck, error: roleCheckError } = await supabase
-      .from('user_roles')
-      .select('user_id')
-      .eq('user_id', authData.user.id)
-      .single();
-    
-    if (roleCheckError || !roleCheck) {
-      console.error('Role not assigned by trigger, assigning manually:', roleCheckError);
-      // Fallback: assign role if trigger failed
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: 'hiker'
-        });
-      
-      if (roleError && roleError.code !== '23505') {
-        console.error('Error assigning role:', roleError);
-      }
-    }
+    console.log('User created successfully:', authData.user.id);
 
-    // Delete verification code
+    // Delete verification code from kv_store
     await supabase
       .from('kv_store_158bb0c0')
       .delete()
       .eq('key', `verification_code:${email}`);
 
-    // Generate session token
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
+    console.log('Verification code deleted');
+
+    // Sign in the user to get a session
+    const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
       email,
+      password
     });
 
     if (sessionError) {
-      console.error('Error generating session:', sessionError);
+      console.error('Error signing in user:', sessionError);
+      // Account was created but couldn't sign in - user can log in manually
+      return new Response(
+        JSON.stringify({ 
+          message: 'Account created successfully! Please log in.',
+          user: authData.user
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     return new Response(
       JSON.stringify({ 
         message: 'Account created successfully',
         user: authData.user,
-        session: sessionData
+        session: sessionData.session
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
