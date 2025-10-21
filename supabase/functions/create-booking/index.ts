@@ -72,7 +72,7 @@ serve(async (req) => {
     console.log('Fetching date slot info for date_slot_id:', date_slot_id);
     const { data: dateSlot, error: dateSlotError } = await supabase
       .from('tour_date_slots')
-      .select('slot_date, spots_remaining, spots_booked, spots_total')
+      .select('slot_date, spots_booked, spots_total')
       .eq('id', date_slot_id)
       .single();
 
@@ -83,10 +83,13 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    console.log('Date slot found:', dateSlot);
+    
+    // Calculate spots remaining
+    const spotsRemaining = dateSlot.spots_total - dateSlot.spots_booked;
+    console.log('Date slot found:', { ...dateSlot, spotsRemaining });
 
     // Check if enough spots are available
-    if (dateSlot.spots_remaining < participants) {
+    if (spotsRemaining < participants) {
       return new Response(
         JSON.stringify({ error: 'Not enough spots available' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -141,12 +144,10 @@ serve(async (req) => {
 
     // Update tour_date_slots to reflect booked spots
     const newSpotsBooked = dateSlot.spots_booked + participants;
-    const newSpotsRemaining = dateSlot.spots_total - newSpotsBooked;
     const { error: updateSlotsError } = await supabase
       .from('tour_date_slots')
       .update({
         spots_booked: newSpotsBooked,
-        spots_remaining: newSpotsRemaining,
       })
       .eq('id', date_slot_id);
 
