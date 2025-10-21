@@ -143,29 +143,53 @@ serve(async (req) => {
       );
     }
 
-    // Create profile record with structured name
-    const { error: profileError } = await supabase
+    // Note: Profile and role are automatically created by the handle_new_user trigger
+    // We just need to wait a moment for the trigger to complete
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Verify profile was created by trigger
+    const { data: profileCheck, error: profileCheckError } = await supabase
       .from('profiles')
-      .insert({
-        id: authData.user.id,
-        email,
-        name: fullName
-      });
-
-    if (profileError) {
-      console.error('Error creating profile:', profileError);
+      .select('id')
+      .eq('id', authData.user.id)
+      .single();
+    
+    if (profileCheckError || !profileCheck) {
+      console.error('Profile not created by trigger, creating manually:', profileCheckError);
+      // Fallback: create profile if trigger failed
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          email,
+          name: fullName
+        });
+      
+      if (profileError && profileError.code !== '23505') {
+        console.error('Error creating profile:', profileError);
+      }
     }
-
-    // Assign hiker role
-    const { error: roleError } = await supabase
+    
+    // Verify role was assigned by trigger
+    const { data: roleCheck, error: roleCheckError } = await supabase
       .from('user_roles')
-      .insert({
-        user_id: authData.user.id,
-        role: 'hiker'
-      });
-
-    if (roleError) {
-      console.error('Error assigning role:', roleError);
+      .select('user_id')
+      .eq('user_id', authData.user.id)
+      .single();
+    
+    if (roleCheckError || !roleCheck) {
+      console.error('Role not assigned by trigger, assigning manually:', roleCheckError);
+      // Fallback: assign role if trigger failed
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: authData.user.id,
+          role: 'hiker'
+        });
+      
+      if (roleError && roleError.code !== '23505') {
+        console.error('Error assigning role:', roleError);
+      }
     }
 
     // Delete verification code
