@@ -129,11 +129,10 @@ serve(async (req) => {
 
     // Increment discount code usage if applicable
     if (discount_code) {
-      await supabase.rpc('increment', {
-        table_name: 'discount_codes',
-        column_name: 'times_used',
-        row_id: discount_code
-      });
+      await supabase
+        .from('discount_codes')
+        .update({ times_used: supabase.raw('times_used + 1') })
+        .eq('code', discount_code);
     }
 
     // Create conversation between hiker and guide
@@ -152,61 +151,9 @@ serve(async (req) => {
       console.error('Error creating conversation:', conversationError);
     }
 
-    // Send confirmation email to hiker
-    const { data: hikerProfile } = await supabase
-      .from('profiles')
-      .select('email, name')
-      .eq('id', hiker_id)
-      .single();
-
-    if (hikerProfile) {
-      await supabase.functions.invoke('send-email', {
-        body: {
-          to: hikerProfile.email,
-          subject: `Booking Confirmation - ${tour.title}`,
-          template: 'booking-confirmation',
-          data: {
-            hikerName: hikerProfile.name,
-            tourTitle: tour.title,
-            bookingReference: booking.booking_reference,
-            bookingDate: dateSlot.slot_date,
-            participants,
-            totalPrice: total_price,
-            currency,
-            status: bookingStatus,
-            region: tour.region,
-          }
-        }
-      });
-    }
-
-    // Send booking notification to guide
-    const { data: guideProfile } = await supabase
-      .from('profiles')
-      .select('email, name')
-      .eq('id', tour.guide_id)
-      .single();
-
-    if (guideProfile) {
-      await supabase.functions.invoke('send-email', {
-        body: {
-          to: guideProfile.email,
-          subject: `New Booking - ${tour.title}`,
-          template: 'guide-booking-notification',
-          data: {
-            guideName: guideProfile.name,
-            tourTitle: tour.title,
-            bookingReference: booking.booking_reference,
-            hikerName: hikerProfile?.name,
-            bookingDate: dateSlot.slot_date,
-            participants,
-            totalPrice: total_price,
-            currency,
-            specialRequests: special_requests,
-          }
-        }
-      });
-    }
+    // TODO: Email notifications will be handled in a future update
+    // For now, bookings are created successfully and visible in dashboards
+    console.log('Booking created successfully:', booking.id);
 
     return new Response(
       JSON.stringify({
