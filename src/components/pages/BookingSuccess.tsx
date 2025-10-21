@@ -143,17 +143,29 @@ export const BookingSuccess = () => {
           console.log('BookingSuccess: Profile updated successfully');
         }
 
-        // Add hiker_id to booking data
-        const bookingDataWithHiker = {
-          ...sessionData.bookingData,
-          hiker_id: user.id
+        // Map the data to what create-booking expects
+        const createBookingData = {
+          tour_id: sessionData.bookingData.tour_id,
+          date_slot_id: sessionData.bookingData.date_slot_id,
+          hiker_id: user.id,
+          participants: sessionData.bookingData.participantCount || sessionData.bookingData.participants?.length || 1,
+          participants_details: sessionData.bookingData.participants || [],
+          total_price: sessionData.bookingData.total_price || sessionData.amountPaid,
+          subtotal: sessionData.bookingData.subtotal,
+          discount_code: sessionData.bookingData.discount_code,
+          discount_amount: sessionData.bookingData.discount_amount || 0,
+          service_fee_amount: sessionData.bookingData.service_fee_amount || 0,
+          currency: sessionData.bookingData.currency || sessionData.currency,
+          special_requests: sessionData.bookingData.specialRequests,
+          stripe_payment_intent_id: sessionData.paymentIntentId,
+          primary_contact_id: null,
         };
 
-        console.log('BookingSuccess: Calling create-booking with data:', bookingDataWithHiker);
+        console.log('BookingSuccess: Calling create-booking with data:', createBookingData);
 
         // Create the booking in database
         const { data: bookingData, error: bookingError } = await supabase.functions.invoke('create-booking', {
-          body: bookingDataWithHiker
+          body: createBookingData
         });
 
         console.log('BookingSuccess: create-booking response:', bookingData, bookingError);

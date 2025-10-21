@@ -138,9 +138,9 @@ serve(async (req) => {
     const { data: conversation, error: conversationError } = await supabase
       .from('conversations')
       .insert({
-        participant1_id: hiker_id,
-        participant2_id: tour.guide_id,
-        booking_id: booking.id,
+        hiker_id: hiker_id,
+        guide_id: tour.guide_id,
+        tour_id: tour_id,
         last_message_at: new Date().toISOString(),
       })
       .select()
