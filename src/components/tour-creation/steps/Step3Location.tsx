@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 import { MapPin } from 'lucide-react';
+import { LocationAutocomplete } from '../LocationAutocomplete';
 
 interface Step3LocationProps {
   onNext: () => void;
@@ -19,6 +19,9 @@ const regions = [
 
 export default function Step3Location({ onNext }: Step3LocationProps) {
   const form = useFormContext<TourFormData>();
+  
+  const meetingPointLat = form.watch('meeting_point_lat');
+  const meetingPointLng = form.watch('meeting_point_lng');
 
   const handleNext = async () => {
     const isValid = await form.trigger(['region', 'meeting_point']);
@@ -71,9 +74,19 @@ export default function Step3Location({ onNext }: Step3LocationProps) {
             <FormItem>
               <FormLabel>Meeting Point</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="e.g., Cortina d'Ampezzo town center, Hotel XYZ" 
-                  {...field} 
+                <LocationAutocomplete
+                  value={field.value}
+                  coordinates={{
+                    lat: meetingPointLat || 0,
+                    lng: meetingPointLng || 0
+                  }}
+                  onLocationSelect={(data) => {
+                    field.onChange(data.address);
+                    form.setValue('meeting_point_lat', data.lat);
+                    form.setValue('meeting_point_lng', data.lng);
+                    form.setValue('meeting_point_formatted', data.formatted);
+                  }}
+                  placeholder="Search for meeting point location..."
                 />
               </FormControl>
               <FormMessage />

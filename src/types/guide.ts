@@ -76,6 +76,9 @@ export interface GuideSignupData {
   
   // Step 3: Location
   location: string;
+  location_lat?: number;
+  location_lng?: number;
+  location_formatted?: string;
   
   // Step 4: Specialties
   specialties: string[];

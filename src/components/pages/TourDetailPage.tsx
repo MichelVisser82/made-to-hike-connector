@@ -14,6 +14,7 @@ import { getPrimaryCertification } from '@/utils/guideDataUtils';
 import { AnonymousChat } from '../chat/AnonymousChat';
 import { useTourDateAvailability } from '@/hooks/useTourDateAvailability';
 import { format, addDays, parse } from 'date-fns';
+import { HikingLocationMap } from '../tour/HikingLocationMap';
 
 interface TourDetailPageProps {
   tour: Tour;
@@ -347,6 +348,38 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 </div>
               </CardContent>
             </Card>
+
+            {/* Meeting Location Map */}
+            {tour.meeting_point_lat && tour.meeting_point_lng && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Meeting Location
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <HikingLocationMap
+                    latitude={tour.meeting_point_lat}
+                    longitude={tour.meeting_point_lng}
+                    title={tour.meeting_point_formatted || tour.meeting_point}
+                    height="400px"
+                    zoom={13}
+                  />
+                  <div className="mt-4 p-4 bg-accent/50 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <div className="font-medium mb-1">Where We'll Meet</div>
+                        <div className="text-sm text-muted-foreground">
+                          {tour.meeting_point_formatted || tour.meeting_point}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Photo Gallery */}
             <Card>

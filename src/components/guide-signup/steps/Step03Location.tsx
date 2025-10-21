@@ -1,9 +1,9 @@
 import { MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { GuideSignupData } from '@/types/guide';
+import { LocationAutocomplete } from '@/components/tour-creation/LocationAutocomplete';
 
 interface Step03LocationProps {
   data: Partial<GuideSignupData>;
@@ -30,11 +30,21 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
         <CardContent className="space-y-6">
           <div>
             <Label htmlFor="location">City, Country *</Label>
-            <Input
-              id="location"
+            <LocationAutocomplete
               value={data.location || ''}
-              onChange={(e) => updateData({ location: e.target.value })}
-              placeholder="e.g., Edinburgh, Scotland"
+              coordinates={{
+                lat: data.location_lat || 0,
+                lng: data.location_lng || 0
+              }}
+              onLocationSelect={(locationData) => {
+                updateData({
+                  location: locationData.address,
+                  location_lat: locationData.lat,
+                  location_lng: locationData.lng,
+                  location_formatted: locationData.formatted
+                });
+              }}
+              placeholder="Search for your base location..."
             />
           </div>
 

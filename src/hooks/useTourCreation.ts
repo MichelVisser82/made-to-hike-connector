@@ -15,6 +15,9 @@ const tourSchema = z.object({
   // Step 3: Location
   region: z.enum(['dolomites', 'pyrenees', 'scotland']),
   meeting_point: z.string().min(10, 'Meeting point is required'),
+  meeting_point_lat: z.number().optional(),
+  meeting_point_lng: z.number().optional(),
+  meeting_point_formatted: z.string().optional(),
   
   // Step 4: Duration & Difficulty
   duration: z.string().min(1, 'Duration is required'),
@@ -91,6 +94,9 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         description: initialData.description,
         region: initialData.region,
         meeting_point: initialData.meeting_point,
+        meeting_point_lat: initialData.meeting_point_lat,
+        meeting_point_lng: initialData.meeting_point_lng,
+        meeting_point_formatted: initialData.meeting_point_formatted,
         duration: initialData.duration,
         difficulty: initialData.difficulty,
         pack_weight: initialData.pack_weight || 10,
@@ -122,6 +128,9 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       description: '',
       region: 'dolomites' as const,
       meeting_point: '',
+      meeting_point_lat: undefined,
+      meeting_point_lng: undefined,
+      meeting_point_formatted: undefined,
       duration: '',
       difficulty: 'moderate' as const,
       pack_weight: 10,

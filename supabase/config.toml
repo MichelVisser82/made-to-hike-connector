@@ -1,5 +1,11 @@
 project_id = "ohecxwxumzpfcfsokfkg"
 
+[functions.geocode-location]
+verify_jwt = false
+
+[functions.get-thunderforest-key]
+verify_jwt = false
+
 [functions.send-email]
 verify_jwt = false
 
