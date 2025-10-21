@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,16 +80,72 @@ export function BookingDetailView() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [booking, setBooking] = useState<BookingWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMessagesModal, setShowMessagesModal] = useState(false);
   const [showDeclineDialog, setShowDeclineDialog] = useState(false);
+  const [conversationId, setConversationId] = useState<string | undefined>();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [lastMessageAt, setLastMessageAt] = useState<string | null>(null);
+
+  const fetchConversationData = async () => {
+    if (!booking || !user?.id) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const guideId = session?.user?.id;
+      
+      if (!guideId) return;
+
+      // Find conversation for this booking
+      const { data: conversation } = await supabase
+        .from('conversations')
+        .select('id, last_message_at')
+        .eq('tour_id', booking.tour.id)
+        .eq('hiker_id', booking.hiker.id)
+        .eq('guide_id', guideId)
+        .maybeSingle();
+
+      if (!conversation) return;
+
+      setConversationId(conversation.id);
+      setLastMessageAt(conversation.last_message_at);
+
+      // Fetch messages to count unread
+      const { data: messages } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          sender_id,
+          read_receipts:message_read_receipts(user_id)
+        `)
+        .eq('conversation_id', conversation.id);
+
+      if (messages) {
+        const unread = messages.filter(
+          (msg) =>
+            msg.sender_id !== guideId &&
+            !msg.read_receipts?.some((r: any) => r.user_id === guideId)
+        );
+        setUnreadCount(unread.length);
+      }
+    } catch (error) {
+      console.error('Error fetching conversation data:', error);
+    }
+  };
 
   useEffect(() => {
     if (bookingId) {
       fetchBooking();
     }
   }, [bookingId]);
+
+  useEffect(() => {
+    if (booking && user) {
+      fetchConversationData();
+    }
+  }, [booking, user]);
 
   const fetchBooking = async () => {
     try {
@@ -605,28 +662,35 @@ export function BookingDetailView() {
                 onClick={() => setShowMessagesModal(true)}
               >
                 <MessageSquare className="h-4 w-4 mr-2" />
-                View Messages (2)
+                View Messages{unreadCount > 0 ? ` (${unreadCount})` : ''}
               </Button>
-              <p className="text-xs text-charcoal/50 text-center mt-2">
-                Last message: 1 hour ago
-              </p>
+              {lastMessageAt && (
+                <p className="text-xs text-charcoal/50 text-center mt-2">
+                  Last message: {formatDistanceToNow(new Date(lastMessageAt), { addSuffix: true })}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Messages Modal */}
-      <MessagesModal
-        isOpen={showMessagesModal}
-        onClose={() => setShowMessagesModal(false)}
-        booking={{
-          ...booking,
-          tour_id: booking.tour.id,
-          hiker_id: booking.hiker.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        } as any}
-      />
+      {conversationId && (
+        <MessagesModal
+          isOpen={showMessagesModal}
+          onClose={() => {
+            setShowMessagesModal(false);
+            fetchConversationData(); // Refresh counts after closing modal
+          }}
+          booking={{
+            ...booking,
+            tour_id: booking.tour.id,
+            hiker_id: booking.hiker.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          } as any}
+        />
+      )}
 
       {/* Decline Booking Confirmation Dialog */}
       <AlertDialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
