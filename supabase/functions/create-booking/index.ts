@@ -57,7 +57,7 @@ serve(async (req) => {
     // Get date slot info
     const { data: dateSlot, error: dateSlotError } = await supabase
       .from('tour_date_slots')
-      .select('slot_date, spots_remaining')
+      .select('slot_date, spots_remaining, spots_booked, spots_total')
       .eq('id', date_slot_id)
       .single();
 
@@ -113,11 +113,13 @@ serve(async (req) => {
     }
 
     // Update tour_date_slots to reflect booked spots
+    const newSpotsBooked = dateSlot.spots_booked + participants;
+    const newSpotsRemaining = dateSlot.spots_total - newSpotsBooked;
     const { error: updateSlotsError } = await supabase
       .from('tour_date_slots')
       .update({
-        spots_booked: dateSlot.spots_remaining - participants,
-        spots_remaining: dateSlot.spots_remaining - participants,
+        spots_booked: newSpotsBooked,
+        spots_remaining: newSpotsRemaining,
       })
       .eq('id', date_slot_id);
 
