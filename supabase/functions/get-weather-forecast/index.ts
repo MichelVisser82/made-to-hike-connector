@@ -54,11 +54,20 @@ serve(async (req) => {
     const data = await response.json();
     console.log('Claude response:', JSON.stringify(data, null, 2));
 
-    // Parse Claude's response
-    const weatherText = data.content.find((c: any) => c.type === 'text')?.text || '';
+    // Extract the LAST text block - this contains the actual forecast after web search
+    const textBlocks = data.content.filter((c: any) => c.type === 'text');
+    const weatherText = textBlocks.length > 0 ? textBlocks[textBlocks.length - 1].text : '';
+    
+    console.log('Extracted weather text:', weatherText);
     
     if (!weatherText) {
       throw new Error('No text response from Claude');
+    }
+    
+    // Validate that we have actual weather data, not just the "I'll search" message
+    if (weatherText.includes("I'll search for") || weatherText.length < 50) {
+      console.error('Got initial thinking response instead of weather data:', weatherText);
+      throw new Error('Weather forecast not available - received incomplete response');
     }
 
     // Extract structured data from Claude's natural language response
