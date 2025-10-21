@@ -234,13 +234,13 @@ export const BookingFlowNew = () => {
         booking_date: selectedSlot.slot_date,
         date_slot_id: selectedSlot.id,
         participants: form.getValues('participants').length,
-        participants_details: form.getValues('participants'),
+        participants_details: form.getValues('participants') as any,
         status: tourData.auto_confirm ? 'confirmed' : 'pending_confirmation',
         subtotal: pricing.subtotal,
         discount_amount: pricing.discount,
         service_fee_amount: pricing.serviceFee,
         total_price: pricing.total,
-        discount_code: form.getValues('discountCode'),
+        currency: pricing.currency as 'EUR' | 'GBP',
         special_requests: form.getValues('specialRequests'),
         stripe_client_secret: clientSecret,
         payment_status: 'processing'
@@ -248,7 +248,7 @@ export const BookingFlowNew = () => {
 
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
-        .insert(bookingData)
+        .insert([bookingData])
         .select()
         .single();
 

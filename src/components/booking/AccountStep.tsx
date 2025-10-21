@@ -8,10 +8,10 @@ import { toast } from '@/hooks/use-toast';
 import { Mail, Lock } from 'lucide-react';
 
 interface AccountStepProps {
-  onComplete: (userId: string) => void;
+  onVerified: (userId: string) => void;
 }
 
-export function AccountStep({ onComplete }: AccountStepProps) {
+export function AccountStep({ onVerified }: AccountStepProps) {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -47,7 +47,7 @@ export function AccountStep({ onComplete }: AccountStepProps) {
 
       if (error) throw error;
 
-      onComplete(data.user.id);
+      onVerified(data.user.id);
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
