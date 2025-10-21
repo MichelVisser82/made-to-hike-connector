@@ -43,13 +43,8 @@ export const HikingLocationMap = ({
       setIsLoading(false);
       return;
     }
-
-    if (!mapContainer.current) {
-      console.warn('[HikingLocationMap] Map container ref not ready yet');
-      return;
-    }
     
-    console.log('[HikingLocationMap] Map container found, initializing...');
+    console.log('[HikingLocationMap] Setting up map initialization...');
     
     // Cleanup any existing map
     if (map.current) {
@@ -60,11 +55,14 @@ export const HikingLocationMap = ({
 
     const initMap = async () => {
       try {
+        // Wait for container to be available
         if (!mapContainer.current) {
-          throw new Error('Map container disappeared');
+          console.warn('[HikingLocationMap] Map container not yet available, waiting...');
+          setTimeout(initMap, 100);
+          return;
         }
 
-        console.log('[HikingLocationMap] Creating Leaflet map instance...');
+        console.log('[HikingLocationMap] Map container ready! Creating Leaflet map instance...');
         
         // Initialize map
         map.current = L.map(mapContainer.current, {
@@ -129,11 +127,9 @@ export const HikingLocationMap = ({
       }
     };
 
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      console.log('[HikingLocationMap] Starting map initialization...');
-      initMap();
-    }, 150);
+    // Start initialization immediately
+    console.log('[HikingLocationMap] Starting map initialization...');
+    const timer = setTimeout(initMap, 0);
 
     return () => {
       clearTimeout(timer);
