@@ -8,7 +8,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, code, name } = await req.json();
+    const { email, code, firstName, lastName } = await req.json();
 
     if (!email || !code) {
       return new Response(
@@ -68,11 +68,16 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase auth user
+    // Create Supabase auth user with structured name data
+    const fullName = `${firstName} ${lastName}`.trim();
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       email_confirm: true,
-      user_metadata: { name }
+      user_metadata: { 
+        firstName,
+        lastName,
+        name: fullName 
+      }
     });
 
     if (authError) {
@@ -83,13 +88,13 @@ serve(async (req) => {
       );
     }
 
-    // Create profile record
+    // Create profile record with structured name
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
         id: authData.user.id,
         email,
-        name: name || email.split('@')[0],
+        name: fullName,
         role: 'hiker'
       });
 

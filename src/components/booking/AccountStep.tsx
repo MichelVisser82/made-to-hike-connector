@@ -13,7 +13,8 @@ interface AccountStepProps {
 
 export function AccountStep({ onVerified }: AccountStepProps) {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [showVerification, setShowVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +43,7 @@ export function AccountStep({ onVerified }: AccountStepProps) {
     
     try {
       const { data, error } = await supabase.functions.invoke('verify-code', {
-        body: { email, code: verificationCode, name }
+        body: { email, code: verificationCode, firstName, lastName }
       });
 
       if (error) throw error;
@@ -67,14 +68,28 @@ export function AccountStep({ onVerified }: AccountStepProps) {
         {!showVerification ? (
           <>
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+              <Label htmlFor="firstName">First Name</Label>
+              <Input 
+                id="firstName" 
+                value={firstName} 
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input 
+                id="lastName" 
+                value={lastName} 
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Doe"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
-            <Button onClick={handleSendCode} disabled={isLoading || !email || !name} className="w-full">
+            <Button onClick={handleSendCode} disabled={isLoading || !email || !firstName || !lastName} className="w-full">
               Continue
             </Button>
           </>
