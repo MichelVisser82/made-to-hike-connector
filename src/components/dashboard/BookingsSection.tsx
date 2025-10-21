@@ -26,7 +26,7 @@ export function BookingsSection({
   onBookingsChange,
 }: BookingsSectionProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'completed'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
 
   const handleBookingClick = (booking: BookingWithDetails) => {
     navigate(`/dashboard/bookings/${booking.id}`);
@@ -38,6 +38,7 @@ export function BookingsSection({
     pending: bookings.filter(b => b.status === 'pending' || b.status === 'pending_confirmation').length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
     completed: bookings.filter(b => b.status === 'completed').length,
+    cancelled: bookings.filter(b => b.status === 'cancelled').length,
   }), [bookings]);
 
   const filteredBookings = useMemo(() => {
@@ -118,6 +119,12 @@ export function BookingsSection({
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             Completed ({counts.completed})
+          </TabsTrigger>
+          <TabsTrigger 
+            value="cancelled" 
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+          >
+            Cancelled ({counts.cancelled})
           </TabsTrigger>
         </TabsList>
       </Tabs>
