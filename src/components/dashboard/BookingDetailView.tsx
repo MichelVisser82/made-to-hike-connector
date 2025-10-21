@@ -104,6 +104,8 @@ export function BookingDetailView() {
   const [weatherData, setWeatherData] = useState<any>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherError, setWeatherError] = useState(false);
+  const [weatherSource, setWeatherSource] = useState<'open-meteo' | 'claude-seasonal' | null>(null);
+  const [isForecast, setIsForecast] = useState<boolean>(true);
 
   const fetchConversationData = async () => {
     if (!booking || !user?.id) return;
@@ -233,6 +235,8 @@ export function BookingDetailView() {
       
       if (data.success) {
         setWeatherData(data.weather);
+        setWeatherSource(data.source || 'open-meteo');
+        setIsForecast(data.isForecast !== false);
       } else {
         setWeatherError(true);
       }
@@ -606,25 +610,42 @@ export function BookingDetailView() {
                 </div>
               ) : weatherData ? (
                 <>
-                  <div className="p-4 bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-lg">
+                  <div className={`p-4 rounded-lg border ${
+                    weatherSource === 'claude-seasonal' 
+                      ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800'
+                      : 'bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30 border-sky-200 dark:border-sky-800'
+                  }`}>
                     <div className="flex items-start gap-4">
-                      <div className="text-sky-600">
-                        {getWeatherIcon(weatherData.condition)}
+                      <div className={weatherSource === 'claude-seasonal' ? 'text-amber-600 dark:text-amber-400' : 'text-sky-600 dark:text-sky-400'}>
+                        {weatherSource === 'claude-seasonal' ? (
+                          <Calendar className="h-8 w-8" />
+                        ) : (
+                          getWeatherIcon(weatherData.condition)
+                        )}
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-lg text-charcoal">{weatherData.condition}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-lg text-charcoal dark:text-white">
+                            {weatherData.condition}
+                          </p>
+                          {weatherSource === 'claude-seasonal' && (
+                            <Badge className="bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-xs">
+                              Seasonal Outlook
+                            </Badge>
+                          )}
+                        </div>
                         {weatherData.temperature && (
-                          <p className="text-base text-charcoal/80 font-medium mt-1">
+                          <p className="text-base text-charcoal/80 dark:text-white/80 font-medium mt-1">
                             {weatherData.temperature}°C
                             {weatherData.high && weatherData.low && 
-                              <span className="text-sm font-normal text-charcoal/60 ml-2">
+                              <span className="text-sm font-normal text-charcoal/60 dark:text-white/60 ml-2">
                                 (High: {weatherData.high}°C • Low: {weatherData.low}°C)
                               </span>
                             }
                           </p>
                         )}
                         {weatherData.summary && (
-                          <p className="text-sm text-charcoal/70 mt-2 leading-relaxed">
+                          <p className="text-sm text-charcoal/70 dark:text-white/70 mt-2 leading-relaxed">
                             {weatherData.summary}
                           </p>
                         )}
@@ -634,18 +655,25 @@ export function BookingDetailView() {
                   
                   {weatherData.fullForecast && (
                     <Collapsible>
-                      <CollapsibleTrigger className="text-sm text-charcoal/70 hover:text-charcoal flex items-center gap-1 mt-3 font-medium">
+                      <CollapsibleTrigger className="text-sm text-charcoal/70 dark:text-white/70 hover:text-charcoal dark:hover:text-white flex items-center gap-1 mt-3 font-medium">
                         <ChevronDown className="h-4 w-4" />
-                        View detailed forecast
+                        View detailed {weatherSource === 'claude-seasonal' ? 'seasonal outlook' : 'forecast'}
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="text-sm text-charcoal/80 mt-3 p-4 bg-white border border-sky-100 rounded-lg leading-relaxed">
+                      <CollapsibleContent className="text-sm text-charcoal/80 dark:text-white/80 mt-3 p-4 bg-white dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-lg leading-relaxed whitespace-pre-line">
                         {weatherData.fullForecast}
                       </CollapsibleContent>
                     </Collapsible>
                   )}
                   
-                  <p className="text-xs text-charcoal/50 mt-3">
-                    Forecast for {format(new Date(booking!.booking_date), 'EEEE, MMMM d, yyyy')}
+                  <p className={`text-xs mt-3 ${
+                    weatherSource === 'claude-seasonal'
+                      ? 'text-amber-700 dark:text-amber-400'
+                      : 'text-charcoal/50 dark:text-white/50'
+                  }`}>
+                    {weatherSource === 'claude-seasonal' 
+                      ? 'Seasonal outlook based on typical conditions • Accurate forecast available 16 days before your tour'
+                      : `Forecast for ${format(new Date(booking!.booking_date), 'EEEE, MMMM d, yyyy')}`
+                    }
                   </p>
                 </>
               ) : (

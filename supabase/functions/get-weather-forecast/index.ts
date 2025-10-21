@@ -5,6 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -19,44 +21,109 @@ serve(async (req) => {
 
     console.log('Fetching weather from Open-Meteo:', { latitude, longitude, location, date });
 
-    // Open-Meteo API call
-    const params = new URLSearchParams({
-      latitude: latitude.toString(),
-      longitude: longitude.toString(),
-      daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max',
-      timezone: 'auto',
-      start_date: date,
-      end_date: date
+    // Try Open-Meteo first (for next 16 days)
+    try {
+      const params = new URLSearchParams({
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max',
+        timezone: 'auto',
+        start_date: date,
+        end_date: date
+      });
+
+      const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.daily && data.daily.time.length > 0) {
+          const parsed = parseOpenMeteoResponse(data, location);
+          
+          return new Response(JSON.stringify({ 
+            success: true,
+            source: 'open-meteo',
+            isForecast: true,
+            weather: parsed
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        const errorText = await response.text();
+        console.log('Open-Meteo unavailable:', errorText);
+        
+        // If out of range, fall back to Claude
+        if (errorText.includes('out of allowed range')) {
+          console.log('Date beyond 16-day range, using Claude fallback');
+        }
+      }
+    } catch (openMeteoError) {
+      console.log('Open-Meteo error, falling back to Claude:', openMeteoError);
+    }
+
+    // Claude fallback for dates beyond 16 days
+    console.log('Using Claude for seasonal weather outlook');
+    
+    if (!ANTHROPIC_API_KEY) {
+      throw new Error('ANTHROPIC_API_KEY not configured');
+    }
+
+    const dateObj = new Date(date);
+    const month = dateObj.toLocaleString('en-US', { month: 'long' });
+    const year = dateObj.getFullYear();
+
+    const claudePrompt = `You are a hiking weather advisor. For the location at GPS coordinates ${latitude}, ${longitude} (${location}) in ${month} ${year}, provide a seasonal weather outlook for hikers.
+
+IMPORTANT: Start with a clear disclaimer that this is a seasonal outlook based on typical conditions for this region and month, not a specific forecast. Mention that accurate forecasts will be available 16 days before the date.
+
+Then include:
+1. Typical weather conditions for this region in ${month}
+2. Expected temperature ranges (highs/lows in Celsius)
+3. Common precipitation patterns
+4. Hiking-specific considerations and recommendations
+5. Seasonal hazards or gear requirements
+
+Be specific to this location and month. Keep it concise and practical for hikers planning their trip.`;
+
+    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: claudePrompt
+        }]
+      })
     });
 
-    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Open-Meteo API error:', response.status, errorText);
-      
-      // Check if error is due to date being out of range
-      if (errorText.includes('out of allowed range')) {
-        throw new Error('Weather forecasts are only available for the next 16 days. Please check closer to your tour date.');
-      }
-      
-      throw new Error(`Unable to fetch weather forecast`);
+    if (!claudeResponse.ok) {
+      const errorText = await claudeResponse.text();
+      console.error('Claude API error:', claudeResponse.status, errorText);
+      throw new Error('Unable to generate seasonal weather outlook');
     }
 
-    const data = await response.json();
-    console.log('Open-Meteo response:', JSON.stringify(data, null, 2));
-
-    if (!data.daily || data.daily.time.length === 0) {
-      throw new Error('No weather data available for the specified date');
-    }
-
-    // Parse the weather data
-    const parsed = parseOpenMeteoResponse(data, location);
+    const claudeData = await claudeResponse.json();
+    const seasonalOutlook = claudeData.content[0].text;
 
     return new Response(JSON.stringify({ 
       success: true,
-      weather: parsed,
-      rawResponse: JSON.stringify(data)
+      source: 'claude-seasonal',
+      isForecast: false,
+      weather: {
+        condition: 'Seasonal Outlook',
+        temperature: null,
+        high: null,
+        low: null,
+        summary: `Seasonal weather outlook for ${location} in ${month}`,
+        fullForecast: seasonalOutlook
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
