@@ -14,9 +14,15 @@ serve(async (req) => {
   }
 
   try {
-    const { location, date } = await req.json();
+    const { location, latitude, longitude, date } = await req.json();
     
-    console.log('Fetching weather for:', { location, date });
+    // Build location string with GPS coordinates if available
+    let locationQuery = location;
+    if (latitude && longitude) {
+      locationQuery = `coordinates ${latitude}, ${longitude} (${location})`;
+    }
+    
+    console.log('Fetching weather for:', { location: locationQuery, date, latitude, longitude });
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -30,7 +36,7 @@ serve(async (req) => {
         max_tokens: 1024,
         messages: [{
           role: 'user',
-          content: `What is the weather forecast for ${location} on ${date}? 
+          content: `What is the weather forecast for ${locationQuery} on ${date}? 
                    Provide a hiking-specific summary including:
                    - Overall conditions (sunny, cloudy, rainy, etc.)
                    - Temperature (actual, high, low in Celsius)

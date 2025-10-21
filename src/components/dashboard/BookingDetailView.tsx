@@ -73,6 +73,8 @@ interface BookingWithDetails {
     title: string;
     duration: string;
     meeting_point: string;
+    meeting_point_lat?: number;
+    meeting_point_lng?: number;
     includes: string[];
   };
   hiker: {
@@ -168,7 +170,7 @@ export function BookingDetailView() {
         .from('bookings')
         .select(`
           *,
-          tour:tours(id, title, duration, meeting_point, includes),
+          tour:tours(id, title, duration, meeting_point, meeting_point_lat, meeting_point_lng, includes),
           hiker:profiles!bookings_hiker_id_fkey(
             id, 
             name, 
@@ -209,11 +211,22 @@ export function BookingDetailView() {
     setWeatherError(false);
     
     try {
+      // Prepare request body with GPS coordinates if available
+      const requestBody: any = {
+        date: format(new Date(bookingData.booking_date), 'yyyy-MM-dd')
+      };
+      
+      // Use GPS coordinates if available for more accurate weather
+      if (bookingData.tour.meeting_point_lat && bookingData.tour.meeting_point_lng) {
+        requestBody.latitude = bookingData.tour.meeting_point_lat;
+        requestBody.longitude = bookingData.tour.meeting_point_lng;
+        requestBody.location = bookingData.tour.meeting_point; // Keep as fallback
+      } else {
+        requestBody.location = bookingData.tour.meeting_point;
+      }
+      
       const { data, error } = await supabase.functions.invoke('get-weather-forecast', {
-        body: {
-          location: bookingData.tour.meeting_point,
-          date: format(new Date(bookingData.booking_date), 'yyyy-MM-dd')
-        }
+        body: requestBody
       });
       
       if (error) throw error;
