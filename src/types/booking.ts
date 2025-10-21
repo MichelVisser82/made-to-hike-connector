@@ -17,6 +17,7 @@ export interface BookingFormData {
   dietaryPreferences?: string[];
   accessibilityNeeds?: string;
   specialRequests?: string;
+  discountCode?: string;
   agreedToTerms: boolean;
 }
 

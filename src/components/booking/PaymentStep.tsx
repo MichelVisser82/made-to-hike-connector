@@ -134,6 +134,12 @@ export const PaymentStep = ({
             dietaryPreferences: fullBookingData.dietaryPreferences,
             accessibilityNeeds: fullBookingData.accessibilityNeeds,
             specialRequests: fullBookingData.specialRequests,
+            // Add pricing details
+            subtotal: pricing.subtotal,
+            discount_code: fullBookingData.discountCode,
+            discount_amount: pricing.discount,
+            service_fee_amount: pricing.serviceFee,
+            total_price: pricing.total,
           }
         }
       });
