@@ -124,23 +124,18 @@ export function MessagesModal({
       <DialogContent className="max-w-7xl max-h-[90vh]">
         {/* Header */}
         <div className="bg-gradient-to-r from-cream to-cream-light border-b border-burgundy/10 px-6 py-4 -mx-6 -mt-6 mb-6">
-          <div className="flex justify-between items-start">
-            <div className="flex gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-burgundy to-burgundy-dark flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="font-medium text-charcoal">
-                  Messages with {booking.hiker?.name || booking.guest?.name}
-                </h2>
-                <p className="text-sm text-charcoal/60">
-                  Booking #{booking.booking_reference || 'N/A'} • {booking.tour?.title}
-                </p>
-              </div>
+          <div className="flex gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-burgundy to-burgundy-dark flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-white" />
             </div>
-            <DialogClose>
-              <X className="w-5 h-5 text-charcoal/60 hover:text-burgundy transition-colors" />
-            </DialogClose>
+            <div>
+              <h2 className="font-medium text-charcoal">
+                Messages with {booking.hiker?.name || booking.guest?.name}
+              </h2>
+              <p className="text-sm text-charcoal/60">
+                Booking #{booking.booking_reference || 'N/A'} • {booking.tour?.title}
+              </p>
+            </div>
           </div>
         </div>
 
