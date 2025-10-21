@@ -44,6 +44,56 @@ export const BookingSuccess = () => {
           return;
         }
 
+        // Check if profile exists, create if not
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (!existingProfile) {
+          console.log('Creating profile for user:', user.id);
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email!,
+              name: sessionData.bookingData.participants?.[0]?.firstName + ' ' + sessionData.bookingData.participants?.[0]?.surname || user.email!
+            });
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+          }
+        }
+
+        // Update profile with booking contact information
+        const profileUpdateData: any = {
+          phone: sessionData.bookingData.phone,
+          country: sessionData.bookingData.country,
+          emergency_contact_name: sessionData.bookingData.emergencyContactName,
+          emergency_contact_phone: sessionData.bookingData.emergencyContactPhone,
+          emergency_contact_relationship: sessionData.bookingData.emergencyContactRelationship,
+        };
+
+        // Add dietary preferences if present
+        if (sessionData.bookingData.dietaryPreferences?.length > 0) {
+          profileUpdateData.dietary_preferences = sessionData.bookingData.dietaryPreferences;
+        }
+
+        // Add accessibility needs if present
+        if (sessionData.bookingData.accessibilityNeeds) {
+          profileUpdateData.accessibility_needs = sessionData.bookingData.accessibilityNeeds;
+        }
+
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update(profileUpdateData)
+          .eq('id', user.id);
+
+        if (updateError) {
+          console.error('Error updating profile:', updateError);
+        }
+
         // Add hiker_id to booking data
         const bookingDataWithHiker = {
           ...sessionData.bookingData,
