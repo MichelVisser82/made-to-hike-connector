@@ -329,57 +329,59 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </CardContent>
             </Card>
 
-            {/* Tour Highlights */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Tour Highlights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {tour.highlights.map((highlight, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
-                      <Mountain className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <div className="font-medium">{highlight}</div>
-                        <div className="text-sm text-muted-foreground">Experience the best of {tour.region}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Meeting Location Map */}
-            {tour.meeting_point_lat && tour.meeting_point_lng && (
+            {/* Tour Highlights & Meeting Location - Side by Side */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Tour Highlights */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    Meeting Location
-                  </CardTitle>
+                  <CardTitle>Tour Highlights</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <HikingLocationMap
-                    latitude={tour.meeting_point_lat}
-                    longitude={tour.meeting_point_lng}
-                    title={tour.meeting_point_formatted || tour.meeting_point}
-                    height="400px"
-                    zoom={13}
-                  />
-                  <div className="mt-4 p-4 bg-accent/50 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                      <div>
-                        <div className="font-medium mb-1">Where We'll Meet</div>
-                        <div className="text-sm text-muted-foreground">
-                          {tour.meeting_point_formatted || tour.meeting_point}
+                  <div className="space-y-3">
+                    {tour.highlights.map((highlight, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+                        <Mountain className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div className="font-medium text-sm">{highlight}</div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-            )}
+
+              {/* Meeting Location Map */}
+              {tour.meeting_point_lat && tour.meeting_point_lng && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Meeting Location
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <HikingLocationMap
+                      latitude={tour.meeting_point_lat}
+                      longitude={tour.meeting_point_lng}
+                      title={tour.meeting_point_formatted || tour.meeting_point}
+                      height="300px"
+                      zoom={13}
+                    />
+                    <div className="mt-4 p-3 bg-accent/50 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <div className="font-medium text-sm mb-1">Where We'll Meet</div>
+                          <div className="text-xs text-muted-foreground">
+                            {tour.meeting_point_formatted || tour.meeting_point}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
             {/* Photo Gallery */}
             <Card>
