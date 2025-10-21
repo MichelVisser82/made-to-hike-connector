@@ -101,6 +101,7 @@ export function GuideDashboard({
 
   useEffect(() => {
     fetchGuideTours();
+    fetchBookings(); // Fetch bookings on mount for Today section
   }, [user.id]);
 
   useEffect(() => {
@@ -768,16 +769,50 @@ See you soon!
     );
   };
 
-  // Mock data for TODAY section
-  const mockStats = {
-    todayTours: 0,
-    pendingBookings: 5,
-    weekEarnings: 0,
-    unreadMessages: 0,
+  // Calculate real stats from bookings
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const todayBookings = bookings.filter(b => {
+    const bookingDate = new Date(b.booking_date);
+    bookingDate.setHours(0, 0, 0, 0);
+    return bookingDate.getTime() === today.getTime();
+  });
+
+  const pendingBookings = bookings.filter(b => 
+    b.status === 'pending' || b.status === 'pending_confirmation'
+  );
+
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+  
+  const weekEarnings = bookings
+    .filter(b => {
+      const bookingDate = new Date(b.created_at);
+      return bookingDate >= weekStart && (b.status === 'confirmed' || b.status === 'completed');
+    })
+    .reduce((sum, b) => sum + (b.total_price || 0), 0);
+
+  const realStats = {
+    todayTours: todayBookings.length,
+    pendingBookings: pendingBookings.length,
+    weekEarnings: weekEarnings,
+    unreadMessages: 0, // TODO: Connect to conversations
   };
 
-  const mockSchedule = [];
-  const mockNotifications = [];
+  const mockSchedule: TodayScheduleItem[] = todayBookings.map(booking => ({
+    id: booking.id,
+    time: '09:00', // TODO: Get from booking
+    title: booking.tour?.title || 'Tour',
+    status: booking.status as 'confirmed' | 'pending' | 'completed',
+    guestName: booking.guest?.name || 'Guest',
+    participantCount: booking.participants,
+    location: booking.tour?.meeting_point || 'Location',
+    tourId: booking.tour_id,
+  }));
+  
+  const mockNotifications: Notification[] = [];
 
 
   return (
@@ -796,7 +831,7 @@ See you soon!
               guideName={user.name.split(' ')[0] || 'Guide'}
               currentDate={new Date()}
               upcomingTours={mockSchedule}
-              stats={mockStats}
+              stats={realStats}
               notifications={mockNotifications}
               onCreateTour={() => navigate('/tour-creation')}
               onManageAvailability={() => {
