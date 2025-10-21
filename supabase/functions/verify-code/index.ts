@@ -10,6 +10,8 @@ serve(async (req) => {
   try {
     const { email, code, firstName, lastName, password, verifyOnly, createAccount } = await req.json();
 
+    console.log('Received request:', { email, verifyOnly, createAccount, hasPassword: !!password });
+
     if (!email || !code) {
       return new Response(
         JSON.stringify({ error: 'Email and code are required' }),

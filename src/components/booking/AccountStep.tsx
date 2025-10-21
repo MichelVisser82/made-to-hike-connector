@@ -156,7 +156,15 @@ export function AccountStep({ onVerified }: AccountStepProps) {
         }
       });
 
-      if (error) throw error;
+      // Check for function invocation error
+      if (error) {
+        throw new Error(error.message || 'Failed to invoke verification function');
+      }
+
+      // Check for error in the response data
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       // Edge function created the account, now sign in with frontend client
       if (data?.shouldSignIn) {
@@ -180,6 +188,8 @@ export function AccountStep({ onVerified }: AccountStepProps) {
           onVerified(signInData.user.id);
           toast({ title: 'Account created and logged in successfully!' });
         }
+      } else {
+        throw new Error('Unexpected response from server');
       }
     } catch (error: any) {
       console.error('Account creation error:', error);
