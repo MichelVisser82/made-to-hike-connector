@@ -8,13 +8,41 @@ serve(async (req) => {
   }
 
   try {
-    const { email, code, firstName, lastName } = await req.json();
+    const { email, code, firstName, lastName, password, verifyOnly, createAccount } = await req.json();
 
     if (!email || !code) {
       return new Response(
         JSON.stringify({ error: 'Email and code are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Validate password requirements if creating account
+    if (createAccount && password) {
+      if (password.length < 8) {
+        return new Response(
+          JSON.stringify({ error: 'Password must be at least 8 characters' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (!/[A-Z]/.test(password)) {
+        return new Response(
+          JSON.stringify({ error: 'Password must contain at least one uppercase letter' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (!/[a-z]/.test(password)) {
+        return new Response(
+          JSON.stringify({ error: 'Password must contain at least one lowercase letter' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (!/[0-9]/.test(password)) {
+        return new Response(
+          JSON.stringify({ error: 'Password must contain at least one number' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Create Supabase client
@@ -57,6 +85,32 @@ serve(async (req) => {
       );
     }
 
+    // If only verifying code, return success without creating account
+    if (verifyOnly) {
+      return new Response(
+        JSON.stringify({ 
+          message: 'Code verified successfully',
+          verified: true
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Only create account if explicitly requested
+    if (!createAccount) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!firstName || !lastName || !password) {
+      return new Response(
+        JSON.stringify({ error: 'First name, last name, and password are required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check if user already exists
     const { data: existingUser } = await supabase.auth.admin.listUsers();
     const userExists = existingUser?.users?.some(u => u.email === email);
@@ -68,10 +122,11 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase auth user with structured name data
+    // Create Supabase auth user with structured name data and password
     const fullName = `${firstName} ${lastName}`.trim();
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
+      password,
       email_confirm: true,
       user_metadata: { 
         firstName,
@@ -94,8 +149,7 @@ serve(async (req) => {
       .insert({
         id: authData.user.id,
         email,
-        name: fullName,
-        role: 'hiker'
+        name: fullName
       });
 
     if (profileError) {
