@@ -111,6 +111,13 @@ export interface BookingWithDetails extends Booking {
     phone?: string;
     avatar_url?: string;
   };
+  hiker?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    avatar_url?: string;
+  };
   emergency_contact?: {
     name: string;
     relationship: string;

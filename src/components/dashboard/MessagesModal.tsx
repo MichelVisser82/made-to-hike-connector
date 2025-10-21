@@ -152,11 +152,11 @@ export function MessagesModal({
               <div className="flex gap-3">
                 <Avatar className="w-10 h-10 bg-gradient-to-br from-burgundy to-burgundy-dark">
                   <AvatarFallback className="bg-gradient-to-br from-burgundy to-burgundy-dark text-white">
-                    {getInitials(booking.guest?.name)}
+                    {getInitials(booking.hiker?.name || booking.guest?.name || 'Guest')}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-charcoal">{booking.guest?.name}</p>
+                  <p className="font-medium text-charcoal">{booking.hiker?.name || booking.guest?.name}</p>
                   <p className="text-xs text-charcoal/60">Primary Guest</p>
                 </div>
               </div>
@@ -164,11 +164,11 @@ export function MessagesModal({
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-charcoal/60" />
-                  <span className="text-charcoal/80 truncate">{booking.guest?.email}</span>
+                  <span className="text-charcoal/80 truncate">{booking.hiker?.email || booking.guest?.email}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-charcoal/60" />
-                  <span className="text-charcoal/80">{booking.guest?.phone}</span>
+                  <span className="text-charcoal/80">{booking.hiker?.phone || booking.guest?.phone}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-charcoal/60" />
