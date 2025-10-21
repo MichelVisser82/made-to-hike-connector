@@ -35,24 +35,38 @@ export const HikingLocationMap = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    console.log('[HikingLocationMap] Component mounted with:', { latitude, longitude, title });
+    
+    if (!latitude || !longitude) {
+      console.error('[HikingLocationMap] Missing coordinates');
+      setError('Invalid coordinates');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!mapContainer.current) {
+      console.warn('[HikingLocationMap] Map container ref not ready yet');
+      return;
+    }
+    
+    console.log('[HikingLocationMap] Map container found, initializing...');
     
     // Cleanup any existing map
     if (map.current) {
+      console.log('[HikingLocationMap] Cleaning up existing map');
       map.current.remove();
       map.current = null;
     }
 
     const initMap = async () => {
-      console.log('Initializing map with coordinates:', latitude, longitude);
-      
       try {
         if (!mapContainer.current) {
-          throw new Error('Map container not found');
+          throw new Error('Map container disappeared');
         }
 
-        // Initialize map with OpenStreetMap (no API key needed)
-        console.log('Creating Leaflet map...');
+        console.log('[HikingLocationMap] Creating Leaflet map instance...');
+        
+        // Initialize map
         map.current = L.map(mapContainer.current, {
           center: [latitude, longitude],
           zoom: zoom,
@@ -60,42 +74,44 @@ export const HikingLocationMap = ({
           scrollWheelZoom: false
         });
 
-        console.log('Map created, fetching Thunderforest API key...');
+        console.log('[HikingLocationMap] Map instance created, fetching tiles API key...');
         
         // Try to fetch Thunderforest API key
         let apiKey: string | null = null;
         try {
           const { data, error: functionError } = await supabase.functions.invoke('get-thunderforest-key');
           if (functionError) {
-            console.warn('Thunderforest key fetch error:', functionError);
+            console.warn('[HikingLocationMap] Thunderforest key fetch error:', functionError);
+          } else if (data?.key) {
+            apiKey = data.key;
+            console.log('[HikingLocationMap] Thunderforest API key retrieved successfully');
           } else {
-            apiKey = data?.key;
-            console.log('Thunderforest API key fetched successfully');
+            console.warn('[HikingLocationMap] No API key in response');
           }
         } catch (keyError) {
-          console.warn('Failed to fetch Thunderforest key, using OpenStreetMap fallback:', keyError);
+          console.warn('[HikingLocationMap] Failed to fetch Thunderforest key:', keyError);
         }
 
-        // Use Thunderforest Outdoors if key available, otherwise fallback to OpenStreetMap
+        // Add tile layer
         if (apiKey) {
-          console.log('Adding Thunderforest Outdoors tiles with API key');
+          console.log('[HikingLocationMap] Adding Thunderforest Outdoors tiles');
           L.tileLayer(
             `https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${apiKey}`,
             {
-              attribution: 'Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+              attribution: 'Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
               maxZoom: 18,
               subdomains: ['a', 'b', 'c']
             }
           ).addTo(map.current);
         } else {
-          console.log('Using OpenStreetMap fallback tiles...');
+          console.log('[HikingLocationMap] Using OpenStreetMap fallback');
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             maxZoom: 19
           }).addTo(map.current);
         }
 
-        console.log('Tiles added, adding marker...');
+        console.log('[HikingLocationMap] Tiles added, creating marker...');
         
         // Add marker
         const marker = L.marker([latitude, longitude]).addTo(map.current);
@@ -104,23 +120,25 @@ export const HikingLocationMap = ({
           marker.bindPopup(title);
         }
 
-        console.log('Map initialization complete');
+        console.log('[HikingLocationMap] Map initialization complete!');
         setIsLoading(false);
-      } catch (error) {
-        console.error('Map initialization error:', error);
-        setError(`Failed to load map: ${error.message || 'Unknown error'}`);
+      } catch (error: any) {
+        console.error('[HikingLocationMap] Map initialization error:', error);
+        setError(error?.message || 'Failed to load map');
         setIsLoading(false);
       }
     };
 
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
+      console.log('[HikingLocationMap] Starting map initialization...');
       initMap();
-    }, 100);
+    }, 150);
 
     return () => {
       clearTimeout(timer);
       if (map.current) {
+        console.log('[HikingLocationMap] Cleaning up map on unmount');
         map.current.remove();
         map.current = null;
       }
