@@ -168,13 +168,14 @@ export function TodaySection({
           <Card className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-playfair text-charcoal">Today's Schedule</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-sm text-burgundy hover:bg-burgundy/5"
-              >
-                View Full Calendar
-              </Button>
+            <Button
+              onClick={onManageAvailability}
+              variant="ghost"
+              size="sm"
+              className="text-sm text-burgundy hover:bg-burgundy/5"
+            >
+              View Full Calendar
+            </Button>
             </div>
 
             {upcomingTours.length === 0 ? (
