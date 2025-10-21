@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { TodaySection } from '@/components/dashboard/TodaySection';
 import { GuideDashboard } from '@/components/pages/GuideDashboard';
 import { AdminDashboard } from '@/components/pages/AdminDashboard';
 import { UserDashboard } from '@/components/pages/UserDashboard';
+import { BookingDetailView } from '@/components/dashboard/BookingDetailView';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import type { DashboardSection } from '@/types/dashboard';
@@ -13,6 +14,7 @@ import type { User } from '@/types';
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { bookingId } = useParams();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const [activeSection, setActiveSection] = useState<DashboardSection>(
@@ -48,6 +50,11 @@ export default function DashboardPage() {
 
   if (!user || !mappedUser) {
     return null; // Will redirect via useEffect
+  }
+
+  // If viewing a booking detail, show that view
+  if (bookingId) {
+    return <BookingDetailView />;
   }
 
   // Render appropriate dashboard based on role

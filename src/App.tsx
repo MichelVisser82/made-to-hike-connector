@@ -20,7 +20,6 @@ import CertificationsPage from "./pages/CertificationsPage";
 import DashboardPage from "./pages/DashboardPage";
 import TourCreationPage from "./pages/TourCreationPage";
 import ProfilePage from "./pages/ProfilePage";
-import { BookingDetailPage } from "./components/dashboard/BookingDetailPage";
 import { BookingFlowNew } from "./components/pages/BookingFlowNew";
 import { BookingSuccess } from "./components/pages/BookingSuccess";
 
@@ -91,10 +90,10 @@ const App: React.FC = () => {
                   } 
                 />
                 <Route 
-                  path="/dashboard/booking/:bookingId" 
+                  path="/dashboard/bookings/:bookingId" 
                   element={
                     <ProtectedRoute>
-                      <BookingDetailPage />
+                      <DashboardPage />
                     </ProtectedRoute>
                   } 
                 />
