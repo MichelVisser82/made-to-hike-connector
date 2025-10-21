@@ -291,6 +291,9 @@ export function GuideDashboard({
       // Transform data to match BookingWithDetails type
       const transformedData = data?.map(booking => ({
         ...booking,
+        status: booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'pending_confirmation',
+        payment_status: booking.payment_status as 'pending' | 'processing' | 'succeeded' | 'failed' | 'canceled' | null | undefined,
+        participants_details: booking.participants_details as any,
         tour: booking.tours,
         guest: booking.profiles,
       })) as BookingWithDetails[];

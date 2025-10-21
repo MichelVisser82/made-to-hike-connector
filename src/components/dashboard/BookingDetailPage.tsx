@@ -77,13 +77,14 @@ export function BookingDetailPage() {
       // Transform and add mock data
       const transformedBooking: BookingWithDetails = {
         ...data,
-        status: data.status as 'pending' | 'confirmed' | 'completed' | 'cancelled',
+        status: data.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'pending_confirmation',
+        payment_status: data.payment_status as 'pending' | 'processing' | 'succeeded' | 'failed' | 'canceled' | null | undefined,
         tour: data.tours as any,
         guest: {
           ...data.profiles,
           phone: '+33 6 12 34 56 78',
         },
-        participants_details: Array.from({ length: data.participants }, (_, i) => ({
+        participants_details: (data.participants_details as any) || Array.from({ length: data.participants }, (_, i) => ({
           name: i === 0 ? data.profiles.name : `Guest ${i + 1}`,
           age: 32 + i,
           waiver_signed: i < data.participants - 1,

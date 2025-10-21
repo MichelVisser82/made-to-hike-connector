@@ -66,13 +66,31 @@ export interface Booking {
   tour_id: string;
   hiker_id: string;
   booking_date: string;
+  date_slot_id?: string;
   participants: number;
   total_price: number;
   currency: 'EUR' | 'GBP';
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'pending_confirmation';
   special_requests?: string;
   created_at: string;
   updated_at: string;
+  // New fields from migration
+  booking_reference?: string | null;
+  stripe_payment_intent_id?: string | null;
+  stripe_client_secret?: string | null;
+  payment_status?: 'pending' | 'processing' | 'succeeded' | 'failed' | 'canceled' | null;
+  participants_details?: Array<{
+    name: string;
+    age: number;
+    experience?: string;
+    medicalConditions?: string;
+    waiver_signed?: boolean;
+  }> | null;
+  primary_contact_id?: string | null;
+  discount_code?: string | null;
+  discount_amount?: number | null;
+  service_fee_amount?: number | null;
+  subtotal?: number | null;
 }
 
 export interface BookingWithDetails extends Booking {
@@ -90,11 +108,6 @@ export interface BookingWithDetails extends Booking {
     phone?: string;
     avatar_url?: string;
   };
-  participants_details?: Array<{
-    name: string;
-    age: number;
-    waiver_signed: boolean;
-  }>;
   emergency_contact?: {
     name: string;
     relationship: string;

@@ -68,42 +68,72 @@ export type Database = {
       bookings: {
         Row: {
           booking_date: string
+          booking_reference: string | null
           created_at: string
           currency: Database["public"]["Enums"]["currency"]
           date_slot_id: string | null
+          discount_amount: number | null
+          discount_code: string | null
           hiker_id: string
           id: string
           participants: number
+          participants_details: Json | null
+          payment_status: string | null
+          primary_contact_id: string | null
+          service_fee_amount: number | null
           special_requests: string | null
           status: string
+          stripe_client_secret: string | null
+          stripe_payment_intent_id: string | null
+          subtotal: number | null
           total_price: number
           tour_id: string
           updated_at: string
         }
         Insert: {
           booking_date: string
+          booking_reference?: string | null
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
           date_slot_id?: string | null
+          discount_amount?: number | null
+          discount_code?: string | null
           hiker_id: string
           id?: string
           participants?: number
+          participants_details?: Json | null
+          payment_status?: string | null
+          primary_contact_id?: string | null
+          service_fee_amount?: number | null
           special_requests?: string | null
           status?: string
+          stripe_client_secret?: string | null
+          stripe_payment_intent_id?: string | null
+          subtotal?: number | null
           total_price: number
           tour_id: string
           updated_at?: string
         }
         Update: {
           booking_date?: string
+          booking_reference?: string | null
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
           date_slot_id?: string | null
+          discount_amount?: number | null
+          discount_code?: string | null
           hiker_id?: string
           id?: string
           participants?: number
+          participants_details?: Json | null
+          payment_status?: string | null
+          primary_contact_id?: string | null
+          service_fee_amount?: number | null
           special_requests?: string | null
           status?: string
+          stripe_client_secret?: string | null
+          stripe_payment_intent_id?: string | null
+          subtotal?: number | null
           total_price?: number
           tour_id?: string
           updated_at?: string
@@ -119,6 +149,13 @@ export type Database = {
           {
             foreignKeyName: "bookings_hiker_id_fkey"
             columns: ["hiker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_primary_contact_id_fkey"
+            columns: ["primary_contact_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -262,6 +299,78 @@ export type Database = {
             columns: ["tour_id"]
             isOneToOne: false
             referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discount_codes: {
+        Row: {
+          applicable_tour_ids: string[] | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          discount_type: string
+          discount_value: number
+          guide_id: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          min_purchase_amount: number | null
+          scope: string
+          times_used: number | null
+          updated_at: string | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          applicable_tour_ids?: string[] | null
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          discount_type: string
+          discount_value: number
+          guide_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_purchase_amount?: number | null
+          scope: string
+          times_used?: number | null
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          applicable_tour_ids?: string[] | null
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          discount_type?: string
+          discount_value?: number
+          guide_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_purchase_amount?: number | null
+          scope?: string
+          times_used?: number | null
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_codes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_codes_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -591,27 +700,57 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accessibility_needs: string | null
           avatar_url: string | null
+          country: string | null
           created_at: string
+          date_of_birth: string | null
+          dietary_preferences: Json | null
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          hiking_experience: string | null
           id: string
+          medical_conditions: string | null
           name: string
+          phone: string | null
           updated_at: string
         }
         Insert: {
+          accessibility_needs?: string | null
           avatar_url?: string | null
+          country?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          dietary_preferences?: Json | null
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          hiking_experience?: string | null
           id: string
+          medical_conditions?: string | null
           name: string
+          phone?: string | null
           updated_at?: string
         }
         Update: {
+          accessibility_needs?: string | null
           avatar_url?: string | null
+          country?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          dietary_preferences?: Json | null
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          hiking_experience?: string | null
           id?: string
+          medical_conditions?: string | null
           name?: string
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -908,6 +1047,7 @@ export type Database = {
       tours: {
         Row: {
           archived: boolean | null
+          auto_confirm: boolean | null
           available_dates: string[]
           created_at: string
           currency: Database["public"]["Enums"]["currency"]
@@ -929,15 +1069,18 @@ export type Database = {
           includes: string[]
           is_active: boolean
           itinerary: Json | null
+          max_group_size: number | null
           meeting_point: string
           meta_description: string | null
           meta_title: string | null
+          min_group_size: number | null
           pack_weight: number | null
           price: number
           rating: number | null
           region: Database["public"]["Enums"]["region"]
           reviews_count: number | null
           service_fee: number | null
+          service_fee_percentage: number | null
           short_description: string | null
           slug: string | null
           terrain_types: string[] | null
@@ -946,6 +1089,7 @@ export type Database = {
         }
         Insert: {
           archived?: boolean | null
+          auto_confirm?: boolean | null
           available_dates?: string[]
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
@@ -967,15 +1111,18 @@ export type Database = {
           includes?: string[]
           is_active?: boolean
           itinerary?: Json | null
+          max_group_size?: number | null
           meeting_point: string
           meta_description?: string | null
           meta_title?: string | null
+          min_group_size?: number | null
           pack_weight?: number | null
           price: number
           rating?: number | null
           region: Database["public"]["Enums"]["region"]
           reviews_count?: number | null
           service_fee?: number | null
+          service_fee_percentage?: number | null
           short_description?: string | null
           slug?: string | null
           terrain_types?: string[] | null
@@ -984,6 +1131,7 @@ export type Database = {
         }
         Update: {
           archived?: boolean | null
+          auto_confirm?: boolean | null
           available_dates?: string[]
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
@@ -1005,15 +1153,18 @@ export type Database = {
           includes?: string[]
           is_active?: boolean
           itinerary?: Json | null
+          max_group_size?: number | null
           meeting_point?: string
           meta_description?: string | null
           meta_title?: string | null
+          min_group_size?: number | null
           pack_weight?: number | null
           price?: number
           rating?: number | null
           region?: Database["public"]["Enums"]["region"]
           reviews_count?: number | null
           service_fee?: number | null
+          service_fee_percentage?: number | null
           short_description?: string | null
           slug?: string | null
           terrain_types?: string[] | null
@@ -1369,6 +1520,19 @@ export type Database = {
       migrate_tour_dates_to_slots: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      validate_discount_code: {
+        Args: {
+          p_code: string
+          p_guide_id: string
+          p_subtotal: number
+          p_tour_id: string
+        }
+        Returns: {
+          discount_amount: number
+          error_message: string
+          is_valid: boolean
+        }[]
       }
       verify_guide_certification: {
         Args: { p_cert_updates: Json; p_user_id: string; p_verified_by: string }
