@@ -172,6 +172,7 @@ export function AppNavigation({
               {dashboardNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeSection === item.id;
+                const showBadge = item.id === 'inbox' && unreadCount > 0;
                 
                 return (
                   <button
@@ -185,7 +186,7 @@ export function AppNavigation({
                       }
                     }}
                     className={`
-                      flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors
+                      relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors
                       ${isActive 
                         ? 'text-burgundy bg-burgundy/5' 
                         : 'text-charcoal/60 hover:text-burgundy hover:bg-burgundy/5'
@@ -194,6 +195,11 @@ export function AppNavigation({
                   >
                     <Icon className="w-5 h-5" />
                     <span className="text-sm font-medium">{item.label}</span>
+                    {showBadge && (
+                      <Badge className="ml-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Badge>
+                    )}
                   </button>
                 );
               })}
@@ -201,27 +207,6 @@ export function AppNavigation({
 
             {/* Right: Notifications, Help, and User Profile Dropdown */}
             <div className="flex items-center gap-3">
-              {/* Inbox Button with Unread Badge */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy"
-                onClick={() => {
-                  if (onSectionChange) {
-                    onSectionChange('inbox');
-                  } else {
-                    navigate('/dashboard?section=inbox');
-                  }
-                }}
-              >
-                <MessageSquare className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </Badge>
-                )}
-              </Button>
-
               {/* Notifications Bell */}
               <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                 <Bell className="w-5 h-5" />
