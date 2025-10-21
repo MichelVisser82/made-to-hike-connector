@@ -47,10 +47,17 @@ export const BookingSuccess = () => {
 
         console.log('BookingSuccess: verify-payment-session response:', sessionData, sessionError);
 
-        if (sessionError || !sessionData) {
+        if (sessionError) {
           console.error('BookingSuccess: Error verifying session:', sessionError);
-          toast.error('Failed to verify payment');
-          navigate('/');
+          toast.error(`Failed to verify payment: ${sessionError.message}`);
+          setIsProcessing(false);
+          return;
+        }
+
+        if (!sessionData || !sessionData.bookingData) {
+          console.error('BookingSuccess: No booking data in session response:', sessionData);
+          toast.error('Invalid payment session data');
+          setIsProcessing(false);
           return;
         }
 
@@ -151,9 +158,17 @@ export const BookingSuccess = () => {
 
         console.log('BookingSuccess: create-booking response:', bookingData, bookingError);
 
-        if (bookingError || !bookingData?.booking) {
+        if (bookingError) {
           console.error('Error creating booking:', bookingError);
-          toast.error('Payment successful but booking creation failed. Please contact support.');
+          toast.error(`Booking creation failed: ${bookingError.message}`);
+          setIsProcessing(false);
+          return;
+        }
+
+        if (!bookingData?.booking) {
+          console.error('No booking in response:', bookingData);
+          toast.error('Booking creation failed. Please contact support.');
+          setIsProcessing(false);
           return;
         }
 
@@ -171,10 +186,10 @@ export const BookingSuccess = () => {
           });
         }, 2000);
 
-      } catch (error) {
+      } catch (error: any) {
         console.error('Booking creation error:', error);
-        toast.error('An error occurred. Please contact support.');
-        navigate('/');
+        toast.error(`Error: ${error.message || 'An error occurred. Please contact support.'}`);
+        setIsProcessing(false);
       }
     };
 
