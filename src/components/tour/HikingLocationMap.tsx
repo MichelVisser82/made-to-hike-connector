@@ -134,10 +134,6 @@ export const HikingLocationMap = ({
     };
   }, [latitude, longitude, title, zoom, showControls]);
 
-  if (isLoading) {
-    return <Skeleton style={{ height, width: '100%' }} className="rounded-lg" />;
-  }
-
   if (error) {
     return (
       <div 
@@ -150,11 +146,16 @@ export const HikingLocationMap = ({
   }
 
   return (
-    <div 
-      id={mapId}
-      ref={mapContainer} 
-      style={{ height, width: '100%' }}
-      className="rounded-lg shadow-sm"
-    />
+    <div style={{ position: 'relative', height, width: '100%' }}>
+      {isLoading && (
+        <Skeleton style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' }} className="rounded-lg" />
+      )}
+      <div 
+        id={mapId}
+        ref={mapContainer} 
+        style={{ height: '100%', width: '100%' }}
+        className="rounded-lg shadow-sm"
+      />
+    </div>
   );
 };
