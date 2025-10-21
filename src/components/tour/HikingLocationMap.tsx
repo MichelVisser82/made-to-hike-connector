@@ -78,12 +78,13 @@ export const HikingLocationMap = ({
 
         // Use Thunderforest Outdoors if key available, otherwise fallback to OpenStreetMap
         if (apiKey) {
-          console.log('Adding Thunderforest Outdoors tiles...');
+          console.log('Adding Thunderforest Outdoors tiles with API key');
           L.tileLayer(
-            `https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${apiKey}`,
+            `https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${apiKey}`,
             {
               attribution: 'Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-              maxZoom: 18
+              maxZoom: 18,
+              subdomains: ['a', 'b', 'c']
             }
           ).addTo(map.current);
         } else {
