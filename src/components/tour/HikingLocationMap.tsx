@@ -32,38 +32,49 @@ export const HikingLocationMap = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
     const initMap = async () => {
       try {
-        // Fetch Thunderforest API key from edge function
-        const { data } = await supabase.functions.invoke('get-thunderforest-key');
-        const apiKey = data?.key;
-
-        if (!apiKey) {
-          console.error('Thunderforest API key not available');
-          setIsLoading(false);
-          return;
-        }
-
-        // Initialize map
-        map.current = L.map(mapContainer.current, {
+        // Initialize map first
+        map.current = L.map(mapContainer.current!, {
           center: [latitude, longitude],
           zoom: zoom,
           zoomControl: showControls,
           scrollWheelZoom: false
         });
 
-        // Add Thunderforest Outdoors tile layer
-        L.tileLayer(
-          `https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${apiKey}`,
-          {
-            attribution: 'Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-            maxZoom: 18
+        // Try to fetch Thunderforest API key
+        let apiKey: string | null = null;
+        try {
+          const { data, error: functionError } = await supabase.functions.invoke('get-thunderforest-key');
+          if (functionError) {
+            console.warn('Thunderforest key fetch error:', functionError);
           }
-        ).addTo(map.current);
+          apiKey = data?.key;
+        } catch (keyError) {
+          console.warn('Failed to fetch Thunderforest key, using fallback:', keyError);
+        }
+
+        // Use Thunderforest if key available, otherwise fallback to OpenStreetMap
+        if (apiKey) {
+          L.tileLayer(
+            `https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${apiKey}`,
+            {
+              attribution: 'Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+              maxZoom: 18
+            }
+          ).addTo(map.current);
+        } else {
+          // Fallback to OpenStreetMap
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+          }).addTo(map.current);
+        }
 
         // Add marker
         const marker = L.marker([latitude, longitude]).addTo(map.current);
@@ -75,6 +86,7 @@ export const HikingLocationMap = ({
         setIsLoading(false);
       } catch (error) {
         console.error('Map initialization error:', error);
+        setError('Failed to load map');
         setIsLoading(false);
       }
     };
@@ -92,6 +104,17 @@ export const HikingLocationMap = ({
 
   if (isLoading) {
     return <Skeleton style={{ height, width: '100%' }} className="rounded-lg" />;
+  }
+
+  if (error) {
+    return (
+      <div 
+        style={{ height, width: '100%' }}
+        className="rounded-lg shadow-sm bg-muted flex items-center justify-center text-muted-foreground"
+      >
+        {error}
+      </div>
+    );
   }
 
   return (
