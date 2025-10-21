@@ -198,6 +198,7 @@ export const BookingFlowNew = () => {
       if (error) throw error;
 
       setSelectedSlot(slot);
+      form.setValue('selectedDateSlotId', slotId);
 
       // Calculate pricing
       const participants = form.getValues('participants');

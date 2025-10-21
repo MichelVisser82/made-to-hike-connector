@@ -33,6 +33,7 @@ serve(async (req) => {
         tour_id: tourId,
         tour_title: tourTitle || '',
         participants: bookingData?.participants || '1',
+        participant_count: bookingData?.participantCount || '1',
       },
     });
 

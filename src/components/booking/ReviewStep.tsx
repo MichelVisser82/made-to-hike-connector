@@ -58,12 +58,12 @@ export const ReviewStep = ({
 
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={guideData.profileImageUrl} />
-                  <AvatarFallback>{guideData.displayName?.[0]}</AvatarFallback>
+                  <AvatarImage src={guideData?.profile_image_url} />
+                  <AvatarFallback>{guideData?.display_name?.[0]}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium">Your Guide</p>
-                  <p className="text-sm text-muted-foreground">{guideData.displayName}</p>
+                  <p className="text-sm text-muted-foreground">{guideData?.display_name}</p>
                 </div>
               </div>
             </div>
@@ -82,7 +82,7 @@ export const ReviewStep = ({
               <div className="flex items-center gap-3">
                 <Calendar className="h-5 w-5 text-primary" />
                 <span className="font-medium">
-                  {selectedSlot?.slotDate ? format(new Date(selectedSlot.slotDate), 'EEEE, MMMM d, yyyy') : 'Date not selected'}
+                  {selectedSlot?.slot_date ? format(new Date(selectedSlot.slot_date), 'EEEE, MMMM d, yyyy') : 'Date not selected'}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -195,26 +195,26 @@ export const ReviewStep = ({
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {selectedSlot?.currency === 'EUR' ? '€' : selectedSlot?.currency === 'GBP' ? '£' : '$'}
-                  {selectedSlot?.price} × {formData.participants.length} person{formData.participants.length > 1 ? 's' : ''}
+                  {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
+                  {(pricing.subtotal / formData.participants.length).toFixed(2)} × {formData.participants.length} person{formData.participants.length > 1 ? 's' : ''}
                 </span>
                 <span className="font-medium">
-                  {selectedSlot?.currency === 'EUR' ? '€' : selectedSlot?.currency === 'GBP' ? '£' : '$'}
+                  {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
                   {pricing.subtotal.toFixed(2)}
                 </span>
               </div>
 
               {pricing.discount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
+              <div className="flex justify-between text-sm text-green-600">
                   <span>Discount</span>
-                  <span>-{selectedSlot?.currency === 'EUR' ? '€' : selectedSlot?.currency === 'GBP' ? '£' : '$'}{pricing.discount.toFixed(2)}</span>
+                  <span>-{pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}{pricing.discount.toFixed(2)}</span>
                 </div>
               )}
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Service Fee</span>
                 <span className="font-medium">
-                  {selectedSlot?.currency === 'EUR' ? '€' : selectedSlot?.currency === 'GBP' ? '£' : '$'}
+                  {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
                   {pricing.serviceFee.toFixed(2)}
                 </span>
               </div>
@@ -224,7 +224,7 @@ export const ReviewStep = ({
               <div className="flex justify-between text-lg font-bold">
                 <span>Total</span>
                 <span className="text-primary">
-                  {selectedSlot?.currency === 'EUR' ? '€' : selectedSlot?.currency === 'GBP' ? '£' : '$'}
+                  {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
                   {pricing.total.toFixed(2)}
                 </span>
               </div>

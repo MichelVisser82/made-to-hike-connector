@@ -111,13 +111,21 @@ export const PaymentStep = ({
     setIsProcessing(true);
 
     try {
+      const bookingData = form.getValues();
+      
       // Create Stripe Payment Intent
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {
           amount: pricing.total,
           currency: pricing.currency,
           tourId: tourId,
-          bookingData: form.getValues()
+          tourTitle: bookingData.participants.length > 0 
+            ? `Booking for ${bookingData.participants[0].firstName} ${bookingData.participants[0].surname}`
+            : 'Tour Booking',
+          bookingData: {
+            participants: JSON.stringify(bookingData.participants),
+            participantCount: bookingData.participants.length.toString()
+          }
         }
       });
 
@@ -264,7 +272,7 @@ export const PaymentStep = ({
               )}
 
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Service Fee</span>
+                <span className="text-muted-foreground">Made To Hike Service Fee</span>
                 <span className="font-medium">
                   {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
                   {pricing.serviceFee.toFixed(2)}
