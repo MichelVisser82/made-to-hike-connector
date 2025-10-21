@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
-import { X, MessageSquare, Mail, Phone, Calendar, Send, Paperclip, AlertCircle } from 'lucide-react';
+import { X, MessageSquare, Mail, Phone, Calendar, Send, Paperclip, AlertCircle, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -235,6 +235,10 @@ export function MessagesModal({
                 </Button>
               </div>
               <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Templates
+                </Button>
                 <Button variant="outline" size="sm" className="flex-1">
                   <Paperclip className="w-4 h-4 mr-2" />
                   Attach File
