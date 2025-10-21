@@ -123,8 +123,8 @@ export const PaymentStep = ({
             ? `Booking for ${bookingData.participants[0].firstName} ${bookingData.participants[0].surname}`
             : 'Tour Booking',
           bookingData: {
-            participants: JSON.stringify(bookingData.participants),
-            participantCount: bookingData.participants.length.toString()
+            participants: bookingData.participants,
+            participantCount: bookingData.participants.length
           }
         }
       });

@@ -32,8 +32,8 @@ serve(async (req) => {
       metadata: {
         tour_id: tourId,
         tour_title: tourTitle || '',
-        participants: bookingData?.participants || '1',
-        participant_count: bookingData?.participantCount || '1',
+        participants: JSON.stringify(bookingData?.participants || []),
+        participant_count: String(bookingData?.participantCount || bookingData?.participants?.length || 1),
       },
     });
 
