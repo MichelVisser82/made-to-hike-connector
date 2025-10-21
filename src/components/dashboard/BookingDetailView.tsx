@@ -73,6 +73,9 @@ interface BookingWithDetails {
     email: string;
     phone: string;
     avatar_url: string | null;
+    emergency_contact_name: string | null;
+    emergency_contact_relationship: string | null;
+    emergency_contact_phone: string | null;
   };
 }
 
@@ -155,7 +158,16 @@ export function BookingDetailView() {
         .select(`
           *,
           tour:tours(id, title, duration, meeting_point, includes),
-          hiker:profiles!bookings_hiker_id_fkey(id, name, email, phone, avatar_url)
+          hiker:profiles!bookings_hiker_id_fkey(
+            id, 
+            name, 
+            email, 
+            phone, 
+            avatar_url,
+            emergency_contact_name,
+            emergency_contact_relationship,
+            emergency_contact_phone
+          )
         `)
         .eq('id', bookingId)
         .single();
@@ -289,10 +301,10 @@ export function BookingDetailView() {
     ? booking.participants_details 
     : [];
 
-  const emergencyContact = participants[0] ? {
-    name: `${participants[0].emergencyContactName || 'Not provided'}`,
-    relationship: participants[0].emergencyContactRelationship || 'Not provided',
-    phone: participants[0].emergencyContactPhone || 'Not provided'
+  const emergencyContact = booking.hiker.emergency_contact_name ? {
+    name: booking.hiker.emergency_contact_name,
+    relationship: booking.hiker.emergency_contact_relationship || 'Not provided',
+    phone: booking.hiker.emergency_contact_phone || 'Not provided'
   } : null;
 
   return (
