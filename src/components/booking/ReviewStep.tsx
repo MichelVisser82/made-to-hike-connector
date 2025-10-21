@@ -82,7 +82,7 @@ export const ReviewStep = ({
               <div className="flex items-center gap-3">
                 <Calendar className="h-5 w-5 text-primary" />
                 <span className="font-medium">
-                  {selectedSlot && format(new Date(selectedSlot.slotDate), 'EEEE, MMMM d, yyyy')}
+                  {selectedSlot?.slotDate ? format(new Date(selectedSlot.slotDate), 'EEEE, MMMM d, yyyy') : 'Date not selected'}
                 </span>
               </div>
               <div className="flex items-center gap-3">
