@@ -22,6 +22,16 @@ export const BookingSuccess = () => {
       }
 
       try {
+        // Get authenticated user
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          console.error('Error getting user:', authError);
+          toast.error('Authentication required');
+          navigate('/');
+          return;
+        }
+
         // Verify the session and create booking
         const { data: sessionData, error: sessionError } = await supabase.functions.invoke('verify-payment-session', {
           body: { sessionId }
@@ -34,9 +44,17 @@ export const BookingSuccess = () => {
           return;
         }
 
+        // Add hiker_id to booking data
+        const bookingDataWithHiker = {
+          ...sessionData.bookingData,
+          hiker_id: user.id
+        };
+
+        console.log('Creating booking with data:', bookingDataWithHiker);
+
         // Create the booking in database
         const { data: bookingData, error: bookingError } = await supabase.functions.invoke('create-booking', {
-          body: sessionData.bookingData
+          body: bookingDataWithHiker
         });
 
         if (bookingError || !bookingData?.booking) {
