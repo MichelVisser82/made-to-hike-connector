@@ -155,29 +155,14 @@ serve(async (req) => {
 
     console.log('Verification code deleted');
 
-    // Sign in the user to get a session
-    const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (sessionError) {
-      console.error('Error signing in user:', sessionError);
-      // Account was created but couldn't sign in - user can log in manually
-      return new Response(
-        JSON.stringify({ 
-          message: 'Account created successfully! Please log in.',
-          user: authData.user
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    // Return success - frontend will handle sign-in with its own client
     return new Response(
       JSON.stringify({ 
         message: 'Account created successfully',
         user: authData.user,
-        session: sessionData.session
+        email,
+        // Signal to frontend to sign in
+        shouldSignIn: true
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

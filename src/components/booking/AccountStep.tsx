@@ -158,36 +158,27 @@ export function AccountStep({ onVerified }: AccountStepProps) {
 
       if (error) throw error;
 
-      // If we got a session, sign in the user
-      if (data?.session) {
-        const { error: setSessionError } = await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token
-        });
-        
-        if (setSessionError) {
-          console.error('Error setting session:', setSessionError);
-        }
-      }
-
-      // Get current user to verify login
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        onVerified(user.id);
-        toast({ title: 'Account created successfully!' });
-      } else {
-        // Fallback: try to sign in
+      // Edge function created the account, now sign in with frontend client
+      if (data?.shouldSignIn) {
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password: newPassword
         });
         
-        if (signInError) throw signInError;
+        if (signInError) {
+          console.error('Sign in error:', signInError);
+          toast({ 
+            title: 'Account created', 
+            description: 'Please log in with your new credentials',
+            variant: 'destructive' 
+          });
+          setActiveTab('login');
+          return;
+        }
         
         if (signInData.user) {
           onVerified(signInData.user.id);
-          toast({ title: 'Account created successfully!' });
+          toast({ title: 'Account created and logged in successfully!' });
         }
       }
     } catch (error: any) {
