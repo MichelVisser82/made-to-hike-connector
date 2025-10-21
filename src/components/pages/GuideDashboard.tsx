@@ -312,10 +312,6 @@ export function GuideDashboard({
     }
   };
 
-  const handleBookingClick = (booking: BookingWithDetails) => {
-    navigate(`/dashboard/booking/${booking.id}`);
-  };
-
   const handleExportBookings = () => {
     toast({
       title: 'Export',
@@ -888,7 +884,7 @@ See you soon!
             <BookingsSection
               bookings={bookings}
               loading={loadingBookings}
-              onBookingClick={handleBookingClick}
+              onBookingsChange={fetchBookings}
               onExport={handleExportBookings}
             />
           )}

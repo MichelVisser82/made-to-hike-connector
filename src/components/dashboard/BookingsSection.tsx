@@ -1,19 +1,23 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Eye, Download, Users } from 'lucide-react';
+import { Eye, Download, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { supabase } from '@/integrations/supabase/client';
+import { BookingDetailView } from './BookingDetailView';
 import type { BookingWithDetails } from '@/types';
 
 interface BookingsSectionProps {
   bookings: BookingWithDetails[];
   loading: boolean;
-  onBookingClick: (booking: BookingWithDetails) => void;
+  onBookingClick?: (booking: BookingWithDetails) => void;
   onExport: () => void;
+  onBookingsChange?: () => void;
 }
 
 export function BookingsSection({
@@ -21,8 +25,46 @@ export function BookingsSection({
   loading,
   onBookingClick,
   onExport,
+  onBookingsChange,
 }: BookingsSectionProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'completed'>('all');
+  const [selectedBooking, setSelectedBooking] = useState<BookingWithDetails | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const handleBookingClick = async (booking: BookingWithDetails) => {
+    // Fetch fresh booking data
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        tours!inner(title, duration, region, meeting_point, guide_id),
+        profiles!bookings_hiker_id_fkey(id, name, email, avatar_url)
+      `)
+      .eq('id', booking.id)
+      .single();
+
+    if (!error && data) {
+      const transformedBooking: BookingWithDetails = {
+        ...data,
+        status: data.status as any,
+        payment_status: data.payment_status as any,
+        tour: data.tours as any,
+        guest: data.profiles as any,
+        participants_details: data.participants_details as any,
+      };
+      setSelectedBooking(transformedBooking);
+      setSheetOpen(true);
+    }
+    
+    // Also call the optional external handler
+    onBookingClick?.(booking);
+  };
+
+  const handleStatusChange = () => {
+    setSheetOpen(false);
+    setSelectedBooking(null);
+    onBookingsChange?.();
+  };
 
   const counts = useMemo(() => ({
     all: bookings.length,
@@ -157,7 +199,7 @@ export function BookingsSection({
                 <TableRow 
                   key={booking.id}
                   className="hover:bg-cream/30 transition-colors cursor-pointer"
-                  onClick={() => onBookingClick(booking)}
+                  onClick={() => handleBookingClick(booking)}
                 >
                   <TableCell className="px-6 py-4">
                     {format(new Date(booking.booking_date), 'MMM dd, yyyy')}
@@ -183,7 +225,7 @@ export function BookingsSection({
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onBookingClick(booking);
+                        handleBookingClick(booking);
                       }}
                     >
                       <Eye className="w-4 h-4" />
@@ -195,6 +237,31 @@ export function BookingsSection({
           </Table>
         </Card>
       )}
+
+      {/* Booking Detail Sheet */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-full lg:max-w-[90vw] overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-2xl font-playfair">Booking Details</SheetTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSheetOpen(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </SheetHeader>
+          
+          {selectedBooking && (
+            <BookingDetailView 
+              booking={selectedBooking} 
+              onStatusChange={handleStatusChange}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
