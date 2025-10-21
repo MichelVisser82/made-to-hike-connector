@@ -16,6 +16,7 @@ import { PaymentStep } from '@/components/booking/PaymentStep';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 // Form validation schema
 const bookingFormSchema = z.object({
@@ -291,14 +292,16 @@ export const BookingFlowNew = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-20 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <MainLayout>
+        <div className="container mx-auto px-4 py-20 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
     );
   }
 
   if (!tourData) {
-    return null;
+    return <MainLayout><div /></MainLayout>;
   }
 
   const getStepNumber = () => {
@@ -308,7 +311,7 @@ export const BookingFlowNew = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <MainLayout>
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Tour Header */}
         <Card className="p-6 mb-8">
@@ -392,6 +395,6 @@ export const BookingFlowNew = () => {
           )}
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
