@@ -1176,8 +1176,15 @@ export type Database = {
             foreignKeyName: "tours_guide_id_fkey"
             columns: ["guide_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: "guide_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tours_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_profiles_public"
+            referencedColumns: ["user_id"]
           },
         ]
       }

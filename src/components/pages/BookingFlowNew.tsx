@@ -116,11 +116,11 @@ export const BookingFlowNew = () => {
         }
 
         // Load tour data
-        const { data: tour, error: tourError } = await supabase
-          .from('tours')
-          .select('*, guide_profiles!tours_guide_id_fkey(*)')
-          .eq('slug', tourSlug)
-          .single();
+      const { data: tour, error: tourError } = await supabase
+        .from('tours')
+        .select('*, guide_profiles!tours_guide_id_fkey(*)')
+        .eq('slug', tourSlug)
+        .maybeSingle();
 
         if (tourError) throw tourError;
         
