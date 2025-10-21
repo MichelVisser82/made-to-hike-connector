@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +44,13 @@ import {
   PhoneCall,
   AlertCircle,
   CloudSun,
+  Cloud,
+  CloudRain,
+  CloudLightning,
+  Snowflake,
+  Sun,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
 
 interface BookingWithDetails {
@@ -91,6 +99,9 @@ export function BookingDetailView() {
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [unreadCount, setUnreadCount] = useState(0);
   const [lastMessageAt, setLastMessageAt] = useState<string | null>(null);
+  const [weatherData, setWeatherData] = useState<any>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState(false);
 
   const fetchConversationData = async () => {
     if (!booking || !user?.id) return;
@@ -174,6 +185,11 @@ export function BookingDetailView() {
 
       if (error) throw error;
       setBooking(data as BookingWithDetails);
+      
+      // Fetch weather once booking data is loaded
+      if (data) {
+        fetchWeatherForecast(data as BookingWithDetails);
+      }
     } catch (error) {
       console.error('Error fetching booking:', error);
       toast({
@@ -183,6 +199,35 @@ export function BookingDetailView() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWeatherForecast = async (bookingData: BookingWithDetails) => {
+    if (!bookingData?.tour.meeting_point || !bookingData?.booking_date) return;
+    
+    setWeatherLoading(true);
+    setWeatherError(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('get-weather-forecast', {
+        body: {
+          location: bookingData.tour.meeting_point,
+          date: format(new Date(bookingData.booking_date), 'yyyy-MM-dd')
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        setWeatherData(data.weather);
+      } else {
+        setWeatherError(true);
+      }
+    } catch (error) {
+      console.error('Error fetching weather:', error);
+      setWeatherError(true);
+    } finally {
+      setWeatherLoading(false);
     }
   };
 
@@ -260,6 +305,26 @@ export function BookingDetailView() {
         return 'bg-burgundy text-white hover:bg-burgundy/90';
       default:
         return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const getWeatherIcon = (condition: string) => {
+    switch (condition.toLowerCase()) {
+      case 'sunny':
+      case 'clear':
+        return <Sun className="h-8 w-8 text-gold" />;
+      case 'partly cloudy':
+        return <CloudSun className="h-8 w-8 text-gold" />;
+      case 'cloudy':
+        return <Cloud className="h-8 w-8 text-charcoal/60" />;
+      case 'rainy':
+        return <CloudRain className="h-8 w-8 text-blue-500" />;
+      case 'stormy':
+        return <CloudLightning className="h-8 w-8 text-burgundy" />;
+      case 'snow':
+        return <Snowflake className="h-8 w-8 text-blue-300" />;
+      default:
+        return <CloudSun className="h-8 w-8 text-gold" />;
     }
   };
 
@@ -512,15 +577,50 @@ export function BookingDetailView() {
             {/* Weather Forecast */}
             <div>
               <h3 className="font-semibold text-charcoal mb-3">Weather Forecast</h3>
-              <div className="flex items-start gap-3 p-3 bg-background/50 rounded-md">
-                <CloudSun className="h-8 w-8 text-gold" />
-                <div>
-                  <p className="font-medium text-charcoal">Sunny</p>
-                  <p className="text-sm text-charcoal/60">
-                    15°C • High: 18°C • Low: 10°C
-                  </p>
+              {weatherLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm text-charcoal/60">Loading forecast...</span>
                 </div>
-              </div>
+              ) : weatherError ? (
+                <p className="text-sm text-charcoal/60">
+                  Weather forecast unavailable
+                </p>
+              ) : weatherData ? (
+                <>
+                  <div className="flex items-start gap-3 p-3 bg-background/50 rounded-md">
+                    {getWeatherIcon(weatherData.condition)}
+                    <div>
+                      <p className="font-medium text-charcoal">{weatherData.condition}</p>
+                      {weatherData.temperature && (
+                        <p className="text-sm text-charcoal/60">
+                          {weatherData.temperature}°C
+                          {weatherData.high && weatherData.low && 
+                            ` • High: ${weatherData.high}°C • Low: ${weatherData.low}°C`
+                          }
+                        </p>
+                      )}
+                      {weatherData.summary && (
+                        <p className="text-xs text-charcoal/50 mt-1">
+                          {weatherData.summary}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {weatherData.fullForecast && (
+                    <Collapsible>
+                      <CollapsibleTrigger className="text-xs text-charcoal/60 hover:text-charcoal flex items-center gap-1 mt-2">
+                        <ChevronDown className="h-3 w-3" />
+                        Detailed forecast
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="text-xs text-charcoal/70 mt-2 p-2 bg-background/30 rounded">
+                        {weatherData.fullForecast}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </>
+              ) : null}
             </div>
 
             <Separator />
