@@ -30,11 +30,22 @@ export function MessagesModal({
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [moderationWarning, setModerationWarning] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { messages, sendMessage, loading } = useMessages(conversationId);
+
+  // Pre-made message templates
+  const messageTemplates = [
+    { id: 1, label: "Meeting Point Confirmation", text: `Hi! Just confirming our meeting point: ${booking.tour?.meeting_point}. See you soon!` },
+    { id: 2, label: "Weather Update", text: "Hi! The weather looks great for our tour. Don't forget to bring sunscreen and water!" },
+    { id: 3, label: "Equipment Reminder", text: "Hi! Just a reminder to bring your hiking boots, water bottle, and any personal medications. Looking forward to our adventure!" },
+    { id: 4, label: "Running Late", text: "Hi! I'm running a few minutes late. I'll be there as soon as possible. Thank you for your patience!" },
+    { id: 5, label: "Thank You", text: "Thank you for booking with me! I'm excited to show you around. Feel free to ask any questions before the tour." },
+  ];
 
   useEffect(() => {
     if (isOpen && booking) {
@@ -114,6 +125,52 @@ export function MessagesModal({
       toast({
         title: 'Error',
         description: 'Failed to send message. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleTemplateSelect = (templateText: string) => {
+    setNewMessage(templateText);
+    setShowTemplates(false);
+    toast({
+      title: 'Template loaded',
+      description: 'You can edit the message before sending',
+    });
+  };
+
+  const handleAttachFile = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // File size limit: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please select a file smaller than 10MB',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    toast({
+      title: 'File attachment',
+      description: 'File attachments will be available soon',
+    });
+  };
+
+  const handleCallGuest = () => {
+    const phone = booking.hiker?.phone || booking.guest?.phone;
+    if (phone) {
+      window.location.href = `tel:${phone}`;
+    } else {
+      toast({
+        title: 'No phone number',
+        description: 'Guest phone number is not available',
         variant: 'destructive'
       });
     }
@@ -235,19 +292,59 @@ export function MessagesModal({
                 </Button>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => setShowTemplates(!showTemplates)}
+                >
                   <FileText className="w-4 h-4 mr-2" />
                   Templates
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={handleAttachFile}
+                >
                   <Paperclip className="w-4 h-4 mr-2" />
                   Attach File
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={handleCallGuest}
+                >
                   <Phone className="w-4 h-4 mr-2" />
                   Call Guest
                 </Button>
               </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+                accept="image/*,.pdf,.doc,.docx"
+              />
+
+              {/* Templates dropdown */}
+              {showTemplates && (
+                <Card className="p-2 space-y-1">
+                  {messageTemplates.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => handleTemplateSelect(template.text)}
+                      className="w-full text-left px-3 py-2 rounded-md hover:bg-cream/50 transition-colors"
+                    >
+                      <p className="text-sm font-medium text-charcoal">{template.label}</p>
+                      <p className="text-xs text-charcoal/60 mt-0.5 line-clamp-1">{template.text}</p>
+                    </button>
+                  ))}
+                </Card>
+              )}
             </div>
           </div>
         </div>
