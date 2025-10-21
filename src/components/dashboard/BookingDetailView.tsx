@@ -10,6 +10,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { MessagesModal } from "./MessagesModal";
 import {
   Breadcrumb,
@@ -72,6 +82,7 @@ export function BookingDetailView() {
   const [booking, setBooking] = useState<BookingWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMessagesModal, setShowMessagesModal] = useState(false);
+  const [showDeclineDialog, setShowDeclineDialog] = useState(false);
 
   useEffect(() => {
     if (bookingId) {
@@ -132,15 +143,9 @@ export function BookingDetailView() {
   };
 
   const handleDeclineBooking = async () => {
-    // Show confirmation dialog
-    const confirmed = window.confirm(
-      'Are you sure you want to decline this booking? This will automatically refund the full payment to the hiker and send them an email notification.'
-    );
-    
-    if (!confirmed) return;
-
     try {
       setLoading(true);
+      setShowDeclineDialog(false);
 
       // Call refund edge function
       const { data: refundData, error: refundError } = await supabase.functions.invoke('process-refund', {
@@ -551,7 +556,7 @@ export function BookingDetailView() {
                 <Button
                   variant="outline"
                   className="w-full text-burgundy hover:text-burgundy hover:bg-burgundy/10"
-                  onClick={handleDeclineBooking}
+                  onClick={() => setShowDeclineDialog(true)}
                 >
                   <X className="h-4 w-4 mr-2" />
                   Decline Booking
@@ -629,6 +634,46 @@ export function BookingDetailView() {
           updated_at: new Date().toISOString(),
         } as any}
       />
+
+      {/* Decline Booking Confirmation Dialog */}
+      <AlertDialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
+        <AlertDialogContent className="bg-background">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-playfair text-charcoal flex items-center gap-2">
+              <AlertCircle className="h-6 w-6 text-burgundy" />
+              Decline This Booking?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4 text-base">
+              <p className="text-charcoal/80">
+                This action <strong className="text-burgundy">cannot be undone</strong>. When you decline this booking:
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-charcoal/70 ml-2">
+                <li>The full payment will be <strong>automatically refunded</strong> to the hiker</li>
+                <li>The hiker will receive an <strong>email notification</strong> about the cancellation</li>
+                <li>The booking status will be changed to <strong>cancelled</strong></li>
+                <li>The date slot will become available for other bookings</li>
+              </ul>
+              <div className="bg-burgundy/10 border border-burgundy/20 rounded-lg p-4 mt-4">
+                <p className="text-sm text-burgundy font-medium">
+                  ⚠️ Refunds typically appear in the hiker's account within 3-10 business days
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-charcoal/20">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeclineBooking}
+              className="bg-burgundy hover:bg-burgundy/90 text-white"
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : 'Yes, Decline & Refund'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
