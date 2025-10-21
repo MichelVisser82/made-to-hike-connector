@@ -21,6 +21,7 @@ import DashboardPage from "./pages/DashboardPage";
 import TourCreationPage from "./pages/TourCreationPage";
 import ProfilePage from "./pages/ProfilePage";
 import { BookingDetailPage } from "./components/dashboard/BookingDetailPage";
+import { BookingFlowNew } from "./components/pages/BookingFlowNew";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App: React.FC = () => {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/email-test" element={<EmailTest />} />
             <Route path="/tours" element={<ToursPage />} />
+            <Route path="/tours/:tourSlug/book" element={<BookingFlowNew />} />
             <Route path="/tours/:slug" element={<TourPage />} />
             <Route path="/guides" element={<GuidesPage />} />
             <Route path="/guide/signup" element={<GuideSignupPage />} />

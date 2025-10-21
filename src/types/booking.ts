@@ -1,41 +1,40 @@
+export interface ParticipantDetails {
+  name: string;
+  age: number;
+  experience: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  medicalConditions?: string;
+}
+
 export interface BookingFormData {
-  // Participants
-  participants: Array<{
-    name: string;
-    age: number;
-    experience: 'beginner' | 'intermediate' | 'advanced' | 'expert';
-    medicalConditions?: string;
-  }>;
-  
-  // Contact
+  participants: ParticipantDetails[];
   phone: string;
   country: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
   emergencyContactRelationship: string;
-  
-  // Date
   selectedDateSlotId: string;
-  
-  // Special Requests
-  dietaryPreferences: string[];
+  dietaryPreferences?: string[];
   accessibilityNeeds?: string;
   specialRequests?: string;
-  
-  // Payment
-  discountCode?: string;
   agreedToTerms: boolean;
 }
 
 export interface PricingDetails {
   subtotal: number;
   discount: number;
+  slotDiscount?: number;
   serviceFee: number;
   total: number;
+  currency: string;
 }
 
-export interface BookingStep {
-  title: string;
-  description: string;
-  isComplete: boolean;
-}
+export type BookingStep = 
+  | 'account'
+  | 'participants'
+  | 'contact'
+  | 'date'
+  | 'special-requests'
+  | 'review'
+  | 'payment';
+
+export const BOOKING_STEPS: BookingStep[] = ['participants', 'contact', 'date', 'special-requests', 'review', 'payment'];

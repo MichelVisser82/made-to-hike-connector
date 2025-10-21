@@ -29,3 +29,15 @@ verify_jwt = false
 
 [functions.slack-notify]
 verify_jwt = false
+
+[functions.send-verification-code]
+verify_jwt = false
+
+[functions.verify-code]
+verify_jwt = false
+
+[functions.create-payment-intent]
+verify_jwt = false
+
+[functions.create-booking]
+verify_jwt = false
