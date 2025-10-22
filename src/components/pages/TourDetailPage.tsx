@@ -563,48 +563,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </CardContent>
             </Card>
 
-            {/* Route Map */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Tour Route Map</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-6 relative h-64">
-                  <div className="absolute inset-4 bg-green-100/50 rounded-lg">
-                    <div className="w-full h-full relative">
-                      {/* Route visualization */}
-                      <div className="absolute top-4 left-4 w-3 h-3 bg-green-600 rounded-full"></div>
-                      <div className="absolute top-4 left-4 w-32 h-1 bg-green-600 rounded-full transform rotate-12"></div>
-                      <div className="absolute top-8 left-16 w-3 h-3 bg-blue-600 rounded-full"></div>
-                      <div className="absolute top-8 left-16 w-24 h-1 bg-blue-600 rounded-full transform rotate-45"></div>
-                      <div className="absolute top-16 left-32 w-3 h-3 bg-orange-600 rounded-full"></div>
-                      <div className="absolute top-16 left-32 w-20 h-1 bg-orange-600 rounded-full transform rotate-12"></div>
-                      <div className="absolute top-20 right-16 w-3 h-3 bg-red-600 rounded-full"></div>
-                      
-                      {/* Legend */}
-                      <div className="absolute bottom-2 left-2 bg-white/80 rounded p-2 text-xs">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                          <span>Start Point</span>
-                        </div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                          <span>Viewpoint</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                          <span>Summit</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-4 right-4 text-sm text-muted-foreground">
-                    Distance: {tour.distance_km || '12.5'}km • Elevation: +{tour.elevation_gain_m || '850'}m
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Detailed Itinerary */}
             <Card>
               <CardHeader>
