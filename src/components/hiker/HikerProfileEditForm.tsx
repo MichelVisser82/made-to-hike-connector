@@ -240,105 +240,6 @@ export function HikerProfileEditForm() {
         </p>
       </div>
 
-      {/* Account Security */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Account Security
-          </CardTitle>
-          <CardDescription>
-            Manage your login credentials
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Email Change */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-base">Email Address</Label>
-                <p className="text-sm text-muted-foreground">
-                  Current: {profile.email}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="Enter new email address"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                className="flex-1"
-              />
-              <Button
-                onClick={handleEmailChange}
-                disabled={updatingEmail || !newEmail}
-                variant="outline"
-              >
-                {updatingEmail ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Change Email
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Password Change */}
-          <div className="space-y-3">
-            <Label className="text-base">Change Password</Label>
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="new_password">New Password</Label>
-                <Input
-                  id="new_password"
-                  type="password"
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm_password">Confirm New Password</Label>
-                <Input
-                  id="confirm_password"
-                  type="password"
-                  placeholder="Confirm new password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-              <Button
-                onClick={handlePasswordChange}
-                disabled={updatingPassword || !newPassword || !confirmPassword}
-                variant="outline"
-                className="w-full"
-              >
-                {updatingPassword ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Lock className="mr-2 h-4 w-4" />
-                    Update Password
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Basic Information */}
       <Card>
         <CardHeader>
@@ -527,6 +428,105 @@ export function HikerProfileEditForm() {
               onChange={(e) => setProfile({ ...profile, emergency_contact_relationship: e.target.value })}
               placeholder="Spouse, Parent, Sibling, Friend..."
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Account Security */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            Account Security
+          </CardTitle>
+          <CardDescription>
+            Manage your login credentials
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Email Change */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Email Address</Label>
+                <p className="text-sm text-muted-foreground">
+                  Current: {profile.email}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="Enter new email address"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleEmailChange}
+                disabled={updatingEmail || !newEmail}
+                variant="outline"
+              >
+                {updatingEmail ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Change Email
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Password Change */}
+          <div className="space-y-3">
+            <Label className="text-base">Change Password</Label>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="new_password">New Password</Label>
+                <Input
+                  id="new_password"
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm_password">Confirm New Password</Label>
+                <Input
+                  id="confirm_password"
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+              <Button
+                onClick={handlePasswordChange}
+                disabled={updatingPassword || !newPassword || !confirmPassword}
+                variant="outline"
+                className="w-full"
+              >
+                {updatingPassword ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="mr-2 h-4 w-4" />
+                    Update Password
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
