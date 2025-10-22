@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TourHighlight, RouteDisplayMode, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
-import { Eye, EyeOff, MapPin, Lock, Globe } from 'lucide-react';
+import { Eye, EyeOff, MapPin, Lock, Globe, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PrivacySettingsPanelProps {
   highlights: Partial<TourHighlight>[];
@@ -28,6 +29,15 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
   const publicHighlights = highlights.filter(h => h.isPublic);
   const secretHighlights = highlights.filter(h => !h.isPublic);
 
+  // Auto-save whenever settings change
+  useEffect(() => {
+    onSettingsConfirmed({
+      showMeetingPoint,
+      routeDisplayMode,
+      featuredHighlightIds
+    });
+  }, [showMeetingPoint, routeDisplayMode, featuredHighlightIds]);
+
   const toggleFeatured = (id: string) => {
     if (featuredHighlightIds.includes(id)) {
       setFeaturedHighlightIds(featuredHighlightIds.filter(fid => fid !== id));
@@ -36,12 +46,9 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
     }
   };
 
-  const handleContinue = () => {
-    onSettingsConfirmed({
-      showMeetingPoint,
-      routeDisplayMode,
-      featuredHighlightIds
-    });
+  const handleSaveAndContinue = () => {
+    toast.success('Privacy settings saved successfully!');
+    // Settings are already auto-saved via useEffect
   };
 
   return (
@@ -217,12 +224,10 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
         </div>
       </Card>
 
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button onClick={handleContinue}>
-          Continue
+      <div className="flex justify-center">
+        <Button onClick={handleSaveAndContinue} size="lg">
+          <Save className="h-4 w-4 mr-2" />
+          Save & Continue
         </Button>
       </div>
 
