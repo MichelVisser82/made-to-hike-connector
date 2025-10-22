@@ -19,7 +19,7 @@ interface MapEditorInterfaceProps {
 
 export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEditorInterfaceProps) {
   const [gpxData, setGpxData] = useState<GPXParseResult | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('upload');
+  const [activeTab, setActiveTab] = useState<string>('preview');
   const [daySplits, setDaySplits] = useState<number[]>([]);
   const [daySegments, setDaySegments] = useState<Array<{ dayNumber: number; coordinates: Coordinate[] }>>([]);
   const [highlights, setHighlights] = useState<Partial<TourHighlight>[]>([]);
@@ -100,7 +100,7 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
       <Card className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="preview" disabled={!gpxData} className="flex items-center gap-2">
+            <TabsTrigger value="preview" className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               Preview
             </TabsTrigger>
@@ -127,13 +127,40 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
           </TabsList>
 
           <TabsContent value="preview" className="mt-6">
-            {gpxData && (
+            {gpxData ? (
               <MapPreview
                 gpxData={gpxData}
                 daySegments={daySegments}
                 highlights={highlights}
                 onBack={() => setActiveTab('split')}
               />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <div className="rounded-full bg-muted p-6 mb-4">
+                  <Map className="h-12 w-12 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">No Route Data Yet</h3>
+                <p className="text-muted-foreground max-w-md mb-6">
+                  Upload a GPX file or draw a route manually to see your interactive map preview here.
+                  Once you add route data, you'll be able to split it into days, add highlights, and configure privacy settings.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setActiveTab('upload')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload GPX
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('draw')}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-md hover:bg-accent transition-colors"
+                  >
+                    <PenTool className="h-4 w-4" />
+                    Draw Route
+                  </button>
+                </div>
+              </div>
             )}
           </TabsContent>
 
