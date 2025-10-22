@@ -190,7 +190,7 @@ export function HikerProfileEditForm() {
   };
 
   const handlePasswordChange = async () => {
-    if (!newPassword || !confirmPassword) {
+    if (!currentPassword || !newPassword || !confirmPassword) {
       toast.error('Please fill in all password fields');
       return;
     }
@@ -205,11 +205,34 @@ export function HikerProfileEditForm() {
       return;
     }
 
+    if (currentPassword === newPassword) {
+      toast.error('New password must be different from current password');
+      return;
+    }
+
     try {
       setUpdatingPassword(true);
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
 
-      if (error) throw error;
+      // First, verify the current password by attempting to sign in
+      if (!profile.email) {
+        throw new Error('Email not found');
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: profile.email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        throw new Error('Current password is incorrect');
+      }
+
+      // If verification succeeds, update to new password
+      const { error: updateError } = await supabase.auth.updateUser({ 
+        password: newPassword 
+      });
+
+      if (updateError) throw updateError;
 
       toast.success('Password updated successfully');
       setCurrentPassword('');
@@ -454,6 +477,9 @@ export function HikerProfileEditForm() {
                 </p>
               </div>
             </div>
+            <p className="text-sm text-muted-foreground">
+              A verification link will be sent to your new email address. You must verify it before the change takes effect.
+            </p>
             <div className="flex gap-2">
               <Input
                 type="email"
@@ -487,19 +513,32 @@ export function HikerProfileEditForm() {
           {/* Password Change */}
           <div className="space-y-3">
             <Label className="text-base">Change Password</Label>
+            <p className="text-sm text-muted-foreground">
+              You must enter your current password to verify it's you before changing to a new password.
+            </p>
             <div className="space-y-3">
               <div className="space-y-2">
-                <Label htmlFor="new_password">New Password</Label>
+                <Label htmlFor="current_password">Current Password *</Label>
+                <Input
+                  id="current_password"
+                  type="password"
+                  placeholder="Enter current password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new_password">New Password *</Label>
                 <Input
                   id="new_password"
                   type="password"
-                  placeholder="Enter new password"
+                  placeholder="Enter new password (min. 6 characters)"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm_password">Confirm New Password</Label>
+                <Label htmlFor="confirm_password">Confirm New Password *</Label>
                 <Input
                   id="confirm_password"
                   type="password"
@@ -510,7 +549,7 @@ export function HikerProfileEditForm() {
               </div>
               <Button
                 onClick={handlePasswordChange}
-                disabled={updatingPassword || !newPassword || !confirmPassword}
+                disabled={updatingPassword || !currentPassword || !newPassword || !confirmPassword}
                 variant="outline"
                 className="w-full"
               >
