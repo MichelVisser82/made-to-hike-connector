@@ -15,7 +15,7 @@ export function useConversations(userId: string | undefined) {
     fetchConversations();
 
     // Subscribe to new messages and read receipts
-    const channel = supabase
+    const messagesChannel = supabase
       .channel('conversations-changes')
       .on(
         'postgres_changes',
@@ -34,6 +34,18 @@ export function useConversations(userId: string | undefined) {
         {
           event: 'INSERT',
           schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          // Slight delay to ensure read receipts are processed
+          setTimeout(() => fetchConversations(), 500);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
           table: 'message_read_receipts'
         },
         () => {
@@ -43,7 +55,7 @@ export function useConversations(userId: string | undefined) {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
     };
   }, [userId]);
 

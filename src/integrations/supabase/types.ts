@@ -1733,22 +1733,13 @@ export type Database = {
         Args: { _guide_user_id: string }
         Returns: boolean
       }
-      cleanup_expired_kv_store: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_guide_slug: {
-        Args: { guide_name: string }
-        Returns: string
-      }
+      cleanup_expired_kv_store: { Args: never; Returns: undefined }
+      generate_guide_slug: { Args: { guide_name: string }; Returns: string }
       generate_tour_slug: {
         Args: { tour_region: string; tour_title: string }
         Returns: string
       }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_role: { Args: never; Returns: string }
       get_guide_all_date_slots: {
         Args: { p_end_date?: string; p_guide_id: string; p_start_date?: string }
         Returns: {
@@ -1782,16 +1773,16 @@ export type Database = {
           spots_total: number
         }[]
       }
-      has_role: {
-        Args:
-          | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
-          | { _role: string; _user_id: string }
-        Returns: boolean
-      }
-      migrate_tour_dates_to_slots: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      has_role:
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+      migrate_tour_dates_to_slots: { Args: never; Returns: undefined }
       validate_discount_code: {
         Args: {
           p_code: string
