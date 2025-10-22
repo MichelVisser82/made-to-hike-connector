@@ -36,6 +36,37 @@ function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => v
   return null;
 }
 
+// Component to handle scroll with modifier key
+function ScrollWheelHandler() {
+  const map = useMapEvents({});
+  
+  useMemo(() => {
+    map.scrollWheelZoom.disable();
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        map.scrollWheelZoom.enable();
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) {
+        map.scrollWheelZoom.disable();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [map]);
+  
+  return null;
+}
+
 export function HighlightEditor({ 
   trackpoints, 
   daySegments, 
@@ -176,12 +207,12 @@ export function HighlightEditor({
         </div>
 
         {/* Map */}
-        <div className="h-[500px] rounded-lg overflow-hidden border">
+        <div className="h-[500px] rounded-lg overflow-hidden border relative z-0">
           <MapContainer
             center={[bounds[0][0], bounds[0][1]]}
             zoom={12}
-            className="h-full w-full"
-            scrollWheelZoom={true}
+            className="h-full w-full relative z-0"
+            scrollWheelZoom={false}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -189,6 +220,7 @@ export function HighlightEditor({
             />
             
             <MapClickHandler onClick={handleMapClick} />
+            <ScrollWheelHandler />
 
             {/* Route */}
             <Polyline

@@ -28,6 +28,37 @@ function FitBounds({ bounds }: { bounds: [[number, number], [number, number]] })
   return null;
 }
 
+// Component to handle scroll with modifier key
+function ScrollWheelHandler() {
+  const map = useMap();
+  
+  useMemo(() => {
+    map.scrollWheelZoom.disable();
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        map.scrollWheelZoom.enable();
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) {
+        map.scrollWheelZoom.disable();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [map]);
+  
+  return null;
+}
+
 export function DaySplitter({ trackpoints, daysCount, currentSplits, onSplitsConfirmed, onBack }: DaySplitterProps) {
   const suggestions = useMemo(() => 
     suggestDaySplits(trackpoints, daysCount), 
@@ -178,14 +209,15 @@ export function DaySplitter({ trackpoints, daysCount, currentSplits, onSplitsCon
         </div>
 
         {/* Map */}
-        <div className="h-[500px] rounded-lg overflow-hidden border">
+        <div className="h-[500px] rounded-lg overflow-hidden border relative z-0">
           <MapContainer
             center={[bounds[0][0], bounds[0][1]]}
             zoom={12}
-            className="h-full w-full"
-            scrollWheelZoom={true}
+            className="h-full w-full relative z-0"
+            scrollWheelZoom={false}
           >
             <FitBounds bounds={bounds} />
+            <ScrollWheelHandler />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

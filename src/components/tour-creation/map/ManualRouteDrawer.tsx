@@ -22,6 +22,37 @@ function ClickHandler({ onAddPoint }: { onAddPoint: (lat: number, lng: number) =
   return null;
 }
 
+// Component to handle scroll with modifier key
+function ScrollWheelHandler() {
+  const map = useMapEvents({});
+  
+  useMemo(() => {
+    map.scrollWheelZoom.disable();
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        map.scrollWheelZoom.enable();
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) {
+        map.scrollWheelZoom.disable();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [map]);
+  
+  return null;
+}
+
 export function ManualRouteDrawer({ onRouteConfirmed, onBack }: ManualRouteDrawerProps) {
   const [points, setPoints] = useState<Coordinate[]>([]);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
@@ -102,12 +133,12 @@ export function ManualRouteDrawer({ onRouteConfirmed, onBack }: ManualRouteDrawe
         </div>
 
         {/* Map */}
-        <div className="h-[500px] rounded-lg overflow-hidden border">
+        <div className="h-[500px] rounded-lg overflow-hidden border relative z-0">
           <MapContainer
             center={points.length > 0 ? [points[0].lat, points[0].lng] : [46.5, 11.3]}
             zoom={points.length === 0 ? 8 : 12}
-            className="h-full w-full cursor-crosshair"
-            scrollWheelZoom={true}
+            className="h-full w-full cursor-crosshair relative z-0"
+            scrollWheelZoom={false}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -115,6 +146,7 @@ export function ManualRouteDrawer({ onRouteConfirmed, onBack }: ManualRouteDrawe
             />
             
             <ClickHandler onAddPoint={handleAddPoint} />
+            <ScrollWheelHandler />
 
             {/* Route line */}
             {points.length > 1 && (

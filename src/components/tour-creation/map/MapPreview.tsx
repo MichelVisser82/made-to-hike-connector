@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Polyline, Marker, Popup, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { Coordinate } from '@/utils/routeAnalysis';
 import { TourHighlight, HIGHLIGHT_CATEGORY_ICONS, GPXParseResult } from '@/types/map';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useMemo } from 'react';
 
 // Fix Leaflet default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -32,6 +33,37 @@ const DAY_COLORS = [
   '#ec4899', // pink
   '#14b8a6', // teal
 ];
+
+// Component to handle scroll with modifier key
+function ScrollWheelHandler() {
+  const map = useMap();
+  
+  useMemo(() => {
+    map.scrollWheelZoom.disable();
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        map.scrollWheelZoom.enable();
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) {
+        map.scrollWheelZoom.disable();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [map]);
+  
+  return null;
+}
 
 export function MapPreview({ gpxData, daySegments, highlights, onBack }: MapPreviewProps) {
   // Use day segments if available, otherwise use full route
@@ -62,8 +94,9 @@ export function MapPreview({ gpxData, daySegments, highlights, onBack }: MapPrev
             center={center}
             zoom={12}
             className="h-full w-full relative z-0"
-            scrollWheelZoom={true}
+            scrollWheelZoom={false}
           >
+            <ScrollWheelHandler />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
