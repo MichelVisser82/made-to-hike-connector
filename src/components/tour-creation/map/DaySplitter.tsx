@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Coordinate } from '@/utils/routeAnalysis';
 import { suggestDaySplits, analyzeRoute, getRouteBoundingBox } from '@/utils/routeAnalysis';
 import { AccommodationMarker, AccommodationClickHandler } from './AccommodationMarker';
-import { Sparkles, Check, Edit3, Home } from 'lucide-react';
+import { Sparkles, Check, Edit3, Home, Trash2 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { toast } from 'sonner';
 
 interface DaySplitterProps {
   trackpoints: Coordinate[];
@@ -38,6 +39,7 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
   const [mode, setMode] = useState<'suggestions' | 'manual'>('suggestions');
   const [accommodations, setAccommodations] = useState<Map<number, { lat: number; lng: number; name?: string }>>(new Map());
   const [addingAccommodation, setAddingAccommodation] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const bounds = useMemo(() => getRouteBoundingBox(trackpoints), [trackpoints]);
   
@@ -66,6 +68,8 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
 
   const handleAcceptSuggestions = () => {
     onSplitsConfirmed(splitIndices);
+    setHasUnsavedChanges(false);
+    toast.success('Day splits saved successfully!');
   };
 
   const handleCustomize = () => {
@@ -76,6 +80,18 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
     const newSuggestions = suggestDaySplits(trackpoints, daysCount);
     setSplitIndices(newSuggestions.map(s => s.splitIndex));
     setMode('suggestions');
+    setHasUnsavedChanges(true);
+  };
+
+  const handleDeleteSplit = (index: number) => {
+    if (splitIndices.length <= 1) {
+      toast.error('Cannot delete - need at least one split point');
+      return;
+    }
+    const newSplits = splitIndices.filter((_, i) => i !== index);
+    setSplitIndices(newSplits);
+    setHasUnsavedChanges(true);
+    toast.success('Split point removed');
   };
 
   const handleAddAccommodation = (lat: number, lng: number) => {
@@ -152,6 +168,7 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
             <Button onClick={handleAcceptSuggestions}>
               <Check className="h-4 w-4 mr-2" />
               {mode === 'suggestions' ? 'Accept Splits' : 'Confirm Splits'}
+              {hasUnsavedChanges && ' *'}
             </Button>
           </div>
         </div>
@@ -201,7 +218,7 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
               const point = trackpoints[idx];
               return (
                 <Marker
-                  key={i}
+                  key={`${i}-${idx}`}
                   position={[point.lat, point.lng]}
                   icon={splitMarkerIcon}
                   draggable={mode === 'manual'}
@@ -225,16 +242,29 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
                       const newSplits = [...splitIndices];
                       newSplits[i] = nearestIdx;
                       setSplitIndices(newSplits);
+                      setHasUnsavedChanges(true);
+                      toast.info('Split point moved - click "Confirm Splits" to save');
                     }
                   }}
                 >
                   <Popup>
-                    <div className="text-center p-2">
-                      <p className="font-semibold">Day {i + 1} → Day {i + 2}</p>
+                    <div className="text-center p-2 min-w-[150px]">
+                      <p className="font-semibold mb-2">Day {i + 1} → Day {i + 2}</p>
                       {mode === 'manual' && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Drag to adjust split point
-                        </p>
+                        <>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            Drag to adjust split point
+                          </p>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteSplit(i)}
+                            className="w-full"
+                          >
+                            <Trash2 className="h-3 w-3 mr-2" />
+                            Delete Split
+                          </Button>
+                        </>
                       )}
                     </div>
                   </Popup>
