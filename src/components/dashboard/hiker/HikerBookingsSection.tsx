@@ -72,7 +72,10 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
 
   // Transform bookings into receipts (only for paid bookings)
   const receipts = bookings
-    .filter(b => b.payment_status.toLowerCase() === 'paid')
+    .filter(b => {
+      const paymentStatus = b.payment_status.toLowerCase();
+      return paymentStatus === 'paid' || paymentStatus === 'completed';
+    })
     .map(booking => ({
       id: booking.id,
       title: `${booking.tours?.title || 'Tour'} - Receipt`,
