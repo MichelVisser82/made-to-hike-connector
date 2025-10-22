@@ -61,7 +61,6 @@ export function AppNavigation({
   const navigate = useNavigate();
   const { user: authUser, signOut } = useAuth();
   const { profile } = useProfile();
-  const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   
   const user = profile || (authUser && authUser.email_confirmed_at ? {
@@ -75,75 +74,8 @@ export function AppNavigation({
   // Fetch conversations for notifications
   const { conversations } = useConversations(user?.id);
 
-  // Fetch unread messages count
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const fetchUnreadCount = async () => {
-      const { data: conversations } = await supabase
-        .from('conversations')
-        .select('id')
-        .or(`hiker_id.eq.${user.id},guide_id.eq.${user.id}`);
-
-      if (conversations) {
-        let totalUnread = 0;
-        
-        for (const conv of conversations) {
-          const { data: unreadMessages } = await supabase
-            .from('messages')
-            .select('id')
-            .eq('conversation_id', conv.id)
-            .neq('sender_id', user.id);
-
-          if (unreadMessages) {
-            for (const msg of unreadMessages) {
-              const { data: receipt } = await supabase
-                .from('message_read_receipts')
-                .select('id')
-                .eq('message_id', msg.id)
-                .eq('user_id', user.id)
-                .maybeSingle();
-              
-              if (!receipt) {
-                totalUnread++;
-              }
-            }
-          }
-        }
-        
-        setUnreadCount(totalUnread);
-      }
-    };
-
-    fetchUnreadCount();
-
-    // Subscribe to new messages and read receipts
-    const messagesChannel = supabase
-      .channel('unread-messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
-        () => fetchUnreadCount()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'message_read_receipts'
-        },
-        () => fetchUnreadCount()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(messagesChannel);
-    };
-  }, [user?.id]);
+  // Calculate unread count from conversations
+  const unreadCount = conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0);
 
   const handleLogout = async () => {
     await signOut();
