@@ -11,7 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TourHighlight, HighlightCategory, HIGHLIGHT_CATEGORY_LABELS, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
 import { Coordinate, getRouteBoundingBox } from '@/utils/routeAnalysis';
-import { MapPin, Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Eye, EyeOff, Download } from 'lucide-react';
+import { HighlightImageUpload } from './HighlightImageUpload';
+import { toast } from 'sonner';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -77,6 +79,23 @@ export function HighlightEditor({
       sequenceOrder: highlights.length
     });
     setIsModalOpen(true);
+  };
+
+  const handleImportAllWaypoints = () => {
+    const newHighlights = waypoints.map((wp, idx) => ({
+      id: `temp-wp-${Date.now()}-${idx}`,
+      name: wp.name,
+      description: wp.description,
+      latitude: wp.lat,
+      longitude: wp.lng,
+      category: 'scenic_viewpoint' as HighlightCategory,
+      isPublic: false,
+      photos: [],
+      sequenceOrder: highlights.length + idx
+    }));
+    
+    setHighlights([...highlights, ...newHighlights]);
+    toast.success(`Imported ${waypoints.length} waypoints as highlights`);
   };
 
   const handleSaveHighlight = () => {
@@ -214,10 +233,20 @@ export function HighlightEditor({
         {/* Import Waypoints */}
         {waypoints.length > 0 && (
           <Card className="p-4 mt-4 bg-muted/50">
-            <h4 className="font-medium mb-3 flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Import from GPX Waypoints ({waypoints.length})
-            </h4>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Import from GPX Waypoints ({waypoints.length})
+              </h4>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleImportAllWaypoints}
+              >
+                <Download className="h-3 w-3 mr-2" />
+                Import All
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {waypoints.slice(0, 10).map((wp, idx) => (
                 <Button
@@ -232,6 +261,11 @@ export function HighlightEditor({
                 </Button>
               ))}
             </div>
+            {waypoints.length > 10 && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Showing 10 of {waypoints.length} waypoints. Click "Import All" to import all at once.
+              </p>
+            )}
           </Card>
         )}
 
@@ -369,6 +403,11 @@ export function HighlightEditor({
                 rows={2}
               />
             </div>
+
+            <HighlightImageUpload
+              photos={editingHighlight?.photos || []}
+              onPhotosChange={(photos) => setEditingHighlight({ ...editingHighlight, photos })}
+            />
 
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
               <div>

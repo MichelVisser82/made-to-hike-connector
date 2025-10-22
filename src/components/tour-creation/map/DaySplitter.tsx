@@ -35,6 +35,7 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
     suggestions.map(s => s.splitIndex)
   );
   const [mode, setMode] = useState<'suggestions' | 'manual'>('suggestions');
+  const [accommodations, setAccommodations] = useState<Map<number, { lat: number; lng: number }>>(new Map());
 
   const bounds = useMemo(() => getRouteBoundingBox(trackpoints), [trackpoints]);
   
@@ -69,6 +70,12 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
     setMode('manual');
   };
 
+  const handleRegenerateSplits = () => {
+    const newSuggestions = suggestDaySplits(trackpoints, daysCount);
+    setSplitIndices(newSuggestions.map(s => s.splitIndex));
+    setMode('suggestions');
+  };
+
   const splitMarkerIcon = L.divIcon({
     className: 'custom-marker',
     html: `
@@ -92,24 +99,24 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
               We've suggested {daysCount} day splits based on distance and elevation
             </p>
           </div>
-          {mode === 'suggestions' && (
-            <div className="flex gap-2">
+          <div className="flex gap-2">
+            {mode === 'manual' && (
+              <Button variant="outline" onClick={handleRegenerateSplits}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Auto-Split
+              </Button>
+            )}
+            {mode === 'suggestions' && (
               <Button variant="outline" onClick={handleCustomize}>
                 <Edit3 className="h-4 w-4 mr-2" />
                 Customize
               </Button>
-              <Button onClick={handleAcceptSuggestions}>
-                <Check className="h-4 w-4 mr-2" />
-                Accept Splits
-              </Button>
-            </div>
-          )}
-          {mode === 'manual' && (
+            )}
             <Button onClick={handleAcceptSuggestions}>
               <Check className="h-4 w-4 mr-2" />
-              Confirm Splits
+              {mode === 'suggestions' ? 'Accept Splits' : 'Confirm Splits'}
             </Button>
-          )}
+          </div>
         </div>
 
         {/* Map */}

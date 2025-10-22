@@ -160,6 +160,30 @@ serve(async (req) => {
       throw new Error('Failed to upload GPX file');
     }
 
+    // Rate limiting check
+    const uploadKey = `gpx_uploads:${user.id}`;
+    const { data: rateLimitData } = await supabase
+      .from('kv_store')
+      .select('value')
+      .eq('key', uploadKey)
+      .single();
+
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000;
+    let uploads: number[] = rateLimitData?.value ? JSON.parse(rateLimitData.value as string) : [];
+    uploads = uploads.filter(t => now - t < oneHour);
+
+    if (uploads.length >= 10) {
+      throw new Error('Rate limit exceeded. Maximum 10 uploads per hour.');
+    }
+
+    uploads.push(now);
+    await supabase.from('kv_store').upsert({
+      key: uploadKey,
+      value: JSON.stringify(uploads),
+      expires_at: new Date(now + oneHour).toISOString()
+    });
+
     // Save metadata to database
     await supabase
       .from('tour_gpx_files')

@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GPXUploader } from './GPXUploader';
+import { ManualRouteDrawer } from './ManualRouteDrawer';
 import { DaySplitter } from './DaySplitter';
 import { HighlightEditor } from './HighlightEditor';
 import { PrivacySettingsPanel } from './PrivacySettingsPanel';
 import { GPXParseResult, TourHighlight } from '@/types/map';
-import { Coordinate } from '@/utils/routeAnalysis';
-import { Map, Upload, Sparkles, MapPin, Lock } from 'lucide-react';
+import { Coordinate, analyzeRoute } from '@/utils/routeAnalysis';
+import { Map, Upload, Sparkles, MapPin, Lock, PenTool } from 'lucide-react';
 
 interface MapEditorInterfaceProps {
   tourId: string;
@@ -24,6 +25,22 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
 
   const handleGPXUpload = (result: GPXParseResult) => {
     setGpxData(result);
+    setActiveTab('split');
+  };
+
+  const handleManualRoute = (trackpoints: Coordinate[]) => {
+    const analysis = analyzeRoute(trackpoints);
+    const mockResult: GPXParseResult = {
+      trackpoints,
+      waypoints: [],
+      analysis: {
+        totalDistance: analysis.totalDistance,
+        elevationGain: analysis.elevationGain,
+        elevationLoss: analysis.elevationLoss,
+        boundingBox: analysis.boundingBox
+      }
+    };
+    setGpxData(mockResult);
     setActiveTab('split');
   };
 
@@ -81,10 +98,14 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
 
       <Card className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="upload" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload GPX
+            </TabsTrigger>
+            <TabsTrigger value="draw" className="flex items-center gap-2">
+              <PenTool className="h-4 w-4" />
+              Draw Route
             </TabsTrigger>
             <TabsTrigger value="split" disabled={!gpxData} className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
@@ -102,6 +123,13 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
 
           <TabsContent value="upload" className="mt-6">
             <GPXUploader tourId={tourId} onUploadSuccess={handleGPXUpload} />
+          </TabsContent>
+
+          <TabsContent value="draw" className="mt-6">
+            <ManualRouteDrawer
+              onRouteConfirmed={handleManualRoute}
+              onBack={() => setActiveTab('upload')}
+            />
           </TabsContent>
 
           <TabsContent value="split" className="mt-6">

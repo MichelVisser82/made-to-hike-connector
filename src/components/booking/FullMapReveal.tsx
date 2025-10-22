@@ -1,16 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Download, MapPin, Gift, Eye } from 'lucide-react';
+import { Download, MapPin, Gift, Eye, Copy, FileDown } from 'lucide-react';
 import { TourHighlight, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { RoutePolylineWithArrows } from './RoutePolylineWithArrows';
 
 // Fix Leaflet icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -76,6 +80,87 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
   });
 
   const [selectedDay, setSelectedDay] = useState<number>(1);
+
+  const handleCopyCoordinates = (lat: number, lng: number) => {
+    const coordString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    navigator.clipboard.writeText(coordString);
+    toast.success('Coordinates copied to clipboard!');
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      toast.info('Generating PDF...');
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      let yPosition = 20;
+
+      // Title
+      pdf.setFontSize(20);
+      pdf.text('Tour Route Map & Details', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+
+      // Stats
+      pdf.setFontSize(12);
+      pdf.text(`Total Distance: ${mapData?.dayRoutes.reduce((sum, r) => sum + (r.distance_km || 0), 0).toFixed(1)} km`, 20, yPosition);
+      yPosition += 7;
+      pdf.text(`Total Elevation: ${mapData?.dayRoutes.reduce((sum, r) => sum + (r.elevation_gain_m || 0), 0)} m`, 20, yPosition);
+      yPosition += 7;
+      pdf.text(`Highlights: ${mapData?.highlights.length || 0} points of interest`, 20, yPosition);
+      yPosition += 15;
+
+      // Capture map screenshot
+      const mapElement = document.querySelector('.leaflet-container') as HTMLElement;
+      if (mapElement) {
+        const canvas = await html2canvas(mapElement, { useCORS: true });
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        if (yPosition + imgHeight > 280) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        
+        pdf.addImage(imgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 10;
+      }
+
+      // Highlights
+      if (mapData?.highlights && mapData.highlights.length > 0) {
+        if (yPosition > 250) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        
+        pdf.setFontSize(14);
+        pdf.text('Points of Interest', 20, yPosition);
+        yPosition += 10;
+        
+        pdf.setFontSize(10);
+        mapData.highlights.forEach((h, idx) => {
+          if (yPosition > 270) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          pdf.text(`${idx + 1}. ${h.name} - ${h.latitude.toFixed(4)}, ${h.longitude.toFixed(4)}`, 25, yPosition);
+          yPosition += 6;
+          if (h.description) {
+            pdf.setFontSize(8);
+            pdf.text(h.description.substring(0, 80), 30, yPosition);
+            pdf.setFontSize(10);
+            yPosition += 6;
+          }
+        });
+      }
+
+      pdf.save('tour-route-map.pdf');
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('Failed to generate PDF');
+    }
+  };
 
   const selectedRoute = useMemo(() => {
     return mapData?.dayRoutes?.find(r => r.day_number === selectedDay);
@@ -202,12 +287,18 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Full Route Map</CardTitle>
-          {mapData.gpxFile && (
-            <Button onClick={handleDownloadGPX} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Download GPX
+          <div className="flex gap-2">
+            <Button onClick={handleDownloadPDF} variant="outline" size="sm">
+              <FileDown className="h-4 w-4 mr-2" />
+              Download PDF
             </Button>
-          )}
+            {mapData.gpxFile && (
+              <Button onClick={handleDownloadGPX} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Download GPX
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs value={selectedDay.toString()} onValueChange={(v) => setSelectedDay(parseInt(v))}>
@@ -374,7 +465,3 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
     </div>
   );
 }
-
-// Add missing import
-import { toast } from 'sonner';
-import { useState } from 'react';

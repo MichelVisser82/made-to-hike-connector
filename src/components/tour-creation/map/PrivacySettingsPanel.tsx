@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TourHighlight, RouteDisplayMode, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
 import { Eye, EyeOff, MapPin, Lock, Globe } from 'lucide-react';
 
@@ -22,6 +23,7 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
   const [showMeetingPoint, setShowMeetingPoint] = useState(true);
   const [routeDisplayMode, setRouteDisplayMode] = useState<RouteDisplayMode>('region_overview');
   const [featuredHighlightIds, setFeaturedHighlightIds] = useState<string[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   const publicHighlights = highlights.filter(h => h.isPublic);
   const secretHighlights = highlights.filter(h => !h.isPublic);
@@ -52,6 +54,10 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
               Control what information is shown publicly vs. revealed after booking
             </p>
           </div>
+          <Button variant="outline" onClick={() => setShowPreview(true)}>
+            <Eye className="h-4 w-4 mr-2" />
+            Preview Public View
+          </Button>
         </div>
 
         {/* Meeting Point */}
@@ -219,6 +225,95 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
           Continue
         </Button>
       </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Public View Preview</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <Card className="p-6 bg-muted/30">
+              <h4 className="font-semibold mb-4">What Visitors Will See:</h4>
+              
+              <div className="space-y-4">
+                {/* Meeting Point */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5" />
+                    <div>
+                      <div className="font-medium">Meeting Point</div>
+                      <div className="text-sm text-muted-foreground">
+                        {showMeetingPoint ? 'Exact location visible' : 'Hidden until booking'}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge variant={showMeetingPoint ? "default" : "secondary"}>
+                    {showMeetingPoint ? 'Visible' : 'Hidden'}
+                  </Badge>
+                </div>
+
+                {/* Route Display */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Globe className="h-5 w-5" />
+                    <div>
+                      <div className="font-medium">Route Display</div>
+                      <div className="text-sm text-muted-foreground">
+                        {routeDisplayMode === 'region_overview' && 'Approximate region circle shown'}
+                        {routeDisplayMode === 'waypoints_only' && 'Only featured highlights shown'}
+                        {routeDisplayMode === 'none' && 'Completely hidden'}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge variant="outline">{routeDisplayMode.replace('_', ' ')}</Badge>
+                </div>
+
+                {/* Public Highlights */}
+                <div className="p-3 border rounded-lg">
+                  <div className="font-medium mb-3 flex items-center gap-2">
+                    <Eye className="h-5 w-5" />
+                    Public Highlights ({publicHighlights.length})
+                  </div>
+                  {publicHighlights.length > 0 ? (
+                    <div className="space-y-2">
+                      {publicHighlights.map((h) => (
+                        <div key={h.id} className="flex items-center gap-2 text-sm p-2 bg-muted/50 rounded">
+                          <span>{HIGHLIGHT_CATEGORY_ICONS[h.category!]}</span>
+                          <span>{h.name}</span>
+                          {featuredHighlightIds.includes(h.id!) && (
+                            <Badge variant="default" className="ml-auto">Featured</Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No public highlights</p>
+                  )}
+                </div>
+
+                {/* Secret Highlights */}
+                <div className="p-3 border rounded-lg">
+                  <div className="font-medium mb-3 flex items-center gap-2">
+                    <Lock className="h-5 w-5" />
+                    Secret Highlights ({secretHighlights.length})
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    These will be revealed only after booking confirmation
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-primary/10 rounded-lg">
+                <p className="text-sm">
+                  <strong>Note:</strong> Full route details, elevation profiles, and secret highlights 
+                  will be revealed to hikers after they complete their booking.
+                </p>
+              </div>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
