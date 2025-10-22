@@ -349,7 +349,7 @@ export function HighlightEditor({
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[10000] bg-popover">
                   {Object.entries(HIGHLIGHT_CATEGORY_LABELS).map(([key, label]) => (
                     <SelectItem key={key} value={key}>
                       <span className="flex items-center gap-2">
@@ -382,7 +382,7 @@ export function HighlightEditor({
                   <SelectTrigger>
                     <SelectValue placeholder="Select day (optional)" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[10000] bg-popover">
                     {daySegments.map((seg) => (
                       <SelectItem key={seg.dayNumber} value={seg.dayNumber.toString()}>
                         Day {seg.dayNumber}
