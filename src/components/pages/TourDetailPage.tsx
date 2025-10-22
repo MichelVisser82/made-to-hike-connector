@@ -355,17 +355,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 </CardContent>
               </Card>
 
-              {/* Interactive Tour Map or Meeting Location */}
-              {tourMapData ? (
-                <PublicTourMapSection
-                  mapSettings={tourMapData.mapSettings}
-                  featuredHighlights={tourMapData.featuredHighlights}
-                  meetingPoint={tour.meeting_point_lat && tour.meeting_point_lng ? {
-                    lat: tour.meeting_point_lat,
-                    lng: tour.meeting_point_lng
-                  } : undefined}
-                />
-              ) : tour.meeting_point_lat && tour.meeting_point_lng && (
+              {/* Meeting Location Map - Always simple */}
+              {tour.meeting_point_lat && tour.meeting_point_lng && (
                 <Card className="shadow-lg lg:h-full lg:flex lg:flex-col">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
