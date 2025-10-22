@@ -563,6 +563,18 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </CardContent>
             </Card>
 
+            {/* Full Tour Route Map - Shows when map data exists */}
+            {tourMapData && (
+              <PublicTourMapSection
+                mapSettings={tourMapData.mapSettings}
+                featuredHighlights={tourMapData.featuredHighlights}
+                meetingPoint={tour.meeting_point_lat && tour.meeting_point_lng ? {
+                  lat: tour.meeting_point_lat,
+                  lng: tour.meeting_point_lng
+                } : undefined}
+              />
+            )}
+
             {/* Detailed Itinerary */}
             <Card>
               <CardHeader>
