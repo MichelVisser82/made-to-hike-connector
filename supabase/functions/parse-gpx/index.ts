@@ -69,6 +69,7 @@ serve(async (req) => {
     // Extract trackpoints
     const trackpoints: Array<{ lat: number; lng: number; elevation?: number }> = [];
     const trkpts = gpxDoc.querySelectorAll('trkpt');
+    let hasElevationData = false;
     
     trkpts.forEach((trkpt) => {
       const lat = parseFloat(trkpt.getAttribute('lat') || '0');
@@ -76,8 +77,14 @@ serve(async (req) => {
       const eleElement = trkpt.querySelector('ele');
       const elevation = eleElement ? parseFloat(eleElement.textContent || '0') : undefined;
 
+      if (elevation !== undefined && elevation !== 0) {
+        hasElevationData = true;
+      }
+
       trackpoints.push({ lat, lng, elevation });
     });
+
+    console.log(`[parse-gpx] Has elevation data: ${hasElevationData}`);
 
     // Extract waypoints
     const waypoints: Array<{ name: string; description?: string; lat: number; lng: number; elevation?: number }> = [];
@@ -198,11 +205,13 @@ serve(async (req) => {
         onConflict: 'tour_id'
       });
 
-    // Return parsed data
+    // Return parsed data with elevation warning if needed
     return new Response(
       JSON.stringify({
         trackpoints,
         waypoints,
+        hasElevationData,
+        needsElevationFetch: !hasElevationData,
         analysis: {
           totalDistance: parseFloat(totalDistance.toFixed(2)),
           elevationGain: Math.round(elevationGain),

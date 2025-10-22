@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { GPXParseResult } from '@/types/map';
 import { toast } from 'sonner';
+import { fetchElevationData } from '@/utils/elevationApi';
 
 interface GPXUploaderProps {
   tourId: string;
@@ -51,9 +52,24 @@ export function GPXUploader({ tourId, onUploadSuccess }: GPXUploaderProps) {
         throw response.error;
       }
 
+      const result = response.data as GPXParseResult & { needsElevationFetch?: boolean };
+      
+      // Check if elevation data needs to be fetched
+      if (result.needsElevationFetch) {
+        toast.info('Fetching elevation data from terrain API...');
+        try {
+          const updatedTrackpoints = await fetchElevationData(result.trackpoints);
+          result.trackpoints = updatedTrackpoints;
+          toast.success('Elevation data fetched successfully!');
+        } catch (elevError) {
+          console.warn('Failed to fetch elevation data, proceeding without:', elevError);
+          toast.warning('Could not fetch elevation data, continuing with available data');
+        }
+      }
+
       setUploadedFile(file.name);
       toast.success('GPX file uploaded and parsed successfully!');
-      onUploadSuccess(response.data as GPXParseResult);
+      onUploadSuccess(result);
 
     } catch (error) {
       console.error('Upload error:', error);

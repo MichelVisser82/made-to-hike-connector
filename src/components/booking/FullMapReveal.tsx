@@ -324,18 +324,12 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-
-                    {/* Route line */}
-                    {routeCoordinates.length > 0 && (
-                      <Polyline
-                        positions={routeCoordinates}
-                        pathOptions={{
-                          color: '#10b981',
-                          weight: 4,
-                          opacity: 0.8
-                        }}
-                      />
-                    )}
+                    
+                    <RoutePolylineWithArrows
+                      positions={routeCoordinates}
+                      color="#10b981"
+                      weight={4}
+                    />
 
                     {/* Highlights for this day */}
                     {mapData.highlights
@@ -348,18 +342,15 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
                         >
                           <Popup>
                             <div className="p-2 min-w-[200px]">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category as keyof typeof HIGHLIGHT_CATEGORY_ICONS]}</span>
-                                <h4 className="font-semibold">{highlight.name}</h4>
-                                {!highlight.is_public && (
-                                  <Badge variant="secondary" className="ml-auto">
-                                    <Gift className="h-3 w-3 mr-1" />
-                                    Secret
-                                  </Badge>
-                                )}
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category]}</span>
+                                <Badge variant={highlight.is_public ? "default" : "secondary"}>
+                                  {highlight.is_public ? <Eye className="h-3 w-3" /> : <Gift className="h-3 w-3" />}
+                                </Badge>
                               </div>
+                              <h4 className="font-semibold mb-1">{highlight.name}</h4>
                               {highlight.description && (
-                                <p className="text-sm text-muted-foreground mb-2">{highlight.description}</p>
+                                <p className="text-xs text-muted-foreground mb-3">{highlight.description}</p>
                               )}
                               {highlight.guide_notes && (
                                 <div className="mt-2 p-2 bg-muted rounded text-xs">
@@ -367,6 +358,18 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
                                   <p className="text-muted-foreground">{highlight.guide_notes}</p>
                                 </div>
                               )}
+                              <div className="text-xs text-muted-foreground mb-2 mt-2">
+                                {highlight.latitude.toFixed(6)}, {highlight.longitude.toFixed(6)}
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCopyCoordinates(highlight.latitude, highlight.longitude)}
+                                className="w-full"
+                              >
+                                <Copy className="h-3 w-3 mr-2" />
+                                Copy Coordinates
+                              </Button>
                             </div>
                           </Popup>
                         </Marker>

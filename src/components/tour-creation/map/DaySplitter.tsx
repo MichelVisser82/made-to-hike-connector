@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Coordinate } from '@/utils/routeAnalysis';
 import { suggestDaySplits, analyzeRoute, getRouteBoundingBox } from '@/utils/routeAnalysis';
-import { Sparkles, Check, Edit3 } from 'lucide-react';
+import { AccommodationMarker, AccommodationClickHandler } from './AccommodationMarker';
+import { Sparkles, Check, Edit3, Home } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -35,7 +36,8 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
     suggestions.map(s => s.splitIndex)
   );
   const [mode, setMode] = useState<'suggestions' | 'manual'>('suggestions');
-  const [accommodations, setAccommodations] = useState<Map<number, { lat: number; lng: number }>>(new Map());
+  const [accommodations, setAccommodations] = useState<Map<number, { lat: number; lng: number; name?: string }>>(new Map());
+  const [addingAccommodation, setAddingAccommodation] = useState(false);
 
   const bounds = useMemo(() => getRouteBoundingBox(trackpoints), [trackpoints]);
   
@@ -76,6 +78,33 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
     setMode('suggestions');
   };
 
+  const handleAddAccommodation = (lat: number, lng: number) => {
+    const dayNumber = segments.findIndex((seg, idx) => {
+      const splitIdx = splitIndices[idx];
+      return splitIdx ? lat >= trackpoints[seg.start].lat && lat <= trackpoints[splitIdx].lat : false;
+    }) + 1 || 1;
+    
+    const newAccommodations = new Map(accommodations);
+    newAccommodations.set(dayNumber, { lat, lng, name: '' });
+    setAccommodations(newAccommodations);
+    setAddingAccommodation(false);
+  };
+
+  const handleUpdateAccommodation = (dayNumber: number, name: string) => {
+    const acc = accommodations.get(dayNumber);
+    if (acc) {
+      const newAccommodations = new Map(accommodations);
+      newAccommodations.set(dayNumber, { ...acc, name });
+      setAccommodations(newAccommodations);
+    }
+  };
+
+  const handleRemoveAccommodation = (dayNumber: number) => {
+    const newAccommodations = new Map(accommodations);
+    newAccommodations.delete(dayNumber);
+    setAccommodations(newAccommodations);
+  };
+
   const splitMarkerIcon = L.divIcon({
     className: 'custom-marker',
     html: `
@@ -100,6 +129,14 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
             </p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant={addingAccommodation ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAddingAccommodation(!addingAccommodation)}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              {addingAccommodation ? 'Cancel' : 'Add Accommodation'}
+            </Button>
             {mode === 'manual' && (
               <Button variant="outline" onClick={handleRegenerateSplits}>
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -133,6 +170,11 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
+            <AccommodationClickHandler 
+              enabled={addingAccommodation}
+              onAddAccommodation={handleAddAccommodation}
+            />
+
             {/* Full route as gray line */}
             <Polyline
               positions={routeCoordinates}
@@ -142,6 +184,17 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
                 opacity: 0.6
               }}
             />
+
+            {/* Accommodation markers */}
+            {Array.from(accommodations.entries()).map(([dayNumber, acc]) => (
+              <AccommodationMarker
+                key={dayNumber}
+                position={[acc.lat, acc.lng]}
+                name={acc.name}
+                onUpdate={(name) => handleUpdateAccommodation(dayNumber, name)}
+                onRemove={() => handleRemoveAccommodation(dayNumber)}
+              />
+            ))}
 
             {/* Split markers */}
             {splitIndices.map((idx, i) => {
