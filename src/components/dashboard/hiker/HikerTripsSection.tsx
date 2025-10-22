@@ -24,7 +24,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     .filter(booking => {
       const bookingDate = new Date(booking.booking_date);
       const isUpcoming = isAfter(bookingDate, new Date());
-      const isActive = ['confirmed', 'pending'].includes(booking.status.toLowerCase());
+      const isActive = ['confirmed', 'pending', 'pending_confirmation'].includes(booking.status.toLowerCase());
       return isUpcoming && isActive;
     })
     .map(booking => ({
