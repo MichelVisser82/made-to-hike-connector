@@ -166,5 +166,20 @@ export function useConversations(userId: string | undefined) {
     setLoading(false);
   }
 
-  return { conversations, loading, refetch: fetchConversations };
+  const optimisticallyMarkConversationAsRead = (conversationId: string) => {
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, unread_count: 0 }
+          : conv
+      )
+    );
+  };
+
+  return { 
+    conversations, 
+    loading, 
+    refetch: fetchConversations,
+    optimisticallyMarkConversationAsRead 
+  };
 }

@@ -64,7 +64,7 @@ export function InboxSection({
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   
-  const { conversations, loading: conversationsLoading } = useConversations(user?.id);
+  const { conversations, loading: conversationsLoading, optimisticallyMarkConversationAsRead } = useConversations(user?.id);
   
   // Calculate unread count
   const unreadCount = conversations.filter(c => c.unread_count && c.unread_count > 0).length;
@@ -177,7 +177,10 @@ export function InboxSection({
                       return (
                         <div
                           key={conv.id}
-                          onClick={() => setSelectedConversation(conv)}
+                          onClick={() => {
+                            optimisticallyMarkConversationAsRead(conv.id);
+                            setSelectedConversation(conv);
+                          }}
                           className={`p-3 rounded-lg cursor-pointer transition-colors ${
                             selectedConversation?.id === conv.id
                               ? 'bg-burgundy/10 border-l-2 border-l-burgundy'

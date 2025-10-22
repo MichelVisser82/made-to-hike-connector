@@ -72,7 +72,7 @@ export function AppNavigation({
   } as User : null);
 
   // Fetch conversations for notifications
-  const { conversations } = useConversations(user?.id);
+  const { conversations, optimisticallyMarkConversationAsRead } = useConversations(user?.id);
 
   // Calculate unread count from conversations
   const unreadCount = conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0);
@@ -196,6 +196,7 @@ export function AppNavigation({
                           <button
                             key={conversation.id}
                             onClick={() => {
+                              optimisticallyMarkConversationAsRead(conversation.id);
                               setNotificationsOpen(false);
                               navigate(`/dashboard?section=inbox&conversation=${conversation.id}`);
                             }}
