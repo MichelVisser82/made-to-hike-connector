@@ -1,11 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Helper function to extract value from XML tag
+function extractTagValue(xml: string, tag: string): string | null {
+  const regex = new RegExp(`<${tag}[^>]*>([^<]*)<\/${tag}>`, 'i');
+  const match = xml.match(regex);
+  return match ? match[1].trim() : null;
+}
+
+// Helper function to extract attribute value
+function extractAttribute(element: string, attr: string): string | null {
+  const regex = new RegExp(`${attr}=["']([^"']*)["']`, 'i');
+  const match = element.match(regex);
+  return match ? match[1] : null;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -57,66 +70,46 @@ serve(async (req) => {
     // Read file content
     const fileContent = await file.text();
     
-    // Parse GPX using DOMParser with error handling
-    let gpxDoc;
-    try {
-      const parser = new DOMParser();
-      gpxDoc = parser.parseFromString(fileContent, 'text/xml');
-      
-      if (!gpxDoc) {
-        throw new Error('Failed to parse GPX file');
-      }
-
-      // Check for parsing errors
-      const parserError = gpxDoc.querySelector('parsererror');
-      if (parserError) {
-        console.error('[parse-gpx] Parser error:', parserError.textContent);
-        throw new Error('Invalid GPX file format');
-      }
-    } catch (parseError) {
-      console.error('[parse-gpx] Parse error:', parseError);
-      throw new Error(`Failed to parse GPX: ${parseError.message}`);
-    }
-
-    // Extract trackpoints
+    // Parse trackpoints using regex
     const trackpoints: Array<{ lat: number; lng: number; elevation?: number }> = [];
-    const trkpts = gpxDoc.querySelectorAll('trkpt');
+    const trkptRegex = /<trkpt[^>]*lat=["']([^"']*)["'][^>]*lon=["']([^"']*)["'][^>]*>([\s\S]*?)<\/trkpt>/gi;
+    let trkptMatch;
     let hasElevationData = false;
     
-    trkpts.forEach((trkpt) => {
-      const lat = parseFloat(trkpt.getAttribute('lat') || '0');
-      const lng = parseFloat(trkpt.getAttribute('lon') || '0');
-      const eleElement = trkpt.querySelector('ele');
-      const elevation = eleElement ? parseFloat(eleElement.textContent || '0') : undefined;
+    while ((trkptMatch = trkptRegex.exec(fileContent)) !== null) {
+      const lat = parseFloat(trkptMatch[1]);
+      const lng = parseFloat(trkptMatch[2]);
+      const content = trkptMatch[3];
+      
+      const eleValue = extractTagValue(content, 'ele');
+      const elevation = eleValue ? parseFloat(eleValue) : undefined;
 
       if (elevation !== undefined && elevation !== 0) {
         hasElevationData = true;
       }
 
       trackpoints.push({ lat, lng, elevation });
-    });
+    }
 
     console.log(`[parse-gpx] Has elevation data: ${hasElevationData}`);
 
-    // Extract waypoints
+    // Parse waypoints using regex
     const waypoints: Array<{ name: string; description?: string; lat: number; lng: number; elevation?: number }> = [];
-    const wpts = gpxDoc.querySelectorAll('wpt');
+    const wptRegex = /<wpt[^>]*lat=["']([^"']*)["'][^>]*lon=["']([^"']*)["'][^>]*>([\s\S]*?)<\/wpt>/gi;
+    let wptMatch;
     
-    wpts.forEach((wpt) => {
-      const lat = parseFloat(wpt.getAttribute('lat') || '0');
-      const lng = parseFloat(wpt.getAttribute('lon') || '0');
-      const nameElement = wpt.querySelector('name');
-      const descElement = wpt.querySelector('desc');
-      const eleElement = wpt.querySelector('ele');
+    while ((wptMatch = wptRegex.exec(fileContent)) !== null) {
+      const lat = parseFloat(wptMatch[1]);
+      const lng = parseFloat(wptMatch[2]);
+      const content = wptMatch[3];
       
-      waypoints.push({
-        name: nameElement?.textContent || 'Unnamed',
-        description: descElement?.textContent || undefined,
-        lat,
-        lng,
-        elevation: eleElement ? parseFloat(eleElement.textContent || '0') : undefined
-      });
-    });
+      const name = extractTagValue(content, 'name') || 'Unnamed';
+      const description = extractTagValue(content, 'desc') || undefined;
+      const eleValue = extractTagValue(content, 'ele');
+      const elevation = eleValue ? parseFloat(eleValue) : undefined;
+      
+      waypoints.push({ name, description, lat, lng, elevation });
+    }
 
     console.log(`[parse-gpx] Extracted ${trackpoints.length} trackpoints and ${waypoints.length} waypoints`);
 
