@@ -330,13 +330,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </Card>
 
             {/* Tour Highlights & Meeting Location - Side by Side */}
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-2 gap-6 lg:h-[600px]">
               {/* Tour Highlights */}
-              <Card>
+              <Card className="h-full flex flex-col shadow-lg">
                 <CardHeader>
                   <CardTitle>Tour Highlights</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1 overflow-auto">
                   <div className="space-y-3">
                     {tour.highlights.map((highlight, index) => (
                       <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
@@ -352,14 +352,14 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
               {/* Meeting Location Map */}
               {tour.meeting_point_lat && tour.meeting_point_lng && (
-                <Card>
+                <Card className="h-full flex flex-col shadow-lg">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
                       Meeting Location
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex-1 overflow-auto">
                     <HikingLocationMap
                       latitude={tour.meeting_point_lat}
                       longitude={tour.meeting_point_lng}
