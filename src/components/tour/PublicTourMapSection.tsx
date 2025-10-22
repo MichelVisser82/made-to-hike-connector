@@ -161,25 +161,6 @@ export function PublicTourMapSection({
           </div>
         )}
 
-        {/* Featured Highlights List */}
-        {featuredHighlights.length > 0 && (
-          <div className="p-6 border-t">
-            <h3 className="font-semibold mb-4">Featured Highlights</h3>
-            <div className="grid gap-3">
-              {featuredHighlights.map((highlight) => (
-                <div key={highlight.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                  <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category]}</span>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{highlight.name}</h4>
-                    {highlight.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{highlight.description}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
