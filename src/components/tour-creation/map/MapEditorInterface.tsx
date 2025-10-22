@@ -298,6 +298,7 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
                 trackpoints={gpxData.trackpoints}
                 daySegments={daySegments}
                 waypoints={gpxData.waypoints}
+                existingHighlights={highlights}
                 onHighlightsConfirmed={handleHighlightsConfirmed}
                 onBack={() => setActiveTab('split')}
               />

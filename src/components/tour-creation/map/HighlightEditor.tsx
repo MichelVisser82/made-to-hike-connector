@@ -21,6 +21,7 @@ interface HighlightEditorProps {
   trackpoints: Coordinate[];
   daySegments: Array<{ dayNumber: number; coordinates: Coordinate[] }>;
   waypoints?: Array<{ name: string; description?: string; lat: number; lng: number }>;
+  existingHighlights?: Partial<TourHighlight>[]; // Existing highlights to display
   onHighlightsConfirmed: (highlights: Partial<TourHighlight>[]) => void;
   onBack: () => void;
 }
@@ -39,10 +40,11 @@ export function HighlightEditor({
   trackpoints, 
   daySegments, 
   waypoints = [],
+  existingHighlights = [],
   onHighlightsConfirmed, 
   onBack 
 }: HighlightEditorProps) {
-  const [highlights, setHighlights] = useState<Partial<TourHighlight>[]>([]);
+  const [highlights, setHighlights] = useState<Partial<TourHighlight>[]>(existingHighlights);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHighlight, setEditingHighlight] = useState<Partial<TourHighlight> | null>(null);
   const [clickMode, setClickMode] = useState(false);
