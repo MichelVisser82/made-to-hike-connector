@@ -73,7 +73,7 @@ export function PublicTourMapSection({
         <div className="mt-4 p-4 bg-muted rounded-lg">
           <p className="text-sm text-muted-foreground">
             <MapPin className="inline h-4 w-4 mr-2" />
-            The exact meeting point details will be provided after booking confirmation.
+            This is where we'll meet to start the tour. Full route details and highlights will be shared after booking.
           </p>
         </div>
       </CardContent>
