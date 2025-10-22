@@ -121,9 +121,9 @@ export function ManualRouteDrawer({ onRouteConfirmed, onBack }: ManualRouteDrawe
               <Polyline
                 positions={points.map(p => [p.lat, p.lng] as [number, number])}
                 pathOptions={{
-                  color: '#3b82f6',
-                  weight: 4,
-                  opacity: 0.8
+                  color: '#800020',
+                  weight: 5,
+                  opacity: 0.9
                 }}
               />
             )}
