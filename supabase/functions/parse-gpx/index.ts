@@ -159,17 +159,20 @@ serve(async (req) => {
     const radius = 6371 * Math.sqrt(deltaLat * deltaLat + deltaLng * deltaLng);
 
     // Upload GPX file to storage
+    // Create a proper blob with correct content type
     const fileName = `${tourId}/${Date.now()}_${file.name}`;
+    const blob = new Blob([fileContent], { type: 'application/gpx+xml' });
+    
     const { error: uploadError } = await supabase.storage
       .from('guide-documents')
-      .upload(fileName, file, {
+      .upload(fileName, blob, {
         contentType: 'application/gpx+xml',
         upsert: false
       });
 
     if (uploadError) {
       console.error('[parse-gpx] Upload error:', uploadError);
-      throw new Error('Failed to upload GPX file');
+      throw new Error(`Failed to upload GPX file: ${uploadError.message}`);
     }
 
     // Rate limiting check
