@@ -60,12 +60,12 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
     .filter(b => b.payment_status.toLowerCase() !== 'pending')
     .map(booking => ({
       id: booking.id,
-      description: `${booking.tours?.title || 'Tour'} - ${booking.payment_status === 'paid' ? 'Full Payment' : 'Payment'}`,
+      description: `${booking.tours?.title || 'Tour'} - ${['paid', 'succeeded', 'completed'].includes(booking.payment_status.toLowerCase()) ? 'Full Payment' : 'Payment'}`,
       date: booking.created_at,
       method: booking.stripe_payment_intent_id ? 'Card Payment' : 'Payment',
       amount: booking.total_price,
       currency: booking.currency,
-      status: booking.payment_status.toLowerCase() === 'paid' ? 'completed' : booking.payment_status.toLowerCase(),
+      status: ['paid', 'succeeded', 'completed'].includes(booking.payment_status.toLowerCase()) ? 'completed' : booking.payment_status.toLowerCase(),
       bookingRef: booking.booking_reference || booking.id.slice(0, 8)
     }))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -74,7 +74,7 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
   const receipts = bookings
     .filter(b => {
       const paymentStatus = b.payment_status.toLowerCase();
-      return paymentStatus === 'paid' || paymentStatus === 'completed';
+      return paymentStatus === 'paid' || paymentStatus === 'completed' || paymentStatus === 'succeeded';
     })
     .map(booking => ({
       id: booking.id,
@@ -104,7 +104,7 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
 
   const getPaymentStatusBadge = (status: string) => {
     const statusLower = status.toLowerCase();
-    if (statusLower === 'paid') return { variant: 'default' as const, label: 'Paid in Full' };
+    if (statusLower === 'paid' || statusLower === 'succeeded' || statusLower === 'completed') return { variant: 'default' as const, label: 'Paid in Full' };
     if (statusLower === 'pending') return { variant: 'secondary' as const, label: 'Payment Pending' };
     return { variant: 'outline' as const, label: status };
   };
@@ -271,7 +271,7 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                     <Button 
                       variant="outline"
                       onClick={() => setSelectedReceipt(booking.id)}
-                      disabled={booking.payment_status.toLowerCase() !== 'paid'}
+                      disabled={!['paid', 'succeeded', 'completed'].includes(booking.payment_status.toLowerCase())}
                     >
                       <Download className="w-4 h-4 mr-2" />
                       Receipt
