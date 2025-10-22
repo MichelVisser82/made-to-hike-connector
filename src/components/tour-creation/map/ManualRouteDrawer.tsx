@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, useMapEvents } from 'react-leaflet';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Coordinate, analyzeRoute, getRouteBoundingBox } from '@/utils/routeAnal
 import { MousePointer, Trash2, Undo, Check } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ManualRouteDrawerProps {
   onRouteConfirmed: (trackpoints: Coordinate[]) => void;
@@ -56,6 +57,22 @@ function ScrollWheelHandler() {
 export function ManualRouteDrawer({ onRouteConfirmed, onBack }: ManualRouteDrawerProps) {
   const [points, setPoints] = useState<Coordinate[]>([]);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [thunderforestKey, setThunderforestKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchThunderforestKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-thunderforest-key');
+        if (!error && data?.key) {
+          setThunderforestKey(data.key);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Thunderforest key:', err);
+      }
+    };
+    
+    fetchThunderforestKey();
+  }, []);
 
   const analysis = useMemo(() => {
     if (points.length < 2) return null;
@@ -140,10 +157,19 @@ export function ManualRouteDrawer({ onRouteConfirmed, onBack }: ManualRouteDrawe
             className="h-full w-full cursor-crosshair relative z-0"
             scrollWheelZoom={false}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            {thunderforestKey ? (
+              <TileLayer
+                attribution='Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url={`https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${thunderforestKey}`}
+                maxZoom={18}
+                subdomains={['a', 'b', 'c']}
+              />
+            ) : (
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            )}
             
             <ClickHandler onAddPoint={handleAddPoint} />
             <ScrollWheelHandler />

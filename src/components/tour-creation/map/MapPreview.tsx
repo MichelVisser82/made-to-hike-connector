@@ -7,7 +7,8 @@ import { Coordinate } from '@/utils/routeAnalysis';
 import { TourHighlight, HIGHLIGHT_CATEGORY_ICONS, GPXParseResult } from '@/types/map';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Fix Leaflet default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -66,6 +67,23 @@ function ScrollWheelHandler() {
 }
 
 export function MapPreview({ gpxData, daySegments, highlights, onBack }: MapPreviewProps) {
+  const [thunderforestKey, setThunderforestKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchThunderforestKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-thunderforest-key');
+        if (!error && data?.key) {
+          setThunderforestKey(data.key);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Thunderforest key:', err);
+      }
+    };
+    
+    fetchThunderforestKey();
+  }, []);
+
   // Use day segments if available, otherwise use full route
   const hasSegments = daySegments.length > 0;
   const routeToDisplay = hasSegments 
@@ -97,10 +115,19 @@ export function MapPreview({ gpxData, daySegments, highlights, onBack }: MapPrev
             scrollWheelZoom={false}
           >
             <ScrollWheelHandler />
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            {thunderforestKey ? (
+              <TileLayer
+                attribution='Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url={`https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${thunderforestKey}`}
+                maxZoom={18}
+                subdomains={['a', 'b', 'c']}
+              />
+            ) : (
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            )}
 
             {/* Draw route for each day */}
             {routeToDisplay.map((segment, idx) => (

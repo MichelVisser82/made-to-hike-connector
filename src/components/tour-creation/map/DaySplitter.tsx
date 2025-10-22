@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Sparkles, Check, Edit3, Home, Trash2 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DaySplitterProps {
   trackpoints: Coordinate[];
@@ -75,6 +76,22 @@ export function DaySplitter({ trackpoints, daysCount, currentSplits, onSplitsCon
   const [accommodations, setAccommodations] = useState<Map<number, { lat: number; lng: number; name?: string }>>(new Map());
   const [addingAccommodation, setAddingAccommodation] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [thunderforestKey, setThunderforestKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchThunderforestKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-thunderforest-key');
+        if (!error && data?.key) {
+          setThunderforestKey(data.key);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Thunderforest key:', err);
+      }
+    };
+    
+    fetchThunderforestKey();
+  }, []);
 
   const bounds = useMemo(() => getRouteBoundingBox(trackpoints), [trackpoints]);
   
@@ -218,10 +235,19 @@ export function DaySplitter({ trackpoints, daysCount, currentSplits, onSplitsCon
           >
             <FitBounds bounds={bounds} />
             <ScrollWheelHandler />
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            {thunderforestKey ? (
+              <TileLayer
+                attribution='Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url={`https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${thunderforestKey}`}
+                maxZoom={18}
+                subdomains={['a', 'b', 'c']}
+              />
+            ) : (
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            )}
 
             <AccommodationClickHandler 
               enabled={addingAccommodation}

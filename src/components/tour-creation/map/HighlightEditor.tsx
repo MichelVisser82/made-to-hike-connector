@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { HighlightImageUpload } from './HighlightImageUpload';
 import { toast } from 'sonner';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HighlightEditorProps {
   trackpoints: Coordinate[];
@@ -79,6 +80,22 @@ export function HighlightEditor({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHighlight, setEditingHighlight] = useState<Partial<TourHighlight> | null>(null);
   const [clickMode, setClickMode] = useState(false);
+  const [thunderforestKey, setThunderforestKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchThunderforestKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-thunderforest-key');
+        if (!error && data?.key) {
+          setThunderforestKey(data.key);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Thunderforest key:', err);
+      }
+    };
+    
+    fetchThunderforestKey();
+  }, []);
 
   const bounds = useMemo(() => getRouteBoundingBox(trackpoints), [trackpoints]);
   const routeCoordinates: [number, number][] = useMemo(
@@ -214,10 +231,19 @@ export function HighlightEditor({
             className="h-full w-full relative z-0"
             scrollWheelZoom={false}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            {thunderforestKey ? (
+              <TileLayer
+                attribution='Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url={`https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${thunderforestKey}`}
+                maxZoom={18}
+                subdomains={['a', 'b', 'c']}
+              />
+            ) : (
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            )}
             
             <MapClickHandler onClick={handleMapClick} />
             <ScrollWheelHandler />
