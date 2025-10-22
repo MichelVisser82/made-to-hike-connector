@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, User, Heart, Shield, Phone } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Loader2, User, Heart, Shield, Phone, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface HikerProfile {
@@ -48,6 +49,12 @@ export function HikerProfileEditForm() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [updatingEmail, setUpdatingEmail] = useState(false);
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [profile, setProfile] = useState<HikerProfile>({
     name: '',
     email: '',
@@ -155,6 +162,67 @@ export function HikerProfileEditForm() {
     }));
   };
 
+  const handleEmailChange = async () => {
+    if (!newEmail) {
+      toast.error('Please enter a new email address');
+      return;
+    }
+
+    if (newEmail === profile.email) {
+      toast.error('New email must be different from current email');
+      return;
+    }
+
+    try {
+      setUpdatingEmail(true);
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+
+      if (error) throw error;
+
+      toast.success('Confirmation email sent! Please check your inbox to verify your new email.');
+      setNewEmail('');
+    } catch (error: any) {
+      console.error('Error updating email:', error);
+      toast.error(error.message || 'Failed to update email');
+    } finally {
+      setUpdatingEmail(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setUpdatingPassword(true);
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+      if (error) throw error;
+
+      toast.success('Password updated successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      toast.error(error.message || 'Failed to update password');
+    } finally {
+      setUpdatingPassword(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -172,6 +240,105 @@ export function HikerProfileEditForm() {
         </p>
       </div>
 
+      {/* Account Security */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            Account Security
+          </CardTitle>
+          <CardDescription>
+            Manage your login credentials
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Email Change */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Email Address</Label>
+                <p className="text-sm text-muted-foreground">
+                  Current: {profile.email}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="Enter new email address"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleEmailChange}
+                disabled={updatingEmail || !newEmail}
+                variant="outline"
+              >
+                {updatingEmail ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Change Email
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Password Change */}
+          <div className="space-y-3">
+            <Label className="text-base">Change Password</Label>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="new_password">New Password</Label>
+                <Input
+                  id="new_password"
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm_password">Confirm New Password</Label>
+                <Input
+                  id="confirm_password"
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+              <Button
+                onClick={handlePasswordChange}
+                disabled={updatingPassword || !newPassword || !confirmPassword}
+                variant="outline"
+                className="w-full"
+              >
+                {updatingPassword ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="mr-2 h-4 w-4" />
+                    Update Password
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Basic Information */}
       <Card>
         <CardHeader>
@@ -184,29 +351,14 @@ export function HikerProfileEditForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input
-                id="name"
-                value={profile.name}
-                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                placeholder="John Doe"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={profile.email}
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">
-                Email cannot be changed
-              </p>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name *</Label>
+            <Input
+              id="name"
+              value={profile.name}
+              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+              placeholder="John Doe"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
