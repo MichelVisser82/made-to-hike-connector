@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useConversations } from '@/hooks/useConversations';
 
 interface GuideDashboardProps {
   user: User;
@@ -98,6 +99,9 @@ export function GuideDashboard({
   const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreference[]>([]);
   const [loadingInbox, setLoadingInbox] = useState(false);
   const { toast } = useToast();
+  
+  // Fetch conversations for unread message count
+  const { conversations: liveConversations } = useConversations(user.id);
 
   useEffect(() => {
     fetchGuideTours();
@@ -790,11 +794,14 @@ See you soon!
     })
     .reduce((sum, b) => sum + (b.total_price || 0), 0);
 
+  // Calculate total unread messages from conversations
+  const totalUnreadMessages = liveConversations.reduce((total, conv) => total + (conv.unread_count || 0), 0);
+  
   const realStats = {
     todayTours: todayBookings.length,
     pendingBookings: pendingBookings.length,
     weekEarnings: weekEarnings,
-    unreadMessages: 0, // TODO: Connect to conversations
+    unreadMessages: totalUnreadMessages,
   };
 
   const mockSchedule: TodayScheduleItem[] = todayBookings.map(booking => ({
