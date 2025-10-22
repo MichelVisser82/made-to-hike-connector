@@ -310,12 +310,6 @@ export function DaySplitter({ trackpoints, daysCount, currentSplits, onSplitsCon
           ))}
         </div>
       </Card>
-
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
-      </div>
     </div>
   );
 }
