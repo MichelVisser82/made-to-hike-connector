@@ -115,7 +115,7 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
               <MapPin className="h-4 w-4" />
               Highlights
             </TabsTrigger>
-            <TabsTrigger value="privacy" disabled={!highlights.length} className="flex items-center gap-2">
+            <TabsTrigger value="privacy" disabled={!daySplits.length} className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
               Privacy
             </TabsTrigger>
@@ -156,7 +156,7 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
           </TabsContent>
 
           <TabsContent value="privacy" className="mt-6">
-            {highlights.length > 0 && (
+            {gpxData && daySegments.length > 0 && (
               <PrivacySettingsPanel
                 highlights={highlights}
                 onSettingsConfirmed={handlePrivacyConfirmed}
