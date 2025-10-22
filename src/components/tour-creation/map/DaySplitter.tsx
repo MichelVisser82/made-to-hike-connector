@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 interface DaySplitterProps {
   trackpoints: Coordinate[];
   daysCount: number;
+  currentSplits?: number[]; // Existing splits to display
   onSplitsConfirmed: (splits: number[]) => void;
   onBack: () => void;
 }
@@ -27,14 +28,17 @@ function FitBounds({ bounds }: { bounds: [[number, number], [number, number]] })
   return null;
 }
 
-export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack }: DaySplitterProps) {
+export function DaySplitter({ trackpoints, daysCount, currentSplits, onSplitsConfirmed, onBack }: DaySplitterProps) {
   const suggestions = useMemo(() => 
     suggestDaySplits(trackpoints, daysCount), 
     [trackpoints, daysCount]
   );
   
+  // Use current splits if available, otherwise use suggestions
   const [splitIndices, setSplitIndices] = useState<number[]>(
-    suggestions.map(s => s.splitIndex)
+    currentSplits && currentSplits.length > 0 
+      ? currentSplits 
+      : suggestions.map(s => s.splitIndex)
   );
   const [mode, setMode] = useState<'suggestions' | 'manual'>('suggestions');
   const [accommodations, setAccommodations] = useState<Map<number, { lat: number; lng: number; name?: string }>>(new Map());

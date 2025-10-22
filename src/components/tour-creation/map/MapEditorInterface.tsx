@@ -285,6 +285,7 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
               <DaySplitter
                 trackpoints={gpxData.trackpoints}
                 daysCount={daysCount}
+                currentSplits={daySplits}
                 onSplitsConfirmed={handleSplitsConfirmed}
                 onBack={() => setActiveTab('upload')}
               />
