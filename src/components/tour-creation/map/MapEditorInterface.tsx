@@ -163,9 +163,48 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
     setActiveTab('highlights');
   };
 
-  const handleHighlightsConfirmed = (newHighlights: Partial<TourHighlight>[]) => {
+  const handleHighlightsConfirmed = async (newHighlights: Partial<TourHighlight>[]) => {
     setHighlights(newHighlights);
-    setActiveTab('privacy');
+    
+    // Immediately save to database if we have a tourId
+    if (tourId) {
+      try {
+        // Delete existing highlights for this tour first
+        await supabase
+          .from('tour_highlights')
+          .delete()
+          .eq('tour_id', tourId);
+
+        // Insert new highlights
+        if (newHighlights.length > 0) {
+          const highlightsToInsert = newHighlights.map((h, index) => ({
+            tour_id: tourId,
+            day_number: h.dayNumber || null,
+            name: h.name,
+            description: h.description,
+            category: h.category,
+            latitude: h.latitude,
+            longitude: h.longitude,
+            elevation_m: h.elevationM || null,
+            is_public: h.isPublic || false,
+            guide_notes: h.guideNotes || null,
+            photos: h.photos || [],
+            sequence_order: h.sequenceOrder ?? index
+          }));
+
+          const { error } = await supabase
+            .from('tour_highlights')
+            .insert(highlightsToInsert);
+
+          if (error) {
+            console.error('Error saving highlights:', error);
+            throw error;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to save highlights:', error);
+      }
+    }
   };
 
   const handlePrivacyConfirmed = (settings: any) => {
