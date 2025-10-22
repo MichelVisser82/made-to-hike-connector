@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.48/deno-dom-wasm.ts";
+import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,14 +57,25 @@ serve(async (req) => {
     // Read file content
     const fileContent = await file.text();
     
-    // Parse GPX using DOMParser
-    const parser = new DOMParser();
-    const gpxDoc = parser.parseFromString(fileContent, 'text/xml');
+    // Parse GPX using DOMParser with error handling
+    let gpxDoc;
+    try {
+      const parser = new DOMParser();
+      gpxDoc = parser.parseFromString(fileContent, 'text/xml');
+      
+      if (!gpxDoc) {
+        throw new Error('Failed to parse GPX file');
+      }
 
-    // Check for parsing errors
-    const parserError = gpxDoc.querySelector('parsererror');
-    if (parserError) {
-      throw new Error('Invalid GPX file format');
+      // Check for parsing errors
+      const parserError = gpxDoc.querySelector('parsererror');
+      if (parserError) {
+        console.error('[parse-gpx] Parser error:', parserError.textContent);
+        throw new Error('Invalid GPX file format');
+      }
+    } catch (parseError) {
+      console.error('[parse-gpx] Parse error:', parseError);
+      throw new Error(`Failed to parse GPX: ${parseError.message}`);
     }
 
     // Extract trackpoints
