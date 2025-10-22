@@ -158,61 +158,9 @@ serve(async (req) => {
     const deltaLng = (maxLng - center.lng) * Math.PI / 180;
     const radius = 6371 * Math.sqrt(deltaLat * deltaLat + deltaLng * deltaLng);
 
-    // Upload GPX file to storage using text/xml MIME type (more widely supported)
-    const fileName = `${tourId}/${Date.now()}_${file.name}`;
-    const blob = new Blob([fileContent], { type: 'text/xml' });
-    
-    const { error: uploadError } = await supabase.storage
-      .from('guide-documents')
-      .upload(fileName, blob, {
-        contentType: 'text/xml',
-        upsert: false
-      });
+    console.log(`[parse-gpx] Successfully parsed GPX file with ${trackpoints.length} points`);
 
-    if (uploadError) {
-      console.error('[parse-gpx] Upload error:', uploadError);
-      throw new Error(`Failed to upload GPX file: ${uploadError.message}`);
-    }
-
-    // Rate limiting check
-    const uploadKey = `gpx_uploads:${user.id}`;
-    const { data: rateLimitData } = await supabase
-      .from('kv_store')
-      .select('value')
-      .eq('key', uploadKey)
-      .single();
-
-    const now = Date.now();
-    const oneHour = 60 * 60 * 1000;
-    let uploads: number[] = rateLimitData?.value ? JSON.parse(rateLimitData.value as string) : [];
-    uploads = uploads.filter(t => now - t < oneHour);
-
-    if (uploads.length >= 10) {
-      throw new Error('Rate limit exceeded. Maximum 10 uploads per hour.');
-    }
-
-    uploads.push(now);
-    await supabase.from('kv_store').upsert({
-      key: uploadKey,
-      value: JSON.stringify(uploads),
-      expires_at: new Date(now + oneHour).toISOString()
-    });
-
-    // Save metadata to database
-    await supabase
-      .from('tour_gpx_files')
-      .upsert({
-        tour_id: tourId,
-        original_filename: file.name,
-        storage_path: fileName,
-        total_distance_km: parseFloat(totalDistance.toFixed(2)),
-        total_elevation_gain_m: Math.round(elevationGain),
-        total_points: trackpoints.length
-      }, {
-        onConflict: 'tour_id'
-      });
-
-    // Return parsed data with elevation warning if needed
+    // Return parsed data immediately - no storage upload needed
     return new Response(
       JSON.stringify({
         trackpoints,
