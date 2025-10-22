@@ -32,7 +32,9 @@ import {
   Settings,
   LogOut,
   Bell,
-  HelpCircle
+  HelpCircle,
+  Star,
+  Calendar
 } from 'lucide-react';
 
 interface AppNavigationProps {
@@ -302,8 +304,199 @@ export function AppNavigation({
     );
   }
 
-  // Admin or Hiker Dashboard Mode - Show header without dashboard navigation
-  if (dashboardMode === 'admin' || dashboardMode === 'hiker') {
+  // Hiker Dashboard Mode - Show dashboard navigation tabs
+  if (dashboardMode === 'hiker') {
+    const hikerNavItems = [
+      { id: 'today' as DashboardSection, label: 'Today', icon: Home },
+      { id: 'my-trips' as DashboardSection, label: 'My Trips', icon: Mountain },
+      { id: 'bookings' as DashboardSection, label: 'Bookings', icon: Calendar },
+      { id: 'reviews' as DashboardSection, label: 'Reviews', icon: Star },
+      { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
+    ];
+
+    return (
+      <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left: Logo */}
+            <a
+              href="/"
+              onClick={handleLogoClick}
+              className="flex items-center gap-3 hover:opacity-80 cursor-pointer"
+            >
+              <Mountain className="w-7 h-7 text-burgundy" />
+              <span className="text-xl text-burgundy font-playfair">Made to Hike</span>
+            </a>
+
+            {/* Center: Dashboard Navigation (Desktop) */}
+            <nav className="hidden md:flex items-center gap-6">
+              {hikerNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeSection === item.id;
+                
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (onSectionChange) {
+                        onSectionChange(item.id);
+                      } else {
+                        navigate(`/dashboard?section=${item.id}`);
+                      }
+                    }}
+                    className={`
+                      relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors
+                      ${isActive 
+                        ? 'text-burgundy bg-burgundy/5' 
+                        : 'text-charcoal/60 hover:text-burgundy hover:bg-burgundy/5'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Right: Notifications, Help, and User Profile Dropdown */}
+            <div className="flex items-center gap-3">
+              {/* Notifications Bell with Hover Dropdown */}
+              <HoverCard open={notificationsOpen} onOpenChange={setNotificationsOpen} openDelay={200}>
+                <HoverCardTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-80 p-0 bg-white z-50" align="end">
+                  <div className="p-4 border-b">
+                    <h4 className="font-semibold text-sm text-charcoal">Notifications</h4>
+                  </div>
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {conversations.filter(c => (c.unread_count || 0) > 0).length === 0 ? (
+                      <div className="p-8 text-center text-charcoal/60 text-sm">
+                        No new notifications
+                      </div>
+                    ) : (
+                      conversations
+                        .filter(c => (c.unread_count || 0) > 0)
+                        .map((conversation) => (
+                          <button
+                            key={conversation.id}
+                            onClick={() => {
+                              optimisticallyMarkConversationAsRead(conversation.id);
+                              setNotificationsOpen(false);
+                              navigate(`/dashboard?section=inbox&conversation=${conversation.id}`);
+                            }}
+                            className="w-full p-4 hover:bg-burgundy/5 border-b last:border-b-0 text-left transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
+                              <Avatar className="h-10 w-10 flex-shrink-0">
+                                <AvatarImage src={conversation.profiles?.avatar_url || undefined} />
+                                <AvatarFallback className="bg-burgundy/10 text-burgundy">
+                                  {(conversation.profiles?.name || conversation.anonymous_name || 'U').charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="font-medium text-sm text-charcoal truncate">
+                                    {conversation.profiles?.name || conversation.anonymous_name || 'Guide'}
+                                  </p>
+                                  {conversation.unread_count && conversation.unread_count > 0 && (
+                                    <Badge className="h-5 px-1.5 bg-burgundy text-white text-xs flex-shrink-0">
+                                      {conversation.unread_count}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-charcoal/60 truncate mt-0.5">
+                                  {conversation.tours?.title || 'General inquiry'}
+                                </p>
+                                <p className="text-xs text-burgundy mt-1">
+                                  Click to view conversation
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        ))
+                    )}
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+
+              {/* Help Button */}
+              <Button variant="ghost" size="icon" className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+                <HelpCircle className="w-5 h-5" />
+              </Button>
+
+              {/* User Profile Dropdown */}
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-[200px] justify-between border-burgundy/20 hover:bg-burgundy/5 hover:border-burgundy/40"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={(user as any).avatarUrl} />
+                          <AvatarFallback className="bg-burgundy text-white text-sm">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm text-charcoal font-medium truncate">
+                          {user.name}
+                        </span>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-charcoal/50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-[200px] bg-white border-burgundy/20"
+                  >
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/profile')}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
+                    >
+                      <UserIcon className="w-4 h-4 mr-2" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/settings')}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator className="bg-burgundy/10" />
+                    
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5 text-burgundy focus:text-burgundy"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  // Admin Dashboard Mode - Show header without dashboard navigation
+  if (dashboardMode === 'admin') {
     return (
       <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-6 py-4">
