@@ -11,6 +11,7 @@ import { GPXParseResult, TourHighlight } from '@/types/map';
 import { Coordinate, analyzeRoute } from '@/utils/routeAnalysis';
 import { Map, Upload, Sparkles, MapPin, Lock, PenTool, Eye, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface MapEditorInterfaceProps {
   tourId: string;
@@ -145,7 +146,7 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
     setActiveTab('split');
   };
 
-  const handleSplitsConfirmed = (splits: number[]) => {
+  const handleSplitsConfirmed = async (splits: number[]) => {
     setDaySplits(splits);
     
     // Create day segments
@@ -160,7 +161,48 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
     });
     
     setDaySegments(segments);
-    setActiveTab('highlights');
+
+    // Immediately save day routes to database if we have a tourId
+    if (tourId) {
+      try {
+        // Delete existing day routes for this tour first
+        await supabase
+          .from('tour_day_routes')
+          .delete()
+          .eq('tour_id', tourId);
+
+        // Insert new day routes
+        if (segments.length > 0) {
+          const routesToInsert = segments.map(segment => {
+            const analysis = analyzeRoute(segment.coordinates);
+            return {
+              tour_id: tourId,
+              day_number: segment.dayNumber,
+              route_coordinates: segment.coordinates as any,
+              distance_km: analysis.totalDistance,
+              elevation_gain_m: analysis.elevationGain,
+              elevation_loss_m: analysis.elevationLoss,
+              estimated_duration_hours: Math.round((analysis.totalDistance / 4 + analysis.elevationGain / 600) * 10) / 10
+            };
+          });
+
+          const { error } = await supabase
+            .from('tour_day_routes')
+            .insert(routesToInsert);
+
+          if (error) {
+            console.error('Error saving day routes:', error);
+            toast.error('Failed to save day routes');
+            throw error;
+          }
+
+          toast.success('Day routes saved successfully!');
+        }
+      } catch (error) {
+        console.error('Failed to save day routes:', error);
+        toast.error('Failed to save day routes');
+      }
+    }
   };
 
   const handleHighlightsConfirmed = async (newHighlights: Partial<TourHighlight>[]) => {
@@ -198,17 +240,67 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
 
           if (error) {
             console.error('Error saving highlights:', error);
+            toast.error('Failed to save highlights');
             throw error;
           }
+
+          toast.success('Highlights saved successfully!');
         }
       } catch (error) {
         console.error('Failed to save highlights:', error);
+        toast.error('Failed to save highlights');
       }
     }
   };
 
-  const handlePrivacyConfirmed = (settings: any) => {
-    // Compile all data
+  const handlePrivacyConfirmed = async (settings: any) => {
+    // Immediately save map settings to database if we have a tourId
+    if (tourId) {
+      try {
+        const mapSettings = {
+          tour_id: tourId,
+          route_display_mode: settings.routeDisplayMode || 'region_overview',
+          region_center_lat: gpxData!.analysis.boundingBox.center.lat,
+          region_center_lng: gpxData!.analysis.boundingBox.center.lng,
+          region_radius_km: gpxData!.analysis.boundingBox.radius,
+          show_meeting_point: settings.showMeetingPoint ?? true,
+          featured_highlight_ids: settings.featuredHighlightIds || []
+        };
+
+        // Check if settings already exist
+        const { data: existingSettings } = await supabase
+          .from('tour_map_settings')
+          .select('id')
+          .eq('tour_id', tourId)
+          .maybeSingle();
+
+        if (existingSettings) {
+          // Update existing settings
+          const { error } = await supabase
+            .from('tour_map_settings')
+            .update(mapSettings)
+            .eq('tour_id', tourId);
+
+          if (error) throw error;
+
+          toast.success('Map settings saved successfully!');
+        } else {
+          // Insert new settings
+          const { error } = await supabase
+            .from('tour_map_settings')
+            .insert(mapSettings);
+
+          if (error) throw error;
+
+          toast.success('Map settings saved successfully!');
+        }
+      } catch (error) {
+        console.error('Failed to save map settings:', error);
+        toast.error('Failed to save map settings');
+      }
+    }
+
+    // Compile all data for parent component
     onDataChange({
       gpxData,
       trackpoints: gpxData!.trackpoints,
