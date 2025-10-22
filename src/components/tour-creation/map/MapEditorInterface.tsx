@@ -100,6 +100,10 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
       <Card className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="preview" disabled={!gpxData} className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Preview
+            </TabsTrigger>
             <TabsTrigger value="upload" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload GPX
@@ -120,11 +124,18 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
               <Lock className="h-4 w-4" />
               Privacy
             </TabsTrigger>
-            <TabsTrigger value="preview" disabled={!daySegments.length} className="flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              Preview
-            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="preview" className="mt-6">
+            {gpxData && (
+              <MapPreview
+                gpxData={gpxData}
+                daySegments={daySegments}
+                highlights={highlights}
+                onBack={() => setActiveTab('split')}
+              />
+            )}
+          </TabsContent>
 
           <TabsContent value="upload" className="mt-6">
             <GPXUploader tourId={tourId} onUploadSuccess={handleGPXUpload} />
@@ -170,15 +181,6 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
             )}
           </TabsContent>
 
-          <TabsContent value="preview" className="mt-6">
-            {daySegments.length > 0 && (
-              <MapPreview
-                daySegments={daySegments}
-                highlights={highlights}
-                onBack={() => setActiveTab('highlights')}
-              />
-            )}
-          </TabsContent>
         </Tabs>
       </Card>
 

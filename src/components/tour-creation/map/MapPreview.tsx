@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Eye } from 'lucide-react';
 import { Coordinate } from '@/utils/routeAnalysis';
-import { TourHighlight, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
+import { TourHighlight, HIGHLIGHT_CATEGORY_ICONS, GPXParseResult } from '@/types/map';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -17,6 +17,7 @@ L.Icon.Default.mergeOptions({
 });
 
 interface MapPreviewProps {
+  gpxData: GPXParseResult;
   daySegments: Array<{ dayNumber: number; coordinates: Coordinate[] }>;
   highlights: Partial<TourHighlight>[];
   onBack: () => void;
@@ -32,18 +33,15 @@ const DAY_COLORS = [
   '#14b8a6', // teal
 ];
 
-export function MapPreview({ daySegments, highlights, onBack }: MapPreviewProps) {
-  if (!daySegments.length) {
-    return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">No route data to preview</p>
-        <Button onClick={onBack} className="mt-4">Go Back</Button>
-      </Card>
-    );
-  }
+export function MapPreview({ gpxData, daySegments, highlights, onBack }: MapPreviewProps) {
+  // Use day segments if available, otherwise use full route
+  const hasSegments = daySegments.length > 0;
+  const routeToDisplay = hasSegments 
+    ? daySegments 
+    : [{ dayNumber: 1, coordinates: gpxData.trackpoints }];
 
   // Calculate center from all coordinates
-  const allCoords = daySegments.flatMap(seg => seg.coordinates);
+  const allCoords = routeToDisplay.flatMap(seg => seg.coordinates);
   const centerLat = allCoords.reduce((sum, c) => sum + c.lat, 0) / allCoords.length;
   const centerLng = allCoords.reduce((sum, c) => sum + c.lng, 0) / allCoords.length;
   const center: [number, number] = [centerLat, centerLng];
@@ -72,7 +70,7 @@ export function MapPreview({ daySegments, highlights, onBack }: MapPreviewProps)
             />
 
             {/* Draw route for each day */}
-            {daySegments.map((segment, idx) => (
+            {routeToDisplay.map((segment, idx) => (
               <Polyline
                 key={`day-${segment.dayNumber}`}
                 positions={segment.coordinates.map(c => [c.lat, c.lng] as [number, number])}
@@ -85,7 +83,7 @@ export function MapPreview({ daySegments, highlights, onBack }: MapPreviewProps)
             ))}
 
             {/* Day start/end markers */}
-            {daySegments.map((segment, idx) => {
+            {routeToDisplay.map((segment, idx) => {
               const startPoint = segment.coordinates[0];
               const endPoint = segment.coordinates[segment.coordinates.length - 1];
               
@@ -110,7 +108,7 @@ export function MapPreview({ daySegments, highlights, onBack }: MapPreviewProps)
                   </Circle>
                   
                   {/* End marker */}
-                  {idx === daySegments.length - 1 && (
+                  {idx === routeToDisplay.length - 1 && (
                     <Circle
                       center={[endPoint.lat, endPoint.lng]}
                       radius={50}
@@ -165,17 +163,23 @@ export function MapPreview({ daySegments, highlights, onBack }: MapPreviewProps)
       {/* Legend */}
       <Card className="p-4">
         <h4 className="font-semibold mb-3">Route Legend</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {daySegments.map((segment, idx) => (
-            <div key={`legend-${segment.dayNumber}`} className="flex items-center gap-2">
-              <div 
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] }}
-              />
-              <span className="text-sm">Day {segment.dayNumber}</span>
-            </div>
-          ))}
-        </div>
+        {hasSegments ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {routeToDisplay.map((segment, idx) => (
+              <div key={`legend-${segment.dayNumber}`} className="flex items-center gap-2">
+                <div 
+                  className="w-4 h-4 rounded-full"
+                  style={{ backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] }}
+                />
+                <span className="text-sm">Day {segment.dayNumber}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Full route displayed. Use the "Split Days" tab to divide the route into multiple days.
+          </p>
+        )}
         {highlights.length > 0 && (
           <div className="mt-3 pt-3 border-t">
             <p className="text-sm text-muted-foreground">
