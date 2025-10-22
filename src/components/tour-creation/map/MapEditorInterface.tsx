@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GPXUploader } from './GPXUploader';
@@ -9,7 +9,8 @@ import { PrivacySettingsPanel } from './PrivacySettingsPanel';
 import { MapPreview } from './MapPreview';
 import { GPXParseResult, TourHighlight } from '@/types/map';
 import { Coordinate, analyzeRoute } from '@/utils/routeAnalysis';
-import { Map, Upload, Sparkles, MapPin, Lock, PenTool, Eye } from 'lucide-react';
+import { Map, Upload, Sparkles, MapPin, Lock, PenTool, Eye, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MapEditorInterfaceProps {
   tourId: string;
@@ -23,6 +24,105 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
   const [daySplits, setDaySplits] = useState<number[]>([]);
   const [daySegments, setDaySegments] = useState<Array<{ dayNumber: number; coordinates: Coordinate[] }>>([]);
   const [highlights, setHighlights] = useState<Partial<TourHighlight>[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load existing route data when editing a tour
+  useEffect(() => {
+    const loadExistingRouteData = async () => {
+      if (!tourId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch day routes
+        const { data: dayRoutes, error: routesError } = await supabase
+          .from('tour_day_routes')
+          .select('*')
+          .eq('tour_id', tourId)
+          .order('day_number', { ascending: true });
+
+        if (routesError) throw routesError;
+
+        // Fetch highlights
+        const { data: existingHighlights, error: highlightsError } = await supabase
+          .from('tour_highlights')
+          .select('*')
+          .eq('tour_id', tourId)
+          .order('sequence_order', { ascending: true });
+
+        if (highlightsError) throw highlightsError;
+
+        // If we have route data, reconstruct the GPX structure
+        if (dayRoutes && dayRoutes.length > 0) {
+          // Combine all day coordinates into full trackpoints
+          const allTrackpoints: Coordinate[] = [];
+          const segments: Array<{ dayNumber: number; coordinates: Coordinate[] }> = [];
+          const splitIndices: number[] = [];
+
+          dayRoutes.forEach((route, idx) => {
+            const coords = route.route_coordinates as unknown as Coordinate[];
+            const startIndex = allTrackpoints.length;
+            
+            allTrackpoints.push(...coords);
+            segments.push({
+              dayNumber: route.day_number,
+              coordinates: coords
+            });
+
+            // Record split indices (except for the first day)
+            if (idx > 0) {
+              splitIndices.push(startIndex);
+            }
+          });
+
+          // Reconstruct GPX data structure
+          const analysis = analyzeRoute(allTrackpoints);
+          const reconstructedGpxData: GPXParseResult = {
+            trackpoints: allTrackpoints,
+            waypoints: [],
+            analysis: {
+              totalDistance: analysis.totalDistance,
+              elevationGain: analysis.elevationGain,
+              elevationLoss: analysis.elevationLoss,
+              boundingBox: analysis.boundingBox
+            }
+          };
+
+          // Set all the state
+          setGpxData(reconstructedGpxData);
+          setDaySegments(segments);
+          setDaySplits(splitIndices);
+
+          // Convert highlights to the expected format
+          if (existingHighlights && existingHighlights.length > 0) {
+            const formattedHighlights: Partial<TourHighlight>[] = existingHighlights.map(h => ({
+              id: h.id,
+              tourId: h.tour_id,
+              dayNumber: h.day_number,
+              name: h.name,
+              description: h.description,
+              category: h.category as any,
+              latitude: Number(h.latitude),
+              longitude: Number(h.longitude),
+              elevationM: h.elevation_m,
+              isPublic: h.is_public,
+              guideNotes: h.guide_notes,
+              photos: h.photos as string[],
+              sequenceOrder: h.sequence_order
+            }));
+            setHighlights(formattedHighlights);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading route data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadExistingRouteData();
+  }, [tourId]);
 
   const handleGPXUpload = (result: GPXParseResult) => {
     setGpxData(result);
@@ -127,7 +227,12 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
           </TabsList>
 
           <TabsContent value="preview" className="mt-6">
-            {gpxData ? (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <Loader2 className="h-12 w-12 text-muted-foreground animate-spin mb-4" />
+                <p className="text-muted-foreground">Loading route data...</p>
+              </div>
+            ) : gpxData ? (
               <MapPreview
                 gpxData={gpxData}
                 daySegments={daySegments}
