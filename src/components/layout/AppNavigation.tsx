@@ -265,7 +265,7 @@ export function AppNavigation({
                             key={conversation.id}
                             onClick={() => {
                               setNotificationsOpen(false);
-                              navigate('/dashboard?section=inbox');
+                              navigate(`/dashboard?section=inbox&conversation=${conversation.id}`);
                             }}
                             className="w-full p-4 hover:bg-burgundy/5 border-b last:border-b-0 text-left transition-colors"
                           >
@@ -299,21 +299,6 @@ export function AppNavigation({
                         ))
                     )}
                   </div>
-                  {conversations.filter(c => (c.unread_count || 0) > 0).length > 0 && (
-                    <div className="p-3 border-t bg-background/50">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full text-burgundy hover:bg-burgundy/5"
-                        onClick={() => {
-                          setNotificationsOpen(false);
-                          navigate('/dashboard?section=inbox');
-                        }}
-                      >
-                        View all messages
-                      </Button>
-                    </div>
-                  )}
                 </HoverCardContent>
               </HoverCard>
 
