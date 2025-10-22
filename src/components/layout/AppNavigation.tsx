@@ -62,6 +62,7 @@ export function AppNavigation({
   const { user: authUser, signOut } = useAuth();
   const { profile } = useProfile();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   
   const user = profile || (authUser && authUser.email_confirmed_at ? {
     id: authUser.id,
@@ -236,7 +237,7 @@ export function AppNavigation({
             {/* Right: Notifications, Help, and User Profile Dropdown */}
             <div className="flex items-center gap-3">
               {/* Notifications Bell with Hover Dropdown */}
-              <HoverCard openDelay={200}>
+              <HoverCard open={notificationsOpen} onOpenChange={setNotificationsOpen} openDelay={200}>
                 <HoverCardTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                     <Bell className="w-5 h-5" />
@@ -263,6 +264,7 @@ export function AppNavigation({
                           <button
                             key={conversation.id}
                             onClick={() => {
+                              setNotificationsOpen(false);
                               navigate('/dashboard?section=inbox');
                             }}
                             className="w-full p-4 hover:bg-burgundy/5 border-b last:border-b-0 text-left transition-colors"
@@ -303,7 +305,10 @@ export function AppNavigation({
                         variant="ghost"
                         size="sm"
                         className="w-full text-burgundy hover:bg-burgundy/5"
-                        onClick={() => navigate('/dashboard?section=inbox')}
+                        onClick={() => {
+                          setNotificationsOpen(false);
+                          navigate('/dashboard?section=inbox');
+                        }}
                       >
                         View all messages
                       </Button>
