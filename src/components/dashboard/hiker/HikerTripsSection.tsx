@@ -162,7 +162,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
               {upcomingTrips.map((trip) => (
               <Card key={trip.id} className="overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                  <div className="relative h-64 md:h-auto">
+                  <div className="relative h-48 md:h-auto">
                     {trip.image && (
                       <img src={trip.image} alt={trip.title} className="w-full h-full object-cover" />
                     )}
