@@ -6,12 +6,14 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 
 interface Step8RouteMapProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
   tourId?: string;
 }
 
-export function Step8RouteMap({ onSave, isSaving, tourId }: Step8RouteMapProps) {
+export function Step8RouteMap({ onSave, onNext, onPrev, isSaving, tourId }: Step8RouteMapProps) {
   const { setValue, watch } = useFormContext();
   const duration = watch('duration') || '1 day';
   
@@ -24,14 +26,22 @@ export function Step8RouteMap({ onSave, isSaving, tourId }: Step8RouteMapProps) 
 
   const handleSkip = async () => {
     setValue('routeData', null);
-    await onSave();
+    if (onNext) {
+      await onNext();
+    } else if (onSave) {
+      await onSave();
+    }
   };
 
   const handleContinue = async () => {
     const routeData = watch('routeData');
     
     if (!routeData || !tourId) {
-      await onSave();
+      if (onNext) {
+        await onNext();
+      } else if (onSave) {
+        await onSave();
+      }
       return;
     }
 
@@ -108,7 +118,11 @@ export function Step8RouteMap({ onSave, isSaving, tourId }: Step8RouteMapProps) 
       }
 
       toast.success('Route map data saved successfully!');
-      await onSave();
+      if (onNext) {
+        await onNext();
+      } else if (onSave) {
+        await onSave();
+      }
     } catch (error) {
       console.error('Error saving route data:', error);
       toast.error('Failed to save route data. Please try again.');
@@ -188,12 +202,18 @@ export function Step8RouteMap({ onSave, isSaving, tourId }: Step8RouteMapProps) 
         />
       )}
 
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-between gap-3">
+        {onPrev && (
+          <Button type="button" variant="outline" onClick={onPrev}>
+            Previous
+          </Button>
+        )}
+        <div className="flex-1" />
         <Button variant="ghost" onClick={handleSkip} disabled={isSaving}>
           Skip for Now
         </Button>
         <Button onClick={handleContinue} disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save & Continue'}
+          {isSaving ? 'Saving...' : onNext ? 'Next' : 'Save & Continue'}
         </Button>
       </div>
     </div>

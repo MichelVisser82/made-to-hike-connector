@@ -7,16 +7,23 @@ import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 
 interface Step2BasicInfoProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
 }
 
-export default function Step2BasicInfo({ onSave, isSaving }: Step2BasicInfoProps) {
+export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Step2BasicInfoProps) {
   const form = useFormContext<TourFormData>();
 
   const handleSave = async () => {
     const isValid = await form.trigger(['title', 'short_description', 'description']);
-    if (isValid) await onSave();
+    if (isValid && onSave) await onSave();
+  };
+
+  const handleNext = async () => {
+    const isValid = await form.trigger(['title', 'short_description', 'description']);
+    if (isValid && onNext) await onNext();
   };
 
   return (
@@ -85,10 +92,22 @@ export default function Step2BasicInfo({ onSave, isSaving }: Step2BasicInfoProps
           )}
         />
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </Button>
+        <div className="flex justify-between">
+          {onPrev && (
+            <Button type="button" variant="outline" onClick={onPrev}>
+              Previous
+            </Button>
+          )}
+          <div className="flex-1" />
+          {onNext ? (
+            <Button onClick={handleNext} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Next'}
+            </Button>
+          ) : (
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

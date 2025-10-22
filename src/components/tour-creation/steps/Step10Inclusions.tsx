@@ -10,11 +10,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 
 interface Step10InclusionsProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
 }
 
-export default function Step10Inclusions({ onSave, isSaving }: Step10InclusionsProps) {
+export default function Step10Inclusions({ onSave, onNext, onPrev, isSaving }: Step10InclusionsProps) {
   const { setValue, watch, trigger } = useFormContext();
   const [newInclusion, setNewInclusion] = useState('');
   const [newExclusion, setNewExclusion] = useState('');
@@ -28,7 +30,12 @@ export default function Step10Inclusions({ onSave, isSaving }: Step10InclusionsP
 
   const handleSave = async () => {
     const isValid = await trigger(['includes', 'excluded_items']);
-    if (isValid) await onSave();
+    if (isValid && onSave) await onSave();
+  };
+
+  const handleNext = async () => {
+    const isValid = await trigger(['includes', 'excluded_items']);
+    if (isValid && onNext) await onNext();
   };
 
   const toggleStandardInclusion = (itemText: string, checked: boolean) => {
@@ -251,10 +258,22 @@ export default function Step10Inclusions({ onSave, isSaving }: Step10InclusionsP
         </CardContent>
       </Card>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} size="lg" disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save Progress'}
-        </Button>
+      <div className="flex justify-between">
+        {onPrev && (
+          <Button type="button" variant="outline" onClick={onPrev}>
+            Previous
+          </Button>
+        )}
+        <div className="flex-1" />
+        {onNext ? (
+          <Button onClick={handleNext} size="lg" disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Next'}
+          </Button>
+        ) : (
+          <Button onClick={handleSave} size="lg" disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
+        )}
       </div>
     </div>
   );

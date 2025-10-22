@@ -9,7 +9,9 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 
 interface Step5TourDetailsProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
 }
 
@@ -18,13 +20,18 @@ const commonTerrainTypes = [
   'Scree slopes', 'Ridge walks', 'Valley floors', 'Mountain passes'
 ];
 
-export default function Step5TourDetails({ onSave, isSaving }: Step5TourDetailsProps) {
+export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: Step5TourDetailsProps) {
   const form = useFormContext<TourFormData>();
   const [customTerrain, setCustomTerrain] = useState('');
 
   const handleSave = async () => {
     const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types', 'distance_km', 'elevation_gain_m']);
-    if (isValid) await onSave();
+    if (isValid && onSave) await onSave();
+  };
+
+  const handleNext = async () => {
+    const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types', 'distance_km', 'elevation_gain_m']);
+    if (isValid && onNext) await onNext();
   };
 
   const addTerrain = (terrain: string) => {
@@ -191,10 +198,22 @@ export default function Step5TourDetails({ onSave, isSaving }: Step5TourDetailsP
           )}
         />
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </Button>
+        <div className="flex justify-between">
+          {onPrev && (
+            <Button type="button" variant="outline" onClick={onPrev}>
+              Previous
+            </Button>
+          )}
+          <div className="flex-1" />
+          {onNext ? (
+            <Button onClick={handleNext} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Next'}
+            </Button>
+          ) : (
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

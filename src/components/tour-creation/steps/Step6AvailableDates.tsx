@@ -12,11 +12,13 @@ import { X, Percent, Calendar as CalendarIcon, Users } from 'lucide-react';
 import type { DateSlotFormData } from '@/types/tourDateSlot';
 
 interface Step6AvailableDatesProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
 }
 
-export default function Step6AvailableDates({ onSave, isSaving }: Step6AvailableDatesProps) {
+export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }: Step6AvailableDatesProps) {
   const form = useFormContext<TourFormData>();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [editingSlotIndex, setEditingSlotIndex] = useState<number | null>(null);
@@ -66,8 +68,17 @@ export default function Step6AvailableDates({ onSave, isSaving }: Step6Available
 
   const handleSave = async () => {
     const isValid = await form.trigger(['date_slots']);
-    if (isValid && dateSlots.length > 0) {
+    if (isValid && dateSlots.length > 0 && onSave) {
       await onSave();
+    } else if (dateSlots.length === 0) {
+      form.setError('date_slots', { message: 'Please add at least one available date' });
+    }
+  };
+
+  const handleNext = async () => {
+    const isValid = await form.trigger(['date_slots']);
+    if (isValid && dateSlots.length > 0 && onNext) {
+      await onNext();
     } else if (dateSlots.length === 0) {
       form.setError('date_slots', { message: 'Please add at least one available date' });
     }
@@ -231,10 +242,22 @@ export default function Step6AvailableDates({ onSave, isSaving }: Step6Available
           )}
         />
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </Button>
+        <div className="flex justify-between">
+          {onPrev && (
+            <Button type="button" variant="outline" onClick={onPrev}>
+              Previous
+            </Button>
+          )}
+          <div className="flex-1" />
+          {onNext ? (
+            <Button onClick={handleNext} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Next'}
+            </Button>
+          ) : (
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

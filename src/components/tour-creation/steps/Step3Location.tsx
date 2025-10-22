@@ -7,7 +7,9 @@ import { MapPin } from 'lucide-react';
 import { LocationAutocomplete } from '../LocationAutocomplete';
 
 interface Step3LocationProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
 }
 
@@ -17,7 +19,7 @@ const regions = [
   { value: 'scotland', label: 'Scottish Highlands', description: 'Rugged mountain terrain' },
 ];
 
-export default function Step3Location({ onSave, isSaving }: Step3LocationProps) {
+export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step3LocationProps) {
   const form = useFormContext<TourFormData>();
   
   const meetingPointLat = form.watch('meeting_point_lat');
@@ -25,7 +27,12 @@ export default function Step3Location({ onSave, isSaving }: Step3LocationProps) 
 
   const handleSave = async () => {
     const isValid = await form.trigger(['region', 'meeting_point']);
-    if (isValid) await onSave();
+    if (isValid && onSave) await onSave();
+  };
+
+  const handleNext = async () => {
+    const isValid = await form.trigger(['region', 'meeting_point']);
+    if (isValid && onNext) await onNext();
   };
 
   return (
@@ -94,10 +101,22 @@ export default function Step3Location({ onSave, isSaving }: Step3LocationProps) 
           )}
         />
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </Button>
+        <div className="flex justify-between">
+          {onPrev && (
+            <Button type="button" variant="outline" onClick={onPrev}>
+              Previous
+            </Button>
+          )}
+          <div className="flex-1" />
+          {onNext ? (
+            <Button onClick={handleNext} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Next'}
+            </Button>
+          ) : (
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -11,17 +11,26 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 
 interface Step9ItineraryProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
 }
 
-export default function Step9Itinerary({ onSave, isSaving }: Step9ItineraryProps) {
+export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Step9ItineraryProps) {
   const form = useFormContext<TourFormData>();
   const [newActivity, setNewActivity] = useState<{ [key: number]: string }>({});
 
+  const itinerary = form.watch('itinerary') || [];
+
   const handleSave = async () => {
     const isValid = await form.trigger(['itinerary']);
-    if (isValid) await onSave();
+    if (isValid && onSave) await onSave();
+  };
+
+  const handleNext = async () => {
+    const isValid = await form.trigger(['itinerary']);
+    if (isValid && onNext) await onNext();
   };
 
   const addDay = () => {
@@ -60,8 +69,6 @@ export default function Step9Itinerary({ onSave, isSaving }: Step9ItineraryProps
     updated[dayIndex].activities = updated[dayIndex].activities.filter((_, i) => i !== activityIndex);
     form.setValue('itinerary', updated);
   };
-
-  const itinerary = form.watch('itinerary') || [];
 
   return (
     <Card>
@@ -170,10 +177,22 @@ export default function Step9Itinerary({ onSave, isSaving }: Step9ItineraryProps
           )}
         />
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </Button>
+        <div className="flex justify-between">
+          {onPrev && (
+            <Button type="button" variant="outline" onClick={onPrev}>
+              Previous
+            </Button>
+          )}
+          <div className="flex-1" />
+          {onNext ? (
+            <Button onClick={handleNext} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Next'}
+            </Button>
+          ) : (
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -7,16 +7,23 @@ import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 
 interface Step11PricingProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
 }
 
-export default function Step11Pricing({ onSave, isSaving }: Step11PricingProps) {
+export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step11PricingProps) {
   const form = useFormContext<TourFormData>();
 
   const handleSave = async () => {
     const isValid = await form.trigger(['price', 'currency', 'service_fee', 'group_size']);
-    if (isValid) await onSave();
+    if (isValid && onSave) await onSave();
+  };
+
+  const handleNext = async () => {
+    const isValid = await form.trigger(['price', 'currency', 'service_fee', 'group_size']);
+    if (isValid && onNext) await onNext();
   };
 
   const price = form.watch('price') || 0;
@@ -141,10 +148,22 @@ export default function Step11Pricing({ onSave, isSaving }: Step11PricingProps) 
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </Button>
+        <div className="flex justify-between">
+          {onPrev && (
+            <Button type="button" variant="outline" onClick={onPrev}>
+              Previous
+            </Button>
+          )}
+          <div className="flex-1" />
+          {onNext ? (
+            <Button onClick={handleNext} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Next'}
+            </Button>
+          ) : (
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

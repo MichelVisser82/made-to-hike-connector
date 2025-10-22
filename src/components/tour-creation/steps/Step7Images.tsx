@@ -37,11 +37,13 @@ interface ImageWithMetadata {
 }
 
 interface Step7ImagesProps {
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
+  onNext?: () => Promise<void>;
+  onPrev?: () => void;
   isSaving: boolean;
 }
 
-export default function Step7Images({ onSave, isSaving }: Step7ImagesProps) {
+export default function Step7Images({ onSave, onNext, onPrev, isSaving }: Step7ImagesProps) {
   const form = useFormContext<TourFormData>();
   const [images, setImages] = useState<ImageWithMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -680,7 +682,13 @@ export default function Step7Images({ onSave, isSaving }: Step7ImagesProps) {
           </div>
         )}
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-between gap-2">
+          {onPrev && (
+            <Button type="button" variant="outline" onClick={onPrev}>
+              Previous
+            </Button>
+          )}
+          <div className="flex-1" />
           <Button
             type="button"
             variant="outline"
@@ -689,9 +697,15 @@ export default function Step7Images({ onSave, isSaving }: Step7ImagesProps) {
           >
             Clear All
           </Button>
-          <Button onClick={async () => { await handleUpload(); await onSave(); }} disabled={uploading || images.length === 0 || isSaving}>
-            {uploading || isSaving ? 'Saving...' : 'Save & Continue'}
-          </Button>
+          {onNext ? (
+            <Button onClick={async () => { await handleUpload(); await onNext(); }} disabled={uploading || images.length === 0 || isSaving}>
+              {uploading || isSaving ? 'Saving...' : 'Next'}
+            </Button>
+          ) : (
+            <Button onClick={async () => { if (onSave) { await handleUpload(); await onSave(); } }} disabled={uploading || images.length === 0 || isSaving}>
+              {uploading || isSaving ? 'Saving...' : 'Save & Continue'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
