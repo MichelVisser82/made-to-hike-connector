@@ -4,7 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, MapPin, Users, Clock, Star, Heart } from 'lucide-react';
+import { useHikerBookings } from '@/hooks/useHikerBookings';
+import { format, isAfter, isBefore } from 'date-fns';
 
 interface HikerTripsSectionProps {
   userId: string;
@@ -14,94 +17,108 @@ interface HikerTripsSectionProps {
 
 export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerTripsSectionProps) {
   const [activeTab, setActiveTab] = useState('upcoming');
+  const { bookings, loading, error } = useHikerBookings(userId);
 
-  // Mock data - replace with actual data fetching
-  const upcomingTrips = [
-    {
-      id: '1',
-      title: 'Mont Blanc Summit Trek',
-      dates: 'October 15-17, 2025',
-      guide: { name: 'Sarah Mountain', avatar: '' },
-      location: 'Chamonix, France',
-      guests: 2,
-      difficulty: 'Advanced',
-      days: 3,
-      status: 'confirmed',
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4'
-    },
-    {
-      id: '2',
-      title: 'Scottish Highlands Adventure',
-      dates: 'November 2-4, 2025',
-      guide: { name: 'James MacDonald', avatar: '' },
-      location: 'Glen Coe, Scotland',
-      guests: 2,
-      difficulty: 'Intermediate',
-      days: 3,
-      status: 'action_needed',
-      image: 'https://images.unsplash.com/photo-1552084117-56a1e49ff5e0'
-    }
-  ];
+  // Filter and transform bookings into upcoming trips
+  const upcomingTrips = bookings
+    .filter(booking => {
+      const bookingDate = new Date(booking.booking_date);
+      const isUpcoming = isAfter(bookingDate, new Date());
+      const isActive = ['confirmed', 'pending'].includes(booking.status.toLowerCase());
+      return isUpcoming && isActive;
+    })
+    .map(booking => ({
+      id: booking.id,
+      title: booking.tours?.title || 'Tour',
+      dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
+      guide: { 
+        name: booking.tours?.guide_profiles?.display_name || 'Guide', 
+        avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
+      },
+      location: booking.tours?.meeting_point || 'TBD',
+      guests: booking.participants,
+      difficulty: booking.tours?.difficulty || 'Intermediate',
+      duration: booking.tours?.duration || '1 day',
+      status: booking.status.toLowerCase(),
+      image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
+      tourId: booking.tour_id,
+      guideId: booking.tours?.guide_id,
+      price: booking.total_price,
+      currency: booking.currency,
+      specialRequests: booking.special_requests,
+      paymentStatus: booking.payment_status
+    }));
 
-  const pastTrips = [
-    {
-      id: '3',
-      title: 'Dolomites Via Ferrata',
-      dates: 'September 18-22, 2024',
-      guide: { name: 'Marco Rossi', avatar: '' },
-      location: 'Cortina d\'Ampezzo, Italy',
-      rating: 5,
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
-      reviewPending: false
-    },
-    {
-      id: '4',
-      title: 'Bavarian Alps Trek',
-      dates: 'August 5-7, 2024',
-      guide: { name: 'Hans Mueller', avatar: '' },
-      location: 'Garmisch, Germany',
-      rating: 4,
-      image: 'https://images.unsplash.com/photo-1552084117-56a1e49ff5e0',
-      reviewPending: true
-    }
-  ];
+  // Filter and transform bookings into past trips
+  const pastTrips = bookings
+    .filter(booking => {
+      const bookingDate = new Date(booking.booking_date);
+      const isPast = isBefore(bookingDate, new Date());
+      const isCompleted = booking.status.toLowerCase() === 'completed';
+      return isPast || isCompleted;
+    })
+    .map(booking => ({
+      id: booking.id,
+      title: booking.tours?.title || 'Tour',
+      dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
+      guide: { 
+        name: booking.tours?.guide_profiles?.display_name || 'Guide', 
+        avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
+      },
+      location: booking.tours?.meeting_point || 'TBD',
+      rating: 0, // TODO: Get from reviews
+      image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
+      reviewPending: true, // TODO: Check if review exists
+      tourId: booking.tour_id,
+      guideId: booking.tours?.guide_id
+    }));
 
-  const wishlist = [
-    {
-      id: '5',
-      title: 'Norwegian Fjords Trek',
-      location: 'Geiranger, Norway',
-      guide: 'Erik Hansen',
-      rating: 4.9,
-      reviews: 127,
-      price: 780,
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4'
-    },
-    {
-      id: '6',
-      title: 'Patagonia Ice Fields',
-      location: 'El Chaltén, Argentina',
-      guide: 'Carlos Mendez',
-      rating: 5.0,
-      reviews: 203,
-      price: 1200,
-      image: 'https://images.unsplash.com/photo-1552084117-56a1e49ff5e0'
-    }
-  ];
+  // TODO: Implement wishlist and saved guides from database
+  const wishlist: any[] = [];
+  const savedGuides: any[] = [];
 
-  const savedGuides = [
-    {
-      id: '1',
-      name: 'Sarah Mountain',
-      location: 'Chamonix, France',
-      rating: 4.9,
-      tours: 12,
-      specialties: ['Alpine Mountaineering', 'Glacier Travel', 'Technical Climbing'],
-      certifications: ['IFMGA', 'WFR'],
-      avatar: '',
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4'
-    }
-  ];
+  const getCurrencySymbol = (currency: string) => {
+    const symbols: Record<string, string> = {
+      'EUR': '€',
+      'USD': '$',
+      'GBP': '£'
+    };
+    return symbols[currency] || currency;
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-serif mb-2">My Trips & Favorites</h1>
+        </div>
+        <div className="space-y-4">
+          {[1, 2].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-serif mb-2">My Trips & Favorites</h1>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground">Failed to load trips. Please try again.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -119,86 +136,116 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
 
         {/* Upcoming Trips */}
         <TabsContent value="upcoming" className="space-y-4">
-          <div className="flex justify-end">
-            <Button variant="outline">
-              <Calendar className="w-4 h-4 mr-2" />
-              Calendar View
-            </Button>
-          </div>
-
-          {upcomingTrips.map((trip) => (
-            <Card key={trip.id} className="overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                <div className="relative h-64 md:h-auto">
-                  <img src={trip.image} alt={trip.title} className="w-full h-full object-cover" />
-                  <Badge 
-                    variant={trip.status === 'confirmed' ? 'default' : 'secondary'}
-                    className="absolute top-4 left-4"
-                  >
-                    {trip.status === 'confirmed' ? 'Confirmed' : 'Action Needed'}
-                  </Badge>
-                </div>
-                <div className="md:col-span-2 p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-2xl font-semibold mb-2">{trip.title}</h3>
-                      <p className="text-muted-foreground mb-4">{trip.dates}</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-3xl font-bold text-primary">€890</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback>{trip.guide.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      <div className="text-sm">
-                        <p className="font-medium">Guide: {trip.guide.name}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                      <span>{trip.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="w-4 h-4 text-muted-foreground" />
-                      <span>{trip.guests} Guests</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span>{trip.days} Days</span>
-                    </div>
-                  </div>
-
-                  {trip.status === 'action_needed' && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className="bg-orange-100">⚠️</Badge>
-                        <span className="font-medium">Waiver document required</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                    <Button variant="default" className="w-full">
-                      📋 View Itinerary
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      🎯 Trip Preparation
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      💬 Message Guide
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      📍 Meeting Point
-                    </Button>
-                  </div>
-                </div>
-              </div>
+          {upcomingTrips.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">No Upcoming Trips</h3>
+                <p className="text-muted-foreground mb-4">
+                  You don't have any upcoming adventures yet.
+                </p>
+                <Button onClick={() => window.location.href = '/tours'}>
+                  Browse Tours
+                </Button>
+              </CardContent>
             </Card>
-          ))}
+          ) : (
+            <>
+              <div className="flex justify-between items-center">
+                <Badge variant="secondary">{upcomingTrips.length} {upcomingTrips.length === 1 ? 'trip' : 'trips'}</Badge>
+                <Button variant="outline">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Calendar View
+                </Button>
+              </div>
+
+              {upcomingTrips.map((trip) => (
+              <Card key={trip.id} className="overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+                  <div className="relative h-64 md:h-auto">
+                    {trip.image && (
+                      <img src={trip.image} alt={trip.title} className="w-full h-full object-cover" />
+                    )}
+                    <Badge 
+                      variant={trip.status === 'confirmed' ? 'default' : 'secondary'}
+                      className="absolute top-4 left-4"
+                    >
+                      {trip.status === 'confirmed' ? 'Confirmed' : trip.status === 'pending' ? 'Pending' : 'Action Needed'}
+                    </Badge>
+                  </div>
+                  <div className="md:col-span-2 p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-2xl font-semibold mb-2">{trip.title}</h3>
+                        <p className="text-muted-foreground mb-4">{trip.dates}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-3xl font-bold text-primary">
+                          {getCurrencySymbol(trip.currency)}{trip.price}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="w-8 h-8">
+                          {trip.guide.avatar && <AvatarImage src={trip.guide.avatar} />}
+                          <AvatarFallback>{trip.guide.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div className="text-sm">
+                          <p className="font-medium">Guide: {trip.guide.name}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <span>{trip.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        <span>{trip.guests} {trip.guests === 1 ? 'Guest' : 'Guests'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                        <span>{trip.duration}</span>
+                      </div>
+                    </div>
+
+                    {trip.paymentStatus.toLowerCase() === 'pending' && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline" className="bg-orange-100">⚠️</Badge>
+                          <span className="font-medium">Payment pending</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {trip.specialRequests && (
+                      <div className="bg-muted/50 rounded-lg p-3 mb-4">
+                        <p className="text-sm font-medium mb-1">Special Requests</p>
+                        <p className="text-sm text-muted-foreground">{trip.specialRequests}</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                      <Button variant="default" className="w-full" onClick={() => trip.tourId && onViewTour(trip.tourId)}>
+                        📋 View Tour
+                      </Button>
+                      <Button variant="outline" className="w-full">
+                        📍 Meeting Point
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={() => trip.guideId && onMessageGuide(trip.guideId)}>
+                        💬 Message Guide
+                      </Button>
+                      <Button variant="outline" className="w-full">
+                        ℹ️ Details
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              ))}
+            </>
+          )}
         </TabsContent>
 
         {/* Past Trips */}

@@ -13,12 +13,16 @@ export interface HikerBooking {
   stripe_payment_intent_id: string | null;
   created_at: string;
   special_requests: string | null;
+  tour_id: string;
   tours: {
     id: string;
     title: string;
     duration: string;
     meeting_point: string;
     guide_id: string;
+    difficulty: string;
+    hero_image: string | null;
+    images: string[];
     guide_profiles: {
       display_name: string;
       profile_image_url: string | null;
@@ -61,12 +65,16 @@ export function useHikerBookings(hikerId: string | undefined) {
           stripe_payment_intent_id,
           created_at,
           special_requests,
+          tour_id,
           tours (
             id,
             title,
             duration,
             meeting_point,
             guide_id,
+            difficulty,
+            hero_image,
+            images,
             guide_profiles:guide_profiles!tours_guide_id_fkey (
               display_name,
               profile_image_url
