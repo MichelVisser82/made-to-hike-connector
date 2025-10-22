@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
+import { useConversations } from '@/hooks/useConversations';
 import { supabase } from '@/integrations/supabase/client';
 import { type User } from '@/types';
 import type { DashboardSection, DashboardMode } from '@/types/dashboard';
@@ -15,6 +16,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
 import { 
   Mountain, 
   Home, 
@@ -56,7 +62,7 @@ export function AppNavigation({
   const { user: authUser, signOut } = useAuth();
   const { profile } = useProfile();
   const [unreadCount, setUnreadCount] = useState(0);
-
+  
   const user = profile || (authUser && authUser.email_confirmed_at ? {
     id: authUser.id,
     email: authUser.email || '',
@@ -64,6 +70,9 @@ export function AppNavigation({
     role: (authUser.user_metadata?.role || 'hiker') as 'hiker' | 'guide' | 'admin',
     verified: false
   } as User : null);
+
+  // Fetch conversations for notifications
+  const { conversations } = useConversations(user?.id);
 
   // Fetch unread messages count
   useEffect(() => {
@@ -197,7 +206,6 @@ export function AppNavigation({
               {dashboardNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeSection === item.id;
-                const showBadge = item.id === 'inbox' && unreadCount > 0;
                 
                 return (
                   <button
@@ -220,11 +228,6 @@ export function AppNavigation({
                   >
                     <Icon className="w-5 h-5" />
                     <span className="text-sm font-medium">{item.label}</span>
-                    {showBadge && (
-                      <Badge className="ml-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </Badge>
-                    )}
                   </button>
                 );
               })}
@@ -232,15 +235,82 @@ export function AppNavigation({
 
             {/* Right: Notifications, Help, and User Profile Dropdown */}
             <div className="flex items-center gap-3">
-              {/* Notifications Bell */}
-              <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </Badge>
-                )}
-              </Button>
+              {/* Notifications Bell with Hover Dropdown */}
+              <HoverCard openDelay={200}>
+                <HoverCardTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-80 p-0 bg-white z-50" align="end">
+                  <div className="p-4 border-b">
+                    <h4 className="font-semibold text-sm text-charcoal">Notifications</h4>
+                  </div>
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {conversations.filter(c => (c.unread_count || 0) > 0).length === 0 ? (
+                      <div className="p-8 text-center text-charcoal/60 text-sm">
+                        No new notifications
+                      </div>
+                    ) : (
+                      conversations
+                        .filter(c => (c.unread_count || 0) > 0)
+                        .map((conversation) => (
+                          <button
+                            key={conversation.id}
+                            onClick={() => {
+                              navigate('/dashboard?section=inbox');
+                            }}
+                            className="w-full p-4 hover:bg-burgundy/5 border-b last:border-b-0 text-left transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
+                              <Avatar className="h-10 w-10 flex-shrink-0">
+                                <AvatarImage src={conversation.profiles?.avatar_url || undefined} />
+                                <AvatarFallback className="bg-burgundy/10 text-burgundy">
+                                  {(conversation.profiles?.name || conversation.anonymous_name || 'U').charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="font-medium text-sm text-charcoal truncate">
+                                    {conversation.profiles?.name || conversation.anonymous_name || 'Anonymous'}
+                                  </p>
+                                  {conversation.unread_count && conversation.unread_count > 0 && (
+                                    <Badge className="h-5 px-1.5 bg-burgundy text-white text-xs flex-shrink-0">
+                                      {conversation.unread_count}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-charcoal/60 truncate mt-0.5">
+                                  {conversation.tours?.title || 'General inquiry'}
+                                </p>
+                                <p className="text-xs text-burgundy mt-1">
+                                  Click to view conversation
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        ))
+                    )}
+                  </div>
+                  {conversations.filter(c => (c.unread_count || 0) > 0).length > 0 && (
+                    <div className="p-3 border-t bg-background/50">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-burgundy hover:bg-burgundy/5"
+                        onClick={() => navigate('/dashboard?section=inbox')}
+                      >
+                        View all messages
+                      </Button>
+                    </div>
+                  )}
+                </HoverCardContent>
+              </HoverCard>
 
               {/* Help Button */}
               <Button variant="ghost" size="icon" className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
