@@ -435,12 +435,6 @@ export function HighlightEditor({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
-      </div>
     </div>
   );
 }
