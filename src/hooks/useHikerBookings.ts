@@ -10,6 +10,7 @@ export interface HikerBooking {
   currency: string;
   status: string;
   payment_status: string;
+  stripe_payment_intent_id: string | null;
   created_at: string;
   special_requests: string | null;
   tours: {
@@ -57,6 +58,7 @@ export function useHikerBookings(hikerId: string | undefined) {
           currency,
           status,
           payment_status,
+          stripe_payment_intent_id,
           created_at,
           special_requests,
           tours (

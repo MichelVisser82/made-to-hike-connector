@@ -50,81 +50,35 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
       status: 'confirmed',
       paymentStatus: 'paid_full'
     },
-    {
-      id: '2',
-      bookingRef: 'MTH-2025-10892',
-      title: 'Scottish Highlands Adventure',
-      dates: 'November 2-4, 2025',
-      location: 'Glen Coe, Scotland',
-      guide: 'James MacDonald',
-      guideId: 'guide2',
-      guests: 2,
-      amount: 650,
-      status: 'confirmed',
-      paymentStatus: 'partially_paid',
-      remaining: 325,
-      dueDate: 'October 25, 2025'
-    }
   ];
 
-  const paymentHistory = [
-    {
-      id: '1',
-      description: 'Final payment - Scottish Highlands Adventure',
-      date: 'October 1, 2025',
-      method: 'Visa ****1234',
-      amount: 325,
-      status: 'completed'
-    },
-    {
-      id: '2',
-      description: 'Full payment - Mont Blanc Summit Trek',
-      date: 'September 15, 2025',
-      method: 'Mastercard ****5678',
-      amount: 890,
-      status: 'completed'
-    },
-    {
-      id: '3',
-      description: 'Deposit - Scottish Highlands Adventure',
-      date: 'September 1, 2025',
-      method: 'Visa ****1234',
-      amount: 325,
-      status: 'completed'
-    },
-    {
-      id: '4',
-      description: 'Full payment - Dolomites Via Ferrata',
-      date: 'August 20, 2024',
-      method: 'Visa ****1234',
-      amount: 720,
-      status: 'completed'
-    }
-  ];
+  // Transform bookings into payment history
+  const paymentHistory = bookings
+    .filter(b => b.payment_status.toLowerCase() !== 'pending')
+    .map(booking => ({
+      id: booking.id,
+      description: `${booking.tours?.title || 'Tour'} - ${booking.payment_status === 'paid' ? 'Full Payment' : 'Payment'}`,
+      date: booking.created_at,
+      method: booking.stripe_payment_intent_id ? 'Card Payment' : 'Payment',
+      amount: booking.total_price,
+      currency: booking.currency,
+      status: booking.payment_status.toLowerCase() === 'paid' ? 'completed' : booking.payment_status.toLowerCase(),
+      bookingRef: booking.booking_reference || booking.id.slice(0, 8)
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const receipts = [
-    {
-      id: '1',
-      title: 'Scottish Highlands Adventure - Final Payment',
-      date: 'October 1, 2025',
-      bookingRef: 'MTH-2025-10892',
-      amount: 325
-    },
-    {
-      id: '2',
-      title: 'Mont Blanc Summit Trek',
-      date: 'September 15, 2025',
-      bookingRef: 'MTH-2025-10847',
-      amount: 890
-    },
-    {
-      id: '3',
-      title: 'Scottish Highlands Adventure - Deposit',
-      date: 'September 1, 2025',
-      bookingRef: 'MTH-2025-10892',
-      amount: 325
-    }
-  ];
+  // Transform bookings into receipts (only for paid bookings)
+  const receipts = bookings
+    .filter(b => b.payment_status.toLowerCase() === 'paid')
+    .map(booking => ({
+      id: booking.id,
+      title: `${booking.tours?.title || 'Tour'} - Receipt`,
+      date: booking.created_at,
+      bookingRef: booking.booking_reference || booking.id.slice(0, 8),
+      amount: booking.total_price,
+      currency: booking.currency
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const formatBookingDate = (dateString: string) => {
     try {
@@ -333,65 +287,100 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
             </Button>
           </div>
 
-          <div className="space-y-3">
-            {paymentHistory.map((payment) => (
-              <Card key={payment.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+          {paymentHistory.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">No Payment History</h3>
+                <p className="text-muted-foreground">
+                  Your payment transactions will appear here once you make bookings.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {paymentHistory.map((payment) => (
+                <Card key={payment.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className={`p-2 rounded-full ${
+                          payment.status === 'completed' ? 'bg-green-100' : 'bg-orange-100'
+                        }`}>
+                          <CheckCircle2 className={`w-5 h-5 ${
+                            payment.status === 'completed' ? 'text-green-600' : 'text-orange-600'
+                          }`} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{payment.description}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {formatBookingDate(payment.date)} • {payment.method}
+                            {payment.bookingRef && ` • Ref: ${payment.bookingRef}`}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{payment.description}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {payment.date} • {payment.method}
-                        </p>
+                      <div className="text-right">
+                        <div className="text-xl font-bold">
+                          {getCurrencySymbol(payment.currency)}{payment.amount}
+                        </div>
+                        <div className="text-sm text-muted-foreground capitalize">
+                          {payment.status}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xl font-bold">€{payment.amount}</div>
-                      <div className="text-sm text-muted-foreground">{payment.status}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         {/* Receipts */}
         <TabsContent value="receipts" className="space-y-4">
           <h2 className="text-2xl font-serif mb-4">Receipts & Invoices</h2>
 
-          <div className="space-y-3">
-            {receipts.map((receipt) => (
-              <Card key={receipt.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="p-3 bg-primary/10 rounded-lg">
-                        <FileText className="w-6 h-6 text-primary" />
+          {receipts.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">No Receipts Available</h3>
+                <p className="text-muted-foreground">
+                  Receipts will be available after you complete payments for your bookings.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {receipts.map((receipt) => (
+                <Card key={receipt.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="p-3 bg-primary/10 rounded-lg">
+                          <FileText className="w-6 h-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{receipt.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {formatBookingDate(receipt.date)} • {receipt.bookingRef}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{receipt.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {receipt.date} • {receipt.bookingRef}
-                        </p>
+                      <div className="flex items-center gap-4">
+                        <div className="text-xl font-bold">
+                          {getCurrencySymbol(receipt.currency)}{receipt.amount}
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <Download className="w-4 h-4 mr-2" />
+                          Download
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-xl font-bold">€{receipt.amount}</div>
-                      <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
