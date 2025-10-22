@@ -95,25 +95,38 @@ export function useMessages(conversationId: string | undefined) {
   async function markAsRead(userId: string) {
     if (!conversationId) return;
 
-    const unreadMessages = messages.filter(
-      (msg) => msg.sender_id !== userId && !msg.read_receipts?.some((r) => r.user_id === userId)
-    );
+    // Fetch all messages in the conversation that are not sent by the current user
+    const { data: unreadMessages, error: fetchError } = await supabase
+      .from('messages')
+      .select('id, sender_id')
+      .eq('conversation_id', conversationId)
+      .neq('sender_id', userId);
 
+    if (fetchError) {
+      console.error('Failed to fetch unread messages:', fetchError);
+      return;
+    }
+
+    if (!unreadMessages || unreadMessages.length === 0) return;
+
+    // Insert read receipts for all unread messages (upsert to avoid duplicates)
     for (const msg of unreadMessages) {
       const { error } = await supabase
         .from('message_read_receipts')
-        .insert({
+        .upsert({
           message_id: msg.id,
           user_id: userId,
           read_at: new Date().toISOString()
+        }, {
+          onConflict: 'message_id,user_id'
         });
 
-      if (error) {
+      if (error && error.code !== '23505') { // Ignore duplicate key errors
         console.error('Failed to mark message as read:', error);
       }
     }
 
-    // Refetch to update UI with read receipts
+    // Refetch messages to update UI
     await fetchMessages();
   }
 
