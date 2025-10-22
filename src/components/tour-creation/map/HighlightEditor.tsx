@@ -144,8 +144,9 @@ export function HighlightEditor({
       sequenceOrder: highlights.length + idx
     }));
     
-    setHighlights([...highlights, ...newHighlights]);
-    toast.success(`Imported ${waypoints.length} waypoints as highlights`);
+    const updatedHighlights = [...highlights, ...newHighlights];
+    setHighlights(updatedHighlights);
+    onHighlightsConfirmed(updatedHighlights);
   };
 
   const handleSaveHighlight = () => {
@@ -169,7 +170,6 @@ export function HighlightEditor({
     
     // Auto-save to database
     onHighlightsConfirmed(updatedHighlights);
-    toast.success('Highlight saved successfully!');
   };
 
   const handleDeleteHighlight = (id: string) => {
@@ -177,7 +177,6 @@ export function HighlightEditor({
     setHighlights(updatedHighlights);
     // Auto-save after deletion
     onHighlightsConfirmed(updatedHighlights);
-    toast.success('Highlight deleted');
   };
 
   const handleTogglePublic = (id: string) => {
