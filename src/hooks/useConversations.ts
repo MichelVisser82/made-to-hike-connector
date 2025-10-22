@@ -14,7 +14,7 @@ export function useConversations(userId: string | undefined) {
 
     fetchConversations();
 
-    // Subscribe to new messages
+    // Subscribe to new messages and read receipts
     const channel = supabase
       .channel('conversations-changes')
       .on(
@@ -24,6 +24,17 @@ export function useConversations(userId: string | undefined) {
           schema: 'public',
           table: 'conversations',
           filter: `hiker_id=eq.${userId},guide_id=eq.${userId}`
+        },
+        () => {
+          fetchConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'message_read_receipts'
         },
         () => {
           fetchConversations();

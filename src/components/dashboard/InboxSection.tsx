@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
   MessageSquare,
@@ -61,11 +62,24 @@ export function InboxSection({
   const [activeTab, setActiveTab] = useState('messages');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   
   const { conversations, loading: conversationsLoading } = useConversations(user?.id);
   
   // Calculate unread count
   const unreadCount = conversations.filter(c => c.unread_count && c.unread_count > 0).length;
+
+  // Auto-select conversation from URL parameter
+  useEffect(() => {
+    const conversationId = searchParams.get('conversation');
+    if (conversationId && conversations.length > 0) {
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (conversation) {
+        setSelectedConversation(conversation);
+        setActiveTab('messages');
+      }
+    }
+  }, [searchParams, conversations]);
 
   const renderStarRating = (rating: number, size: number = 16, filled: boolean = true) => {
     return (
