@@ -52,9 +52,23 @@ export function useConversations(userId: string | undefined) {
       return;
     }
 
+    // Deduplicate conversations by hiker+guide+tour, keeping most recent
+    const uniqueConvMap = new Map<string, typeof convData[0]>();
+    (convData || []).forEach(conv => {
+      const key = `${conv.hiker_id || 'anon'}_${conv.guide_id}_${conv.tour_id || 'none'}`;
+      const existing = uniqueConvMap.get(key);
+      
+      // Keep the most recent conversation (already sorted by last_message_at desc)
+      if (!existing || new Date(conv.last_message_at) > new Date(existing.last_message_at)) {
+        uniqueConvMap.set(key, conv);
+      }
+    });
+
+    const uniqueConversations = Array.from(uniqueConvMap.values());
+
     // Fetch all related data for each conversation
     const conversationsWithData = await Promise.all(
-      (convData || []).map(async (conv) => {
+      uniqueConversations.map(async (conv) => {
         // Get tour info
         let tourInfo = null;
         if (conv.tour_id) {
