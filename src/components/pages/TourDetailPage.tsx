@@ -330,13 +330,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </Card>
 
             {/* Tour Highlights & Meeting Location - Side by Side */}
-            <div className="grid lg:grid-cols-2 gap-6 lg:items-start">
+            <div className="grid lg:grid-cols-2 gap-6 lg:items-stretch lg:min-h-[280px]">
               {/* Tour Highlights */}
-              <Card className="shadow-lg">
+              <Card className="shadow-lg lg:h-full lg:flex lg:flex-col">
                 <CardHeader>
                   <CardTitle>Tour Highlights</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="lg:flex-1">
                   <div className="space-y-3">
                     {tour.highlights.map((highlight, index) => (
                       <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
@@ -352,22 +352,24 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
               {/* Meeting Location Map */}
               {tour.meeting_point_lat && tour.meeting_point_lng && (
-                <Card className="shadow-lg">
+                <Card className="shadow-lg lg:h-full lg:flex lg:flex-col">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
                       Meeting Location
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <HikingLocationMap
-                      latitude={tour.meeting_point_lat}
-                      longitude={tour.meeting_point_lng}
-                      title={tour.meeting_point_formatted || tour.meeting_point}
-                      height="400px"
-                      zoom={13}
-                    />
-                    <div className="mt-4 p-3 bg-accent/50 rounded-lg">
+                  <CardContent className="lg:flex-1 lg:flex lg:flex-col">
+                    <div className="lg:flex-1 min-h-[200px]">
+                      <HikingLocationMap
+                        latitude={tour.meeting_point_lat}
+                        longitude={tour.meeting_point_lng}
+                        title={tour.meeting_point_formatted || tour.meeting_point}
+                        height="100%"
+                        zoom={13}
+                      />
+                    </div>
+                    <div className="mt-4 p-3 bg-accent/50 rounded-lg lg:flex-shrink-0">
                       <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 text-primary mt-0.5" />
                         <div>
