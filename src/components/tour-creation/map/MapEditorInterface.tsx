@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GPXUploader } from './GPXUploader';
-import { GPXParseResult } from '@/types/map';
+import { DaySplitter } from './DaySplitter';
+import { HighlightEditor } from './HighlightEditor';
+import { PrivacySettingsPanel } from './PrivacySettingsPanel';
+import { GPXParseResult, TourHighlight } from '@/types/map';
 import { Coordinate } from '@/utils/routeAnalysis';
-import { Map, Upload, Sparkles } from 'lucide-react';
+import { Map, Upload, Sparkles, MapPin, Lock } from 'lucide-react';
 
 interface MapEditorInterfaceProps {
   tourId: string;
@@ -15,15 +18,50 @@ interface MapEditorInterfaceProps {
 export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEditorInterfaceProps) {
   const [gpxData, setGpxData] = useState<GPXParseResult | null>(null);
   const [activeTab, setActiveTab] = useState<string>('upload');
+  const [daySplits, setDaySplits] = useState<number[]>([]);
+  const [daySegments, setDaySegments] = useState<Array<{ dayNumber: number; coordinates: Coordinate[] }>>([]);
+  const [highlights, setHighlights] = useState<Partial<TourHighlight>[]>([]);
 
   const handleGPXUpload = (result: GPXParseResult) => {
     setGpxData(result);
     setActiveTab('split');
+  };
+
+  const handleSplitsConfirmed = (splits: number[]) => {
+    setDaySplits(splits);
     
-    // Pass data up to parent
+    // Create day segments
+    const trackpoints = gpxData!.trackpoints;
+    const splitIndices = [0, ...splits.sort((a, b) => a - b), trackpoints.length - 1];
+    const segments = splitIndices.slice(0, -1).map((start, idx) => {
+      const end = splitIndices[idx + 1];
+      return {
+        dayNumber: idx + 1,
+        coordinates: trackpoints.slice(start, end + 1)
+      };
+    });
+    
+    setDaySegments(segments);
+    setActiveTab('highlights');
+  };
+
+  const handleHighlightsConfirmed = (newHighlights: Partial<TourHighlight>[]) => {
+    setHighlights(newHighlights);
+    setActiveTab('privacy');
+  };
+
+  const handlePrivacyConfirmed = (settings: any) => {
+    // Compile all data
     onDataChange({
-      gpxData: result,
-      trackpoints: result.trackpoints
+      gpxData,
+      trackpoints: gpxData!.trackpoints,
+      dayRoutes: daySegments,
+      highlights,
+      mapSettings: {
+        ...settings,
+        regionCenter: gpxData!.analysis.boundingBox.center,
+        regionRadiusKm: gpxData!.analysis.boundingBox.radius
+      }
     });
   };
 
@@ -43,7 +81,7 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
 
       <Card className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="upload" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload GPX
@@ -52,9 +90,13 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
               <Sparkles className="h-4 w-4" />
               Split Days
             </TabsTrigger>
-            <TabsTrigger value="highlights" disabled={!gpxData} className="flex items-center gap-2">
-              <Map className="h-4 w-4" />
-              Add Highlights
+            <TabsTrigger value="highlights" disabled={!daySplits.length} className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Highlights
+            </TabsTrigger>
+            <TabsTrigger value="privacy" disabled={!highlights.length} className="flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Privacy
             </TabsTrigger>
           </TabsList>
 
@@ -64,41 +106,35 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
 
           <TabsContent value="split" className="mt-6">
             {gpxData && (
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-2">Route Analysis Complete</h3>
-                  <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mt-4">
-                    <div className="p-4 bg-muted rounded-lg">
-                      <p className="text-2xl font-bold text-primary">
-                        {gpxData.analysis.totalDistance.toFixed(1)} km
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">Total Distance</p>
-                    </div>
-                    <div className="p-4 bg-muted rounded-lg">
-                      <p className="text-2xl font-bold text-primary">
-                        {gpxData.analysis.elevationGain} m
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">Elevation Gain</p>
-                    </div>
-                    <div className="p-4 bg-muted rounded-lg">
-                      <p className="text-2xl font-bold text-primary">
-                        {gpxData.trackpoints.length}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">GPS Points</p>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Day splitting and highlights features coming in next phase
-                </p>
-              </div>
+              <DaySplitter
+                trackpoints={gpxData.trackpoints}
+                daysCount={daysCount}
+                onSplitsConfirmed={handleSplitsConfirmed}
+                onBack={() => setActiveTab('upload')}
+              />
             )}
           </TabsContent>
 
           <TabsContent value="highlights" className="mt-6">
-            <div className="p-8 text-center text-muted-foreground">
-              Highlight editor coming in next phase
-            </div>
+            {gpxData && daySegments.length > 0 && (
+              <HighlightEditor
+                trackpoints={gpxData.trackpoints}
+                daySegments={daySegments}
+                waypoints={gpxData.waypoints}
+                onHighlightsConfirmed={handleHighlightsConfirmed}
+                onBack={() => setActiveTab('split')}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="privacy" className="mt-6">
+            {highlights.length > 0 && (
+              <PrivacySettingsPanel
+                highlights={highlights}
+                onSettingsConfirmed={handlePrivacyConfirmed}
+                onBack={() => setActiveTab('highlights')}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </Card>
