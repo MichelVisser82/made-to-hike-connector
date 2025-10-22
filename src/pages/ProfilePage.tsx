@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { GuideProfileEditForm } from '@/components/guide/GuideProfileEditForm';
+import { HikerProfileEditForm } from '@/components/hiker/HikerProfileEditForm';
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { DashboardMode } from '@/types/dashboard';
@@ -28,14 +29,14 @@ export default function ProfilePage() {
     );
   }
 
-  if (!profile || profile.role !== 'guide') {
+  if (!profile) {
     return (
       <MainLayout dashboardMode={dashboardMode}>
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-2xl font-bold mb-4">Profile Settings</h1>
             <p className="text-muted-foreground">
-              Profile editing is currently available for guides only.
+              Loading profile...
             </p>
           </div>
         </div>
@@ -43,18 +44,30 @@ export default function ProfilePage() {
     );
   }
 
+  // Show appropriate form based on role
+  if (profile.role === 'guide') {
+    return (
+      <MainLayout
+        dashboardMode={dashboardMode}
+        showVerificationBadge={true}
+        isVerified={profile.verified}
+      >
+        <div className="container mx-auto px-4 py-8">
+          <GuideProfileEditForm
+            onNavigateToGuideProfile={(guideId) => {
+              navigate(`/${(profile as any).slug || guideId}`);
+            }}
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Hiker profile
   return (
-    <MainLayout
-      dashboardMode={dashboardMode}
-      showVerificationBadge={profile.role === 'guide'}
-      isVerified={profile.verified}
-    >
+    <MainLayout dashboardMode={dashboardMode}>
       <div className="container mx-auto px-4 py-8">
-        <GuideProfileEditForm
-          onNavigateToGuideProfile={(guideId) => {
-            navigate(`/${profile.role === 'guide' ? (profile as any).slug || guideId : guideId}`);
-          }}
-        />
+        <HikerProfileEditForm />
       </div>
     </MainLayout>
   );
