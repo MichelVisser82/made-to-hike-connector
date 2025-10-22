@@ -12,8 +12,8 @@ interface RoutePolylineWithArrowsProps {
 
 export function RoutePolylineWithArrows({ 
   positions, 
-  color = '#10b981', 
-  weight = 4 
+  color = '#800020', 
+  weight = 5 
 }: RoutePolylineWithArrowsProps) {
   const map = useMap();
 
@@ -24,7 +24,7 @@ export function RoutePolylineWithArrows({
     const polyline = L.polyline(positions, {
       color,
       weight,
-      opacity: 0.8
+      opacity: 0.9
     }).addTo(map);
 
     // Add arrow decorators

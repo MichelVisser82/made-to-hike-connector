@@ -181,9 +181,9 @@ export function HighlightEditor({
             <Polyline
               positions={routeCoordinates}
               pathOptions={{
-                color: '#10b981',
-                weight: 3,
-                opacity: 0.7
+                color: '#800020',
+                weight: 5,
+                opacity: 0.9
               }}
             />
 

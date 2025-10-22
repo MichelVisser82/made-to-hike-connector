@@ -175,13 +175,13 @@ export function DaySplitter({ trackpoints, daysCount, onSplitsConfirmed, onBack 
               onAddAccommodation={handleAddAccommodation}
             />
 
-            {/* Full route as gray line */}
+            {/* Full route */}
             <Polyline
               positions={routeCoordinates}
               pathOptions={{
-                color: '#9ca3af',
-                weight: 3,
-                opacity: 0.6
+                color: '#800020',
+                weight: 5,
+                opacity: 0.9
               }}
             />
 
