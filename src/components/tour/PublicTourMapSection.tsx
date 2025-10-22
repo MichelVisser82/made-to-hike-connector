@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Circle, Marker, Popup } from 'react-leaflet';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Lock, MapPin } from 'lucide-react';
 import { TourMapSettings, TourHighlight, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
+import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -34,6 +35,23 @@ export function PublicTourMapSection({
   meetingPoint,
   daySummaries = []
 }: PublicTourMapSectionProps) {
+  const [thunderforestKey, setThunderforestKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchThunderforestKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-thunderforest-key');
+        if (!error && data?.key) {
+          setThunderforestKey(data.key);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Thunderforest key:', err);
+      }
+    };
+    
+    fetchThunderforestKey();
+  }, []);
+
   const center: [number, number] = useMemo(() => {
     if (mapSettings?.regionCenterLat && mapSettings?.regionCenterLng) {
       return [mapSettings.regionCenterLat, mapSettings.regionCenterLng];
@@ -72,10 +90,19 @@ export function PublicTourMapSection({
               className="h-full w-full"
               scrollWheelZoom={false}
             >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
+              {thunderforestKey ? (
+                <TileLayer
+                  attribution='Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url={`https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${thunderforestKey}`}
+                  maxZoom={18}
+                  subdomains={['a', 'b', 'c']}
+                />
+              ) : (
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+              )}
 
               {/* Region boundary circle */}
               {mapSettings?.routeDisplayMode === 'region_overview' && (
