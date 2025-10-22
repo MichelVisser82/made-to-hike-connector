@@ -239,8 +239,8 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         return { success: false };
       }
 
-      // Format the data for submission (exclude date_slots, we'll handle separately)
-      const { date_slots, ...tourData } = data as any;
+      // Format the data for submission (exclude date_slots and routeData, we handle them separately)
+      const { date_slots, routeData, ...tourData } = data as any;
       
       const formattedTourData = {
         ...tourData,
