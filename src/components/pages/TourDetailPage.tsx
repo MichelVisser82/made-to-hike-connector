@@ -332,11 +332,11 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* Tour Highlights & Meeting Location - Side by Side */}
             <div className="grid lg:grid-cols-2 gap-6 lg:items-start">
               {/* Tour Highlights */}
-              <Card className="h-full flex flex-col shadow-lg">
+              <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle>Tour Highlights</CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1 overflow-auto">
+                <CardContent>
                   <div className="space-y-3">
                     {tour.highlights.map((highlight, index) => (
                       <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
@@ -352,24 +352,22 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
               {/* Meeting Location Map */}
               {tour.meeting_point_lat && tour.meeting_point_lng && (
-                <Card className="h-full flex flex-col shadow-lg">
+                <Card className="shadow-lg">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
                       Meeting Location
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-auto flex flex-col">
-                    <div className="flex-1 min-h-[300px]">
-                      <HikingLocationMap
-                        latitude={tour.meeting_point_lat}
-                        longitude={tour.meeting_point_lng}
-                        title={tour.meeting_point_formatted || tour.meeting_point}
-                        height="100%"
-                        zoom={13}
-                      />
-                    </div>
-                    <div className="mt-4 p-3 bg-accent/50 rounded-lg flex-shrink-0">
+                  <CardContent>
+                    <HikingLocationMap
+                      latitude={tour.meeting_point_lat}
+                      longitude={tour.meeting_point_lng}
+                      title={tour.meeting_point_formatted || tour.meeting_point}
+                      height="400px"
+                      zoom={13}
+                    />
+                    <div className="mt-4 p-3 bg-accent/50 rounded-lg">
                       <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 text-primary mt-0.5" />
                         <div>
