@@ -4,7 +4,6 @@ import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Edit } from 'lucide-react';
 
 interface Step12ReviewProps {
   onSubmit: () => void;
@@ -40,11 +39,8 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false 
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Location & Details</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(3)}>
-            <Edit className="w-4 h-4" />
-          </Button>
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="grid grid-cols-2 gap-4">
@@ -73,11 +69,8 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false 
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Pricing</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(11)}>
-            <Edit className="w-4 h-4" />
-          </Button>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
@@ -88,11 +81,8 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false 
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Highlights</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(8)}>
-            <Edit className="w-4 h-4" />
-          </Button>
         </CardHeader>
         <CardContent>
           <ul className="space-y-1">
@@ -104,11 +94,8 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false 
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Available Dates</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(6)}>
-            <Edit className="w-4 h-4" />
-          </Button>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
@@ -122,11 +109,8 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false 
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Inclusions</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(10)}>
-            <Edit className="w-4 h-4" />
-          </Button>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-4">
