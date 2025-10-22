@@ -7,8 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TourHighlight, RouteDisplayMode, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
-import { Eye, EyeOff, MapPin, Lock, Globe, Save } from 'lucide-react';
-import { toast } from 'sonner';
+import { Eye, EyeOff, MapPin, Lock, Globe } from 'lucide-react';
 
 interface PrivacySettingsPanelProps {
   highlights: Partial<TourHighlight>[];
@@ -44,11 +43,6 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
     } else if (featuredHighlightIds.length < 4) {
       setFeaturedHighlightIds([...featuredHighlightIds, id]);
     }
-  };
-
-  const handleSaveAndContinue = () => {
-    toast.success('Privacy settings saved successfully!');
-    // Settings are already auto-saved via useEffect
   };
 
   return (
@@ -223,13 +217,6 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
           </Card>
         </div>
       </Card>
-
-      <div className="flex justify-center">
-        <Button onClick={handleSaveAndContinue} size="lg">
-          <Save className="h-4 w-4 mr-2" />
-          Save & Continue
-        </Button>
-      </div>
 
       {/* Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
