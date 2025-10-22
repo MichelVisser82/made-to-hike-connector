@@ -4,8 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { MapPin, Users, Download, FileText, MessageSquare, CheckCircle2, Calendar } from 'lucide-react';
 import { useHikerBookings } from '@/hooks/useHikerBookings';
+import { ReceiptViewer } from '@/components/booking/ReceiptViewer';
 import { format } from 'date-fns';
 
 interface HikerBookingsSectionProps {
@@ -16,6 +18,7 @@ interface HikerBookingsSectionProps {
 
 export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: HikerBookingsSectionProps) {
   const [activeTab, setActiveTab] = useState('active');
+  const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const { bookings, loading, error } = useHikerBookings(userId);
 
   // Debug: Log all bookings and their statuses
@@ -262,7 +265,11 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                     <Button variant="outline" onClick={() => onViewBooking(booking.id)}>
                       👁️ View Details
                     </Button>
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => setSelectedReceipt(booking.id)}
+                      disabled={booking.payment_status.toLowerCase() !== 'paid'}
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       Receipt
                     </Button>
@@ -370,7 +377,11 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                         <div className="text-xl font-bold">
                           {getCurrencySymbol(receipt.currency)}{receipt.amount}
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedReceipt(receipt.id)}
+                        >
                           <Download className="w-4 h-4 mr-2" />
                           Download
                         </Button>
@@ -383,6 +394,18 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Receipt Viewer Dialog */}
+      <Dialog open={!!selectedReceipt} onOpenChange={() => setSelectedReceipt(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          {selectedReceipt && (
+            <ReceiptViewer 
+              bookingId={selectedReceipt} 
+              onClose={() => setSelectedReceipt(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
