@@ -37,11 +37,11 @@ interface ImageWithMetadata {
 }
 
 interface Step7ImagesProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
-export default function Step7Images({ onNext }: Step7ImagesProps) {
+export default function Step7Images({ onSave, isSaving }: Step7ImagesProps) {
   const form = useFormContext<TourFormData>();
   const [images, setImages] = useState<ImageWithMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -484,7 +484,6 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
       });
 
       setImages([]);
-      onNext();
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -690,8 +689,8 @@ export default function Step7Images({ onNext }: Step7ImagesProps) {
           >
             Clear All
           </Button>
-          <Button onClick={handleUpload} disabled={uploading || images.length === 0}>
-            {uploading ? 'Uploading...' : 'Continue'}
+          <Button onClick={async () => { await handleUpload(); await onSave(); }} disabled={uploading || images.length === 0 || isSaving}>
+            {uploading || isSaving ? 'Saving...' : 'Save & Continue'}
           </Button>
         </div>
       </CardContent>

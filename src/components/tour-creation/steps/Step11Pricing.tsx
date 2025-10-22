@@ -7,16 +7,16 @@ import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 
 interface Step11PricingProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
-export default function Step11Pricing({ onNext }: Step11PricingProps) {
+export default function Step11Pricing({ onSave, isSaving }: Step11PricingProps) {
   const form = useFormContext<TourFormData>();
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await form.trigger(['price', 'currency', 'service_fee', 'group_size']);
-    if (isValid) onNext();
+    if (isValid) await onSave();
   };
 
   const price = form.watch('price') || 0;
@@ -142,7 +142,9 @@ export default function Step11Pricing({ onNext }: Step11PricingProps) {
         </Card>
 
         <div className="flex justify-end">
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
         </div>
       </CardContent>
     </Card>

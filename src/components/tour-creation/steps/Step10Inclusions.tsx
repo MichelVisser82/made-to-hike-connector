@@ -10,11 +10,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 
 interface Step10InclusionsProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
-export default function Step10Inclusions({ onNext }: Step10InclusionsProps) {
+export default function Step10Inclusions({ onSave, isSaving }: Step10InclusionsProps) {
   const { setValue, watch, trigger } = useFormContext();
   const [newInclusion, setNewInclusion] = useState('');
   const [newExclusion, setNewExclusion] = useState('');
@@ -26,11 +26,9 @@ export default function Step10Inclusions({ onNext }: Step10InclusionsProps) {
   const { data: standardInclusions = [] } = useStandardItems('step10', 'included');
   const { data: standardExclusions = [] } = useStandardItems('step10', 'excluded');
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await trigger(['includes', 'excluded_items']);
-    if (isValid) {
-      onNext();
-    }
+    if (isValid) await onSave();
   };
 
   const toggleStandardInclusion = (itemText: string, checked: boolean) => {
@@ -254,8 +252,8 @@ export default function Step10Inclusions({ onNext }: Step10InclusionsProps) {
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleNext} size="lg">
-          Continue
+        <Button onClick={handleSave} size="lg" disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Save Progress'}
         </Button>
       </div>
     </div>

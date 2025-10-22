@@ -11,17 +11,17 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 
 interface Step9ItineraryProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
-export default function Step9Itinerary({ onNext }: Step9ItineraryProps) {
+export default function Step9Itinerary({ onSave, isSaving }: Step9ItineraryProps) {
   const form = useFormContext<TourFormData>();
   const [newActivity, setNewActivity] = useState<{ [key: number]: string }>({});
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await form.trigger(['itinerary']);
-    if (isValid) onNext();
+    if (isValid) await onSave();
   };
 
   const addDay = () => {
@@ -171,7 +171,9 @@ export default function Step9Itinerary({ onNext }: Step9ItineraryProps) {
         />
 
         <div className="flex justify-end">
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
         </div>
       </CardContent>
     </Card>

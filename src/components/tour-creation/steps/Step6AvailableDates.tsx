@@ -12,11 +12,11 @@ import { X, Percent, Calendar as CalendarIcon, Users } from 'lucide-react';
 import type { DateSlotFormData } from '@/types/tourDateSlot';
 
 interface Step6AvailableDatesProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
-export default function Step6AvailableDates({ onNext }: Step6AvailableDatesProps) {
+export default function Step6AvailableDates({ onSave, isSaving }: Step6AvailableDatesProps) {
   const form = useFormContext<TourFormData>();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [editingSlotIndex, setEditingSlotIndex] = useState<number | null>(null);
@@ -64,10 +64,10 @@ export default function Step6AvailableDates({ onNext }: Step6AvailableDatesProps
 
   const currentSlot = editingSlotIndex !== null ? dateSlots[editingSlotIndex] : null;
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await form.trigger(['date_slots']);
     if (isValid && dateSlots.length > 0) {
-      onNext();
+      await onSave();
     } else if (dateSlots.length === 0) {
       form.setError('date_slots', { message: 'Please add at least one available date' });
     }
@@ -232,7 +232,9 @@ export default function Step6AvailableDates({ onNext }: Step6AvailableDatesProps
         />
 
         <div className="flex justify-end">
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
         </div>
       </CardContent>
     </Card>

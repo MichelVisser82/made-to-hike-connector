@@ -7,8 +7,8 @@ import { MapPin } from 'lucide-react';
 import { LocationAutocomplete } from '../LocationAutocomplete';
 
 interface Step3LocationProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
 const regions = [
@@ -17,15 +17,15 @@ const regions = [
   { value: 'scotland', label: 'Scottish Highlands', description: 'Rugged mountain terrain' },
 ];
 
-export default function Step3Location({ onNext }: Step3LocationProps) {
+export default function Step3Location({ onSave, isSaving }: Step3LocationProps) {
   const form = useFormContext<TourFormData>();
   
   const meetingPointLat = form.watch('meeting_point_lat');
   const meetingPointLng = form.watch('meeting_point_lng');
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await form.trigger(['region', 'meeting_point']);
-    if (isValid) onNext();
+    if (isValid) await onSave();
   };
 
   return (
@@ -95,7 +95,9 @@ export default function Step3Location({ onNext }: Step3LocationProps) {
         />
 
         <div className="flex justify-end">
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
         </div>
       </CardContent>
     </Card>

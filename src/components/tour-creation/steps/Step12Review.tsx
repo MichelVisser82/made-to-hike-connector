@@ -8,23 +8,19 @@ import { Edit } from 'lucide-react';
 
 interface Step12ReviewProps {
   onSubmit: () => void;
-  onEdit: (step: number) => void;
   isSubmitting: boolean;
   editMode?: boolean;
 }
 
-export default function Step12Review({ onSubmit, onEdit, isSubmitting, editMode = false }: Step12ReviewProps) {
+export default function Step12Review({ onSubmit, isSubmitting, editMode = false }: Step12ReviewProps) {
   const form = useFormContext<TourFormData>();
   const data = form.getValues();
 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Basic Information</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(2)}>
-            <Edit className="w-4 h-4" />
-          </Button>
         </CardHeader>
         <CardContent className="space-y-2">
           <div>

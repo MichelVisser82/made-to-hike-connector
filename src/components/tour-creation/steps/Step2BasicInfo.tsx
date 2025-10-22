@@ -7,16 +7,16 @@ import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 
 interface Step2BasicInfoProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
-export default function Step2BasicInfo({ onNext }: Step2BasicInfoProps) {
+export default function Step2BasicInfo({ onSave, isSaving }: Step2BasicInfoProps) {
   const form = useFormContext<TourFormData>();
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await form.trigger(['title', 'short_description', 'description']);
-    if (isValid) onNext();
+    if (isValid) await onSave();
   };
 
   return (
@@ -86,7 +86,9 @@ export default function Step2BasicInfo({ onNext }: Step2BasicInfoProps) {
         />
 
         <div className="flex justify-end">
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
         </div>
       </CardContent>
     </Card>

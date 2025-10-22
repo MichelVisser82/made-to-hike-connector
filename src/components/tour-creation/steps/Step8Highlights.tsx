@@ -12,11 +12,11 @@ import { useStandardItems } from '@/hooks/useStandardItems';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Step8HighlightsProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
-export default function Step8Highlights({ onNext }: Step8HighlightsProps) {
+export default function Step8Highlights({ onSave, isSaving }: Step8HighlightsProps) {
   const form = useFormContext<TourFormData>();
   const [newHighlight, setNewHighlight] = useState('');
   const highlights = form.watch('highlights') || [];
@@ -24,9 +24,9 @@ export default function Step8Highlights({ onNext }: Step8HighlightsProps) {
   // Fetch standard highlights
   const { data: standardHighlights = [] } = useStandardItems('step8', 'highlight');
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await form.trigger(['highlights']);
-    if (isValid) onNext();
+    if (isValid) await onSave();
   };
 
   const toggleStandardHighlight = (itemText: string, checked: boolean) => {
@@ -165,7 +165,9 @@ export default function Step8Highlights({ onNext }: Step8HighlightsProps) {
         />
 
         <div className="flex justify-end">
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
         </div>
       </CardContent>
     </Card>

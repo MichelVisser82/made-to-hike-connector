@@ -9,8 +9,8 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 
 interface Step5TourDetailsProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
 const commonTerrainTypes = [
@@ -18,13 +18,13 @@ const commonTerrainTypes = [
   'Scree slopes', 'Ridge walks', 'Valley floors', 'Mountain passes'
 ];
 
-export default function Step5TourDetails({ onNext }: Step5TourDetailsProps) {
+export default function Step5TourDetails({ onSave, isSaving }: Step5TourDetailsProps) {
   const form = useFormContext<TourFormData>();
   const [customTerrain, setCustomTerrain] = useState('');
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types', 'distance_km', 'elevation_gain_m']);
-    if (isValid) onNext();
+    if (isValid) await onSave();
   };
 
   const addTerrain = (terrain: string) => {
@@ -192,7 +192,9 @@ export default function Step5TourDetails({ onNext }: Step5TourDetailsProps) {
         />
 
         <div className="flex justify-end">
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
         </div>
       </CardContent>
     </Card>

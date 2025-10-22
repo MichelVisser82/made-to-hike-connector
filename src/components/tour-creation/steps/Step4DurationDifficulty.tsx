@@ -6,8 +6,8 @@ import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 
 interface Step4DurationDifficultyProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
 }
 
 const difficultyLevels = [
@@ -17,12 +17,12 @@ const difficultyLevels = [
   { value: 'expert', label: 'D - Expert', description: 'Very demanding, technical skills needed' },
 ];
 
-export default function Step4DurationDifficulty({ onNext }: Step4DurationDifficultyProps) {
+export default function Step4DurationDifficulty({ onSave, isSaving }: Step4DurationDifficultyProps) {
   const form = useFormContext<TourFormData>();
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     const isValid = await form.trigger(['duration', 'difficulty']);
-    if (isValid) onNext();
+    if (isValid) await onSave();
   };
 
   return (
@@ -89,7 +89,9 @@ export default function Step4DurationDifficulty({ onNext }: Step4DurationDifficu
         />
 
         <div className="flex justify-end">
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
+          </Button>
         </div>
       </CardContent>
     </Card>

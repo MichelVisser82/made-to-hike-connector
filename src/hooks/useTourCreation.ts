@@ -94,6 +94,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
   const { initialData, editMode = false, tourId } = options || {};
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const getDefaultValues = () => {
     if (initialData) {
@@ -222,6 +223,101 @@ export function useTourCreation(options?: UseTourCreationOptions) {
     if (step >= 1 && step <= 12) {
       setCurrentStep(step);
       window.scrollTo(0, 0);
+    }
+  };
+
+  const saveProgress = async (data: TourFormData) => {
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save progress",
+          variant: "destructive",
+        });
+        return { success: false };
+      }
+
+      if (!editMode || !tourId) {
+        // For new tours, just save to localStorage
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        toast({
+          title: "Progress saved",
+          description: "Your changes have been saved as a draft",
+        });
+        return { success: true };
+      }
+
+      // For existing tours, save to database
+      const { date_slots, routeData, ...tourData } = data as any;
+      
+      const formattedTourData = {
+        ...tourData,
+        guide_id: user.id,
+        available_dates: date_slots?.map((slot: DateSlotFormData) => 
+          slot.date.toISOString().split('T')[0]
+        ) || [],
+      };
+
+      const { error } = await supabase
+        .from('tours')
+        .update(formattedTourData)
+        .eq('id', tourId)
+        .eq('guide_id', user.id);
+
+      if (error) {
+        console.error('Error saving progress:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save progress. Please try again.",
+          variant: "destructive",
+        });
+        return { success: false };
+      }
+
+      // Update date slots
+      await supabase
+        .from('tour_date_slots')
+        .delete()
+        .eq('tour_id', tourId);
+
+      if (date_slots && date_slots.length > 0) {
+        const dateSlotInserts = date_slots.map((slot: DateSlotFormData) => ({
+          tour_id: tourId,
+          slot_date: slot.date.toISOString().split('T')[0],
+          spots_total: slot.spotsTotal,
+          price_override: slot.priceOverride,
+          currency_override: slot.currencyOverride,
+          discount_percentage: slot.discountPercentage,
+          discount_label: slot.discountLabel,
+          early_bird_date: slot.earlyBirdDate?.toISOString().split('T')[0],
+          notes: slot.notes,
+          is_available: true
+        }));
+
+        await supabase
+          .from('tour_date_slots')
+          .insert(dateSlotInserts);
+      }
+
+      toast({
+        title: "Progress saved",
+        description: "Your changes have been saved",
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving progress:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+      return { success: false };
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -357,7 +453,9 @@ export function useTourCreation(options?: UseTourCreationOptions) {
     prevStep,
     goToStep,
     submitTour,
+    saveProgress,
     isSubmitting,
+    isSaving,
     totalSteps: 13,
     editMode,
   };

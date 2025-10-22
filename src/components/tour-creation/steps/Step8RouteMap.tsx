@@ -6,14 +6,13 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 
 interface Step8RouteMapProps {
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
   tourId?: string;
 }
 
-export function Step8RouteMap({ onNext, onPrev, tourId }: Step8RouteMapProps) {
+export function Step8RouteMap({ onSave, isSaving, tourId }: Step8RouteMapProps) {
   const { setValue, watch } = useFormContext();
-  const [isSaving, setIsSaving] = useState(false);
   const duration = watch('duration') || '1 day';
   
   // Parse days from duration string (e.g., "3 days" -> 3)
@@ -23,20 +22,18 @@ export function Step8RouteMap({ onNext, onPrev, tourId }: Step8RouteMapProps) {
     setValue('routeData', data);
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     setValue('routeData', null);
-    onNext();
+    await onSave();
   };
 
   const handleContinue = async () => {
     const routeData = watch('routeData');
     
     if (!routeData || !tourId) {
-      onNext();
+      await onSave();
       return;
     }
-
-    setIsSaving(true);
 
     try {
       // Save map settings
@@ -111,12 +108,10 @@ export function Step8RouteMap({ onNext, onPrev, tourId }: Step8RouteMapProps) {
       }
 
       toast.success('Route map data saved successfully!');
-      onNext();
+      await onSave();
     } catch (error) {
       console.error('Error saving route data:', error);
       toast.error('Failed to save route data. Please try again.');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -193,18 +188,13 @@ export function Step8RouteMap({ onNext, onPrev, tourId }: Step8RouteMapProps) {
         />
       )}
 
-      <div className="flex justify-between pt-6">
-        <Button variant="outline" onClick={onPrev}>
-          Back
+      <div className="flex justify-end gap-3">
+        <Button variant="ghost" onClick={handleSkip} disabled={isSaving}>
+          Skip for Now
         </Button>
-        <div className="flex gap-3">
-          <Button variant="ghost" onClick={handleSkip} disabled={isSaving}>
-            Skip for Now
-          </Button>
-          <Button onClick={handleContinue} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Continue'}
-          </Button>
-        </div>
+        <Button onClick={handleContinue} disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Save & Continue'}
+        </Button>
       </div>
     </div>
   );
