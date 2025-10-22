@@ -10,6 +10,7 @@ import Step4DurationDifficulty from './steps/Step4DurationDifficulty';
 import Step5TourDetails from './steps/Step5TourDetails';
 import Step6AvailableDates from './steps/Step6AvailableDates';
 import Step7Images from './steps/Step7Images';
+import { Step8RouteMap } from './steps/Step8RouteMap';
 import Step8Highlights from './steps/Step8Highlights';
 import Step9Itinerary from './steps/Step9Itinerary';
 import Step10Inclusions from './steps/Step10Inclusions';
@@ -32,6 +33,7 @@ const stepTitles = [
   'Tour Details',
   'Available Dates',
   'Tour Images',
+  'Route & Map',
   'Highlights',
   'Daily Itinerary',
   'Inclusions & Exclusions',
@@ -80,14 +82,16 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
       case 7:
         return <Step7Images {...stepProps} />;
       case 8:
-        return <Step8Highlights {...stepProps} />;
+        return <Step8RouteMap {...stepProps} tourId={tourId} />;
       case 9:
-        return <Step9Itinerary {...stepProps} />;
+        return <Step8Highlights {...stepProps} />;
       case 10:
-        return <Step10Inclusions {...stepProps} />;
+        return <Step9Itinerary {...stepProps} />;
       case 11:
-        return <Step11Pricing {...stepProps} />;
+        return <Step10Inclusions {...stepProps} />;
       case 12:
+        return <Step11Pricing {...stepProps} />;
+      case 13:
         return <Step12Review onSubmit={handleSubmit} onEdit={goToStep} isSubmitting={isSubmitting} editMode={isEditMode} />;
       default:
         return null;

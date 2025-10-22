@@ -1062,6 +1062,206 @@ export type Database = {
           },
         ]
       }
+      tour_day_routes: {
+        Row: {
+          created_at: string | null
+          day_number: number
+          distance_km: number | null
+          elevation_gain_m: number | null
+          elevation_loss_m: number | null
+          elevation_profile: Json | null
+          estimated_duration_hours: number | null
+          id: string
+          route_coordinates: Json
+          tour_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_number: number
+          distance_km?: number | null
+          elevation_gain_m?: number | null
+          elevation_loss_m?: number | null
+          elevation_profile?: Json | null
+          estimated_duration_hours?: number | null
+          id?: string
+          route_coordinates: Json
+          tour_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_number?: number
+          distance_km?: number | null
+          elevation_gain_m?: number | null
+          elevation_loss_m?: number | null
+          elevation_profile?: Json | null
+          estimated_duration_hours?: number | null
+          id?: string
+          route_coordinates?: Json
+          tour_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_day_routes_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_gpx_files: {
+        Row: {
+          id: string
+          original_filename: string
+          storage_path: string
+          total_distance_km: number | null
+          total_elevation_gain_m: number | null
+          total_points: number | null
+          tour_id: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          id?: string
+          original_filename: string
+          storage_path: string
+          total_distance_km?: number | null
+          total_elevation_gain_m?: number | null
+          total_points?: number | null
+          tour_id: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          id?: string
+          original_filename?: string
+          storage_path?: string
+          total_distance_km?: number | null
+          total_elevation_gain_m?: number | null
+          total_points?: number | null
+          tour_id?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_gpx_files_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: true
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_highlights: {
+        Row: {
+          category: string
+          created_at: string | null
+          day_number: number | null
+          description: string | null
+          elevation_m: number | null
+          guide_notes: string | null
+          id: string
+          is_public: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          photos: Json | null
+          sequence_order: number | null
+          tour_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          day_number?: number | null
+          description?: string | null
+          elevation_m?: number | null
+          guide_notes?: string | null
+          id?: string
+          is_public?: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          photos?: Json | null
+          sequence_order?: number | null
+          tour_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          day_number?: number | null
+          description?: string | null
+          elevation_m?: number | null
+          guide_notes?: string | null
+          id?: string
+          is_public?: boolean | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          photos?: Json | null
+          sequence_order?: number | null
+          tour_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_highlights_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_map_settings: {
+        Row: {
+          created_at: string | null
+          featured_highlight_ids: string[] | null
+          id: string
+          region_center_lat: number | null
+          region_center_lng: number | null
+          region_radius_km: number | null
+          route_display_mode: string | null
+          show_meeting_point: boolean | null
+          tour_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          featured_highlight_ids?: string[] | null
+          id?: string
+          region_center_lat?: number | null
+          region_center_lng?: number | null
+          region_radius_km?: number | null
+          route_display_mode?: string | null
+          show_meeting_point?: boolean | null
+          tour_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          featured_highlight_ids?: string[] | null
+          id?: string
+          region_center_lat?: number | null
+          region_center_lng?: number | null
+          region_radius_km?: number | null
+          route_display_mode?: string | null
+          show_meeting_point?: boolean | null
+          tour_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_map_settings_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: true
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tour_step_templates: {
         Row: {
           category: string

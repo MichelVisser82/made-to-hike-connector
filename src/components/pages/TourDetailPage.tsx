@@ -13,8 +13,10 @@ import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
 import { AnonymousChat } from '../chat/AnonymousChat';
 import { useTourDateAvailability } from '@/hooks/useTourDateAvailability';
+import { useTourMapData } from '@/hooks/useTourMapData';
 import { format, addDays, parse } from 'date-fns';
 import { HikingLocationMap } from '../tour/HikingLocationMap';
+import { PublicTourMapSection } from '../tour/PublicTourMapSection';
 
 interface TourDetailPageProps {
   tour: Tour;
@@ -36,6 +38,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
   // Fetch real date availability
   const { data: dateSlots, isLoading: isLoadingDates } = useTourDateAvailability(tour.id);
+  
+  // Fetch tour map data (if exists)
+  const { data: tourMapData } = useTourMapData(tour.id);
 
   // Helper to format date range based on tour duration
   const formatDateRange = (startDate: Date, duration: string) => {
@@ -350,8 +355,17 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 </CardContent>
               </Card>
 
-              {/* Meeting Location Map */}
-              {tour.meeting_point_lat && tour.meeting_point_lng && (
+              {/* Interactive Tour Map or Meeting Location */}
+              {tourMapData ? (
+                <PublicTourMapSection
+                  mapSettings={tourMapData.mapSettings}
+                  featuredHighlights={tourMapData.featuredHighlights}
+                  meetingPoint={tour.meeting_point_lat && tour.meeting_point_lng ? {
+                    lat: tour.meeting_point_lat,
+                    lng: tour.meeting_point_lng
+                  } : undefined}
+                />
+              ) : tour.meeting_point_lat && tour.meeting_point_lng && (
                 <Card className="shadow-lg lg:h-full lg:flex lg:flex-col">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">

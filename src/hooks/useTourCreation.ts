@@ -47,7 +47,17 @@ const tourSchema = z.object({
   hero_image: z.string().optional(),
   images: z.array(z.string()).default([]),
   
-  // Step 8: Highlights
+  // Step 8: Route & Map (optional)
+  routeData: z.object({
+    gpxData: z.any().optional(),
+    trackpoints: z.array(z.object({
+      lat: z.number(),
+      lng: z.number(),
+      elevation: z.number().optional()
+    })).optional()
+  }).optional(),
+  
+  // Step 9: Highlights
   highlights: z.array(z.string()).min(3, 'Add at least 3 highlights').max(10),
   
   // Step 9: Itinerary
@@ -195,7 +205,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
   }, [form, editMode]);
 
   const nextStep = () => {
-    if (currentStep < 12) {
+    if (currentStep < 13) {
       setCurrentStep(currentStep + 1);
       window.scrollTo(0, 0);
     }
@@ -348,7 +358,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
     goToStep,
     submitTour,
     isSubmitting,
-    totalSteps: 12,
+    totalSteps: 13,
     editMode,
   };
 }
