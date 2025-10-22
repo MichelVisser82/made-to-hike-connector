@@ -6,9 +6,10 @@ import { ManualRouteDrawer } from './ManualRouteDrawer';
 import { DaySplitter } from './DaySplitter';
 import { HighlightEditor } from './HighlightEditor';
 import { PrivacySettingsPanel } from './PrivacySettingsPanel';
+import { MapPreview } from './MapPreview';
 import { GPXParseResult, TourHighlight } from '@/types/map';
 import { Coordinate, analyzeRoute } from '@/utils/routeAnalysis';
-import { Map, Upload, Sparkles, MapPin, Lock, PenTool } from 'lucide-react';
+import { Map, Upload, Sparkles, MapPin, Lock, PenTool, Eye } from 'lucide-react';
 
 interface MapEditorInterfaceProps {
   tourId: string;
@@ -98,7 +99,7 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
 
       <Card className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="upload" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload GPX
@@ -118,6 +119,10 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
             <TabsTrigger value="privacy" disabled={!daySplits.length} className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
               Privacy
+            </TabsTrigger>
+            <TabsTrigger value="preview" disabled={!daySegments.length} className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Preview
             </TabsTrigger>
           </TabsList>
 
@@ -160,6 +165,16 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
               <PrivacySettingsPanel
                 highlights={highlights}
                 onSettingsConfirmed={handlePrivacyConfirmed}
+                onBack={() => setActiveTab('highlights')}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="preview" className="mt-6">
+            {daySegments.length > 0 && (
+              <MapPreview
+                daySegments={daySegments}
+                highlights={highlights}
                 onBack={() => setActiveTab('highlights')}
               />
             )}
