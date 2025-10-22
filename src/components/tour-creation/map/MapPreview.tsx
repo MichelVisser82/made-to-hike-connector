@@ -57,11 +57,11 @@ export function MapPreview({ gpxData, daySegments, highlights, onBack }: MapPrev
       </div>
 
       <Card className="overflow-hidden">
-        <div className="h-[600px]">
+        <div className="h-[600px] relative z-0">
           <MapContainer
             center={center}
             zoom={12}
-            className="h-full w-full"
+            className="h-full w-full relative z-0"
             scrollWheelZoom={true}
           >
             <TileLayer
