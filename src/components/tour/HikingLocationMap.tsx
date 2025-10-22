@@ -86,9 +86,9 @@ export const HikingLocationMap = ({
 
         // Add tile layer
         if (apiKey) {
-          console.log('[HikingLocationMap] Adding Thunderforest Outdoors tiles');
+          console.log('[HikingLocationMap] Adding Thunderforest Landscape tiles');
           L.tileLayer(
-            `https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${apiKey}`,
+            `https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${apiKey}`,
             {
               attribution: 'Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
               maxZoom: 18,
