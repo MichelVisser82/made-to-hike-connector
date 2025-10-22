@@ -76,23 +76,39 @@ export function AppNavigation({
         .or(`hiker_id.eq.${user.id},guide_id.eq.${user.id}`);
 
       if (conversations) {
-        const conversationIds = conversations.map(c => c.id);
+        let totalUnread = 0;
         
-        const { count } = await supabase
-          .from('messages')
-          .select('id', { count: 'exact', head: true })
-          .in('conversation_id', conversationIds)
-          .neq('sender_id', user.id)
-          .is('read_receipts', null);
+        for (const conv of conversations) {
+          const { data: unreadMessages } = await supabase
+            .from('messages')
+            .select('id')
+            .eq('conversation_id', conv.id)
+            .neq('sender_id', user.id);
+
+          if (unreadMessages) {
+            for (const msg of unreadMessages) {
+              const { data: receipt } = await supabase
+                .from('message_read_receipts')
+                .select('id')
+                .eq('message_id', msg.id)
+                .eq('user_id', user.id)
+                .maybeSingle();
+              
+              if (!receipt) {
+                totalUnread++;
+              }
+            }
+          }
+        }
         
-        setUnreadCount(count || 0);
+        setUnreadCount(totalUnread);
       }
     };
 
     fetchUnreadCount();
 
-    // Subscribe to new messages
-    const channel = supabase
+    // Subscribe to new messages and read receipts
+    const messagesChannel = supabase
       .channel('unread-messages')
       .on(
         'postgres_changes',
@@ -103,10 +119,19 @@ export function AppNavigation({
         },
         () => fetchUnreadCount()
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'message_read_receipts'
+        },
+        () => fetchUnreadCount()
+      )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
     };
   }, [user?.id]);
 
@@ -210,6 +235,11 @@ export function AppNavigation({
               {/* Notifications Bell */}
               <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                 <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
 
               {/* Help Button */}
