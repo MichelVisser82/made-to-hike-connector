@@ -105,26 +105,40 @@ export function HighlightEditor({
       return;
     }
 
+    let updatedHighlights: Partial<TourHighlight>[];
+    
     if (editingHighlight.id) {
-      setHighlights(highlights.map(h => 
+      updatedHighlights = highlights.map(h => 
         h.id === editingHighlight.id ? editingHighlight : h
-      ));
+      );
     } else {
-      setHighlights([...highlights, { ...editingHighlight, id: `temp-${Date.now()}` }]);
+      updatedHighlights = [...highlights, { ...editingHighlight, id: `temp-${Date.now()}` }];
     }
 
+    setHighlights(updatedHighlights);
     setIsModalOpen(false);
     setEditingHighlight(null);
+    
+    // Auto-save to database
+    onHighlightsConfirmed(updatedHighlights);
+    toast.success('Highlight saved successfully!');
   };
 
   const handleDeleteHighlight = (id: string) => {
-    setHighlights(highlights.filter(h => h.id !== id));
+    const updatedHighlights = highlights.filter(h => h.id !== id);
+    setHighlights(updatedHighlights);
+    // Auto-save after deletion
+    onHighlightsConfirmed(updatedHighlights);
+    toast.success('Highlight deleted');
   };
 
   const handleTogglePublic = (id: string) => {
-    setHighlights(highlights.map(h => 
+    const updatedHighlights = highlights.map(h => 
       h.id === id ? { ...h, isPublic: !h.isPublic } : h
-    ));
+    );
+    setHighlights(updatedHighlights);
+    // Auto-save after toggling visibility
+    onHighlightsConfirmed(updatedHighlights);
   };
 
   const getMarkerIcon = (category: HighlightCategory, isPublic: boolean) => {
@@ -157,9 +171,6 @@ export function HighlightEditor({
             >
               <MapPin className="h-4 w-4 mr-2" />
               {clickMode ? 'Cancel' : 'Add Highlight'}
-            </Button>
-            <Button onClick={() => onHighlightsConfirmed(highlights)}>
-              Continue ({highlights.length} highlights)
             </Button>
           </div>
         </div>
