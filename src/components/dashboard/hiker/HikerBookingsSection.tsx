@@ -18,14 +18,22 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
   const [activeTab, setActiveTab] = useState('active');
   const { bookings, loading, error } = useHikerBookings(userId);
 
-  // Filter bookings by status
-  const activeBookings = bookings.filter(b => 
-    ['pending', 'confirmed'].includes(b.status.toLowerCase())
-  );
+  // Debug: Log all bookings and their statuses
+  console.log('All bookings:', bookings);
+  console.log('Booking statuses:', bookings.map(b => b.status));
+
+  // Filter bookings by status - show all non-cancelled, non-completed bookings as active
+  const activeBookings = bookings.filter(b => {
+    const status = b.status.toLowerCase();
+    return !['cancelled', 'completed', 'refunded'].includes(status);
+  });
 
   const completedBookings = bookings.filter(b => 
     b.status.toLowerCase() === 'completed'
   );
+
+  console.log('Active bookings count:', activeBookings.length);
+  console.log('Active booking statuses:', activeBookings.map(b => b.status));
 
   // Mock data for features not yet implemented
   const oldActiveBookings = [
