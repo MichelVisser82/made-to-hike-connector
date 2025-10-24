@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { HelpSearchBar } from '@/components/help/HelpSearchBar';
 import { HelpFAQSection } from '@/components/help/HelpFAQSection';
 import { SupportContactForm } from '@/components/help/SupportContactForm';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 export default function HelpPage() {
   const contactFormRef = useRef<HTMLDivElement>(null);
@@ -14,7 +15,7 @@ export default function HelpPage() {
   };
 
   return (
-    <>
+    <MainLayout>
       <Helmet>
         <title>Help Center | MadeToHike Support</title>
         <meta 
@@ -26,24 +27,24 @@ export default function HelpPage() {
 
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
         {/* Hero Section with Search */}
-        <section className="bg-gradient-to-br from-burgundy via-burgundy-dark to-charcoal text-white py-16 md:py-24">
+        <section className="bg-gradient-to-br from-burgundy via-burgundy-dark to-charcoal text-white py-12 md:py-16">
           <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center space-y-6">
+            <div className="max-w-4xl mx-auto text-center space-y-4">
               <div className="flex justify-center">
-                <div className="h-16 w-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <HelpCircle className="h-8 w-8" />
+                <div className="h-12 w-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
+                  <HelpCircle className="h-6 w-6" />
                 </div>
               </div>
               
-              <h1 className="text-4xl md:text-5xl font-bold">
+              <h1 className="text-3xl md:text-4xl font-bold">
                 How Can We Help You?
               </h1>
               
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+              <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto">
                 Search our knowledge base or browse frequently asked questions below
               </p>
 
-              <div className="pt-4">
+              <div className="pt-2">
                 <HelpSearchBar onNoResults={scrollToContact} />
               </div>
             </div>
@@ -51,7 +52,7 @@ export default function HelpPage() {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-16 md:py-24">
+        <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-8">
               <div className="text-center space-y-3">
@@ -79,7 +80,7 @@ export default function HelpPage() {
         {/* Contact Form Section */}
         <section 
           ref={contactFormRef} 
-          className="py-16 md:py-24 bg-muted/30"
+          className="py-12 md:py-16 bg-muted/30"
           id="contact-support"
         >
           <div className="container mx-auto px-4">
@@ -117,6 +118,6 @@ export default function HelpPage() {
           </div>
         </section>
       </div>
-    </>
+    </MainLayout>
   );
 }
