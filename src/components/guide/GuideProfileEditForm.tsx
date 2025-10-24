@@ -2519,6 +2519,14 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             variant="outline"
             size="lg"
             onClick={() => {
+              if (!profile.slug) {
+                toast({
+                  title: "Profile URL not set",
+                  description: "Please set your profile URL in Basic Info first.",
+                  variant: "destructive"
+                });
+                return;
+              }
               if (onNavigateToGuideProfile) {
                 onNavigateToGuideProfile(profile.user_id);
               } else {
