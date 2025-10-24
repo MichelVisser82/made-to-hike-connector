@@ -540,6 +540,95 @@ export type Database = {
         }
         Relationships: []
       }
+      help_faqs: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          helpful_count: number
+          id: string
+          is_active: boolean
+          not_helpful_count: number
+          question: string
+          search_keywords: string[] | null
+          sort_order: number
+          updated_at: string
+          user_type: string
+          view_count: number
+        }
+        Insert: {
+          answer: string
+          category: string
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          is_active?: boolean
+          not_helpful_count?: number
+          question: string
+          search_keywords?: string[] | null
+          sort_order?: number
+          updated_at?: string
+          user_type: string
+          view_count?: number
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          is_active?: boolean
+          not_helpful_count?: number
+          question?: string
+          search_keywords?: string[] | null
+          sort_order?: number
+          updated_at?: string
+          user_type?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
+      help_searches: {
+        Row: {
+          created_at: string
+          created_ticket: boolean
+          id: string
+          results_shown: Json | null
+          search_query: string
+          selected_faq_id: string | null
+          user_id: string | null
+          was_helpful: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          created_ticket?: boolean
+          id?: string
+          results_shown?: Json | null
+          search_query: string
+          selected_faq_id?: string | null
+          user_id?: string | null
+          was_helpful?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          created_ticket?: boolean
+          id?: string
+          results_shown?: Json | null
+          search_query?: string
+          selected_faq_id?: string | null
+          user_id?: string | null
+          was_helpful?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_searches_selected_faq_id_fkey"
+            columns: ["selected_faq_id"]
+            isOneToOne: false
+            referencedRelation: "help_faqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kv_store: {
         Row: {
           created_at: string | null

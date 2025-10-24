@@ -188,6 +188,7 @@ export function DashboardShell({
               <Button 
                 variant="ghost" 
                 size="icon"
+                onClick={() => navigate('/help')}
                 className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy"
               >
                 <HelpCircle className="w-5 h-5" />
