@@ -6,16 +6,22 @@ import { HelpSearchBar } from '@/components/help/HelpSearchBar';
 import { HelpFAQSection } from '@/components/help/HelpFAQSection';
 import { SupportContactForm } from '@/components/help/SupportContactForm';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 
 export default function HelpPage() {
   const contactFormRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const { profile } = useProfile();
 
   const scrollToContact = () => {
     contactFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const dashboardMode = profile?.role === 'guide' ? 'guide' : user ? 'hiker' : undefined;
+
   return (
-    <MainLayout>
+    <MainLayout dashboardMode={dashboardMode}>
       <Helmet>
         <title>Help Center | MadeToHike Support</title>
         <meta 
