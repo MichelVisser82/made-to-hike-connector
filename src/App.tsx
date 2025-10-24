@@ -20,6 +20,7 @@ import CertificationsPage from "./pages/CertificationsPage";
 import DashboardPage from "./pages/DashboardPage";
 import TourCreationPage from "./pages/TourCreationPage";
 import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 import { BookingFlowNew } from "./components/pages/BookingFlowNew";
 import { BookingSuccess } from "./components/pages/BookingSuccess";
 
