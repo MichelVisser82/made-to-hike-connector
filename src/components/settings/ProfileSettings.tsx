@@ -147,7 +147,7 @@ export function ProfileSettings({ userRole }: ProfileSettingsProps) {
               </p>
               <div className="flex gap-2 items-center">
                 <span className="text-sm text-charcoal/60 whitespace-nowrap">
-                  madetohike.com/guide/
+                  madetohike.com/
                 </span>
                 <Input
                   id="profile-url"
