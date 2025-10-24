@@ -23,7 +23,7 @@ export default function ProfilePage() {
     return (
       <MainLayout dashboardMode={dashboardMode}>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-burgundy" />
         </div>
       </MainLayout>
     );

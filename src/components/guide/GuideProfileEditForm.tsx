@@ -1278,17 +1278,24 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-burgundy" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-3xl font-playfair font-bold text-charcoal">Guide Profile Settings</h1>
+        <p className="text-charcoal/60 mt-2">
+          Manage your professional guide profile and credentials
+        </p>
+      </div>
+
+      <Card className="border-burgundy/10 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
+          <CardTitle className="text-lg font-playfair text-charcoal flex items-center gap-2">
+            <Mail className="h-5 w-5 text-burgundy" />
             Account Email
           </CardTitle>
           <CardDescription>
@@ -1313,6 +1320,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                 onClick={handleUpdateEmail}
                 disabled={isUpdatingEmail || newEmail === user?.email}
                 variant="outline"
+                className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
               >
                 {isUpdatingEmail ? (
                   <>
@@ -1338,12 +1346,12 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Basic Information Section */}
       <Collapsible open={openSections.basicInfo} onOpenChange={() => handleSectionToggle('basicInfo')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Basic Information</CardTitle>
+                  <CardTitle className="text-lg font-playfair text-charcoal">Basic Information</CardTitle>
                   <CardDescription>Your display name, location, and bio</CardDescription>
                 </div>
                 <ChevronDown className={cn(
@@ -1384,10 +1392,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                 />
               </div>
               
-              <div className="flex justify-end pt-4 border-t">
+              <div className="flex justify-end pt-4 border-t border-burgundy/10">
                 <Button 
                   onClick={handleSaveBasicInfo}
                   disabled={savingStates.basicInfo}
+                  className="bg-burgundy hover:bg-burgundy-dark text-white"
                 >
                   {savingStates.basicInfo ? (
                     <>
@@ -1406,12 +1415,12 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Profile Images Section */}
       <Collapsible open={openSections.profileImages} onOpenChange={() => handleSectionToggle('profileImages')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Profile Images</CardTitle>
+                  <CardTitle className="text-lg font-playfair text-charcoal">Profile Images</CardTitle>
                   <CardDescription>Your profile picture and hero background</CardDescription>
                 </div>
                 <ChevronDown className={cn(
@@ -1496,10 +1505,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             </div>
           </div>
             
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-end pt-4 border-t border-burgundy/10">
               <Button 
                 onClick={handleSaveProfileImages}
                 disabled={savingStates.profileImages}
+                className="bg-burgundy hover:bg-burgundy-dark text-white"
               >
                 {savingStates.profileImages ? (
                   <>
@@ -1518,12 +1528,12 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Video Introduction Section */}
       <Collapsible open={openSections.videoIntro} onOpenChange={() => handleSectionToggle('videoIntro')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Video Introduction</CardTitle>
+                  <CardTitle className="text-lg font-playfair text-charcoal">Video Introduction</CardTitle>
                   <CardDescription>Add a video to help hikers get to know you</CardDescription>
                 </div>
                 <ChevronDown className={cn(
@@ -1668,10 +1678,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             </div>
           )}
           
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-end pt-4 border-t border-burgundy/10">
             <Button 
               onClick={handleSaveVideoIntroduction}
               disabled={savingStates.videoIntro || isUploadingVideo}
+              className="bg-burgundy hover:bg-burgundy-dark text-white"
             >
               {savingStates.videoIntro || isUploadingVideo ? (
                 <>
@@ -1707,12 +1718,12 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Certifications Section */}
       <Collapsible open={openSections.certifications} onOpenChange={() => handleSectionToggle('certifications')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Certifications</CardTitle>
+                  <CardTitle className="text-lg font-playfair text-charcoal">Certifications</CardTitle>
                   <CardDescription>Your professional qualifications and certifications</CardDescription>
                 </div>
                 <ChevronDown className={cn(
@@ -2042,12 +2053,12 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Difficulty Levels Section */}
       <Collapsible open={openSections.difficultyLevels} onOpenChange={() => handleSectionToggle('difficultyLevels')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Difficulty Levels</CardTitle>
+                  <CardTitle className="text-lg font-playfair text-charcoal">Difficulty Levels</CardTitle>
                   <CardDescription>Select the difficulty levels you can guide</CardDescription>
                 </div>
                 <ChevronDown className={cn(
@@ -2083,10 +2094,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             ))}
           </div>
           
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-end pt-4 border-t border-burgundy/10">
             <Button 
               onClick={handleSaveDifficultyLevels}
               disabled={savingStates.difficultyLevels}
+              className="bg-burgundy hover:bg-burgundy-dark text-white"
             >
               {savingStates.difficultyLevels ? (
                 <>
@@ -2105,12 +2117,12 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Professional Details Section */}
       <Collapsible open={openSections.professional} onOpenChange={() => handleSectionToggle('professional')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Professional Details</CardTitle>
+                  <CardTitle className="text-lg font-playfair text-charcoal">Professional Details</CardTitle>
                   <CardDescription>Your expertise, specialties, and capabilities</CardDescription>
                 </div>
                 <ChevronDown className={cn(
@@ -2237,10 +2249,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             </div>
           </div>
           
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-end pt-4 border-t border-burgundy/10">
             <Button 
               onClick={handleSaveProfessional}
               disabled={savingStates.professional}
+              className="bg-burgundy hover:bg-burgundy-dark text-white"
             >
               {savingStates.professional ? (
                 <>
@@ -2259,12 +2272,12 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Availability & Pricing Section */}
       <Collapsible open={openSections.availability} onOpenChange={() => handleSectionToggle('availability')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Availability & Pricing</CardTitle>
+                  <CardTitle className="text-lg font-playfair text-charcoal">Availability & Pricing</CardTitle>
                   <CardDescription>Your availability and daily rates</CardDescription>
                 </div>
                 <ChevronDown className={cn(
@@ -2337,10 +2350,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             </div>
           </div>
           
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-end pt-4 border-t border-burgundy/10">
             <Button 
               onClick={handleSaveAvailability}
               disabled={savingStates.availability}
+              className="bg-burgundy hover:bg-burgundy-dark text-white"
             >
               {savingStates.availability ? (
                 <>
@@ -2359,12 +2373,12 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Contact Information Section */}
       <Collapsible open={openSections.contact} onOpenChange={() => handleSectionToggle('contact')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Contact Information</CardTitle>
+                  <CardTitle className="text-lg font-playfair text-charcoal">Contact Information</CardTitle>
                   <CardDescription>Your phone and social media links</CardDescription>
                 </div>
                 <ChevronDown className={cn(
@@ -2423,10 +2437,11 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           </AlertDescription>
         </Alert>
         
-        <div className="flex justify-end pt-4 border-t">
+        <div className="flex justify-end pt-4 border-t border-burgundy/10">
           <Button 
             onClick={handleSaveContact}
             disabled={savingStates.contact}
+            className="bg-burgundy hover:bg-burgundy-dark text-white"
           >
             {savingStates.contact ? (
               <>
@@ -2445,14 +2460,14 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
       {/* Security & Password Section */}
       <Collapsible open={openSections.security} onOpenChange={() => handleSectionToggle('security')}>
-        <Card>
+        <Card className="border-burgundy/10 shadow-md">
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer hover:bg-burgundy/5 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Lock className="h-5 w-5" />
+                  <Lock className="h-5 w-5 text-burgundy" />
                   <div>
-                    <CardTitle>Security & Password</CardTitle>
+                    <CardTitle className="text-lg font-playfair text-charcoal">Security & Password</CardTitle>
                     <CardDescription>Manage your account password and security settings</CardDescription>
                   </div>
                 </div>
@@ -2474,6 +2489,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
               onClick={handleResetPassword}
               disabled={isResettingPassword}
               variant="outline"
+              className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
             >
               {isResettingPassword ? (
                 <>
@@ -2509,6 +2525,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
                 navigate(`/${profile.slug}`);
               }
             }}
+            className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
           >
             <Eye className="mr-2 h-4 w-4" />
             View Public Profile

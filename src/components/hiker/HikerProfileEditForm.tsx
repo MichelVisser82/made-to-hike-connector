@@ -249,7 +249,7 @@ export function HikerProfileEditForm() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-burgundy" />
       </div>
     );
   }
@@ -257,17 +257,17 @@ export function HikerProfileEditForm() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="text-3xl font-playfair font-bold text-charcoal">Profile Settings</h1>
+        <p className="text-charcoal/60 mt-2">
           Manage your personal information and preferences
         </p>
       </div>
 
       {/* Basic Information */}
-      <Card>
+      <Card className="border-burgundy/10 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+          <CardTitle className="text-lg font-playfair text-charcoal flex items-center gap-2">
+            <User className="h-5 w-5 text-burgundy" />
             Basic Information
           </CardTitle>
           <CardDescription>
@@ -320,10 +320,10 @@ export function HikerProfileEditForm() {
       </Card>
 
       {/* Hiking Experience */}
-      <Card>
+      <Card className="border-burgundy/10 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5" />
+          <CardTitle className="text-lg font-playfair text-charcoal flex items-center gap-2">
+            <Heart className="h-5 w-5 text-burgundy" />
             Hiking Experience
           </CardTitle>
           <CardDescription>
@@ -353,10 +353,10 @@ export function HikerProfileEditForm() {
       </Card>
 
       {/* Health & Dietary Information */}
-      <Card>
+      <Card className="border-burgundy/10 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+          <CardTitle className="text-lg font-playfair text-charcoal flex items-center gap-2">
+            <Shield className="h-5 w-5 text-burgundy" />
             Health & Dietary Information
           </CardTitle>
           <CardDescription>
@@ -410,10 +410,10 @@ export function HikerProfileEditForm() {
       </Card>
 
       {/* Emergency Contact */}
-      <Card>
+      <Card className="border-burgundy/10 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Phone className="h-5 w-5" />
+          <CardTitle className="text-lg font-playfair text-charcoal flex items-center gap-2">
+            <Phone className="h-5 w-5 text-burgundy" />
             Emergency Contact
           </CardTitle>
           <CardDescription>
@@ -456,10 +456,10 @@ export function HikerProfileEditForm() {
       </Card>
 
       {/* Account Security */}
-      <Card>
+      <Card className="border-burgundy/10 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
+          <CardTitle className="text-lg font-playfair text-charcoal flex items-center gap-2">
+            <Lock className="h-5 w-5 text-burgundy" />
             Account Security
           </CardTitle>
           <CardDescription>
@@ -492,6 +492,7 @@ export function HikerProfileEditForm() {
                 onClick={handleEmailChange}
                 disabled={updatingEmail || !newEmail}
                 variant="outline"
+                className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
               >
                 {updatingEmail ? (
                   <>
@@ -508,7 +509,7 @@ export function HikerProfileEditForm() {
             </div>
           </div>
 
-          <Separator />
+          <Separator className="bg-burgundy/10" />
 
           {/* Password Change */}
           <div className="space-y-3">
@@ -551,7 +552,7 @@ export function HikerProfileEditForm() {
                 onClick={handlePasswordChange}
                 disabled={updatingPassword || !currentPassword || !newPassword || !confirmPassword}
                 variant="outline"
-                className="w-full"
+                className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5"
               >
                 {updatingPassword ? (
                   <>
@@ -576,6 +577,7 @@ export function HikerProfileEditForm() {
           onClick={handleSave}
           disabled={saving}
           size="lg"
+          className="bg-burgundy hover:bg-burgundy-dark text-white"
         >
           {saving ? (
             <>
