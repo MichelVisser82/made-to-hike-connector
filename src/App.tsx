@@ -13,6 +13,7 @@ import GuidePage from "./pages/GuidePage";
 import GuideSignupPage from "./pages/GuideSignupPage";
 import GuidesPage from "./pages/GuidesPage";
 import ToursPage from "./pages/ToursPage";
+import HelpPage from "./pages/HelpPage";
 import { EmailTest } from "./components/EmailTest";
 import { Auth } from "./pages/Auth";
 import { VerifyEmail } from "./pages/VerifyEmail";
@@ -66,6 +67,7 @@ const App: React.FC = () => {
             <Route path="/guide/signup" element={<GuideSignupPage />} />
             <Route path="/certifications" element={<CertificationsPage />} />
             <Route path="/booking-success" element={<BookingSuccess />} />
+            <Route path="/help" element={<HelpPage />} />
                 <Route 
                   path="/dashboard" 
                   element={

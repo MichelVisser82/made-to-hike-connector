@@ -238,7 +238,7 @@ export function AppNavigation({
               </HoverCard>
 
               {/* Help Button */}
-              <Button variant="ghost" size="icon" className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/help')} className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                 <HelpCircle className="w-5 h-5" />
               </Button>
 
@@ -429,7 +429,7 @@ export function AppNavigation({
               </HoverCard>
 
               {/* Help Button */}
-              <Button variant="ghost" size="icon" className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/help')} className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                 <HelpCircle className="w-5 h-5" />
               </Button>
 
@@ -438,7 +438,7 @@ export function AppNavigation({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
-                      variant="outline" 
+                      variant="outline"
                       className="w-[200px] justify-between border-burgundy/20 hover:bg-burgundy/5 hover:border-burgundy/40"
                     >
                       <div className="flex items-center gap-2">
@@ -534,7 +534,7 @@ export function AppNavigation({
               </Button>
 
               {/* Help Button */}
-              <Button variant="ghost" size="icon" className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/help')} className="text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                 <HelpCircle className="w-5 h-5" />
               </Button>
 
@@ -542,7 +542,7 @@ export function AppNavigation({
               {user && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
+                    <Button
                       variant="outline" 
                       className="w-[200px] justify-between border-burgundy/20 hover:bg-burgundy/5 hover:border-burgundy/40"
                     >

@@ -53,3 +53,9 @@ verify_jwt = false
 
 [functions.get-weather-forecast]
 verify_jwt = false
+
+[functions.help-search]
+verify_jwt = false
+
+[functions.create-support-ticket]
+verify_jwt = false

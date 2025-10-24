@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mountain, Home, Users, Euro, MessageSquare, Bell, HelpCircle, ChevronDown, User as UserIcon, Settings, LogOut, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,6 +30,7 @@ export function DashboardShell({
   onLogout,
   children,
 }: DashboardShellProps) {
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   
   const unreadCount = notifications.filter(n => !n.isRead).length;
