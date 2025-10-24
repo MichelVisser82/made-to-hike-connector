@@ -393,6 +393,7 @@ export type Database = {
       guide_profiles: {
         Row: {
           active_since: string | null
+          bank_account_last4: string | null
           bio: string | null
           certifications: Json | null
           created_at: string
@@ -420,6 +421,7 @@ export type Database = {
           max_group_size: number | null
           min_group_size: number | null
           onboarding_step: number | null
+          payout_schedule: string | null
           phone: string | null
           portfolio_images: string[] | null
           profile_completed: boolean | null
@@ -427,6 +429,8 @@ export type Database = {
           seasonal_availability: string | null
           slug: string | null
           specialties: string[] | null
+          stripe_account_id: string | null
+          stripe_kyc_status: string | null
           terrain_capabilities: string[] | null
           upcoming_availability_end: string | null
           upcoming_availability_start: string | null
@@ -438,6 +442,7 @@ export type Database = {
         }
         Insert: {
           active_since?: string | null
+          bank_account_last4?: string | null
           bio?: string | null
           certifications?: Json | null
           created_at?: string
@@ -465,6 +470,7 @@ export type Database = {
           max_group_size?: number | null
           min_group_size?: number | null
           onboarding_step?: number | null
+          payout_schedule?: string | null
           phone?: string | null
           portfolio_images?: string[] | null
           profile_completed?: boolean | null
@@ -472,6 +478,8 @@ export type Database = {
           seasonal_availability?: string | null
           slug?: string | null
           specialties?: string[] | null
+          stripe_account_id?: string | null
+          stripe_kyc_status?: string | null
           terrain_capabilities?: string[] | null
           upcoming_availability_end?: string | null
           upcoming_availability_start?: string | null
@@ -483,6 +491,7 @@ export type Database = {
         }
         Update: {
           active_since?: string | null
+          bank_account_last4?: string | null
           bio?: string | null
           certifications?: Json | null
           created_at?: string
@@ -510,6 +519,7 @@ export type Database = {
           max_group_size?: number | null
           min_group_size?: number | null
           onboarding_step?: number | null
+          payout_schedule?: string | null
           phone?: string | null
           portfolio_images?: string[] | null
           profile_completed?: boolean | null
@@ -517,6 +527,8 @@ export type Database = {
           seasonal_availability?: string | null
           slug?: string | null
           specialties?: string[] | null
+          stripe_account_id?: string | null
+          stripe_kyc_status?: string | null
           terrain_capabilities?: string[] | null
           upcoming_availability_end?: string | null
           upcoming_availability_start?: string | null
@@ -1505,6 +1517,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_settings: {
+        Row: {
+          analytics_cookies: boolean | null
+          created_at: string | null
+          currency_display: string | null
+          date_format: string | null
+          id: string
+          language: string | null
+          profile_visibility: string | null
+          show_email_to_bookings: boolean | null
+          show_phone_to_bookings: boolean | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          analytics_cookies?: boolean | null
+          created_at?: string | null
+          currency_display?: string | null
+          date_format?: string | null
+          id?: string
+          language?: string | null
+          profile_visibility?: string | null
+          show_email_to_bookings?: boolean | null
+          show_phone_to_bookings?: boolean | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          analytics_cookies?: boolean | null
+          created_at?: string | null
+          currency_display?: string | null
+          date_format?: string | null
+          id?: string
+          language?: string | null
+          profile_visibility?: string | null
+          show_email_to_bookings?: boolean | null
+          show_phone_to_bookings?: boolean | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_verifications: {
         Row: {
