@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import type { GuideProfile } from '@/types/guide';
 
 export function useGuideProfileBySlug(slug: string | undefined) {
+  // Check if the slug is actually a UUID
+  const isUUID = slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+  
   return useQuery({
     queryKey: ['guide-profile-slug', slug],
     queryFn: async () => {
@@ -12,12 +15,19 @@ export function useGuideProfileBySlug(slug: string | undefined) {
       const { data: { user } } = await supabase.auth.getUser();
       const isAuthenticated = !!user;
 
-      const { data, error } = await supabase
+      // Query by UUID if it's a UUID, otherwise by slug
+      let query = supabase
         .from('guide_profiles')
         .select('*')
-        .eq('slug', slug)
-        .eq('verified', true)
-        .maybeSingle();
+        .eq('verified', true);
+      
+      if (isUUID) {
+        query = query.eq('user_id', slug);
+      } else {
+        query = query.eq('slug', slug);
+      }
+      
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
       if (!data) throw new Error('Guide profile not found');

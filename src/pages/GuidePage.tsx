@@ -13,6 +13,9 @@ export default function GuidePage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   
+  // Check if slug is actually a UUID and try to fetch by user_id instead
+  const isUUID = slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+  
   const { data: guide, isLoading: guideLoading, error: guideError } = useGuideProfileBySlug(slug);
   const { data: stats, isLoading: statsLoading } = useGuideStats(guide?.user_id);
   const { data: tours = [], isLoading: toursLoading } = useGuideTours(guide?.user_id, 3);
@@ -20,6 +23,12 @@ export default function GuidePage() {
 
   // SEO meta tags with slug-based canonical URL
   useEffect(() => {
+    // If UUID was used, redirect to proper slug URL
+    if (guide && isUUID && guide.slug) {
+      navigate(`/${guide.slug}`, { replace: true });
+      return;
+    }
+    
     if (guide) {
       document.title = `${guide.display_name} | Certified Mountain Guide | MadeToHike`;
       
@@ -32,7 +41,7 @@ export default function GuidePage() {
         );
       }
     }
-  }, [guide]);
+  }, [guide, isUUID, navigate]);
 
   if (guideLoading || statsLoading || toursLoading || reviewsLoading) {
     return (
@@ -43,6 +52,15 @@ export default function GuidePage() {
   }
 
   if (guideError || !guide) {
+    // Don't show error if it's just redirecting from UUID
+    if (isUUID) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+    }
+    
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
         <h1 className="text-4xl font-bold">Guide Not Found</h1>

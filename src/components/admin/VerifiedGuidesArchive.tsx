@@ -233,7 +233,7 @@ export function VerifiedGuidesArchive() {
                       View Details
                     </Button>
                     <a
-                      href={`/guide/${guide.user_id}`}
+                      href={`/${guide.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -460,7 +460,7 @@ export function VerifiedGuidesArchive() {
               {/* Actions */}
               <div className="flex gap-2 pt-4 border-t border-border">
                 <a
-                  href={`/guide/${selectedGuide.user_id}`}
+                  href={`/${selectedGuide.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1"
