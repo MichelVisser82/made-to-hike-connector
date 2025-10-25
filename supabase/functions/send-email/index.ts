@@ -492,6 +492,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
                 <p style="margin: 0; color: #4a5568; font-size: 14px;">
                     Simply reply to this email to continue the conversation with ${data.senderName}.
                 </p>
+                ${data.conversationId ? `<p style="margin: 10px 0 0; color: #718096; font-size: 12px;">Reference: ${data.conversationId.substring(0, 8)}</p>` : ''}
             </div>
             ` : `
             <div style="text-align: center; margin: 30px 0;">
@@ -506,7 +507,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
     </div>
 </body>
 </html>`,
-      text: `New Message\n\nHi ${data.recipientName || 'there'},\n\nYou have a new message from ${data.senderName}.\n\nMessage:\n${data.messagePreview}\n\n${data.isAnonymous ? 'Reply to this email to continue the conversation.' : `View the conversation: ${data.conversationUrl}`}\n\nThe Made to Hike Team`
+      text: `New Message\n\nHi ${data.recipientName || 'there'},\n\nYou have a new message from ${data.senderName}.\n\nMessage:\n${data.messagePreview}\n\n${data.isAnonymous ? `Reply to this email to continue the conversation.${data.conversationId ? `\nReference: ${data.conversationId.substring(0, 8)}` : ''}` : `View the conversation: ${data.conversationUrl}`}\n\nThe Made to Hike Team`
     }
   }
 

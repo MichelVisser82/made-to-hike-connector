@@ -270,24 +270,30 @@ serve(async (req) => {
         
         if (recipientEmail) {
           const emailSubject = conversation.conversation_type === 'admin_support' 
-            ? 'Update on your support ticket'
+            ? `[Ticket ${conversation.id.substring(0, 8)}] Update on your support ticket`
             : 'Reply to your hiking inquiry';
           
           // Check if recipient is anonymous (no hiker_id means anonymous user)
           const isAnonymous = !conversation.hiker_id;
           
+          // Use reply_to to direct responses to a Slack channel or admin email
+          // For now, using admin email - you can replace with Slack channel email
+          const replyToAddress = 'vissermich+tickettest@gmail.com'; // Replace with Slack channel email if preferred
+          
           await supabase.functions.invoke('send-email', {
             body: {
               type: 'new_message',
               to: recipientEmail,
-              from: 'MadeToHike Support <support@madetohike.com>',
+              from: 'MadeToHike Support <noreply@madetohike.com>',
+              reply_to: replyToAddress,
               subject: emailSubject,
               template_data: {
                 recipientName,
                 senderName: senderName || (senderType === 'admin' ? 'MadeToHike Support' : 'Your guide'),
                 messagePreview: moderationResult.moderatedContent.substring(0, 150),
                 conversationUrl: `https://madetohike.com/messages/${conversationId}`,
-                isAnonymous: isAnonymous
+                isAnonymous: isAnonymous,
+                conversationId: conversation.id
               }
             }
           });
