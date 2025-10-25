@@ -46,14 +46,16 @@ export function usePendingReviews() {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Fetch reviews where user is either hiker or guide
+      // Fetch reviews that this user needs to WRITE (not reviews where they're being reviewed)
+      // - Hikers write 'hiker_to_guide' reviews where they are the hiker
+      // - Guides write 'guide_to_hiker' reviews where they are the guide
       const { data, error } = await supabase
         .from('reviews')
         .select(`
           *,
           tours!inner (title)
         `)
-        .or(`hiker_id.eq.${user.id},guide_id.eq.${user.id}`)
+        .or(`and(hiker_id.eq.${user.id},review_type.eq.hiker_to_guide),and(guide_id.eq.${user.id},review_type.eq.guide_to_hiker)`)
         .eq('review_status', 'draft')
         .order('expires_at', { ascending: true });
 
