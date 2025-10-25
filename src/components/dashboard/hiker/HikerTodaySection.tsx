@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useProfile } from '@/hooks/useProfile';
 
 interface HikerTodaySectionProps {
   userId: string;
@@ -23,6 +24,7 @@ export function HikerTodaySection({
   onViewTrip,
   onMessageGuide
 }: HikerTodaySectionProps) {
+  const { profile } = useProfile();
   const nextTrip = upcomingTrips[0];
   const daysUntilNextTrip = nextTrip ? Math.ceil((new Date(nextTrip.booking_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
 
@@ -72,7 +74,7 @@ export function HikerTodaySection({
     <div className="space-y-6">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg p-8">
-        <h1 className="text-3xl font-serif mb-2">Welcome Back, Maria</h1>
+        <h1 className="text-3xl font-serif mb-2">Welcome Back, {profile?.name || 'Hiker'}</h1>
         <p className="text-white/90">{currentDate}</p>
       </div>
 
