@@ -60,6 +60,8 @@ serve(async (req) => {
     const body = await req.text()
     const slackEvent: SlackEvent = JSON.parse(body)
 
+    console.log('Received Slack event:', JSON.stringify(slackEvent))
+
     // Handle Slack URL verification challenge FIRST (no signature check needed)
     if (slackEvent.type === 'url_verification') {
       console.log('Handling URL verification challenge')
@@ -101,8 +103,11 @@ serve(async (req) => {
     if (slackEvent.type === 'event_callback' && slackEvent.event?.type === 'message') {
       const event = slackEvent.event
       
-      // Ignore bot messages and message edits/deletions
-      if (!event.text || event.channel_type === 'im' || event.thread_ts) {
+      console.log('Received message event:', JSON.stringify(event))
+      
+      // Ignore bot messages and message edits/deletions (but allow threaded messages)
+      if (!event.text || event.channel_type === 'im') {
+        console.log('Ignoring message: no text or is DM')
         return new Response('OK', { status: 200, headers: corsHeaders })
       }
 
