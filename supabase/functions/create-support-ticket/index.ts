@@ -80,8 +80,17 @@ serve(async (req) => {
 
     // Send confirmation email to user
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    const supportReplyEmail = Deno.env.get('SUPPORT_REPLY_EMAIL') || 'support@madetohike.com';
+    
     if (resendApiKey) {
       try {
+        // Check if user has a role (authenticated user)
+        const hasRole = userId ? true : false;
+        
+        const trackingMessage = hasRole 
+          ? 'You can track your ticket status in your dashboard, or simply reply to this email.'
+          : 'Simply reply to this email to continue the conversation with our support team.';
+        
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -89,7 +98,8 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'MadeToHike Support <support@madetohike.com>',
+            from: 'MadeToHike Support <noreply@madetohike.com>',
+            reply_to: supportReplyEmail,
             to: [email],
             subject: `Support Ticket Created: ${ticket.ticket_number}`,
             html: `
@@ -103,7 +113,7 @@ serve(async (req) => {
               <p><strong>Your Message:</strong></p>
               <p>${message.replace(/\n/g, '<br>')}</p>
               <hr>
-              <p>You can track your ticket status in your dashboard, or simply reply to this email.</p>
+              <p>${trackingMessage}</p>
               <p>Best regards,<br>The MadeToHike Support Team</p>
             `,
           }),
