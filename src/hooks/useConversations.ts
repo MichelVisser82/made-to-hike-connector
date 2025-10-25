@@ -196,6 +196,7 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
         let otherProfile;
         if (conv.conversation_type === 'admin_support' || conv.conversation_type === 'guide_admin') {
           // For admin conversations, show the admin profile
+          console.log('Setting admin profile for conversation:', conv.id, 'adminProfile:', adminProfile);
           otherProfile = adminProfile;
         } else if (isAdmin && conv.hiker_id !== userId && conv.guide_id !== userId) {
           // Admin viewing someone else's conversation - show hiker
@@ -204,6 +205,7 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           // Participant in conversation - show the other person
           otherProfile = conv.hiker_id === userId ? guideProfile : hikerProfile;
         }
+        console.log('Final otherProfile for conv', conv.id, ':', otherProfile);
 
         return {
           ...conv,
