@@ -62,16 +62,21 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
   async function fetchConversations() {
     if (!userId) return;
 
-    // Fetch conversations - admins see all, others see only their own
+    // Fetch conversations - RLS policies will handle access control
+    // Admins see all conversations, others see only their own
     let query = supabase
       .from('conversations')
-      .select('*');
+      .select('*')
+      .order('last_message_at', { ascending: false });
     
+    // For non-admins, explicitly filter by user participation
     if (!isAdmin) {
       query = query.or(`hiker_id.eq.${userId},guide_id.eq.${userId}`);
     }
     
-    const { data: convData, error } = await query.order('last_message_at', { ascending: false });
+    const { data: convData, error } = await query;
+
+    console.log('Fetching conversations, isAdmin:', isAdmin, 'count:', convData?.length);
 
     if (error) {
       console.error('Error fetching conversations:', error);
@@ -152,8 +157,17 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           }
         }
 
-        // Determine which profile to show (the OTHER person)
-        const otherProfile = conv.hiker_id === userId ? guideProfile : hikerProfile;
+        // Determine which profile to show
+        // For admins viewing others' conversations, show the hiker profile
+        // For participants, show the OTHER person
+        let otherProfile;
+        if (isAdmin && conv.hiker_id !== userId && conv.guide_id !== userId) {
+          // Admin viewing someone else's conversation - show hiker
+          otherProfile = hikerProfile;
+        } else {
+          // Participant in conversation - show the other person
+          otherProfile = conv.hiker_id === userId ? guideProfile : hikerProfile;
+        }
 
         return {
           ...conv,
@@ -166,6 +180,7 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
       })
     );
 
+    console.log('Processed conversations:', conversationsWithData.length);
     setConversations(conversationsWithData as any);
     setLoading(false);
   }
