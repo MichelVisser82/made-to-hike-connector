@@ -175,24 +175,16 @@ export function InboxSection({
                 <ScrollArea className="flex-1">
                   <div className="space-y-2 pr-4">
                     {conversations.map((conv) => {
-                      // Determine which profile to show - always show the OTHER person
-                      let otherPersonProfile;
-                      if (conv.conversation_type === 'admin_support' || conv.conversation_type === 'guide_admin') {
-                        // For admin conversations, show whoever is NOT the current user
-                        if (conv.hiker_id === user?.id || conv.guide_id === user?.id) {
-                          // Current user is the ticket creator, profiles should contain admin
-                          otherPersonProfile = conv.profiles;
-                        } else {
-                          // Current user is admin, show the ticket creator
-                          otherPersonProfile = conv.hiker_profile || conv.guide_profile;
-                        }
-                      } else {
-                        // Regular conversation - show the other person
-                        otherPersonProfile = conv.hiker_id === user?.id ? conv.guide_profile : conv.hiker_profile;
-                      }
-                      
-                      const displayName = otherPersonProfile?.name || conv.profiles?.name || conv.anonymous_name || 'Unknown User';
-                      const avatarUrl = otherPersonProfile?.avatar_url || conv.profiles?.avatar_url;
+                      // useConversations already sets conv.profiles to the correct person to display
+                      // Add fallback to hiker/guide profiles if profiles is null
+                      const displayName = conv.profiles?.name || 
+                                         conv.hiker_profile?.name || 
+                                         conv.guide_profile?.name || 
+                                         conv.anonymous_name || 
+                                         'Unknown User';
+                      const avatarUrl = conv.profiles?.avatar_url || 
+                                       conv.hiker_profile?.avatar_url || 
+                                       conv.guide_profile?.avatar_url;
                       
                       // Generate initials (first letter of first name + first letter of last name)
                       const getInitials = (name: string) => {
