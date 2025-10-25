@@ -27,6 +27,9 @@ export const NewMessageEmail = ({
         <Link href={conversationUrl} style={button}>
           View Conversation
         </Link>
+        <Text style={replyText}>
+          💬 You can reply directly to this email and we'll receive your message.
+        </Text>
         <Text style={footer}>
           Best regards,<br />
           The MadeToHike Team
@@ -89,6 +92,15 @@ const button = {
   display: 'block',
   padding: '12px 20px',
   margin: '24px 0',
+};
+
+const replyText = {
+  color: '#059669',
+  fontSize: '14px',
+  lineHeight: '24px',
+  margin: '16px 0',
+  textAlign: 'center' as const,
+  fontWeight: '500',
 };
 
 const footer = {
