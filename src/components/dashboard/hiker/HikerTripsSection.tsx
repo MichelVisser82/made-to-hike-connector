@@ -287,10 +287,15 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                     <Button 
                       variant={trip.reviewPending ? 'default' : 'outline'} 
                       className="w-full"
+                      onClick={() => window.location.href = '/dashboard?section=reviews'}
                     >
                       ⭐ {trip.reviewPending ? 'Write Review' : 'View Your Review'}
                     </Button>
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => trip.tourId && onViewTour(trip.tourId)}
+                    >
                       🔄 Book Again
                     </Button>
                   </div>
