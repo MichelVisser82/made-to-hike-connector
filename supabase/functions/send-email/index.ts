@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification' | 'verification-code' | 'new_message'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification' | 'verification-code' | 'new_message' | 'review_available' | 'review_reminder'
   to: string
   from?: string
   reply_to?: string
@@ -509,6 +509,140 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </body>
 </html>`,
       text: `New Message\n\nHi ${data.recipientName || 'there'},\n\nYou have a new message from ${data.senderName}.\n\nMessage:\n${data.messagePreview}\n\n${data.isAnonymous ? `Reply to this email to continue the conversation.${data.conversationId ? `\nReference: ${data.conversationId.substring(0, 8)}` : ''}` : `View the conversation: ${data.conversationUrl}`}\n\nThe Made to Hike Team`
+    },
+
+    review_available: {
+      subject: data.recipientType === 'hiker' ? `How was your adventure on ${data.tourTitle}?` : `Please review your hiker from ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Your Experience</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">🏔️ Made to Hike</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">${data.recipientType === 'hiker' ? 'How was your adventure?' : 'How was your hiker?'}</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.recipientName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                ${data.recipientType === 'hiker' 
+                  ? `We hope you enjoyed your recent adventure on "${data.tourTitle}"! Your feedback helps other hikers discover amazing experiences and helps guides improve their services.`
+                  : `We hope you enjoyed guiding on "${data.tourTitle}"! Your feedback about your hiker helps build trust in our community.`
+                }
+            </p>
+
+            <div style="background: #f8fffe; border-left: 4px solid #2c5530; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0 0 10px; color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase;">Tour</p>
+                <p style="margin: 0 0 15px; color: #2c5530; font-size: 16px; font-weight: 500;">${data.tourTitle}</p>
+                <p style="margin: 0 0 10px; color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase;">Date</p>
+                <p style="margin: 0; color: #2c5530; font-size: 16px; font-weight: 500;">${data.bookingDate}</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.reviewUrl}" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    ${data.recipientType === 'hiker' ? 'Write Your Review' : 'Review Your Hiker'}
+                </a>
+            </div>
+
+            <div style="background: #fff4e6; border: 1px solid #ffa726; border-radius: 6px; padding: 16px; margin: 25px 0; text-align: center;">
+                <p style="margin: 0; color: #e65100; font-size: 14px;">⏰ Reviews are available for 6 days. This review expires on ${data.expiresDate}.</p>
+            </div>
+
+            <div style="background: #f0f8ff; border: 1px solid #64b5f6; border-radius: 6px; padding: 16px; margin: 25px 0;">
+                <p style="margin: 0; color: #1565c0; font-size: 14px;">💡 <strong>Did you know?</strong> Reviews are only published when both parties complete theirs, ensuring fairness and authenticity.</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">Happy hiking! 🥾<br><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `${data.recipientType === 'hiker' ? 'How was your adventure?' : 'How was your hiker?'}\n\nHi ${data.recipientName},\n\n${data.recipientType === 'hiker' ? `We hope you enjoyed your adventure on "${data.tourTitle}"!` : `We hope you enjoyed guiding on "${data.tourTitle}"!`}\n\nTour: ${data.tourTitle}\nDate: ${data.bookingDate}\n\nLeave your review: ${data.reviewUrl}\n\n⏰ Reviews expire on ${data.expiresDate}\n\nHappy hiking!\nThe Made to Hike Team`
+    },
+
+    review_reminder: {
+      subject: data.reminderType === 'final_reminder' 
+        ? `⏰ Last chance to review ${data.tourTitle}!`
+        : `Reminder: Share your experience from ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Reminder</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">🏔️ Made to Hike</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">
+                ${data.reminderType === 'final_reminder' ? '🚨' : data.reminderType === 'second_reminder' ? '⚠️' : '⏰'} 
+                ${data.reminderType === 'final_reminder' ? 'Last chance to leave your review!' : 'Don\'t forget to share your experience!'}
+            </h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.recipientName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                ${data.reminderType === 'final_reminder'
+                  ? `This is your final reminder - your review for "${data.tourTitle}" expires on ${data.expiresDate}.`
+                  : `We noticed you haven't left a review yet for your ${data.recipientType === 'hiker' ? 'adventure' : 'hiker'} on "${data.tourTitle}".`
+                }
+            </p>
+
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                ${data.recipientType === 'hiker'
+                  ? 'Your feedback helps other hikers discover amazing experiences and helps guides improve their services.'
+                  : 'Your feedback about your hiker helps build trust in our community.'
+                }
+            </p>
+
+            <div style="background: #f8fffe; border-left: 4px solid ${data.reminderType === 'final_reminder' ? '#f44336' : data.reminderType === 'second_reminder' ? '#ff9800' : '#ffa726'}; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0 0 10px; color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase;">Tour</p>
+                <p style="margin: 0 0 15px; color: #2c5530; font-size: 16px; font-weight: 500;">${data.tourTitle}</p>
+                <p style="margin: 0 0 10px; color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase;">Date</p>
+                <p style="margin: 0 0 15px; color: #2c5530; font-size: 16px; font-weight: 500;">${data.bookingDate}</p>
+                <p style="margin: 0 0 10px; color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase;">Expires</p>
+                <p style="margin: 0; color: ${data.reminderType === 'final_reminder' ? '#f44336' : '#ffa726'}; font-size: 16px; font-weight: 500;">${data.expiresDate}</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.reviewUrl}" style="display: inline-block; background: ${data.reminderType === 'final_reminder' ? '#f44336' : data.reminderType === 'second_reminder' ? '#ff9800' : '#ffa726'}; color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    ${data.recipientType === 'hiker' ? 'Write Your Review Now' : 'Review Your Hiker Now'}
+                </a>
+            </div>
+
+            ${data.reminderType === 'final_reminder' ? `
+            <div style="background: #ffebee; border: 2px solid #f44336; border-radius: 6px; padding: 16px; margin: 25px 0; text-align: center;">
+                <p style="margin: 0; color: #c62828; font-size: 14px;">⏳ <strong>Time is running out!</strong> After expiration, you won't be able to leave a review for this booking.</p>
+            </div>
+            ` : ''}
+
+            <div style="background: #f0f8ff; border: 1px solid #64b5f6; border-radius: 6px; padding: 16px; margin: 25px 0;">
+                <p style="margin: 0; color: #1565c0; font-size: 14px;">💡 Reviews are only published when both parties complete theirs, ensuring fairness and authenticity.</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">Happy hiking! 🥾<br><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `${data.reminderType === 'final_reminder' ? '🚨 Last Chance!' : 'Reminder'}\n\nHi ${data.recipientName},\n\n${data.reminderType === 'final_reminder' ? `This is your final reminder - your review expires on ${data.expiresDate}.` : `Don't forget to review "${data.tourTitle}".`}\n\nTour: ${data.tourTitle}\nDate: ${data.bookingDate}\nExpires: ${data.expiresDate}\n\nLeave your review now: ${data.reviewUrl}\n\nHappy hiking!\nThe Made to Hike Team`
     }
   }
 
@@ -519,7 +653,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'review_available', 'review_reminder'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 

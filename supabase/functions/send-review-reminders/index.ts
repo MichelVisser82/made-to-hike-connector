@@ -37,7 +37,8 @@ Deno.serve(async (req) => {
         ),
         bookings!inner (
           id,
-          hiker_id
+          hiker_id,
+          booking_date
         )
       `)
       .eq('review_status', 'draft')
@@ -90,8 +91,44 @@ Deno.serve(async (req) => {
             notification_type: notificationType
           });
 
-          // TODO: Send email via send-email function
-          console.log(`Sent ${notificationType} for review ${review.id}`);
+          // Fetch recipient profile data
+          const { data: recipientProfile } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', recipientId)
+            .single();
+
+          if (recipientProfile?.email) {
+            const expiresDate = new Date(review.expires_at).toLocaleDateString('en-US', { 
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+            const bookingDate = new Date(review.bookings.booking_date).toLocaleDateString('en-US', { 
+              year: 'numeric', month: 'long', day: 'numeric' 
+            });
+            const reviewUrl = `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard?section=inbox&tab=reviews&bookingId=${review.booking_id}`;
+
+            // Send reminder email
+            try {
+              await supabase.functions.invoke('send-email', {
+                body: {
+                  type: 'review_reminder',
+                  to: recipientProfile.email,
+                  data: {
+                    recipientName: recipientProfile.name,
+                    recipientType: recipientType,
+                    tourTitle: review.tours.title,
+                    bookingDate: bookingDate,
+                    reviewUrl: reviewUrl,
+                    expiresDate: expiresDate,
+                    reminderType: notificationType
+                  }
+                }
+              });
+              console.log(`Sent ${notificationType} email to ${recipientProfile.email} for review ${review.id}`);
+            } catch (error) {
+              console.error(`Failed to send reminder email:`, error);
+            }
+          }
 
           results.push({
             review_id: review.id,

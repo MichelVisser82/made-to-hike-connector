@@ -181,7 +181,83 @@ Deno.serve(async (req) => {
             }
           ]);
 
-          console.log(`Review notifications created for booking ${booking.id}`);
+          // Fetch profile data for email
+          const { data: hikerProfile } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', booking.hiker_id)
+            .single();
+
+          const { data: guideProfile } = await supabase
+            .from('guide_profiles')
+            .select('display_name, user_id')
+            .eq('user_id', booking.tours.guide_id)
+            .single();
+
+          const { data: guideUser } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', booking.tours.guide_id)
+            .single();
+
+          const expiresDate = new Date(expiresAt).toLocaleDateString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+          });
+          const bookingDateFormatted = new Date(booking.booking_date).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'long', day: 'numeric' 
+          });
+
+          // Send email to hiker
+          if (hikerProfile?.email) {
+            const hikerReviewUrl = `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard?section=inbox&tab=reviews&bookingId=${booking.id}`;
+            
+            try {
+              await supabase.functions.invoke('send-email', {
+                body: {
+                  type: 'review_available',
+                  to: hikerProfile.email,
+                  data: {
+                    recipientName: hikerProfile.name,
+                    recipientType: 'hiker',
+                    tourTitle: booking.tours.title,
+                    bookingDate: bookingDateFormatted,
+                    reviewUrl: hikerReviewUrl,
+                    expiresDate: expiresDate
+                  }
+                }
+              });
+              console.log(`Review available email sent to hiker ${hikerProfile.email}`);
+            } catch (error) {
+              console.error(`Failed to send email to hiker:`, error);
+            }
+          }
+
+          // Send email to guide
+          if (guideUser?.email && guideProfile) {
+            const guideReviewUrl = `https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard?section=inbox&tab=reviews&bookingId=${booking.id}`;
+            
+            try {
+              await supabase.functions.invoke('send-email', {
+                body: {
+                  type: 'review_available',
+                  to: guideUser.email,
+                  data: {
+                    recipientName: guideProfile.display_name,
+                    recipientType: 'guide',
+                    tourTitle: booking.tours.title,
+                    bookingDate: bookingDateFormatted,
+                    reviewUrl: guideReviewUrl,
+                    expiresDate: expiresDate
+                  }
+                }
+              });
+              console.log(`Review available email sent to guide ${guideUser.email}`);
+            } catch (error) {
+              console.error(`Failed to send email to guide:`, error);
+            }
+          }
+
+          console.log(`Review notifications and emails created for booking ${booking.id}`);
         }
 
         results.push({
