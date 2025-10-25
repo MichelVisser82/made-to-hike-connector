@@ -29,8 +29,8 @@ export default function PendingReviewCard({ review, onWriteReview }: PendingRevi
   const initials = otherPersonName.split(' ').map(n => n[0]).join('').toUpperCase();
 
   const reviewTypeLabel = review.review_type === 'hiker_to_guide' 
-    ? 'Review your guide' 
-    : 'Review your hiker';
+    ? 'Guide' 
+    : 'Hiker';
 
   return (
     <Card className={isExpiringSoon ? 'border-warning' : ''}>
