@@ -276,9 +276,8 @@ serve(async (req) => {
           // Check if recipient is anonymous (no hiker_id means anonymous user)
           const isAnonymous = !conversation.hiker_id;
           
-          // Use reply_to to direct responses to a Slack channel or admin email
-          // For now, using admin email - you can replace with Slack channel email
-          const replyToAddress = 'vissermich+tickettest@gmail.com'; // Replace with Slack channel email if preferred
+          // Use reply_to to direct responses to Slack channel
+          const replyToAddress = Deno.env.get('SUPPORT_REPLY_EMAIL') || 'support@madetohike.com';
           
           await supabase.functions.invoke('send-email', {
             body: {
