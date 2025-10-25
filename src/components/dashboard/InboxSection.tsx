@@ -20,6 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
 import { ChatWindow } from '../chat/ChatWindow';
 import type {
@@ -62,9 +63,11 @@ export function InboxSection({
   const [activeTab, setActiveTab] = useState('messages');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const { user } = useAuth();
+  const { profile } = useProfile();
   const [searchParams] = useSearchParams();
   
-  const { conversations, loading: conversationsLoading, optimisticallyMarkConversationAsRead } = useConversations(user?.id);
+  const isAdmin = profile?.role === 'admin';
+  const { conversations, loading: conversationsLoading, optimisticallyMarkConversationAsRead } = useConversations(user?.id, isAdmin);
   
   // Calculate unread count
   const unreadCount = conversations.filter(c => c.unread_count && c.unread_count > 0).length;

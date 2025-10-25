@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Conversation } from '@/types/chat';
 
-export function useConversations(userId: string | undefined) {
+export function useConversations(userId: string | undefined, isAdmin: boolean = false) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +23,7 @@ export function useConversations(userId: string | undefined) {
           event: '*',
           schema: 'public',
           table: 'conversations',
-          filter: `hiker_id=eq.${userId},guide_id=eq.${userId}`
+          ...(isAdmin ? {} : { filter: `hiker_id=eq.${userId},guide_id=eq.${userId}` })
         },
         () => {
           fetchConversations();
@@ -57,17 +57,21 @@ export function useConversations(userId: string | undefined) {
     return () => {
       supabase.removeChannel(messagesChannel);
     };
-  }, [userId]);
+  }, [userId, isAdmin]);
 
   async function fetchConversations() {
     if (!userId) return;
 
-    // Fetch conversations first
-    const { data: convData, error } = await supabase
+    // Fetch conversations - admins see all, others see only their own
+    let query = supabase
       .from('conversations')
-      .select('*')
-      .or(`hiker_id.eq.${userId},guide_id.eq.${userId}`)
-      .order('last_message_at', { ascending: false });
+      .select('*');
+    
+    if (!isAdmin) {
+      query = query.or(`hiker_id.eq.${userId},guide_id.eq.${userId}`);
+    }
+    
+    const { data: convData, error } = await query.order('last_message_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching conversations:', error);
