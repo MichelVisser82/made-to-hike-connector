@@ -32,6 +32,8 @@ export function MainLayout({
       navigate('/guides');
     } else if (page === 'certifications') {
       navigate('/certifications');
+    } else if (page === 'help') {
+      navigate('/help');
     } else {
       navigate('/');
     }

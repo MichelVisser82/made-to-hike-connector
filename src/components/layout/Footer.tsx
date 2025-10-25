@@ -248,7 +248,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               Cookie Policy
             </button>
             <button 
-              onClick={() => onNavigate('contact')}
+              onClick={() => onNavigate('help')}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Contact Support
