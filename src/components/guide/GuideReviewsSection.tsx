@@ -93,7 +93,7 @@ export function GuideReviewsSection({
                             </Badge>
                           </div>
                           <div className="text-sm text-charcoal/70 mb-1">
-                            Ben Nevis Summit Challenge
+                            {review.tour_title || 'Tour details unavailable'}
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1">

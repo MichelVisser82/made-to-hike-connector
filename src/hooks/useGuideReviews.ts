@@ -9,6 +9,8 @@ export interface GuideReview {
   hiker_id: string;
   hiker_name?: string;
   hiker_avatar?: string;
+  tour_id: string;
+  tour_title?: string;
 }
 
 export function useGuideReviews(guideId: string | undefined, limit = 3) {
@@ -19,8 +21,10 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
 
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('reviews')
-        .select('id, overall_rating, comment, created_at, hiker_id')
+        .select('id, overall_rating, comment, created_at, hiker_id, tour_id')
         .eq('guide_id', guideId)
+        .eq('review_type', 'hiker_to_guide')
+        .eq('review_status', 'published')
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -36,6 +40,15 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
+      // Fetch tour titles
+      const tourIds = reviewsData.map(r => r.tour_id);
+      const { data: tours } = await supabase
+        .from('tours')
+        .select('id, title')
+        .in('id', tourIds);
+
+      const tourMap = new Map(tours?.map(t => [t.id, t]) || []);
+
       return reviewsData.map(review => ({
         id: review.id,
         rating: review.overall_rating,
@@ -44,6 +57,8 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
         hiker_id: review.hiker_id,
         hiker_name: profileMap.get(review.hiker_id)?.name,
         hiker_avatar: profileMap.get(review.hiker_id)?.avatar_url,
+        tour_id: review.tour_id,
+        tour_title: tourMap.get(review.tour_id)?.title,
       })) as GuideReview[];
     },
     enabled: !!guideId,
