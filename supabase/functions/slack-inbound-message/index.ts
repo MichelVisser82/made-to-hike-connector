@@ -105,16 +105,26 @@ serve(async (req) => {
       
       console.log('Received message event:', JSON.stringify(event))
       
-      // Ignore bot messages and message edits/deletions (but allow threaded messages)
-      if (!event.text || event.channel_type === 'im') {
+      // Check if this is an email attachment (reply via email)
+      let messageText = event.text || ''
+      if (!messageText && event.files && event.files.length > 0) {
+        const emailFile = event.files.find((f: any) => f.filetype === 'email' && f.plain_text)
+        if (emailFile) {
+          messageText = emailFile.plain_text
+          console.log('Found email attachment with plain_text')
+        }
+      }
+      
+      // Ignore messages with no content or DMs
+      if (!messageText || event.channel_type === 'im') {
         console.log('Ignoring message: no text or is DM')
         return new Response('OK', { status: 200, headers: corsHeaders })
       }
 
-      console.log('Processing Slack message:', event.text)
+      console.log('Processing Slack message:', messageText)
 
       // Try to extract conversation ID from the message
-      const conversationIdPrefix = extractConversationId(event.text)
+      const conversationIdPrefix = extractConversationId(messageText)
       
       if (!conversationIdPrefix) {
         console.log('No conversation reference found in message')
@@ -141,23 +151,27 @@ serve(async (req) => {
 
       const conversation = conversations[0]
 
-      // Remove the reference line from the message text
-      const cleanedText = event.text
+      // Remove the reference line and email quote from the message text
+      const cleanedText = messageText
         .replace(/Reference:\s*[a-f0-9-]{8,}/gi, '')
+        .replace(/Op .* schreef .*/gs, '') // Remove Dutch email quote
+        .replace(/On .* wrote:/gs, '') // Remove English email quote
+        .replace(/^>.*$/gm, '') // Remove quoted lines
+        .replace(/--\s*$/s, '') // Remove email signature separator
         .trim()
 
       if (!cleanedText) {
         return new Response('OK', { status: 200, headers: corsHeaders })
       }
 
-      // Create message in database as anonymous reply
+      // Create message in database as admin support reply
       const { error: msgError } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversation.id,
           sender_id: null,
-          sender_type: 'anonymous',
-          sender_name: conversation.anonymous_name || 'Anonymous',
+          sender_type: 'admin',
+          sender_name: 'Support Team',
           message_type: 'text',
           content: cleanedText,
           moderated_content: cleanedText,
