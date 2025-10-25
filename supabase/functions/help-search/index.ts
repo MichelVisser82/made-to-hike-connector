@@ -135,9 +135,10 @@ Return ONLY a JSON object with this structure:
     // Increment view counts for returned FAQs
     if (results.length > 0) {
       const faqIds = results.map((r: any) => r.id);
-      await supabase.rpc('increment_faq_views', { faq_ids: faqIds }).catch((err: any) => {
-        console.error('Error incrementing view counts:', err);
-      });
+      const { error: incrementError } = await supabase.rpc('increment_faq_views', { faq_ids: faqIds });
+      if (incrementError) {
+        console.error('Error incrementing view counts:', incrementError);
+      }
     }
 
     return new Response(
