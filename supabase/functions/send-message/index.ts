@@ -249,16 +249,20 @@ serve(async (req) => {
         }
       }
 
-      // Send email to anonymous users if guide replied
-      if (conversation.anonymous_email && senderType === 'guide') {
+      // Send email to anonymous users if guide or admin replied
+      if (conversation.anonymous_email && (senderType === 'guide' || senderType === 'admin')) {
+        const emailSubject = conversation.conversation_type === 'admin_support' 
+          ? 'Update on your support ticket'
+          : 'Reply to your hiking inquiry';
+        
         await supabase.functions.invoke('send-email', {
           body: {
             type: 'new_message',
             to: conversation.anonymous_email,
-            subject: 'Reply to your hiking inquiry',
+            subject: emailSubject,
             template_data: {
               recipientName: conversation.anonymous_name || 'Guest',
-              senderName: senderName || 'Your guide',
+              senderName: senderName || (senderType === 'admin' ? 'MadeToHike Support' : 'Your guide'),
               messagePreview: moderationResult.moderatedContent.substring(0, 150),
               conversationUrl: `https://madetohike.com/messages/${conversationId}`
             }
