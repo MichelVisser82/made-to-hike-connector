@@ -100,13 +100,7 @@ export default function HelpPage() {
         <section className="py-12 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Email Support</h3>
-                  <p className="text-sm text-muted-foreground">
-                    support@madetohike.com
-                  </p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
                 <div className="space-y-2">
                   <h3 className="font-semibold">Response Time</h3>
                   <p className="text-sm text-muted-foreground">
