@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -19,7 +20,21 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ user }: AdminDashboardProps) {
+  const [searchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState<DashboardSection>('today');
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Auto-switch to conversations tab if conversation parameter is present
+  useEffect(() => {
+    const conversationId = searchParams.get('conversation');
+    const ticketId = searchParams.get('ticket');
+    
+    if (conversationId) {
+      setActiveTab('conversations');
+    } else if (ticketId) {
+      setActiveTab('tickets');
+    }
+  }, [searchParams]);
   
   return (
     <MainLayout
@@ -33,7 +48,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
@@ -79,7 +94,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
           </TabsContent>
 
           <TabsContent value="tickets">
-            <TicketDashboard />
+            <TicketDashboard selectedTicketId={searchParams.get('ticket') || undefined} />
           </TabsContent>
 
           <TabsContent value="flagged">
@@ -87,7 +102,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
           </TabsContent>
 
           <TabsContent value="conversations">
-            <AllConversationsPanel />
+            <AllConversationsPanel initialConversationId={searchParams.get('conversation') || undefined} />
           </TabsContent>
 
           <TabsContent value="images">

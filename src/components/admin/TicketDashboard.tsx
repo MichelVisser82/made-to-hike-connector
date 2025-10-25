@@ -11,12 +11,27 @@ import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-export function TicketDashboard() {
+interface TicketDashboardProps {
+  selectedTicketId?: string;
+}
+
+export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {}) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('open');
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Auto-select ticket if selectedTicketId is provided
+  useEffect(() => {
+    if (selectedTicketId && tickets.length > 0) {
+      const ticket = tickets.find(t => t.ticket_number === selectedTicketId);
+      if (ticket) {
+        setSelectedTicket(ticket);
+      }
+    }
+  }, [selectedTicketId, tickets]);
 
   useEffect(() => {
     fetchTickets();
@@ -181,10 +196,82 @@ export function TicketDashboard() {
       {/* Tickets List */}
       <Card>
         <CardHeader>
-          <CardTitle>Support Tickets</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Support Tickets</CardTitle>
+            {selectedTicket && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedTicket(null)}
+              >
+                Back to List
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          {selectedTicket ? (
+            // Ticket Detail View
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <h3 className="text-2xl font-bold">{selectedTicket.ticket_number}</h3>
+                  <Badge
+                    variant={
+                      selectedTicket.priority === 'urgent' ? 'destructive' :
+                      selectedTicket.priority === 'high' ? 'default' : 'secondary'
+                    }
+                  >
+                    {selectedTicket.priority}
+                  </Badge>
+                  <Badge variant="outline">{selectedTicket.status}</Badge>
+                </div>
+                <h4 className="text-lg font-semibold mb-2">{selectedTicket.title}</h4>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                  <span>Category: {selectedTicket.category || 'General'}</span>
+                  <span>Created: {format(new Date(selectedTicket.created_at), 'MMM d, yyyy HH:mm')}</span>
+                  {selectedTicket.resolved_at && (
+                    <span>Resolved: {format(new Date(selectedTicket.resolved_at), 'MMM d, yyyy HH:mm')}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h5 className="font-semibold mb-2">Related Information</h5>
+                <div className="space-y-2 text-sm">
+                  <p>Tour: {selectedTicket.conversations?.tours?.title || 'N/A'}</p>
+                  <p>From: {selectedTicket.conversations?.profiles?.name || 'Anonymous'}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => navigate(`/dashboard?conversation=${selectedTicket.conversation_id}`)}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  View Full Conversation
+                </Button>
+                {selectedTicket.status === 'open' && user && (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleClaimTicket(selectedTicket.id, user.id)}
+                  >
+                    Claim Ticket
+                  </Button>
+                )}
+                {selectedTicket.status === 'assigned' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleUpdateStatus(selectedTicket.id, 'resolved')}
+                  >
+                    Mark as Resolved
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            // Tickets List
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="open">Open</TabsTrigger>
@@ -202,10 +289,15 @@ export function TicketDashboard() {
                   <Card key={ticket.id}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold">{ticket.ticket_number}</h4>
-                            <Badge
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <button
+                            onClick={() => setSelectedTicket(ticket)}
+                            className="font-semibold hover:underline text-primary"
+                          >
+                            {ticket.ticket_number}
+                          </button>
+                          <Badge
                               variant={
                                 ticket.priority === 'urgent' ? 'destructive' :
                                 ticket.priority === 'high' ? 'default' : 'secondary'
@@ -266,6 +358,7 @@ export function TicketDashboard() {
               )}
             </TabsContent>
           </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -8,7 +8,11 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Conversation } from '@/types/chat';
 import { ChatWindow } from '../chat/ChatWindow';
 
-export function AllConversationsPanel() {
+interface AllConversationsPanelProps {
+  initialConversationId?: string;
+}
+
+export function AllConversationsPanel({ initialConversationId }: AllConversationsPanelProps) {
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [search, setSearch] = useState('');
@@ -17,6 +21,16 @@ export function AllConversationsPanel() {
   useEffect(() => {
     fetchAllConversations();
   }, []);
+
+  // Auto-select conversation if initialConversationId is provided
+  useEffect(() => {
+    if (initialConversationId && conversations.length > 0) {
+      const conversation = conversations.find(c => c.id === initialConversationId);
+      if (conversation) {
+        setSelectedConv(conversation);
+      }
+    }
+  }, [initialConversationId, conversations]);
 
   const fetchAllConversations = async () => {
     setLoading(true);
