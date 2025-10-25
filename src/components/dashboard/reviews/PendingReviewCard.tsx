@@ -11,8 +11,16 @@ interface PendingReviewCardProps {
 
 export default function PendingReviewCard({ review, onWriteReview }: PendingReviewCardProps) {
   const otherPersonName = review.profiles?.name || 'Unknown';
-  const tourImage = review.tours?.hero_image || review.tours?.images?.[0];
+  
+  // Get tour image - prefer images array over hero_image
+  const tourImages = review.tours?.images;
+  const tourImage = (tourImages && tourImages.length > 0) 
+    ? tourImages[0] 
+    : review.tours?.hero_image;
+  
   const location = review.tours?.meeting_point_formatted || review.tours?.region || '';
+  
+  // Format booking date (when the tour actually happened)
   const bookingDate = review.bookings?.booking_date 
     ? format(new Date(review.bookings.booking_date), 'MMMM d, yyyy')
     : '';
