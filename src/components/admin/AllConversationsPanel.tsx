@@ -25,7 +25,9 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
   // Auto-select conversation if initialConversationId is provided
   useEffect(() => {
     if (initialConversationId && conversations.length > 0) {
+      console.log('Admin: Looking for conversation:', initialConversationId);
       const conversation = conversations.find(c => c.id === initialConversationId);
+      console.log('Admin: Found conversation:', conversation ? 'YES' : 'NO');
       if (conversation) {
         setSelectedConv(conversation);
       }
@@ -39,15 +41,49 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
       .from('conversations')
       .select(`
         *,
-        tours(title),
-        profiles:hiker_id(name, email)
+        tours(id, title, hero_image)
       `)
       .order('last_message_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching conversations:', error);
     } else {
-      setConversations((data || []) as any);
+      console.log('Admin: Fetched conversations:', data?.length);
+      
+      // Fetch profiles for each conversation
+      const conversationsWithProfiles = await Promise.all(
+        (data || []).map(async (conv) => {
+          let hikerProfile = null;
+          let guideProfile = null;
+          
+          if (conv.hiker_id) {
+            const { data: hiker } = await supabase
+              .from('profiles')
+              .select('id, name, email, avatar_url')
+              .eq('id', conv.hiker_id)
+              .maybeSingle();
+            hikerProfile = hiker;
+          }
+          
+          if (conv.guide_id) {
+            const { data: guide } = await supabase
+              .from('profiles')
+              .select('id, name, email, avatar_url')
+              .eq('id', conv.guide_id)
+              .maybeSingle();
+            guideProfile = guide;
+          }
+          
+          return {
+            ...conv,
+            hiker_profile: hikerProfile,
+            guide_profile: guideProfile,
+            profiles: hikerProfile // For backward compatibility
+          };
+        })
+      );
+      
+      setConversations(conversationsWithProfiles as any);
     }
 
     setLoading(false);
@@ -55,7 +91,10 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
 
   const filteredConversations = conversations.filter((conv) =>
     conv.tours?.title.toLowerCase().includes(search.toLowerCase()) ||
-    conv.profiles?.email?.toLowerCase().includes(search.toLowerCase())
+    conv.hiker_profile?.name?.toLowerCase().includes(search.toLowerCase()) ||
+    conv.hiker_profile?.email?.toLowerCase().includes(search.toLowerCase()) ||
+    conv.guide_profile?.name?.toLowerCase().includes(search.toLowerCase()) ||
+    conv.guide_profile?.email?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -86,7 +125,7 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
                   <div className="flex-1">
                     <p className="font-medium">{conv.tours?.title || 'No tour'}</p>
                     <p className="text-sm text-muted-foreground">
-                      {conv.profiles?.name} • {conv.profiles?.email}
+                      {conv.hiker_profile?.name || 'Anonymous'} ↔ {conv.guide_profile?.name || 'No guide'}
                     </p>
                   </div>
                   <Badge variant={conv.status === 'active' ? 'default' : 'secondary'}>
