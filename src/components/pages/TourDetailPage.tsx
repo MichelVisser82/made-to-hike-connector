@@ -128,14 +128,29 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           <div className="flex-1 flex items-center justify-start relative">
             <div className="max-w-xl mr-auto">
               <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center gap-1">
-                  {[1,2,3,4,5].map((star) => (
-                    <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
-                  ))}
-                  <span className="text-sm text-white/90 ml-1">{tour.rating}</span>
-                </div>
-                <span className="text-white/60">•</span>
-                <span className="text-sm text-white/90">43 reviews</span>
+                {tour.reviews_count > 0 ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      {[1,2,3,4,5].map((star) => (
+                        <Star 
+                          key={star} 
+                          className={`h-4 w-4 ${
+                            star <= Math.round(tour.rating) 
+                              ? 'text-yellow-400 fill-current' 
+                              : 'text-white/30'
+                          }`} 
+                        />
+                      ))}
+                      <span className="text-sm text-white/90 ml-1">{tour.rating.toFixed(1)}</span>
+                    </div>
+                    <span className="text-white/60">•</span>
+                    <span className="text-sm text-white/90">
+                      {tour.reviews_count} {tour.reviews_count === 1 ? 'review' : 'reviews'}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-sm text-white/70">No reviews yet</span>
+                )}
               </div>
               
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">{tour.title}</h1>
