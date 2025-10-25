@@ -170,7 +170,7 @@ export function HelpSearchBar({ onNoResults }: HelpSearchBarProps) {
 
       {suggestions.length > 0 && (
         <div className="pt-2">
-          <p className="text-sm font-medium mb-2">Related searches:</p>
+          <p className="text-sm font-medium mb-2 text-foreground">Related searches:</p>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion, idx) => (
               <Button
@@ -181,6 +181,7 @@ export function HelpSearchBar({ onNoResults }: HelpSearchBarProps) {
                   setQuery(suggestion);
                   setTimeout(handleSearch, 100);
                 }}
+                className="text-foreground"
               >
                 {suggestion}
               </Button>
