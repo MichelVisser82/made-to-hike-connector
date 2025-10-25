@@ -175,8 +175,12 @@ export function InboxSection({
                 <ScrollArea className="flex-1">
                   <div className="space-y-2 pr-4">
                     {conversations.map((conv) => {
-                      // Determine display name
-                      const displayName = conv.profiles?.name || conv.anonymous_name || 'Unknown User';
+                      // Determine display name - check all possible profile sources
+                      const displayName = conv.profiles?.name || 
+                                         conv.hiker_profile?.name || 
+                                         conv.guide_profile?.name || 
+                                         conv.anonymous_name || 
+                                         'Unknown User';
                       
                       // Get avatar URL
                       const avatarUrl = conv.profiles?.avatar_url || conv.hiker_profile?.avatar_url || conv.guide_profile?.avatar_url;
