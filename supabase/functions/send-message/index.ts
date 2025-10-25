@@ -249,25 +249,44 @@ serve(async (req) => {
         }
       }
 
-      // Send email to anonymous users if guide or admin replied
-      if (conversation.anonymous_email && (senderType === 'guide' || senderType === 'admin')) {
-        const emailSubject = conversation.conversation_type === 'admin_support' 
-          ? 'Update on your support ticket'
-          : 'Reply to your hiking inquiry';
+      // Send email notification if guide or admin replied
+      if (senderType === 'guide' || senderType === 'admin') {
+        let recipientEmail = conversation.anonymous_email;
+        let recipientName = conversation.anonymous_name || 'Guest';
         
-        await supabase.functions.invoke('send-email', {
-          body: {
-            type: 'new_message',
-            to: conversation.anonymous_email,
-            subject: emailSubject,
-            template_data: {
-              recipientName: conversation.anonymous_name || 'Guest',
-              senderName: senderName || (senderType === 'admin' ? 'MadeToHike Support' : 'Your guide'),
-              messagePreview: moderationResult.moderatedContent.substring(0, 150),
-              conversationUrl: `https://madetohike.com/messages/${conversationId}`
-            }
+        // If not anonymous, fetch email from profile
+        if (!recipientEmail && conversation.hiker_id) {
+          const { data: hikerProfile } = await supabase
+            .from('profiles')
+            .select('email, name')
+            .eq('id', conversation.hiker_id)
+            .single();
+          
+          if (hikerProfile) {
+            recipientEmail = hikerProfile.email;
+            recipientName = hikerProfile.name || 'there';
           }
-        });
+        }
+        
+        if (recipientEmail) {
+          const emailSubject = conversation.conversation_type === 'admin_support' 
+            ? 'Update on your support ticket'
+            : 'Reply to your hiking inquiry';
+          
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'new_message',
+              to: recipientEmail,
+              subject: emailSubject,
+              template_data: {
+                recipientName,
+                senderName: senderName || (senderType === 'admin' ? 'MadeToHike Support' : 'Your guide'),
+                messagePreview: moderationResult.moderatedContent.substring(0, 150),
+                conversationUrl: `https://madetohike.com/messages/${conversationId}`
+              }
+            }
+          });
+        }
       }
     } catch (emailError) {
       console.error('Email notification error:', emailError);
