@@ -175,16 +175,8 @@ export function InboxSection({
                 <ScrollArea className="flex-1">
                   <div className="space-y-2 pr-4">
                     {conversations.map((conv) => {
-                      // Debug: log profile data
-                      console.log('Conversation profile data:', {
-                        profiles_name: conv.profiles?.name,
-                        hiker_profile_name: conv.hiker_profile?.name,
-                        guide_profile_name: conv.guide_profile?.name,
-                        anonymous_name: conv.anonymous_name
-                      });
-                      
                       // Determine display name - check all possible profile sources
-                      const displayName = conv.profiles?.name || 
+                      const displayName = conv.profiles?.name ||
                                          conv.hiker_profile?.name || 
                                          conv.guide_profile?.name || 
                                          conv.anonymous_name || 

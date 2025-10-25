@@ -168,11 +168,34 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           ticketInfo = ticket;
         }
 
+        // Get admin profile for admin_support conversations
+        let adminProfile = null;
+        if (conv.conversation_type === 'admin_support' || conv.conversation_type === 'guide_admin') {
+          const { data: adminMessage } = await supabase
+            .from('messages')
+            .select('sender_id')
+            .eq('conversation_id', conv.id)
+            .eq('sender_type', 'admin')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          if (adminMessage?.sender_id) {
+            const { data: admin } = await supabase
+              .from('profiles')
+              .select('id, name, avatar_url')
+              .eq('id', adminMessage.sender_id)
+              .maybeSingle();
+            adminProfile = admin;
+          }
+        }
+
         // Determine which profile to show
-        // For admins viewing others' conversations, show the hiker profile
-        // For participants, show the OTHER person
         let otherProfile;
-        if (isAdmin && conv.hiker_id !== userId && conv.guide_id !== userId) {
+        if (conv.conversation_type === 'admin_support' || conv.conversation_type === 'guide_admin') {
+          // For admin conversations, show the admin profile
+          otherProfile = adminProfile;
+        } else if (isAdmin && conv.hiker_id !== userId && conv.guide_id !== userId) {
           // Admin viewing someone else's conversation - show hiker
           otherProfile = hikerProfile;
         } else {
