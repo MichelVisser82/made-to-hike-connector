@@ -154,8 +154,14 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
                   <p className="font-medium">
                     {conv.tours?.title || (conv.ticket ? `Ticket: ${conv.ticket.ticket_number}` : `${conv.conversation_type.replace('_', ' ')}`)}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {conv.hiker_profile?.name || 'Anonymous'} ↔ {conv.guide_profile?.name || 'No guide'}
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <span>
+                      {conv.hiker_profile?.name || (conv.anonymous_name ? `${conv.anonymous_name} (Non-member)` : 'Anonymous')}
+                    </span>
+                    <span>↔</span>
+                    <span>
+                      {conv.guide_profile?.name || 'No guide'}
+                    </span>
                   </p>
                 </div>
                   <Badge variant={conv.status === 'active' ? 'default' : 'secondary'}>
