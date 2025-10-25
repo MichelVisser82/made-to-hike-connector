@@ -81,7 +81,7 @@ export function HelpSearchBar({ onNoResults }: HelpSearchBarProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="pl-12 pr-12 h-14 text-base"
+          className="pl-12 pr-12 h-14 text-base text-foreground"
           aria-label="Search help articles"
         />
         {isLoading && (
