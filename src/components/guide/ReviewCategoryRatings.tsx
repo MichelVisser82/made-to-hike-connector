@@ -10,11 +10,9 @@ interface ReviewCategoryRatingsProps {
     value: number;
     overall: number;
   };
-  recommendPercentage?: number | null;
-  aboveBeyondPercentage?: number | null;
 }
 
-export function ReviewCategoryRatings({ ratings, recommendPercentage, aboveBeyondPercentage }: ReviewCategoryRatingsProps) {
+export function ReviewCategoryRatings({ ratings }: ReviewCategoryRatingsProps) {
   const categories = [
     { label: 'Expertise & Knowledge', value: ratings.expertise, key: 'expertise' },
     { label: 'Safety & Professionalism', value: ratings.safety, key: 'safety' },
@@ -43,21 +41,6 @@ export function ReviewCategoryRatings({ ratings, recommendPercentage, aboveBeyon
           </div>
         ))}
       </div>
-
-      {/* Stat boxes */}
-      {(recommendPercentage !== null && recommendPercentage !== undefined) && 
-       (aboveBeyondPercentage !== null && aboveBeyondPercentage !== undefined) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-            <div className="text-4xl font-bold text-green-700 mb-2">{recommendPercentage}%</div>
-            <div className="text-green-800 font-medium">Would Recommend</div>
-          </div>
-          <div className="bg-rose-50 border border-rose-200 rounded-lg p-6 text-center">
-            <div className="text-4xl font-bold text-rose-700 mb-2">{aboveBeyondPercentage}%</div>
-            <div className="text-rose-800 font-medium">Went Above & Beyond</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

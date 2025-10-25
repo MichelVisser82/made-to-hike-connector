@@ -226,8 +226,6 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
               averageRating={stats.average_rating}
               totalReviews={reviews.length}
               ratings={stats.category_ratings}
-              recommendPercentage={stats.recommend_percentage}
-              aboveBeyondPercentage={stats.above_beyond_percentage}
             />
 
             {/* FAQs */}
