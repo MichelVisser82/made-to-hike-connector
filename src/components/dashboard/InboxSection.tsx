@@ -175,16 +175,9 @@ export function InboxSection({
                 <ScrollArea className="flex-1">
                   <div className="space-y-2 pr-4">
                     {conversations.map((conv) => {
-                      // useConversations already sets conv.profiles to the correct person to display
-                      // Add fallback to hiker/guide profiles if profiles is null
-                      const displayName = conv.profiles?.name || 
-                                         conv.hiker_profile?.name || 
-                                         conv.guide_profile?.name || 
-                                         conv.anonymous_name || 
-                                         'Unknown User';
-                      const avatarUrl = conv.profiles?.avatar_url || 
-                                       conv.hiker_profile?.avatar_url || 
-                                       conv.guide_profile?.avatar_url;
+                      // useConversations sets conv.profiles to the correct person to display
+                      const displayName = conv.profiles?.name || conv.anonymous_name || 'Unknown User';
+                      const avatarUrl = conv.profiles?.avatar_url;
                       
                       // Generate initials (first letter of first name + first letter of last name)
                       const getInitials = (name: string) => {

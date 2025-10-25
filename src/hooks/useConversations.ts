@@ -189,9 +189,6 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
               .eq('id', adminMessage.sender_id)
               .maybeSingle();
             adminProfile = admin;
-            console.log('Fetched admin profile for conversation:', conv.id, admin);
-          } else {
-            console.log('No admin message found for conversation:', conv.id);
           }
         }
 
@@ -204,7 +201,6 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           if (isCurrentUserTicketCreator) {
             // Current user created the ticket, show the admin who responded
             otherProfile = adminProfile;
-            console.log('Setting otherProfile to adminProfile for conversation:', conv.id, adminProfile);
           } else {
             // Current user is the admin, show the ticket creator
             otherProfile = hikerProfile || guideProfile;
