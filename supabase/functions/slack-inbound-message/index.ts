@@ -60,11 +60,13 @@ serve(async (req) => {
     const body = await req.text()
     const slackEvent: SlackEvent = JSON.parse(body)
 
-    // Handle Slack URL verification challenge
+    // Handle Slack URL verification challenge FIRST (no signature check needed)
     if (slackEvent.type === 'url_verification') {
+      console.log('Handling URL verification challenge')
       return new Response(
         JSON.stringify({ challenge: slackEvent.challenge }),
         { 
+          status: 200,
           headers: { 
             ...corsHeaders, 
             'Content-Type': 'application/json' 
@@ -73,7 +75,7 @@ serve(async (req) => {
       )
     }
 
-    // Verify request is from Slack
+    // Verify request is from Slack for all other events
     const timestamp = req.headers.get('x-slack-request-timestamp')
     const signature = req.headers.get('x-slack-signature')
     
