@@ -171,16 +171,16 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
         // Get admin profile for admin_support conversations
         let adminProfile = null;
         if (conv.conversation_type === 'admin_support' || conv.conversation_type === 'guide_admin') {
+          // Find a message where sender is NOT the current user (that's the admin)
           const { data: adminMessage } = await supabase
             .from('messages')
             .select('sender_id')
             .eq('conversation_id', conv.id)
-            .eq('sender_type', 'admin')
+            .neq('sender_id', userId)
+            .not('sender_id', 'is', null)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
-          
-          console.log('Admin message lookup:', { convId: conv.id, adminMessage });
           
           if (adminMessage?.sender_id) {
             const { data: admin } = await supabase
@@ -188,7 +188,6 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
               .select('id, name, avatar_url')
               .eq('id', adminMessage.sender_id)
               .maybeSingle();
-            console.log('Admin profile fetched:', admin);
             adminProfile = admin;
           }
         }
