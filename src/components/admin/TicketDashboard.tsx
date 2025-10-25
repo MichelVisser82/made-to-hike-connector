@@ -235,7 +235,7 @@ export function TicketDashboard() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => navigate(`/dashboard?conversationId=${ticket.conversation_id}`)}
+                            onClick={() => navigate(`/dashboard?conversation=${ticket.conversation_id}`)}
                           >
                             <MessageSquare className="w-4 h-4 mr-2" />
                             View Conversation
