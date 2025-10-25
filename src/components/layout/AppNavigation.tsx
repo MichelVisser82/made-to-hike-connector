@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
+import { usePendingReviews } from '@/hooks/useReviewSystem';
 import { supabase } from '@/integrations/supabase/client';
 import { type User } from '@/types';
 import type { DashboardSection, DashboardMode } from '@/types/dashboard';
@@ -78,6 +79,10 @@ export function AppNavigation({
 
   // Calculate unread count from conversations
   const unreadCount = conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0);
+
+  // Fetch pending reviews count (only for hikers)
+  const pendingReviews = usePendingReviews();
+  const pendingReviewsCount = pendingReviews.data?.filter(r => r.review_status === 'draft').length || 0;
 
   const handleLogout = async () => {
     await signOut();
@@ -333,6 +338,7 @@ export function AppNavigation({
               {hikerNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeSection === item.id;
+                const showBadge = item.id === 'reviews' && pendingReviewsCount > 0;
                 
                 return (
                   <button
@@ -353,7 +359,14 @@ export function AppNavigation({
                     `}
                   >
                     <Icon className="w-5 h-5" />
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="text-sm font-medium">
+                      {item.label}
+                      {showBadge && (
+                        <span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-burgundy text-white text-xs font-semibold">
+                          {pendingReviewsCount}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 );
               })}
