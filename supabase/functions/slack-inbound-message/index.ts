@@ -137,15 +137,24 @@ serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
       // Find the conversation by ID prefix
-      const { data: conversations, error: convError } = await supabase
+      // Fetch admin_support conversations and filter by prefix in JavaScript
+      const { data: allConversations, error: convError } = await supabase
         .from('conversations')
         .select('id, anonymous_name, anonymous_email')
-        .ilike('id', `${conversationIdPrefix}%`)
         .eq('conversation_type', 'admin_support')
-        .limit(1)
 
-      if (convError || !conversations || conversations.length === 0) {
-        console.error('Conversation not found:', convError)
+      if (convError || !allConversations) {
+        console.error('Error fetching conversations:', convError)
+        return new Response('OK', { status: 200, headers: corsHeaders })
+      }
+
+      // Filter by UUID prefix (first 8 chars)
+      const conversations = allConversations.filter(c => 
+        c.id.toLowerCase().startsWith(conversationIdPrefix.toLowerCase())
+      )
+
+      if (conversations.length === 0) {
+        console.log('No conversation found with ID prefix:', conversationIdPrefix)
         return new Response('OK', { status: 200, headers: corsHeaders })
       }
 
