@@ -280,6 +280,7 @@ serve(async (req) => {
             body: {
               type: 'new_message',
               to: recipientEmail,
+              from: 'MadeToHike Support <support@madetohike.com>',
               subject: emailSubject,
               template_data: {
                 recipientName,
