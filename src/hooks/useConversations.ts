@@ -180,12 +180,15 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
             .limit(1)
             .maybeSingle();
           
+          console.log('Admin message lookup:', { convId: conv.id, adminMessage });
+          
           if (adminMessage?.sender_id) {
             const { data: admin } = await supabase
               .from('profiles')
               .select('id, name, avatar_url')
               .eq('id', adminMessage.sender_id)
               .maybeSingle();
+            console.log('Admin profile fetched:', admin);
             adminProfile = admin;
           }
         }
