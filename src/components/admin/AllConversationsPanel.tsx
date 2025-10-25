@@ -37,12 +37,19 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
   const fetchAllConversations = async () => {
     setLoading(true);
 
+    // Get current admin user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    const adminId = user?.id;
+
+    // Only fetch admin-related conversations (admin_support, guide_admin) 
+    // or conversations where admin is a participant
     const { data, error } = await supabase
       .from('conversations')
       .select(`
         *,
         tours(id, title, hero_image)
       `)
+      .or(`conversation_type.in.(admin_support,guide_admin),hiker_id.eq.${adminId},guide_id.eq.${adminId}`)
       .order('last_message_at', { ascending: false });
 
     if (error) {
