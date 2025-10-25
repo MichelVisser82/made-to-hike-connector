@@ -64,27 +64,25 @@ export function InboxSection({
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const { user } = useAuth();
   const { profile } = useProfile();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const isAdmin = profile?.role === 'admin';
   const { conversations, loading: conversationsLoading, optimisticallyMarkConversationAsRead } = useConversations(user?.id, isAdmin);
   
-  console.log('InboxSection render - selectedConversation:', selectedConversation?.id, 'conversations count:', conversations.length);
-  
   // Calculate unread count
   const unreadCount = conversations.filter(c => c.unread_count && c.unread_count > 0).length;
 
-  // Auto-select conversation from URL parameter
+  // Auto-select conversation from URL parameter (only on initial load)
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
-    if (conversationId && conversations.length > 0) {
+    if (conversationId && conversations.length > 0 && !selectedConversation) {
       const conversation = conversations.find(c => c.id === conversationId);
       if (conversation) {
         setSelectedConversation(conversation);
         setActiveTab('messages');
       }
     }
-  }, [searchParams, conversations]);
+  }, [conversations]);
 
   const renderStarRating = (rating: number, size: number = 16, filled: boolean = true) => {
     return (
@@ -199,11 +197,11 @@ export function InboxSection({
                         <div
                           key={conv.id}
                           onClick={(e) => {
-                            console.log('Conversation clicked:', conv.id, 'current selected:', selectedConversation?.id);
                             e.stopPropagation();
                             optimisticallyMarkConversationAsRead(conv.id);
                             setSelectedConversation(conv);
-                            console.log('Set selected conversation to:', conv.id);
+                            // Update URL to reflect selected conversation
+                            setSearchParams({ section: 'inbox', conversation: conv.id });
                           }}
                           className={`p-3 rounded-lg cursor-pointer transition-colors ${
                             selectedConversation?.id === conv.id
