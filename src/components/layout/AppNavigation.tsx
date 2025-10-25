@@ -203,9 +203,9 @@ export function AppNavigation({
                             onClick={() => {
                               setNotificationsOpen(false);
                               if (pendingReviews.length > 0) {
-                                navigate(`/dashboard?section=reviews&bookingId=${pendingReviews[0].booking_id}`);
+                                navigate(`/dashboard?section=inbox&tab=reviews&bookingId=${pendingReviews[0].booking_id}`);
                               } else {
-                                navigate('/dashboard?section=reviews');
+                                navigate('/dashboard?section=inbox&tab=reviews');
                               }
                             }}
                             className="w-full p-4 hover:bg-burgundy/5 border-b text-left transition-colors"

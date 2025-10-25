@@ -74,6 +74,17 @@ export function InboxSection({
   // Calculate unread count
   const unreadCount = conversations.filter(c => c.unread_count && c.unread_count > 0).length;
 
+  // Extract bookingId from URL params for review auto-opening
+  const bookingId = searchParams.get('bookingId') || undefined;
+
+  // Auto-select tab from URL parameter
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['messages', 'reviews', 'automated', 'notifications'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
   // Auto-select conversation from URL parameter (only on initial load)
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
@@ -270,7 +281,7 @@ export function InboxSection({
 
         {/* REVIEWS TAB */}
         <TabsContent value="reviews">
-          <ReviewsTab isGuide={isGuide || false} />
+          <ReviewsTab isGuide={isGuide || false} openBookingId={bookingId} />
         </TabsContent>
 
         {/* AUTOMATED MESSAGES TAB */}
