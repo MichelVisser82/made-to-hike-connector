@@ -4,17 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Ticket as TicketIcon, AlertCircle, Clock } from 'lucide-react';
+import { Loader2, Ticket as TicketIcon, AlertCircle, Clock, MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { Ticket } from '@/types/chat';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export function TicketDashboard() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('open');
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTickets();
@@ -230,6 +232,14 @@ export function TicketDashboard() {
                         </div>
 
                         <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate(`/dashboard?conversationId=${ticket.conversation_id}`)}
+                          >
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            View Conversation
+                          </Button>
                           {ticket.status === 'open' && (
                             <Button
                               size="sm"
