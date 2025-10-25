@@ -44,16 +44,17 @@ export function useGuideStats(guideId: string | undefined) {
       let aboveBeyondPercentage = null;
 
       if (reviews && reviews.length > 0) {
-        const ratingsSum = { safety: 0, knowledge: 0, communication: 0, value: 0 };
+        const ratingsSum = { expertise: 0, safety: 0, communication: 0, leadership: 0, value: 0 };
         let recommendCount = 0;
         let aboveBeyondCount = 0;
 
         reviews.forEach(review => {
           if (review.category_ratings) {
             const ratings = review.category_ratings as any;
+            ratingsSum.expertise += ratings.expertise || 0;
             ratingsSum.safety += ratings.safety || 0;
-            ratingsSum.knowledge += ratings.knowledge || 0;
             ratingsSum.communication += ratings.communication || 0;
+            ratingsSum.leadership += ratings.leadership || 0;
             ratingsSum.value += ratings.value || 0;
           }
           
@@ -66,9 +67,10 @@ export function useGuideStats(guideId: string | undefined) {
 
         const count = reviews.length;
         categoryRatings = {
+          expertise: ratingsSum.expertise / count,
           safety: ratingsSum.safety / count,
-          knowledge: ratingsSum.knowledge / count,
           communication: ratingsSum.communication / count,
+          leadership: ratingsSum.leadership / count,
           value: ratingsSum.value / count,
           overall: averageRating,
         };

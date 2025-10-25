@@ -3,23 +3,24 @@ import { Star } from 'lucide-react';
 
 interface ReviewCategoryRatingsProps {
   ratings: {
+    expertise: number;
     safety: number;
-    knowledge: number;
     communication: number;
+    leadership: number;
     value: number;
     overall: number;
   };
-  recommendPercentage?: number;
-  aboveBeyondPercentage?: number;
+  recommendPercentage?: number | null;
+  aboveBeyondPercentage?: number | null;
 }
 
-export function ReviewCategoryRatings({ ratings, recommendPercentage = 98, aboveBeyondPercentage = 95 }: ReviewCategoryRatingsProps) {
+export function ReviewCategoryRatings({ ratings, recommendPercentage, aboveBeyondPercentage }: ReviewCategoryRatingsProps) {
   const categories = [
-    { label: 'Safety', value: ratings.safety },
-    { label: 'Knowledge', value: ratings.knowledge },
-    { label: 'Communication', value: ratings.communication },
-    { label: 'Value', value: ratings.value },
-    { label: 'Overall', value: ratings.overall },
+    { label: 'Expertise & Knowledge', value: ratings.expertise, key: 'expertise' },
+    { label: 'Safety & Professionalism', value: ratings.safety, key: 'safety' },
+    { label: 'Communication', value: ratings.communication, key: 'communication' },
+    { label: 'Group Leadership', value: ratings.leadership, key: 'leadership' },
+    { label: 'Value for Money', value: ratings.value, key: 'value' },
   ];
 
   return (
@@ -44,16 +45,19 @@ export function ReviewCategoryRatings({ ratings, recommendPercentage = 98, above
       </div>
 
       {/* Stat boxes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <div className="text-4xl font-bold text-green-700 mb-2">{recommendPercentage}%</div>
-          <div className="text-green-800 font-medium">Would Recommend</div>
+      {(recommendPercentage !== null && recommendPercentage !== undefined) && 
+       (aboveBeyondPercentage !== null && aboveBeyondPercentage !== undefined) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+            <div className="text-4xl font-bold text-green-700 mb-2">{recommendPercentage}%</div>
+            <div className="text-green-800 font-medium">Would Recommend</div>
+          </div>
+          <div className="bg-rose-50 border border-rose-200 rounded-lg p-6 text-center">
+            <div className="text-4xl font-bold text-rose-700 mb-2">{aboveBeyondPercentage}%</div>
+            <div className="text-rose-800 font-medium">Went Above & Beyond</div>
+          </div>
         </div>
-        <div className="bg-rose-50 border border-rose-200 rounded-lg p-6 text-center">
-          <div className="text-4xl font-bold text-rose-700 mb-2">{aboveBeyondPercentage}%</div>
-          <div className="text-rose-800 font-medium">Went Above & Beyond</div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -11,9 +11,10 @@ interface GuideReviewsSectionProps {
   averageRating: number;
   totalReviews: number;
   ratings?: {
+    expertise: number;
     safety: number;
-    knowledge: number;
     communication: number;
+    leadership: number;
     value: number;
     overall: number;
   } | null;

@@ -124,9 +124,10 @@ export interface GuideStats {
   total_hikers: number;
   review_count: number;
   category_ratings?: {
+    expertise: number;
     safety: number;
-    knowledge: number;
     communication: number;
+    leadership: number;
     value: number;
     overall: number;
   } | null;
