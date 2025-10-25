@@ -50,11 +50,12 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
     } else {
       console.log('Admin: Fetched conversations:', data?.length);
       
-      // Fetch profiles for each conversation
+      // Fetch profiles and tickets for each conversation
       const conversationsWithProfiles = await Promise.all(
         (data || []).map(async (conv) => {
           let hikerProfile = null;
           let guideProfile = null;
+          let ticket = null;
           
           if (conv.hiker_id) {
             const { data: hiker } = await supabase
@@ -74,10 +75,19 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
             guideProfile = guide;
           }
           
+          // Fetch ticket if exists
+          const { data: ticketData } = await supabase
+            .from('tickets')
+            .select('id, ticket_number, title, status, priority')
+            .eq('conversation_id', conv.id)
+            .maybeSingle();
+          ticket = ticketData;
+          
           return {
             ...conv,
             hiker_profile: hikerProfile,
             guide_profile: guideProfile,
+            ticket: ticket,
             profiles: hikerProfile // For backward compatibility
           };
         })
@@ -122,12 +132,14 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                   onClick={() => setSelectedConv(conv)}
                 >
-                  <div className="flex-1">
-                    <p className="font-medium">{conv.tours?.title || 'No tour'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {conv.hiker_profile?.name || 'Anonymous'} ↔ {conv.guide_profile?.name || 'No guide'}
-                    </p>
-                  </div>
+                <div className="flex-1">
+                  <p className="font-medium">
+                    {conv.tours?.title || (conv.ticket ? `Ticket: ${conv.ticket.ticket_number}` : `${conv.conversation_type.replace('_', ' ')}`)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {conv.hiker_profile?.name || 'Anonymous'} ↔ {conv.guide_profile?.name || 'No guide'}
+                  </p>
+                </div>
                   <Badge variant={conv.status === 'active' ? 'default' : 'secondary'}>
                     {conv.status}
                   </Badge>
