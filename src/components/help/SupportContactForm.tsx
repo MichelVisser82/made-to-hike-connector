@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -27,6 +28,7 @@ export function SupportContactForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [ticketNumber, setTicketNumber] = useState('');
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -38,6 +40,25 @@ export function SupportContactForm() {
       message: '',
     },
   });
+
+  // Pre-fill name and email for logged-in users
+  useEffect(() => {
+    async function loadUserProfile() {
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, email')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          form.setValue('name', profile.name || '');
+          form.setValue('email', profile.email || '');
+        }
+      }
+    }
+    loadUserProfile();
+  }, [user, form]);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);

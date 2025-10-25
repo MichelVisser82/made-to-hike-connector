@@ -56,7 +56,21 @@ export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {})
   async function fetchTickets() {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select(`
+        *,
+        conversations (
+          id,
+          anonymous_name,
+          anonymous_email,
+          profiles (
+            name,
+            email
+          ),
+          tours (
+            title
+          )
+        )
+      `)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -237,10 +251,21 @@ export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {})
               </div>
 
               <div className="border-t pt-4">
-                <h5 className="font-semibold mb-2">Related Information</h5>
+                <h5 className="font-semibold mb-2">Contact Information</h5>
                 <div className="space-y-2 text-sm">
-                  <p>Tour: {selectedTicket.conversations?.tours?.title || 'N/A'}</p>
-                  <p>From: {selectedTicket.conversations?.profiles?.name || 'Anonymous'}</p>
+                  <p><strong>From:</strong> {
+                    (selectedTicket.conversations as any)?.profiles?.name || 
+                    (selectedTicket.conversations as any)?.anonymous_name || 
+                    'Anonymous'
+                  }</p>
+                  <p><strong>Email:</strong> {
+                    (selectedTicket.conversations as any)?.profiles?.email || 
+                    (selectedTicket.conversations as any)?.anonymous_email || 
+                    'Not provided'
+                  }</p>
+                  {(selectedTicket.conversations as any)?.tours?.title && (
+                    <p><strong>Related Tour:</strong> {(selectedTicket.conversations as any).tours.title}</p>
+                  )}
                 </div>
               </div>
 
