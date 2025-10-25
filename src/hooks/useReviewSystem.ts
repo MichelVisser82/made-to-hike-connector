@@ -33,7 +33,16 @@ export interface ReviewData {
   expires_at?: string;
   created_at: string;
   updated_at?: string;
-  tours?: { title: string; };
+  tours?: { 
+    title: string; 
+    hero_image?: string;
+    images?: string[];
+    meeting_point_formatted?: string;
+    region?: string;
+  };
+  bookings?: {
+    booking_date: string;
+  };
   profiles?: { name: string; avatar_url?: string; };
 }
 
@@ -53,7 +62,8 @@ export function usePendingReviews() {
         .from('reviews')
         .select(`
           *,
-          tours!inner (title)
+          tours!inner (title, hero_image, images, meeting_point_formatted, region),
+          bookings!inner (booking_date)
         `)
         .or(`and(hiker_id.eq.${user.id},review_type.eq.hiker_to_guide),and(guide_id.eq.${user.id},review_type.eq.guide_to_hiker)`)
         .eq('review_status', 'draft')

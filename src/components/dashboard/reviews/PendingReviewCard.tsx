@@ -1,10 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Clock, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, User, Star } from 'lucide-react';
 import { ReviewData } from '@/hooks/useReviewSystem';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 
 interface PendingReviewCardProps {
   review: ReviewData;
@@ -12,88 +10,71 @@ interface PendingReviewCardProps {
 }
 
 export default function PendingReviewCard({ review, onWriteReview }: PendingReviewCardProps) {
-  const isExpiringSoon = review.expires_at && 
-    new Date(review.expires_at).getTime() - Date.now() < 48 * 60 * 60 * 1000; // Less than 48 hours
-
-  const timeRemaining = review.expires_at 
-    ? formatDistanceToNow(new Date(review.expires_at), { addSuffix: true })
-    : null;
-
-  // Check if review is available to write (created_at means 24h have passed since tour completion)
-  const isAvailable = review.created_at && new Date(review.created_at).getTime() <= Date.now();
-  const timeUntilAvailable = review.created_at 
-    ? formatDistanceToNow(new Date(review.created_at), { addSuffix: true })
-    : null;
-
   const otherPersonName = review.profiles?.name || 'Unknown';
-  const initials = otherPersonName.split(' ').map(n => n[0]).join('').toUpperCase();
+  const tourImage = review.tours?.hero_image || review.tours?.images?.[0];
+  const location = review.tours?.meeting_point_formatted || review.tours?.region || '';
+  const bookingDate = review.bookings?.booking_date 
+    ? format(new Date(review.bookings.booking_date), 'MMMM d, yyyy')
+    : '';
 
   const reviewTypeLabel = review.review_type === 'hiker_to_guide' 
     ? 'Guide' 
     : 'Hiker';
 
   return (
-    <Card className={isExpiringSoon ? 'border-warning' : ''}>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={review.profiles?.avatar_url} />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex gap-6">
+          {/* Tour Image */}
+          <div className="flex-shrink-0">
+            <div className="w-48 h-32 rounded-lg overflow-hidden bg-muted">
+              {tourImage ? (
+                <img 
+                  src={tourImage} 
+                  alt={review.tours?.title || 'Tour'} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  No image
+                </div>
+              )}
+            </div>
+          </div>
 
-          <div className="flex-1 space-y-2">
-            <div className="flex items-start justify-between">
-              <div>
-                <h4 className="font-semibold">{review.tours?.title}</h4>
-                <p className="text-sm text-muted-foreground">{reviewTypeLabel}: {otherPersonName}</p>
+          {/* Tour Details */}
+          <div className="flex-1 space-y-3">
+            <h3 className="text-xl font-semibold">{review.tours?.title}</h3>
+            
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>{reviewTypeLabel}: {otherPersonName}</span>
               </div>
-              {review.review_status === 'submitted' && (
-                <Badge variant="secondary">Waiting for pair</Badge>
+              
+              {bookingDate && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>{bookingDate}</span>
+                </div>
+              )}
+              
+              {location && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>{location}</span>
+                </div>
               )}
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {timeRemaining && (
-                  <span className={isExpiringSoon ? 'text-warning font-medium' : ''}>
-                    Expires {timeRemaining}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {!isAvailable && (
-              <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>Review available {timeUntilAvailable}</span>
-              </div>
-            )}
-
-            {isExpiringSoon && isAvailable && (
-              <div className="flex items-center gap-2 text-warning text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>Review expiring soon!</span>
-              </div>
-            )}
-
-            {review.review_status === 'draft' && (
-              <Button 
-                onClick={() => onWriteReview(review)}
-                size="sm"
-                className="mt-2"
-                disabled={!isAvailable}
-                variant={isAvailable ? 'default' : 'secondary'}
-              >
-                {isAvailable ? 'Write Review' : 'Not Available Yet'}
-              </Button>
-            )}
-
-            {review.review_status === 'submitted' && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Your review will be published when {otherPersonName} completes theirs
-              </p>
-            )}
+            <Button 
+              onClick={() => onWriteReview(review)}
+              className="gap-2"
+              size="default"
+            >
+              <Star className="h-4 w-4" />
+              Write Review
+            </Button>
           </div>
         </div>
       </CardContent>
