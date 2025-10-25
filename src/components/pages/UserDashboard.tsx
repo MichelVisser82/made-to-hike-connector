@@ -74,7 +74,7 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
       case 'bookings':
         return <HikerBookingsSection userId={user.id} onViewBooking={(id) => navigate(`/dashboard/booking/${id}`)} onContactGuide={(id) => setActiveSection('inbox')} />;
       case 'reviews':
-        return <HikerReviewsSection userId={user.id} onWriteReview={(id) => console.log('Review:', id)} />;
+        return <HikerReviewsSection userId={user.id} onWriteReview={(id) => console.log('Review:', id)} openBookingId={searchParams.get('bookingId') || undefined} />;
       case 'inbox':
         return <HikerInboxSection userId={user.id} />;
       default:

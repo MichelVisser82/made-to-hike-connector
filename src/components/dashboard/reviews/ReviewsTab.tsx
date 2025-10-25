@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -13,9 +13,10 @@ import { AlertCircle } from 'lucide-react';
 
 interface ReviewsTabProps {
   isGuide: boolean;
+  openBookingId?: string;
 }
 
-export default function ReviewsTab({ isGuide }: ReviewsTabProps) {
+export default function ReviewsTab({ isGuide, openBookingId }: ReviewsTabProps) {
   const pendingReviews = usePendingReviews();
   const receivedReviews = useReceivedReviews(isGuide);
   
@@ -23,6 +24,18 @@ export default function ReviewsTab({ isGuide }: ReviewsTabProps) {
   const [selectedReview, setSelectedReview] = useState<ReviewData | null>(null);
   const [responseFormOpen, setResponseFormOpen] = useState(false);
   const [selectedReviewForResponse, setSelectedReviewForResponse] = useState<ReviewData | null>(null);
+
+  // Auto-open review form if bookingId is provided
+  useEffect(() => {
+    if (openBookingId && pendingReviews.data && !reviewFormOpen) {
+      const matchingReview = pendingReviews.data.find(
+        review => review.booking_id === openBookingId && review.review_status === 'draft'
+      );
+      if (matchingReview) {
+        handleWriteReview(matchingReview);
+      }
+    }
+  }, [openBookingId, pendingReviews.data]);
 
   const handleWriteReview = (review: ReviewData) => {
     setSelectedReview(review);

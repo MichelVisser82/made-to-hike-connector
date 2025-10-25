@@ -42,6 +42,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       status: booking.status.toLowerCase(),
       image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
       tourId: booking.tour_id,
+      tourSlug: booking.tours?.slug || '',
       guideId: booking.tours?.guide_id,
       price: booking.total_price,
       currency: booking.currency,
@@ -70,6 +71,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
       reviewPending: true, // TODO: Check if review exists
       tourId: booking.tour_id,
+      tourSlug: booking.tours?.slug || '',
       guideId: booking.tours?.guide_id
     }));
 
@@ -287,14 +289,14 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                     <Button 
                       variant={trip.reviewPending ? 'default' : 'outline'} 
                       className="w-full"
-                      onClick={() => window.location.href = '/dashboard?section=reviews'}
+                      onClick={() => window.location.href = `/dashboard?section=reviews&bookingId=${trip.id}`}
                     >
                       ⭐ {trip.reviewPending ? 'Write Review' : 'View Your Review'}
                     </Button>
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => trip.tourId && onViewTour(trip.tourId)}
+                      onClick={() => trip.tourSlug && (window.location.href = `/tours/${trip.tourSlug}`)}
                     >
                       🔄 Book Again
                     </Button>

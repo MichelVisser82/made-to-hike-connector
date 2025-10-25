@@ -17,6 +17,7 @@ export interface HikerBooking {
   tours: {
     id: string;
     title: string;
+    slug: string;
     duration: string;
     meeting_point: string;
     guide_id: string;
@@ -69,6 +70,7 @@ export function useHikerBookings(hikerId: string | undefined) {
           tours (
             id,
             title,
+            slug,
             duration,
             meeting_point,
             guide_id,
