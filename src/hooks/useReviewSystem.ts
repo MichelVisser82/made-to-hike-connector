@@ -130,6 +130,7 @@ export function useReceivedReviews(isGuide: boolean) {
 
       const column = isGuide ? 'guide_id' : 'hiker_id';
       const otherColumn = isGuide ? 'hiker_id' : 'guide_id';
+      const reviewType = isGuide ? 'hiker_to_guide' : 'guide_to_hiker';
 
       const { data, error } = await supabase
         .from('reviews')
@@ -139,6 +140,7 @@ export function useReceivedReviews(isGuide: boolean) {
           profiles!reviews_${otherColumn}_fkey (name, avatar_url)
         `)
         .eq(column, user.id)
+        .eq('review_type', reviewType)
         .eq('review_status', 'published')
         .order('published_at', { ascending: false });
 
