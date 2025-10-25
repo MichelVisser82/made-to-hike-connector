@@ -516,7 +516,7 @@ export function GuideDashboard({
         id: review.id,
         guest_name: review.profiles?.name || 'Anonymous',
         tour_title: review.tours.title,
-        rating: review.rating,
+        rating: review.overall_rating,
         comment: review.comment || '',
         date: review.created_at,
         reply: undefined, // TODO: Add reply functionality

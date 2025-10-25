@@ -19,7 +19,7 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
 
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('reviews')
-        .select('id, rating, comment, created_at, hiker_id')
+        .select('id, overall_rating, comment, created_at, hiker_id')
         .eq('guide_id', guideId)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -38,7 +38,7 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
 
       return reviewsData.map(review => ({
         id: review.id,
-        rating: review.rating,
+        rating: review.overall_rating,
         comment: review.comment || '',
         created_at: review.created_at,
         hiker_id: review.hiker_id,

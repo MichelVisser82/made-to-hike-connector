@@ -925,36 +925,160 @@ export type Database = {
         }
         Relationships: []
       }
-      reviews: {
+      review_notifications: {
         Row: {
           booking_id: string
-          comment: string | null
-          created_at: string
-          guide_id: string
-          hiker_id: string
+          clicked_at: string | null
           id: string
-          rating: number
-          tour_id: string
+          notification_type: string
+          opened_at: string | null
+          recipient_id: string
+          recipient_type: string
+          sent_at: string | null
         }
         Insert: {
           booking_id: string
-          comment?: string | null
-          created_at?: string
-          guide_id: string
-          hiker_id: string
+          clicked_at?: string | null
           id?: string
-          rating: number
-          tour_id: string
+          notification_type: string
+          opened_at?: string | null
+          recipient_id: string
+          recipient_type: string
+          sent_at?: string | null
         }
         Update: {
           booking_id?: string
+          clicked_at?: string | null
+          id?: string
+          notification_type?: string
+          opened_at?: string | null
+          recipient_id?: string
+          recipient_type?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_responses: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          moderation_flags: Json | null
+          moderation_status: string | null
+          responder_id: string
+          responder_type: string
+          response_text: string
+          review_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          moderation_flags?: Json | null
+          moderation_status?: string | null
+          responder_id: string
+          responder_type: string
+          response_text: string
+          review_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          moderation_flags?: Json | null
+          moderation_status?: string | null
+          responder_id?: string
+          responder_type?: string
+          response_text?: string
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_responses_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: true
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          booking_id: string
+          category_ratings: Json | null
+          comment: string | null
+          created_at: string
+          expires_at: string | null
+          guide_id: string
+          highlight_tags: string[] | null
+          hiker_id: string
+          id: string
+          last_reminder_sent_at: string | null
+          overall_rating: number
+          paired_review_id: string | null
+          photos: Json | null
+          private_safety_notes: string | null
+          published_at: string | null
+          quick_assessment: Json | null
+          reminder_sent_count: number | null
+          review_status: string | null
+          review_type: string | null
+          tour_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          category_ratings?: Json | null
           comment?: string | null
           created_at?: string
+          expires_at?: string | null
+          guide_id: string
+          highlight_tags?: string[] | null
+          hiker_id: string
+          id?: string
+          last_reminder_sent_at?: string | null
+          overall_rating: number
+          paired_review_id?: string | null
+          photos?: Json | null
+          private_safety_notes?: string | null
+          published_at?: string | null
+          quick_assessment?: Json | null
+          reminder_sent_count?: number | null
+          review_status?: string | null
+          review_type?: string | null
+          tour_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          category_ratings?: Json | null
+          comment?: string | null
+          created_at?: string
+          expires_at?: string | null
           guide_id?: string
+          highlight_tags?: string[] | null
           hiker_id?: string
           id?: string
-          rating?: number
+          last_reminder_sent_at?: string | null
+          overall_rating?: number
+          paired_review_id?: string | null
+          photos?: Json | null
+          private_safety_notes?: string | null
+          published_at?: string | null
+          quick_assessment?: Json | null
+          reminder_sent_count?: number | null
+          review_status?: string | null
+          review_type?: string | null
           tour_id?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -976,6 +1100,13 @@ export type Database = {
             columns: ["hiker_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_paired_review_id_fkey"
+            columns: ["paired_review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
             referencedColumns: ["id"]
           },
           {
@@ -1875,6 +2006,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: undefined
       }
+      calculate_guide_average_ratings: {
+        Args: { guide_user_id: string }
+        Returns: Json
+      }
       can_view_guide_phone: {
         Args: { _guide_user_id: string }
         Returns: boolean
@@ -1903,6 +2038,7 @@ export type Database = {
           tour_title: string
         }[]
       }
+      get_review_pair_status: { Args: { booking_uuid: string }; Returns: Json }
       get_tour_date_availability: {
         Args: { p_tour_id: string }
         Returns: {

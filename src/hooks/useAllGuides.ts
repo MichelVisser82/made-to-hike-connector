@@ -29,7 +29,7 @@ export function useAllGuides() {
       
       const { data: reviewStats } = await supabase
         .from('reviews')
-        .select('guide_id, rating')
+        .select('guide_id, overall_rating')
         .in('guide_id', guideIds);
 
       // Fetch tour counts
@@ -45,7 +45,7 @@ export function useAllGuides() {
       guideIds.forEach(id => {
         const guideReviews = reviewStats?.filter(r => r.guide_id === id) || [];
         const avgRating = guideReviews.length > 0
-          ? guideReviews.reduce((sum, r) => sum + r.rating, 0) / guideReviews.length
+          ? guideReviews.reduce((sum, r) => sum + r.overall_rating, 0) / guideReviews.length
           : 0;
         
         const tours = tourCounts?.filter(t => t.guide_id === id).length || 0;

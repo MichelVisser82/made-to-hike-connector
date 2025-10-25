@@ -18,7 +18,7 @@ export function useGuideStats(guideId: string | undefined) {
       // Get average rating and total bookings
       const { data: reviews } = await supabase
         .from('reviews')
-        .select('rating')
+        .select('overall_rating')
         .eq('guide_id', guideId);
 
       const { data: bookings } = await supabase
@@ -28,7 +28,7 @@ export function useGuideStats(guideId: string | undefined) {
         .eq('status', 'completed');
 
       const averageRating = reviews && reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        ? reviews.reduce((sum, r) => sum + r.overall_rating, 0) / reviews.length
         : 0;
 
       const totalHikers = bookings
