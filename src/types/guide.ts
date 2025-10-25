@@ -123,4 +123,13 @@ export interface GuideStats {
   average_rating: number;
   total_hikers: number;
   review_count: number;
+  category_ratings?: {
+    safety: number;
+    knowledge: number;
+    communication: number;
+    value: number;
+    overall: number;
+  } | null;
+  recommend_percentage?: number | null;
+  above_beyond_percentage?: number | null;
 }

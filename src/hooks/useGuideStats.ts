@@ -18,7 +18,7 @@ export function useGuideStats(guideId: string | undefined) {
       // Get average rating and review count from published reviews
       const { data: reviews } = await supabase
         .from('reviews')
-        .select('overall_rating')
+        .select('overall_rating, category_ratings, quick_assessment')
         .eq('guide_id', guideId)
         .eq('review_type', 'hiker_to_guide')
         .eq('review_status', 'published');
@@ -38,11 +38,53 @@ export function useGuideStats(guideId: string | undefined) {
         ? bookings.reduce((sum, b) => sum + (b.participants || 0), 0)
         : 0;
 
+      // Calculate category rating averages
+      let categoryRatings = null;
+      let recommendPercentage = null;
+      let aboveBeyondPercentage = null;
+
+      if (reviews && reviews.length > 0) {
+        const ratingsSum = { safety: 0, knowledge: 0, communication: 0, value: 0 };
+        let recommendCount = 0;
+        let aboveBeyondCount = 0;
+
+        reviews.forEach(review => {
+          if (review.category_ratings) {
+            const ratings = review.category_ratings as any;
+            ratingsSum.safety += ratings.safety || 0;
+            ratingsSum.knowledge += ratings.knowledge || 0;
+            ratingsSum.communication += ratings.communication || 0;
+            ratingsSum.value += ratings.value || 0;
+          }
+          
+          if (review.quick_assessment) {
+            const assessment = review.quick_assessment as any;
+            if (assessment.would_recommend === true) recommendCount++;
+            if (assessment.went_above_beyond === true) aboveBeyondCount++;
+          }
+        });
+
+        const count = reviews.length;
+        categoryRatings = {
+          safety: ratingsSum.safety / count,
+          knowledge: ratingsSum.knowledge / count,
+          communication: ratingsSum.communication / count,
+          value: ratingsSum.value / count,
+          overall: averageRating,
+        };
+
+        recommendPercentage = Math.round((recommendCount / count) * 100);
+        aboveBeyondPercentage = Math.round((aboveBeyondCount / count) * 100);
+      }
+
       return {
         tours_completed: toursCount || 0,
         average_rating: averageRating,
         total_hikers: totalHikers,
         review_count: reviews?.length || 0,
+        category_ratings: categoryRatings,
+        recommend_percentage: recommendPercentage,
+        above_beyond_percentage: aboveBeyondPercentage,
       } as GuideStats;
     },
     enabled: !!guideId,

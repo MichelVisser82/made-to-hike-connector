@@ -93,14 +93,6 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
     proficiency: 'Fluent' as const
   })) || [];
 
-  const mockReviewRatings = {
-    safety: 4.9,
-    knowledge: 5.0,
-    communication: 4.9,
-    value: 4.8,
-    overall: 4.9
-  };
-
   const mockFAQs = [
     {
       question: 'What is your cancellation policy?',
@@ -233,9 +225,9 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
               reviews={reviews} 
               averageRating={stats.average_rating}
               totalReviews={reviews.length}
-              ratings={mockReviewRatings}
-              recommendPercentage={98}
-              aboveBeyondPercentage={95}
+              ratings={stats.category_ratings}
+              recommendPercentage={stats.recommend_percentage}
+              aboveBeyondPercentage={stats.above_beyond_percentage}
             />
 
             {/* FAQs */}

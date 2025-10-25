@@ -16,9 +16,9 @@ interface GuideReviewsSectionProps {
     communication: number;
     value: number;
     overall: number;
-  };
-  recommendPercentage?: number;
-  aboveBeyondPercentage?: number;
+  } | null;
+  recommendPercentage?: number | null;
+  aboveBeyondPercentage?: number | null;
 }
 
 export function GuideReviewsSection({ 
@@ -26,8 +26,8 @@ export function GuideReviewsSection({
   averageRating, 
   totalReviews,
   ratings,
-  recommendPercentage = 98,
-  aboveBeyondPercentage = 95
+  recommendPercentage,
+  aboveBeyondPercentage
 }: GuideReviewsSectionProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
