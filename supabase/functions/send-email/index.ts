@@ -7,6 +7,7 @@ interface EmailRequest {
   type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification' | 'verification-code' | 'new_message'
   to: string
   from?: string
+  reply_to?: string
   name?: string
   email?: string
   subject?: string
@@ -584,7 +585,8 @@ serve(async (req) => {
       subject: emailRequest.subject || template.subject,
       html: template.html,
       text: template.text,
-      ...(emailRequest.email && { reply_to: emailRequest.email })
+      ...(emailRequest.reply_to && { reply_to: emailRequest.reply_to }),
+      ...(emailRequest.email && !emailRequest.reply_to && { reply_to: emailRequest.email })
     }
 
     // Send email via Resend
