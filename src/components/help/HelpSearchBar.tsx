@@ -53,6 +53,26 @@ export function HelpSearchBar({ onNoResults }: HelpSearchBarProps) {
     }
   }, [query, search, toast, onNoResults]);
 
+  const handleSuggestionClick = async (suggestion: string) => {
+    setQuery(suggestion);
+    try {
+      const data = await search(suggestion);
+      setResults(data.results);
+      setSuggestions(data.suggestions);
+      setShowResults(true);
+
+      if (data.results.length === 0 && onNoResults) {
+        onNoResults();
+      }
+    } catch (err) {
+      toast({
+        title: 'Search Failed',
+        description: 'Unable to search help articles. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleFeedback = async (faqId: string, wasHelpful: boolean) => {
     setFeedbackGiven(prev => ({ ...prev, [faqId]: true }));
     await recordFeedback(faqId, wasHelpful);
@@ -177,10 +197,7 @@ export function HelpSearchBar({ onNoResults }: HelpSearchBarProps) {
                 key={idx}
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setQuery(suggestion);
-                  setTimeout(handleSearch, 100);
-                }}
+                onClick={() => handleSuggestionClick(suggestion)}
                 className="text-foreground"
               >
                 {suggestion}
