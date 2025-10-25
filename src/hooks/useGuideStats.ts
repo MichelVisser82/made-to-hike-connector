@@ -15,12 +15,15 @@ export function useGuideStats(guideId: string | undefined) {
         .eq('guide_id', guideId)
         .eq('is_active', true);
 
-      // Get average rating and total bookings
+      // Get average rating and review count from published reviews
       const { data: reviews } = await supabase
         .from('reviews')
         .select('overall_rating')
-        .eq('guide_id', guideId);
+        .eq('guide_id', guideId)
+        .eq('review_type', 'hiker_to_guide')
+        .eq('review_status', 'published');
 
+      // Get total bookings
       const { data: bookings } = await supabase
         .from('bookings')
         .select('participants')
@@ -39,6 +42,7 @@ export function useGuideStats(guideId: string | undefined) {
         tours_completed: toursCount || 0,
         average_rating: averageRating,
         total_hikers: totalHikers,
+        review_count: reviews?.length || 0,
       } as GuideStats;
     },
     enabled: !!guideId,

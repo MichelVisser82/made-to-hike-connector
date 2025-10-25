@@ -122,4 +122,5 @@ export interface GuideStats {
   tours_completed: number;
   average_rating: number;
   total_hikers: number;
+  review_count: number;
 }

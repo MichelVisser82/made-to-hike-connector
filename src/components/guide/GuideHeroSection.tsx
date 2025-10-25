@@ -2,15 +2,12 @@ import { useState, useEffect } from 'react';
 import { MapPin, CheckCircle, Star, Users, Clock, Award, MessageCircle, Mail } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
-import type { GuideProfile } from '@/types/guide';
+import type { GuideProfile, GuideStats } from '@/types/guide';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 
 interface GuideHeroSectionProps {
   guide: GuideProfile;
-  stats: {
-    tours_completed: number;
-    average_rating: number;
-  };
+  stats: GuideStats;
 }
 
 export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
@@ -22,7 +19,7 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
     : new Date().getFullYear();
   
   const experienceYears = guide.experience_years || (new Date().getFullYear() - activeSinceYear);
-  const reviewCount = 156; // This should come from actual review count
+  const reviewCount = stats.review_count || 0;
   const responseTime = '2 hours'; // This should come from guide data
 
   useEffect(() => {
