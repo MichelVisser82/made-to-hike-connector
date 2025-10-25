@@ -92,8 +92,11 @@ export function HelpFAQSection() {
                 className="text-sm text-muted-foreground prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ 
                   __html: faq.answer
+                    .replace(/\\n/g, '\n')
+                    .replace(/\n\n/g, '<br><br>')
                     .replace(/\n/g, '<br>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/- /g, '• ')
                 }}
               />
               
