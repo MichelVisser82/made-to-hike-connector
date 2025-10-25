@@ -157,6 +157,17 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           }
         }
 
+        // Get ticket info if admin_support conversation
+        let ticketInfo = null;
+        if (conv.conversation_type === 'admin_support') {
+          const { data: ticket } = await supabase
+            .from('tickets')
+            .select('ticket_number')
+            .eq('conversation_id', conv.id)
+            .maybeSingle();
+          ticketInfo = ticket;
+        }
+
         // Determine which profile to show
         // For admins viewing others' conversations, show the hiker profile
         // For participants, show the OTHER person
@@ -175,7 +186,8 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           hiker_profile: hikerProfile,
           guide_profile: guideProfile,
           profiles: otherProfile,
-          unread_count: unreadCount
+          unread_count: unreadCount,
+          ticket: ticketInfo
         };
       })
     );

@@ -15,8 +15,22 @@ export interface Conversation {
     hero_image: string | null;
   };
   profiles?: {
+    id: string;
     name: string;
     avatar_url: string | null;
+  };
+  hiker_profile?: {
+    id: string;
+    name: string;
+    avatar_url: string | null;
+  };
+  guide_profile?: {
+    id: string;
+    name: string;
+    avatar_url: string | null;
+  };
+  ticket?: {
+    ticket_number: string;
   };
   unread_count?: number;
 }

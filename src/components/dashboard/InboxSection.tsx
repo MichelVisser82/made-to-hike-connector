@@ -175,7 +175,23 @@ export function InboxSection({
                 <ScrollArea className="flex-1">
                   <div className="space-y-2 pr-4">
                     {conversations.map((conv) => {
-            const displayName = conv.profiles?.name || conv.anonymous_name || 'Unknown User';
+                      // Determine display name with role
+                      let displayName = conv.profiles?.name || conv.anonymous_name || 'Unknown User';
+                      
+                      // Add role indicator if we have profile info
+                      if (conv.profiles?.name) {
+                        const role = conv.hiker_profile?.id === conv.profiles.id ? 'Hiker' : 
+                                     conv.guide_profile?.id === conv.profiles.id ? 'Guide' : 
+                                     'User';
+                        displayName = `${displayName} (${role})`;
+                      } else if (conv.anonymous_name) {
+                        displayName = `${conv.anonymous_name} (Guest)`;
+                      }
+                      
+                      // Determine subtitle
+                      const subtitle = conv.conversation_type === 'admin_support' && conv.ticket?.ticket_number
+                        ? `Ticket #${conv.ticket.ticket_number}`
+                        : conv.tours?.title || 'General inquiry';
                       
                       return (
                         <div
@@ -210,7 +226,7 @@ export function InboxSection({
                                 </span>
                               </div>
                               <p className="text-xs text-charcoal/60 truncate mb-1">
-                                {conv.tours?.title || 'General inquiry'}
+                                {subtitle}
                               </p>
                               {conv.unread_count && conv.unread_count > 0 && (
                                 <Badge className="bg-burgundy text-white text-xs px-2 py-0.5">
