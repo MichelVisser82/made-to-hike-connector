@@ -106,13 +106,24 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
     setLoading(false);
   };
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.tours?.title.toLowerCase().includes(search.toLowerCase()) ||
-    conv.hiker_profile?.name?.toLowerCase().includes(search.toLowerCase()) ||
-    conv.hiker_profile?.email?.toLowerCase().includes(search.toLowerCase()) ||
-    conv.guide_profile?.name?.toLowerCase().includes(search.toLowerCase()) ||
-    conv.guide_profile?.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredConversations = conversations.filter((conv) => {
+    // If no search term, show all conversations
+    if (!search) return true;
+    
+    const searchLower = search.toLowerCase();
+    return (
+      conv.tours?.title?.toLowerCase().includes(searchLower) ||
+      conv.hiker_profile?.name?.toLowerCase().includes(searchLower) ||
+      conv.hiker_profile?.email?.toLowerCase().includes(searchLower) ||
+      conv.guide_profile?.name?.toLowerCase().includes(searchLower) ||
+      conv.guide_profile?.email?.toLowerCase().includes(searchLower) ||
+      conv.ticket?.ticket_number?.toLowerCase().includes(searchLower) ||
+      conv.ticket?.title?.toLowerCase().includes(searchLower) ||
+      conv.anonymous_name?.toLowerCase().includes(searchLower) ||
+      conv.anonymous_email?.toLowerCase().includes(searchLower) ||
+      conv.conversation_type?.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
