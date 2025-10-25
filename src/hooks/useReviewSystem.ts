@@ -66,7 +66,7 @@ export function usePendingReviews() {
           bookings!inner (booking_date)
         `)
         .or(`and(hiker_id.eq.${user.id},review_type.eq.hiker_to_guide),and(guide_id.eq.${user.id},review_type.eq.guide_to_hiker)`)
-        .eq('review_status', 'draft')
+        .in('review_status', ['draft', 'submitted'])
         .order('expires_at', { ascending: true });
 
       if (error) throw error;
