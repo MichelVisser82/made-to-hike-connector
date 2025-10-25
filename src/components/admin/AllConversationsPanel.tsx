@@ -41,15 +41,15 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
     const { data: { user } } = await supabase.auth.getUser();
     const adminId = user?.id;
 
-    // Only fetch admin-related conversations (admin_support, guide_admin) 
-    // or conversations where admin is a participant
+    // Fetch ALL admin-related conversations (admin_support, guide_admin)
+    // Admins should see all support tickets regardless of participation
     const { data, error } = await supabase
       .from('conversations')
       .select(`
         *,
         tours(id, title, hero_image)
       `)
-      .or(`conversation_type.in.(admin_support,guide_admin),hiker_id.eq.${adminId},guide_id.eq.${adminId}`)
+      .in('conversation_type', ['admin_support', 'guide_admin'])
       .order('last_message_at', { ascending: false });
 
     if (error) {
