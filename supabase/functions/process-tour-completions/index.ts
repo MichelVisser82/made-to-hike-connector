@@ -75,11 +75,14 @@ Deno.serve(async (req) => {
         // Check if reviews already exist for this booking
         const { data: existingReviews } = await supabase
           .from('reviews')
-          .select('id')
+          .select('id, review_type')
           .eq('booking_id', booking.id);
 
-        if (existingReviews && existingReviews.length > 0) {
-          console.log(`Reviews already exist for booking ${booking.id}`);
+        const hasHikerReview = existingReviews?.some(r => r.review_type === 'hiker_to_guide');
+        const hasGuideReview = existingReviews?.some(r => r.review_type === 'guide_to_hiker');
+
+        if (hasHikerReview && hasGuideReview) {
+          console.log(`Both reviews already exist for booking ${booking.id}`);
           continue;
         }
 
@@ -94,74 +97,92 @@ Deno.serve(async (req) => {
         // Set expiration to 6 days from now
         const expiresAt = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString();
 
-        // Create hiker→guide review record
-        const { data: hikerReview, error: hikerReviewError } = await supabase
-          .from('reviews')
-          .insert({
-            booking_id: booking.id,
-            tour_id: booking.tour_id,
-            hiker_id: booking.hiker_id,
-            guide_id: booking.tours.guide_id,
-            review_type: 'hiker_to_guide',
-            review_status: 'draft',
-            expires_at: expiresAt,
-            overall_rating: 0,
-            comment: ''
-          })
-          .select()
-          .single();
+        // Create reviews only if they don't exist
+        let hikerReview = existingReviews?.find(r => r.review_type === 'hiker_to_guide');
+        let guideReview = existingReviews?.find(r => r.review_type === 'guide_to_hiker');
 
-        if (hikerReviewError) throw hikerReviewError;
+        // Create hiker→guide review if it doesn't exist
+        if (!hasHikerReview) {
+          const { data, error: hikerReviewError } = await supabase
+            .from('reviews')
+            .insert({
+              booking_id: booking.id,
+              tour_id: booking.tour_id,
+              hiker_id: booking.hiker_id,
+              guide_id: booking.tours.guide_id,
+              review_type: 'hiker_to_guide',
+              review_status: 'draft',
+              expires_at: expiresAt,
+              overall_rating: 5, // Temporary default, will be overwritten when user submits
+              comment: ''
+            })
+            .select()
+            .single();
 
-        // Create guide→hiker review record
-        const { data: guideReview, error: guideReviewError } = await supabase
-          .from('reviews')
-          .insert({
-            booking_id: booking.id,
-            tour_id: booking.tour_id,
-            hiker_id: booking.hiker_id,
-            guide_id: booking.tours.guide_id,
-            review_type: 'guide_to_hiker',
-            review_status: 'draft',
-            expires_at: expiresAt,
-            overall_rating: 0,
-            comment: ''
-          })
-          .select()
-          .single();
+          if (hikerReviewError) throw hikerReviewError;
+          hikerReview = data;
+        }
 
-        if (guideReviewError) throw guideReviewError;
+        // Create guide→hiker review if it doesn't exist
+        if (!hasGuideReview) {
+          const { data, error: guideReviewError } = await supabase
+            .from('reviews')
+            .insert({
+              booking_id: booking.id,
+              tour_id: booking.tour_id,
+              hiker_id: booking.hiker_id,
+              guide_id: booking.tours.guide_id,
+              review_type: 'guide_to_hiker',
+              review_status: 'draft',
+              expires_at: expiresAt,
+              overall_rating: 5, // Temporary default, will be overwritten when user submits
+              comment: ''
+            })
+            .select()
+            .single();
 
-        // Link paired reviews
-        await supabase
-          .from('reviews')
-          .update({ paired_review_id: guideReview.id })
-          .eq('id', hikerReview.id);
+          if (guideReviewError) throw guideReviewError;
+          guideReview = data;
+        }
 
-        await supabase
-          .from('reviews')
-          .update({ paired_review_id: hikerReview.id })
-          .eq('id', guideReview.id);
+        // Link paired reviews if both exist
+        if (hikerReview?.id && guideReview?.id) {
+          await supabase
+            .from('reviews')
+            .update({ paired_review_id: guideReview.id })
+            .eq('id', hikerReview.id);
 
-        // Send "review available" notifications to both parties
-        await supabase.from('review_notifications').insert([
-          {
-            booking_id: booking.id,
-            recipient_id: booking.hiker_id,
-            recipient_type: 'hiker',
-            notification_type: 'review_available'
-          },
-          {
-            booking_id: booking.id,
-            recipient_id: booking.tours.guide_id,
-            recipient_type: 'guide',
-            notification_type: 'review_available'
-          }
-        ]);
+          await supabase
+            .from('reviews')
+            .update({ paired_review_id: hikerReview.id })
+            .eq('id', guideReview.id);
+        }
 
-        // Send emails (TODO: Integrate with send-email function)
-        // For now, log that emails should be sent
-        console.log(`Review notifications created for booking ${booking.id}`);
+        // Send "review available" notifications to both parties (only if not already sent)
+        const { data: existingNotifications } = await supabase
+          .from('review_notifications')
+          .select('id')
+          .eq('booking_id', booking.id)
+          .eq('notification_type', 'review_available');
+
+        if (!existingNotifications || existingNotifications.length === 0) {
+          await supabase.from('review_notifications').insert([
+            {
+              booking_id: booking.id,
+              recipient_id: booking.hiker_id,
+              recipient_type: 'hiker',
+              notification_type: 'review_available'
+            },
+            {
+              booking_id: booking.id,
+              recipient_id: booking.tours.guide_id,
+              recipient_type: 'guide',
+              notification_type: 'review_available'
+            }
+          ]);
+
+          console.log(`Review notifications created for booking ${booking.id}`);
+        }
 
         results.push({
           booking_id: booking.id,

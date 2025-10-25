@@ -46,19 +46,61 @@ export function usePendingReviews() {
     queryFn: async () => {
       if (!user?.id) return [];
 
+      // Fetch reviews where user is either hiker or guide
       const { data, error } = await supabase
         .from('reviews')
         .select(`
           *,
-          tours!inner (title),
-          profiles!reviews_hiker_id_fkey (name, avatar_url)
+          tours!inner (title)
         `)
         .or(`hiker_id.eq.${user.id},guide_id.eq.${user.id}`)
         .eq('review_status', 'draft')
         .order('expires_at', { ascending: true });
 
       if (error) throw error;
-      return (data || []) as unknown as ReviewData[];
+
+      // Fetch profile data for the "other person" in each review
+      const reviewsWithProfiles = await Promise.all(
+        (data || []).map(async (review) => {
+          // Determine who the "other person" is (the one being reviewed)
+          const isReviewingGuide = review.review_type === 'hiker_to_guide';
+          const otherPersonId = isReviewingGuide ? review.guide_id : review.hiker_id;
+
+          let profileData = null;
+
+          if (isReviewingGuide) {
+            // Fetch guide profile for hiker→guide reviews
+            const { data: guideProfile } = await supabase
+              .from('guide_profiles')
+              .select('display_name, profile_image_url')
+              .eq('user_id', otherPersonId)
+              .maybeSingle();
+            
+            if (guideProfile) {
+              profileData = {
+                name: guideProfile.display_name,
+                avatar_url: guideProfile.profile_image_url
+              };
+            }
+          } else {
+            // Fetch hiker profile for guide→hiker reviews
+            const { data: hikerProfile } = await supabase
+              .from('profiles')
+              .select('name, avatar_url')
+              .eq('id', otherPersonId)
+              .maybeSingle();
+            
+            profileData = hikerProfile;
+          }
+
+          return {
+            ...review,
+            profiles: profileData
+          };
+        })
+      );
+
+      return reviewsWithProfiles as unknown as ReviewData[];
     },
     enabled: !!user?.id,
     staleTime: 60 * 1000, // 1 minute
