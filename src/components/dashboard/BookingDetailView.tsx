@@ -98,6 +98,7 @@ export function BookingDetailView() {
   const [loading, setLoading] = useState(true);
   const [showMessagesModal, setShowMessagesModal] = useState(false);
   const [showDeclineDialog, setShowDeclineDialog] = useState(false);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [unreadCount, setUnreadCount] = useState(0);
   const [lastMessageAt, setLastMessageAt] = useState<string | null>(null);
@@ -302,6 +303,36 @@ export function BookingDetailView() {
       toast({
         title: "Error",
         description: error.message || "Failed to decline booking and process refund. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteBooking = async () => {
+    try {
+      setLoading(true);
+      setShowCompleteDialog(false);
+
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'completed' })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Booking marked as completed. Review flow will be triggered automatically.",
+      });
+      
+      fetchBooking();
+    } catch (error) {
+      console.error('Error completing booking:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark booking as completed",
         variant: "destructive",
       });
     } finally {
@@ -789,6 +820,13 @@ export function BookingDetailView() {
             {booking.status === 'confirmed' && (
               <>
                 <Button
+                  className="w-full bg-primary hover:bg-primary/90 text-white"
+                  onClick={() => setShowCompleteDialog(true)}
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Mark as Completed
+                </Button>
+                <Button
                   variant="outline"
                   className="w-full"
                 >
@@ -899,6 +937,46 @@ export function BookingDetailView() {
               disabled={loading}
             >
               {loading ? 'Processing...' : 'Yes, Decline & Refund'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Complete Booking Confirmation Dialog */}
+      <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <AlertDialogContent className="bg-background">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-playfair text-charcoal flex items-center gap-2">
+              <Check className="h-6 w-6 text-primary" />
+              Mark Booking as Completed?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4 text-base">
+              <p className="text-charcoal/80">
+                This action <strong className="text-primary">cannot be undone</strong>. When you mark this booking as completed:
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-charcoal/70 ml-2">
+                <li>The <strong>review flow will be automatically triggered</strong> for both you and the hiker</li>
+                <li>Both parties will have <strong>7 days to write their reviews</strong></li>
+                <li>Reviews will be <strong>published simultaneously</strong> once both are submitted</li>
+                <li>The booking status will be permanently changed to <strong>completed</strong></li>
+              </ul>
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-4">
+                <p className="text-sm text-primary font-medium">
+                  💡 This allows manual completion override if the automatic process hasn't triggered yet
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-charcoal/20">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCompleteBooking}
+              className="bg-primary hover:bg-primary/90 text-white"
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : 'Yes, Mark as Completed'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
