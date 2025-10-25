@@ -58,14 +58,12 @@ export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {})
       .from('tickets')
       .select(`
         *,
-        conversations (
+        conversations!inner (
           id,
           anonymous_name,
           anonymous_email,
-          profiles (
-            name,
-            email
-          ),
+          hiker_id,
+          guide_id,
           tours (
             title
           )
@@ -80,9 +78,44 @@ export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {})
         description: error.message,
         variant: 'destructive'
       });
-    } else {
-      setTickets((data || []) as any);
+      setLoading(false);
+      return;
     }
+
+    // Fetch profile data separately for each ticket
+    const ticketsWithProfiles = await Promise.all(
+      (data || []).map(async (ticket: any) => {
+        const conversation = ticket.conversations;
+        let profileData = null;
+
+        // Try to fetch hiker profile first, then guide profile
+        if (conversation.hiker_id) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', conversation.hiker_id)
+            .maybeSingle();
+          profileData = profile;
+        } else if (conversation.guide_id) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', conversation.guide_id)
+            .maybeSingle();
+          profileData = profile;
+        }
+
+        return {
+          ...ticket,
+          conversations: {
+            ...conversation,
+            profile: profileData
+          }
+        };
+      })
+    );
+
+    setTickets(ticketsWithProfiles as any);
     setLoading(false);
   }
 
@@ -254,12 +287,12 @@ export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {})
                 <h5 className="font-semibold mb-2">Contact Information</h5>
                 <div className="space-y-2 text-sm">
                   <p><strong>From:</strong> {
-                    (selectedTicket.conversations as any)?.profiles?.name || 
+                    (selectedTicket.conversations as any)?.profile?.name || 
                     (selectedTicket.conversations as any)?.anonymous_name || 
                     'Anonymous'
                   }</p>
                   <p><strong>Email:</strong> {
-                    (selectedTicket.conversations as any)?.profiles?.email || 
+                    (selectedTicket.conversations as any)?.profile?.email || 
                     (selectedTicket.conversations as any)?.anonymous_email || 
                     'Not provided'
                   }</p>
