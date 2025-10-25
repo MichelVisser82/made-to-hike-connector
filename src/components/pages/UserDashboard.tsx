@@ -27,8 +27,10 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
   const [loadingBookings, setLoadingBookings] = useState(true);
 
   useEffect(() => {
-    setSearchParams({ section: activeSection });
-  }, [activeSection, setSearchParams]);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('section', activeSection);
+    setSearchParams(newParams);
+  }, [activeSection]);
 
   useEffect(() => {
     const section = searchParams.get('section') as DashboardSection;
