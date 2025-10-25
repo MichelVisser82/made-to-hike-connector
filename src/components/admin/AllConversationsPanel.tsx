@@ -37,9 +37,16 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
   const fetchAllConversations = async () => {
     setLoading(true);
 
-    // Get current admin user ID
+    // Get current admin user ID and profile
     const { data: { user } } = await supabase.auth.getUser();
     const adminId = user?.id;
+    
+    // Get admin profile
+    const { data: adminProfile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', adminId)
+      .maybeSingle();
 
     // Fetch ALL admin-related conversations (admin_support, guide_admin)
     // Admins should see all support tickets regardless of participation
@@ -94,6 +101,7 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
             ...conv,
             hiker_profile: hikerProfile,
             guide_profile: guideProfile,
+            admin_profile: adminProfile,
             ticket: ticket,
             profiles: hikerProfile // For backward compatibility
           };
@@ -160,7 +168,7 @@ export function AllConversationsPanel({ initialConversationId }: AllConversation
                     </span>
                     <span>↔</span>
                     <span>
-                      {conv.guide_profile?.name || 'No guide'}
+                      {conv.guide_profile?.name || (conv.admin_profile?.name ? `${conv.admin_profile.name} (admin)` : 'Admin')}
                     </span>
                   </p>
                 </div>
