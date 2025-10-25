@@ -273,6 +273,9 @@ serve(async (req) => {
             ? 'Update on your support ticket'
             : 'Reply to your hiking inquiry';
           
+          // Check if recipient is anonymous (no hiker_id means anonymous user)
+          const isAnonymous = !conversation.hiker_id;
+          
           await supabase.functions.invoke('send-email', {
             body: {
               type: 'new_message',
@@ -282,7 +285,8 @@ serve(async (req) => {
                 recipientName,
                 senderName: senderName || (senderType === 'admin' ? 'MadeToHike Support' : 'Your guide'),
                 messagePreview: moderationResult.moderatedContent.substring(0, 150),
-                conversationUrl: `https://madetohike.com/messages/${conversationId}`
+                conversationUrl: `https://madetohike.com/messages/${conversationId}`,
+                isAnonymous: isAnonymous
               }
             }
           });

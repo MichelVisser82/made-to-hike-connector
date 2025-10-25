@@ -486,9 +486,18 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
                 <p style="margin: 0; color: #4a5568; line-height: 1.6; white-space: pre-wrap;">${data.messagePreview}</p>
             </div>
 
+            ${data.isAnonymous ? `
+            <div style="background: #f0f8f0; border-radius: 6px; padding: 20px; margin: 25px 0; text-align: center;">
+                <h3 style="margin: 0 0 10px; color: #2c5530; font-size: 18px;">💬 Reply via Email</h3>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    Simply reply to this email to continue the conversation with ${data.senderName}.
+                </p>
+            </div>
+            ` : `
             <div style="text-align: center; margin: 30px 0;">
                 <a href="${data.conversationUrl}" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; font-size: 16px;">View Conversation</a>
             </div>
+            `}
 
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
                 <p style="margin: 0; color: #718096; font-size: 14px;"><strong>The Made to Hike Team</strong></p>
@@ -497,7 +506,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
     </div>
 </body>
 </html>`,
-      text: `New Message\n\nHi ${data.recipientName || 'there'},\n\nYou have a new message from ${data.senderName}.\n\nMessage:\n${data.messagePreview}\n\nView the conversation: ${data.conversationUrl}\n\nThe Made to Hike Team`
+      text: `New Message\n\nHi ${data.recipientName || 'there'},\n\nYou have a new message from ${data.senderName}.\n\nMessage:\n${data.messagePreview}\n\n${data.isAnonymous ? 'Reply to this email to continue the conversation.' : `View the conversation: ${data.conversationUrl}`}\n\nThe Made to Hike Team`
     }
   }
 
