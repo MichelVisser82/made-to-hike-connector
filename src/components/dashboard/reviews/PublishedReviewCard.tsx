@@ -25,6 +25,11 @@ export default function PublishedReviewCard({
   const otherPersonName = review.profiles?.name || 'Unknown';
   const initials = otherPersonName.split(' ').map(n => n[0]).join('').toUpperCase();
   
+  // For guide reviews, use guide's profile picture
+  const avatarUrl = review.review_type === 'guide_to_hiker' 
+    ? review.guide_profiles?.profile_image_url 
+    : review.profiles?.avatar_url;
+  
   const publishedDate = review.published_at 
     ? format(new Date(review.published_at), 'MMMM yyyy')
     : '';
@@ -53,7 +58,7 @@ export default function PublishedReviewCard({
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={review.profiles?.avatar_url} />
+              <AvatarImage src={avatarUrl} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             
@@ -69,6 +74,9 @@ export default function PublishedReviewCard({
                   />
                 )}
               </div>
+              <p className="text-sm text-muted-foreground">
+                {review.tours?.title}
+              </p>
               <div className="flex items-center gap-3">
                 {renderStars(review.overall_rating)}
                 <span className="text-sm text-muted-foreground">
