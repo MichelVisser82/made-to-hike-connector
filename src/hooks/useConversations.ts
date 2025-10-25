@@ -192,20 +192,26 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           }
         }
 
-        // Determine which profile to show
+        // Determine which profile to show - always show the OTHER person
         let otherProfile;
         if (conv.conversation_type === 'admin_support' || conv.conversation_type === 'guide_admin') {
-          // For admin conversations, show the admin profile
-          console.log('Setting admin profile for conversation:', conv.id, 'adminProfile:', adminProfile);
-          otherProfile = adminProfile;
+          // For admin conversations, determine who the other person is
+          const isCurrentUserTicketCreator = conv.hiker_id === userId || conv.guide_id === userId;
+          
+          if (isCurrentUserTicketCreator) {
+            // Current user created the ticket, show the admin who responded
+            otherProfile = adminProfile;
+          } else {
+            // Current user is the admin, show the ticket creator
+            otherProfile = hikerProfile || guideProfile;
+          }
         } else if (isAdmin && conv.hiker_id !== userId && conv.guide_id !== userId) {
           // Admin viewing someone else's conversation - show hiker
           otherProfile = hikerProfile;
         } else {
-          // Participant in conversation - show the other person
+          // Regular conversation - show the other person
           otherProfile = conv.hiker_id === userId ? guideProfile : hikerProfile;
         }
-        console.log('Final otherProfile for conv', conv.id, ':', otherProfile);
 
         return {
           ...conv,
