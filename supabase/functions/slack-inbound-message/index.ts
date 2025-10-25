@@ -64,12 +64,12 @@ serve(async (req) => {
     if (slackEvent.type === 'url_verification') {
       console.log('Handling URL verification challenge')
       return new Response(
-        JSON.stringify({ challenge: slackEvent.challenge }),
+        slackEvent.challenge,
         { 
           status: 200,
           headers: { 
             ...corsHeaders, 
-            'Content-Type': 'application/json' 
+            'Content-Type': 'text/plain' 
           } 
         }
       )
