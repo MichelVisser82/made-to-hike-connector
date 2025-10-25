@@ -171,6 +171,7 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
                 message={message}
                 currentUserId={user?.id}
                 isAdmin={profile?.role === 'admin'}
+                ticketOwnerName={conversation.anonymous_name || conversation.profiles?.name}
               />
             ))
           )}

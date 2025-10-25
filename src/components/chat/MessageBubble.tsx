@@ -7,9 +7,10 @@ interface MessageBubbleProps {
   message: Message;
   currentUserId?: string;
   isAdmin?: boolean;
+  ticketOwnerName?: string;
 }
 
-export function MessageBubble({ message, currentUserId, isAdmin }: MessageBubbleProps) {
+export function MessageBubble({ message, currentUserId, isAdmin, ticketOwnerName }: MessageBubbleProps) {
   const isSender = message.sender_id === currentUserId;
   const isAutomated = message.is_automated;
   const hasViolations = message.moderation_flags && message.moderation_flags.length > 0;
@@ -39,10 +40,10 @@ export function MessageBubble({ message, currentUserId, isAdmin }: MessageBubble
           </p>
         )}
 
-        {/* Sender name for non-sender messages */}
-        {!isSender && message.sender_name && (
+        {/* Ticket owner name for admin view, sender name otherwise */}
+        {!isSender && (
           <p className="text-xs font-medium opacity-70">
-            {message.sender_name}
+            {ticketOwnerName || message.sender_name}
           </p>
         )}
 
