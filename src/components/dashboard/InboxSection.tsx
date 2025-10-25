@@ -196,7 +196,8 @@ export function InboxSection({
                       return (
                         <div
                           key={conv.id}
-                          onClick={() => {
+                          onClick={(e) => {
+                            console.log('Conversation clicked:', conv.id, e);
                             optimisticallyMarkConversationAsRead(conv.id);
                             setSelectedConversation(conv);
                           }}
