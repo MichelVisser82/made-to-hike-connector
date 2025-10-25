@@ -14,9 +14,10 @@ import { AlertCircle } from 'lucide-react';
 interface ReviewsTabProps {
   isGuide: boolean;
   openBookingId?: string;
+  onClearBookingId?: () => void;
 }
 
-export default function ReviewsTab({ isGuide, openBookingId }: ReviewsTabProps) {
+export default function ReviewsTab({ isGuide, openBookingId, onClearBookingId }: ReviewsTabProps) {
   const pendingReviews = usePendingReviews();
   const receivedReviews = useReceivedReviews(isGuide);
   
@@ -45,8 +46,15 @@ export default function ReviewsTab({ isGuide, openBookingId }: ReviewsTabProps) 
   const handleReviewSuccess = () => {
     setReviewFormOpen(false);
     setSelectedReview(null);
+    onClearBookingId?.();
     pendingReviews.refetch();
     receivedReviews.refetch();
+  };
+
+  const handleCloseReviewForm = () => {
+    setReviewFormOpen(false);
+    setSelectedReview(null);
+    onClearBookingId?.();
   };
 
   const handleRespondToReview = (review: ReviewData) => {
@@ -180,20 +188,24 @@ export default function ReviewsTab({ isGuide, openBookingId }: ReviewsTabProps) 
       </Tabs>
 
       {/* Review Form Dialog */}
-      <Dialog open={reviewFormOpen} onOpenChange={setReviewFormOpen}>
+      <Dialog open={reviewFormOpen} onOpenChange={(open) => {
+        if (!open) {
+          handleCloseReviewForm();
+        }
+      }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {selectedReview && (
             selectedReview.review_type === 'hiker_to_guide' ? (
               <HikerReviewForm
                 review={selectedReview}
                 onSuccess={handleReviewSuccess}
-                onCancel={() => setReviewFormOpen(false)}
+                onCancel={handleCloseReviewForm}
               />
             ) : (
               <GuideReviewForm
                 review={selectedReview}
                 onSuccess={handleReviewSuccess}
-                onCancel={() => setReviewFormOpen(false)}
+                onCancel={handleCloseReviewForm}
               />
             )
           )}

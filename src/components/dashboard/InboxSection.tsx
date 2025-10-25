@@ -281,7 +281,15 @@ export function InboxSection({
 
         {/* REVIEWS TAB */}
         <TabsContent value="reviews">
-          <ReviewsTab isGuide={isGuide || false} openBookingId={bookingId} />
+          <ReviewsTab 
+            isGuide={isGuide || false} 
+            openBookingId={bookingId}
+            onClearBookingId={() => {
+              const newParams = new URLSearchParams(searchParams);
+              newParams.delete('bookingId');
+              setSearchParams(newParams);
+            }}
+          />
         </TabsContent>
 
         {/* AUTOMATED MESSAGES TAB */}
