@@ -47,8 +47,12 @@ export default function ReviewsTab({ isGuide }: ReviewsTabProps) {
     receivedReviews.refetch();
   };
 
-  const pendingCount = pendingReviews.data?.filter(r => r.review_status === 'draft').length || 0;
-  const submittedCount = pendingReviews.data?.filter(r => r.review_status === 'submitted').length || 0;
+  const allPendingReviews = pendingReviews.data || [];
+  const draftReviews = allPendingReviews.filter(r => r.review_status === 'draft');
+  const submittedReviews = allPendingReviews.filter(r => r.review_status === 'submitted');
+  
+  const pendingCount = draftReviews.length;
+  const submittedCount = submittedReviews.length;
 
   return (
     <>
@@ -72,7 +76,7 @@ export default function ReviewsTab({ isGuide }: ReviewsTabProps) {
                 Loading pending reviews...
               </CardContent>
             </Card>
-          ) : pendingReviews.data?.filter(r => r.review_status === 'draft').length === 0 ? (
+          ) : draftReviews.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center text-muted-foreground">
                 <AlertCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -83,8 +87,14 @@ export default function ReviewsTab({ isGuide }: ReviewsTabProps) {
           ) : (
             <ScrollArea className="h-[600px]">
               <div className="space-y-3 pr-4">
-                {pendingReviews.data
-                  ?.filter(r => r.review_status === 'draft')
+                {draftReviews
+                  .sort((a, b) => {
+                    // Sort by availability first (available reviews first), then by expiration date
+                    const aAvailable = new Date(a.created_at).getTime() <= Date.now();
+                    const bAvailable = new Date(b.created_at).getTime() <= Date.now();
+                    if (aAvailable !== bAvailable) return bAvailable ? 1 : -1;
+                    return new Date(a.expires_at || 0).getTime() - new Date(b.expires_at || 0).getTime();
+                  })
                   .map((review) => (
                     <PendingReviewCard
                       key={review.id}
@@ -98,7 +108,7 @@ export default function ReviewsTab({ isGuide }: ReviewsTabProps) {
         </TabsContent>
 
         <TabsContent value="awaiting" className="space-y-4 mt-4">
-          {pendingReviews.data?.filter(r => r.review_status === 'submitted').length === 0 ? (
+          {submittedReviews.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center text-muted-foreground">
                 <p>No reviews awaiting publication</p>
@@ -108,20 +118,18 @@ export default function ReviewsTab({ isGuide }: ReviewsTabProps) {
           ) : (
             <ScrollArea className="h-[600px]">
               <div className="space-y-3 pr-4">
-                {pendingReviews.data
-                  ?.filter(r => r.review_status === 'submitted')
-                  .map((review) => (
-                    <Card key={review.id}>
-                      <CardContent className="p-6">
-                        <div className="space-y-2">
-                          <h4 className="font-semibold">{review.tours?.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Your review is submitted and will be published when {review.profiles?.name} completes theirs.
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                {submittedReviews.map((review) => (
+                  <Card key={review.id}>
+                    <CardContent className="p-6">
+                      <div className="space-y-2">
+                        <h4 className="font-semibold">{review.tours?.title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Your review is submitted and will be published when {review.profiles?.name} completes theirs.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </ScrollArea>
           )}

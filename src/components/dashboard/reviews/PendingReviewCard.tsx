@@ -19,6 +19,12 @@ export default function PendingReviewCard({ review, onWriteReview }: PendingRevi
     ? formatDistanceToNow(new Date(review.expires_at), { addSuffix: true })
     : null;
 
+  // Check if review is available to write (created_at means 24h have passed since tour completion)
+  const isAvailable = review.created_at && new Date(review.created_at).getTime() <= Date.now();
+  const timeUntilAvailable = review.created_at 
+    ? formatDistanceToNow(new Date(review.created_at), { addSuffix: true })
+    : null;
+
   const otherPersonName = review.profiles?.name || 'Unknown';
   const initials = otherPersonName.split(' ').map(n => n[0]).join('').toUpperCase();
 
@@ -57,7 +63,14 @@ export default function PendingReviewCard({ review, onWriteReview }: PendingRevi
               </div>
             </div>
 
-            {isExpiringSoon && (
+            {!isAvailable && (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <AlertCircle className="h-4 w-4" />
+                <span>Review available {timeUntilAvailable}</span>
+              </div>
+            )}
+
+            {isExpiringSoon && isAvailable && (
               <div className="flex items-center gap-2 text-warning text-sm">
                 <AlertCircle className="h-4 w-4" />
                 <span>Review expiring soon!</span>
@@ -69,8 +82,10 @@ export default function PendingReviewCard({ review, onWriteReview }: PendingRevi
                 onClick={() => onWriteReview(review)}
                 size="sm"
                 className="mt-2"
+                disabled={!isAvailable}
+                variant={isAvailable ? 'default' : 'secondary'}
               >
-                Write Review
+                {isAvailable ? 'Write Review' : 'Not Available Yet'}
               </Button>
             )}
 
