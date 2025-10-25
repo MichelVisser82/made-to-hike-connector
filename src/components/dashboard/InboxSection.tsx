@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
@@ -175,18 +175,18 @@ export function InboxSection({
                 <ScrollArea className="flex-1">
                   <div className="space-y-2 pr-4">
                     {conversations.map((conv) => {
-                      // Determine display name with role
-                      let displayName = conv.profiles?.name || conv.anonymous_name || 'Unknown User';
+                      // Determine display name
+                      const displayName = conv.profiles?.name || conv.anonymous_name || 'Unknown User';
                       
-                      // Add role indicator if we have profile info
-                      if (conv.profiles?.name) {
-                        const role = conv.hiker_profile?.id === conv.profiles.id ? 'Hiker' : 
-                                     conv.guide_profile?.id === conv.profiles.id ? 'Guide' : 
-                                     'User';
-                        displayName = `${displayName} (${role})`;
-                      } else if (conv.anonymous_name) {
-                        displayName = `${conv.anonymous_name} (Guest)`;
-                      }
+                      // Get avatar URL
+                      const avatarUrl = conv.profiles?.avatar_url || conv.hiker_profile?.avatar_url || conv.guide_profile?.avatar_url;
+                      
+                      // Generate initials (first letter of first name + first letter of last name)
+                      const getInitials = (name: string) => {
+                        const parts = name.trim().split(' ');
+                        if (parts.length === 1) return parts[0][0].toUpperCase();
+                        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                      };
                       
                       // Determine subtitle
                       const subtitle = conv.conversation_type === 'admin_support' && conv.ticket?.ticket_number
@@ -215,8 +215,9 @@ export function InboxSection({
                         >
                           <div className="flex items-start gap-3">
                             <Avatar className="w-10 h-10 flex-shrink-0">
+                              {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
                               <AvatarFallback className="bg-burgundy text-white text-sm">
-                                {displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                {getInitials(displayName)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
