@@ -315,16 +315,27 @@ export function BookingDetailView() {
       setLoading(true);
       setShowCompleteDialog(false);
 
-      const { error } = await supabase
+      // First update booking status
+      const { error: bookingError } = await supabase
         .from('bookings')
         .update({ status: 'completed' })
         .eq('id', bookingId);
 
-      if (error) throw error;
+      if (bookingError) throw bookingError;
+
+      // Trigger review creation immediately
+      const { error: reviewError } = await supabase.functions.invoke('process-tour-completions', {
+        body: { booking_id: bookingId, immediate: true }
+      });
+
+      if (reviewError) {
+        console.error('Error creating reviews:', reviewError);
+        // Don't throw - booking is marked complete even if review creation fails
+      }
 
       toast({
         title: "Success",
-        description: "Booking marked as completed. Review flow will be triggered automatically.",
+        description: "Booking marked as completed. Reviews are now available for both parties.",
       });
       
       fetchBooking();

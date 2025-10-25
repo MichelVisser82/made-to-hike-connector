@@ -11,29 +11,60 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Check if this is an immediate manual completion request
+    const body = await req.json().catch(() => ({}));
+    const isImmediate = body?.immediate === true;
+    const specificBookingId = body?.booking_id;
 
-    // Find bookings that completed 24 hours ago
-    // Status = confirmed, booking_date + tour duration < NOW() - 24 hours
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    let completedBookings;
 
-    const { data: completedBookings, error: bookingsError } = await supabase
-      .from('bookings')
-      .select(`
-        id,
-        hiker_id,
-        tour_id,
-        booking_date,
-        tours!inner (
+    if (isImmediate && specificBookingId) {
+      // Process specific booking immediately (manual completion)
+      const { data, error: bookingsError } = await supabase
+        .from('bookings')
+        .select(`
           id,
-          guide_id,
-          duration,
-          title
-        )
-      `)
-      .eq('status', 'confirmed')
-      .lt('booking_date', twentyFourHoursAgo);
+          hiker_id,
+          tour_id,
+          booking_date,
+          tours!inner (
+            id,
+            guide_id,
+            duration,
+            title
+          )
+        `)
+        .eq('id', specificBookingId)
+        .eq('status', 'completed')
+        .maybeSingle();
 
-    if (bookingsError) throw bookingsError;
+      if (bookingsError) throw bookingsError;
+      completedBookings = data ? [data] : [];
+    } else {
+      // Find bookings that completed 24 hours ago (scheduled processing)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+      const { data, error: bookingsError } = await supabase
+        .from('bookings')
+        .select(`
+          id,
+          hiker_id,
+          tour_id,
+          booking_date,
+          tours!inner (
+            id,
+            guide_id,
+            duration,
+            title
+          )
+        `)
+        .eq('status', 'confirmed')
+        .lt('booking_date', twentyFourHoursAgo);
+
+      if (bookingsError) throw bookingsError;
+      completedBookings = data;
+    }
 
     console.log(`Found ${completedBookings?.length || 0} completed bookings`);
 
@@ -52,11 +83,13 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Update booking status to completed
-        await supabase
-          .from('bookings')
-          .update({ status: 'completed' })
-          .eq('id', booking.id);
+        // Update booking status to completed (for scheduled processing only)
+        if (!isImmediate) {
+          await supabase
+            .from('bookings')
+            .update({ status: 'completed' })
+            .eq('id', booking.id);
+        }
 
         // Set expiration to 6 days from now
         const expiresAt = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString();
