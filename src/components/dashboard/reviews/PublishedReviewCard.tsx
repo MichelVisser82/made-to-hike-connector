@@ -7,6 +7,7 @@ import { ReviewData } from '@/hooks/useReviewSystem';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { Progress } from '@/components/ui/progress';
+import { CertificationBadge } from '@/components/ui/certification-badge';
 
 interface PublishedReviewCardProps {
   review: ReviewData;
@@ -59,8 +60,13 @@ export default function PublishedReviewCard({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h4 className="font-semibold">{otherPersonName}</h4>
-                {review.review_type === 'hiker_to_guide' && (
-                  <Badge variant="secondary">From Hiker</Badge>
+                {review.review_type === 'guide_to_hiker' && review.guide_profiles?.certifications && review.guide_profiles.certifications.length > 0 && (
+                  <CertificationBadge 
+                    certification={review.guide_profiles.certifications[0]}
+                    size="mini"
+                    displayMode="simple"
+                    showTooltip={true}
+                  />
                 )}
               </div>
               <div className="flex items-center gap-3">

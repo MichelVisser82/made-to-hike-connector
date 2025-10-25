@@ -43,7 +43,16 @@ export interface ReviewData {
   bookings?: {
     booking_date: string;
   };
-  profiles?: { name: string; avatar_url?: string; };
+  profiles?: { 
+    name: string; 
+    avatar_url?: string;
+  };
+  guide_profiles?: {
+    display_name: string;
+    profile_image_url?: string;
+    certifications?: any[];
+    verified?: boolean;
+  };
 }
 
 // Hook to get pending reviews to write
@@ -79,12 +88,13 @@ export function usePendingReviews() {
           const otherPersonId = isReviewingGuide ? review.guide_id : review.hiker_id;
 
           let profileData = null;
+          let guideProfileData = null;
 
           if (isReviewingGuide) {
             // Fetch guide profile for hiker→guide reviews
             const { data: guideProfile } = await supabase
               .from('guide_profiles')
-              .select('display_name, profile_image_url')
+              .select('display_name, profile_image_url, certifications, verified')
               .eq('user_id', otherPersonId)
               .maybeSingle();
             
@@ -93,6 +103,7 @@ export function usePendingReviews() {
                 name: guideProfile.display_name,
                 avatar_url: guideProfile.profile_image_url
               };
+              guideProfileData = guideProfile;
             }
           } else {
             // Fetch hiker profile for guide→hiker reviews
@@ -107,7 +118,8 @@ export function usePendingReviews() {
 
           return {
             ...review,
-            profiles: profileData
+            profiles: profileData,
+            guide_profiles: guideProfileData
           };
         })
       );
@@ -145,7 +157,31 @@ export function useReceivedReviews(isGuide: boolean) {
         .order('published_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as unknown as ReviewData[];
+
+      // Fetch guide profiles for reviews where reviewer is a guide
+      const reviewsWithGuideProfiles = await Promise.all(
+        (data || []).map(async (review) => {
+          let guideProfileData = null;
+
+          // If this is a guide reviewing a hiker, fetch the guide's own profile
+          if (review.review_type === 'guide_to_hiker') {
+            const { data: guideProfile } = await supabase
+              .from('guide_profiles')
+              .select('display_name, profile_image_url, certifications, verified')
+              .eq('user_id', review.guide_id)
+              .maybeSingle();
+            
+            guideProfileData = guideProfile;
+          }
+
+          return {
+            ...review,
+            guide_profiles: guideProfileData
+          };
+        })
+      );
+
+      return reviewsWithGuideProfiles as unknown as ReviewData[];
     },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
