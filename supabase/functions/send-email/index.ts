@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification' | 'verification-code'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification' | 'verification-code' | 'new_message'
   to: string
   from?: string
   name?: string
@@ -456,6 +456,48 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </body>
 </html>`,
       text: `Booking Cancelled\n\nHi ${data.guide_name || 'there'},\n\nA booking for your tour has been cancelled and the customer has been refunded.\n\nBooking Details:\nTour: ${data.tour_title}\nBooking Reference: ${data.booking_reference}\nTour Date: ${new Date(data.booking_date).toLocaleDateString()}\nCustomer: ${data.hiker_name}\nCancelled: ${new Date(data.cancelled_at).toLocaleString()}\n\nRefund Amount: ${data.refund_amount} ${data.currency}\n\nThis date is now open for new bookings from other hikers.\n\nView your dashboard: https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard?section=bookings\n\nThe Made to Hike Team`
+    },
+
+    new_message: {
+      subject: data.subject || `New message from ${data.senderName}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Message</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Made to Hike</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">New Message</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Hi ${data.recipientName || 'there'},</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                You have a new message from <strong>${data.senderName}</strong>.
+            </p>
+
+            <div style="background: #f8fffe; border-left: 4px solid #2c5530; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0; color: #4a5568; line-height: 1.6; white-space: pre-wrap;">${data.messagePreview}</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.conversationUrl}" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; font-size: 16px;">View Conversation</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;"><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `New Message\n\nHi ${data.recipientName || 'there'},\n\nYou have a new message from ${data.senderName}.\n\nMessage:\n${data.messagePreview}\n\nView the conversation: ${data.conversationUrl}\n\nThe Made to Hike Team`
     }
   }
 
@@ -466,7 +508,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
