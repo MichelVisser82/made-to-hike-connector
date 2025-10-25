@@ -95,6 +95,20 @@ serve(async (req) => {
 
     console.log('Send message request:', { conversationId, senderId, senderType });
 
+    // Fetch sender's actual name from profiles if authenticated
+    let actualSenderName = senderName;
+    if (senderId) {
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', senderId)
+        .single();
+      
+      if (senderProfile?.name) {
+        actualSenderName = senderProfile.name;
+      }
+    }
+
     // Get conversation details
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
@@ -144,7 +158,7 @@ serve(async (req) => {
         conversation_id: conversationId,
         sender_id: senderId,
         sender_type: senderType,
-        sender_name: senderName,
+        sender_name: actualSenderName,
         content: content,
         moderated_content: moderationResult.moderatedContent,
         moderation_status: moderationStatus,
@@ -236,10 +250,10 @@ serve(async (req) => {
               body: {
                 type: 'new_message',
                 to: recipient.email,
-                subject: `New message from ${senderName || 'a user'}`,
+                subject: `New message from ${actualSenderName || 'a user'}`,
                 template_data: {
                   recipientName: recipient.name,
-                  senderName: senderName || 'Someone',
+                  senderName: actualSenderName || 'Someone',
                   messagePreview: moderationResult.moderatedContent.substring(0, 150),
                   conversationUrl: 'https://madetohike.com/dashboard?section=inbox'
                 }
@@ -288,7 +302,7 @@ serve(async (req) => {
               subject: emailSubject,
               template_data: {
                 recipientName,
-                senderName: senderName || (senderType === 'admin' ? 'MadeToHike Support' : 'Your guide'),
+                senderName: actualSenderName || (senderType === 'admin' ? 'MadeToHike Support' : 'Your guide'),
                 messagePreview: moderationResult.moderatedContent.substring(0, 150),
                 conversationUrl: `https://madetohike.com/messages/${conversationId}`,
                 isAnonymous: isAnonymous,
