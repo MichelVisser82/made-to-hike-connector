@@ -8,11 +8,13 @@ import { Loader2, Ticket as TicketIcon, AlertCircle, Clock } from 'lucide-react'
 import { toast } from '@/hooks/use-toast';
 import type { Ticket } from '@/types/chat';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function TicketDashboard() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('open');
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchTickets();
@@ -231,7 +233,8 @@ export function TicketDashboard() {
                           {ticket.status === 'open' && (
                             <Button
                               size="sm"
-                              onClick={() => handleClaimTicket(ticket.id, 'current-user-id')}
+                              onClick={() => user && handleClaimTicket(ticket.id, user.id)}
+                              disabled={!user}
                             >
                               Claim
                             </Button>
