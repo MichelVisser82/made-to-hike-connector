@@ -32,6 +32,7 @@ import type {
 } from '@/types';
 import type { Conversation } from '@/types/chat';
 import { LoadingSpinner, ConversationsSkeleton, StatsCardsSkeleton, ListSkeleton } from './LoadingStates';
+import ReviewsTab from './reviews/ReviewsTab';
 
 interface InboxSectionProps {
   reviews: Review[];
@@ -67,6 +68,7 @@ export function InboxSection({
   const [searchParams, setSearchParams] = useSearchParams();
   
   const isAdmin = profile?.role === 'admin';
+  const isGuide = profile?.role === 'guide';
   const { conversations, loading: conversationsLoading, optimisticallyMarkConversationAsRead } = useConversations(user?.id, isAdmin);
   
   // Calculate unread count
@@ -268,140 +270,7 @@ export function InboxSection({
 
         {/* REVIEWS TAB */}
         <TabsContent value="reviews">
-          {loading ? (
-            <>
-              <StatsCardsSkeleton />
-              <ListSkeleton />
-            </>
-          ) : (
-            <>
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mb-8">
-                {/* Overall Rating Card */}
-                <Card className="bg-gradient-to-br from-burgundy to-burgundy-dark text-white shadow-lg">
-                  <CardContent className="p-6">
-                    <p className="text-sm text-white/80 mb-1">Overall Rating</p>
-                    <p className="text-4xl font-playfair mb-2">
-                      {reviewStats.overall.toFixed(1)}
-                    </p>
-                    {renderStarRating(5, 20)}
-                    <p className="text-sm text-white/70 mt-2">
-                      From {reviewStats.total} reviews
-                    </p>
-                  </CardContent>
-                </Card>
-
-                {/* 5 Stars */}
-                <Card>
-                  <CardContent className="p-6">
-                    <p className="text-sm text-charcoal/60 mb-2">5 Stars</p>
-                    <p className="text-2xl font-playfair text-charcoal mb-3">
-                      {reviewStats.breakdown[5]}
-                    </p>
-                    <div className="bg-cream h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-sage h-full transition-all duration-500"
-                        style={{
-                          width: `${(reviewStats.breakdown[5] / reviewStats.total) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* 4 Stars */}
-                <Card>
-                  <CardContent className="p-6">
-                    <p className="text-sm text-charcoal/60 mb-2">4 Stars</p>
-                    <p className="text-2xl font-playfair text-charcoal mb-3">
-                      {reviewStats.breakdown[4]}
-                    </p>
-                    <div className="bg-cream h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-gold h-full transition-all duration-500"
-                        style={{
-                          width: `${(reviewStats.breakdown[4] / reviewStats.total) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* 3 or Less */}
-                <Card>
-                  <CardContent className="p-6">
-                    <p className="text-sm text-charcoal/60 mb-2">3★ or less</p>
-                    <p className="text-2xl font-playfair text-charcoal mb-3">
-                      {reviewStats.breakdown[3] + reviewStats.breakdown[2] + reviewStats.breakdown[1]}
-                    </p>
-                    <div className="bg-cream h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-charcoal h-full transition-all duration-500"
-                        style={{
-                          width: `${((reviewStats.breakdown[3] + reviewStats.breakdown[2] + reviewStats.breakdown[1]) / reviewStats.total) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Reviews List */}
-              <Card className="p-6">
-                <h2 className="text-xl font-playfair text-charcoal mb-6">
-                  Recent Reviews
-                </h2>
-                {reviews.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Star className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
-                    <h3 className="text-lg font-playfair text-charcoal mb-2">
-                      No reviews yet
-                    </h3>
-                    <div className="text-sm text-charcoal/60 space-y-1">
-                      <p>• Respond quickly to booking requests</p>
-                      <p>• Provide excellent service</p>
-                      <p>• Encourage guests to leave reviews</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-burgundy/5">
-                    {reviews.map((review) => (
-                      <div key={review.id} className="py-6 first:pt-0">
-                        <div className="flex justify-between items-start mb-2">
-                          <p className="font-medium text-charcoal">
-                            {review.guest_name}
-                          </p>
-                          {renderStarRating(review.rating)}
-                        </div>
-                        <p className="text-xs text-charcoal/60 mb-2">
-                          {review.tour_title} • {format(new Date(review.date), 'MMMM yyyy')}
-                        </p>
-                        <p className="text-sm text-charcoal/70 leading-relaxed mb-3">
-                          {review.comment}
-                        </p>
-                        {review.reply ? (
-                          <div className="bg-cream/50 p-3 rounded-lg">
-                            <p className="text-xs text-charcoal/60 mb-1">Your reply:</p>
-                            <p className="text-sm text-charcoal">{review.reply}</p>
-                          </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onReplyToReview(review.id)}
-                            className="border-burgundy/30"
-                          >
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Reply
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            </>
-          )}
+          <ReviewsTab isGuide={isGuide || false} />
         </TabsContent>
 
         {/* AUTOMATED MESSAGES TAB */}
