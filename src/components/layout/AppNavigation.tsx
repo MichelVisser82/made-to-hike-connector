@@ -180,9 +180,9 @@ export function AppNavigation({
                 <HoverCardTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                     <Bell className="w-5 h-5" />
-                    {unreadCount > 0 && (
+                    {(unreadCount > 0 || pendingReviewsCount > 0) && (
                       <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
-                        {unreadCount > 9 ? '9+' : unreadCount}
+                        {(unreadCount + pendingReviewsCount) > 9 ? '9+' : (unreadCount + pendingReviewsCount)}
                       </Badge>
                     )}
                   </Button>
@@ -192,51 +192,89 @@ export function AppNavigation({
                     <h4 className="font-semibold text-sm text-charcoal">Notifications</h4>
                   </div>
                   <div className="max-h-[400px] overflow-y-auto">
-                    {conversations.filter(c => (c.unread_count || 0) > 0).length === 0 ? (
+                    {conversations.filter(c => (c.unread_count || 0) > 0).length === 0 && pendingReviewsCount === 0 ? (
                       <div className="p-8 text-center text-charcoal/60 text-sm">
                         No new notifications
                       </div>
                     ) : (
-                      conversations
-                        .filter(c => (c.unread_count || 0) > 0)
-                        .map((conversation) => (
+                      <>
+                        {pendingReviewsCount > 0 && (
                           <button
-                            key={conversation.id}
                             onClick={() => {
-                              optimisticallyMarkConversationAsRead(conversation.id);
                               setNotificationsOpen(false);
-                              navigate(`/dashboard?section=inbox&conversation=${conversation.id}`);
+                              if (pendingReviews.length > 0) {
+                                navigate(`/dashboard?section=reviews&bookingId=${pendingReviews[0].booking_id}`);
+                              } else {
+                                navigate('/dashboard?section=reviews');
+                              }
                             }}
-                            className="w-full p-4 hover:bg-burgundy/5 border-b last:border-b-0 text-left transition-colors"
+                            className="w-full p-4 hover:bg-burgundy/5 border-b text-left transition-colors"
                           >
                             <div className="flex items-start gap-3">
-                              <Avatar className="h-10 w-10 flex-shrink-0">
-                                <AvatarImage src={conversation.profiles?.avatar_url || undefined} />
-                                <AvatarFallback className="bg-burgundy/10 text-burgundy">
-                                  {(conversation.profiles?.name || conversation.anonymous_name || 'U').charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
+                              <div className="h-10 w-10 flex-shrink-0 bg-burgundy/10 rounded-full flex items-center justify-center">
+                                <Star className="w-5 h-5 text-burgundy" />
+                              </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between gap-2">
                                   <p className="font-medium text-sm text-charcoal truncate">
-                                    {conversation.profiles?.name || conversation.anonymous_name || 'Anonymous'}
+                                    Pending Review{pendingReviewsCount > 1 ? 's' : ''}
                                   </p>
-                                  {conversation.unread_count && conversation.unread_count > 0 && (
-                                    <Badge className="h-5 px-1.5 bg-burgundy text-white text-xs flex-shrink-0">
-                                      {conversation.unread_count}
-                                    </Badge>
-                                  )}
+                                  <Badge className="h-5 px-1.5 bg-burgundy text-white text-xs flex-shrink-0">
+                                    {pendingReviewsCount}
+                                  </Badge>
                                 </div>
                                 <p className="text-xs text-charcoal/60 truncate mt-0.5">
-                                  {conversation.tours?.title || 'General inquiry'}
+                                  You have {pendingReviewsCount} hiker{pendingReviewsCount > 1 ? 's' : ''} to review
                                 </p>
                                 <p className="text-xs text-burgundy mt-1">
-                                  Click to view conversation
+                                  Click to write review
                                 </p>
                               </div>
                             </div>
                           </button>
-                        ))
+                        )}
+                        {conversations
+                          .filter(c => (c.unread_count || 0) > 0)
+                          .map((conversation) => (
+                            <button
+                              key={conversation.id}
+                              onClick={() => {
+                                optimisticallyMarkConversationAsRead(conversation.id);
+                                setNotificationsOpen(false);
+                                navigate(`/dashboard?section=inbox&conversation=${conversation.id}`);
+                              }}
+                              className="w-full p-4 hover:bg-burgundy/5 border-b last:border-b-0 text-left transition-colors"
+                            >
+                              <div className="flex items-start gap-3">
+                                <Avatar className="h-10 w-10 flex-shrink-0">
+                                  <AvatarImage src={conversation.profiles?.avatar_url || undefined} />
+                                  <AvatarFallback className="bg-burgundy/10 text-burgundy">
+                                    {(conversation.profiles?.name || conversation.anonymous_name || 'U').charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="font-medium text-sm text-charcoal truncate">
+                                      {conversation.profiles?.name || conversation.anonymous_name || 'Anonymous'}
+                                    </p>
+                                    {conversation.unread_count && conversation.unread_count > 0 && (
+                                      <Badge className="h-5 px-1.5 bg-burgundy text-white text-xs flex-shrink-0">
+                                        {conversation.unread_count}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-charcoal/60 truncate mt-0.5">
+                                    {conversation.tours?.title || 'General inquiry'}
+                                  </p>
+                                  <p className="text-xs text-burgundy mt-1">
+                                    Click to view conversation
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          ))
+                        }
+                      </>
                     )}
                   </div>
                 </HoverCardContent>
