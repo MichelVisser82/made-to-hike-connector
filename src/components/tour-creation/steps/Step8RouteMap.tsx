@@ -4,6 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { MapPin } from 'lucide-react';
 
 interface Step8RouteMapProps {
   onSave?: () => Promise<void>;
@@ -194,7 +195,22 @@ export function Step8RouteMap({ onSave, onNext, onPrev, isSaving, tourId }: Step
 
   return (
     <div className="space-y-6">
-      {tourId && (
+      {!tourId ? (
+        <div className="bg-muted/50 border border-border rounded-lg p-8 text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="bg-primary/10 p-4 rounded-full">
+              <MapPin className="w-8 h-8 text-primary" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold">Route Map Creation</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              The route map editor requires your tour to be saved as a draft first. 
+              You can skip this step now and add your route map later from the tour editor.
+            </p>
+          </div>
+        </div>
+      ) : (
         <MapEditorInterface
           tourId={tourId}
           daysCount={daysCount}
