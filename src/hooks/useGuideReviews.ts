@@ -50,17 +50,26 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
 
       const tourMap = new Map(tours?.map(t => [t.id, t]) || []);
 
-      return reviewsData.map(review => ({
-        id: review.id,
-        rating: review.overall_rating,
-        comment: review.comment || '',
-        created_at: review.created_at,
-        hiker_id: review.hiker_id,
-        hiker_name: formatPublicName(profileMap.get(review.hiker_id)?.name),
-        hiker_avatar: profileMap.get(review.hiker_id)?.avatar_url,
-        tour_id: review.tour_id,
-        tour_title: tourMap.get(review.tour_id)?.title,
-      })) as GuideReview[];
+      return reviewsData.map(review => {
+        const hikerProfile = profileMap.get(review.hiker_id);
+        const formattedName = formatPublicName(hikerProfile?.name);
+        console.log('Review mapping:', {
+          hiker_id: review.hiker_id,
+          raw_name: hikerProfile?.name,
+          formatted_name: formattedName
+        });
+        return {
+          id: review.id,
+          rating: review.overall_rating,
+          comment: review.comment || '',
+          created_at: review.created_at,
+          hiker_id: review.hiker_id,
+          hiker_name: formattedName,
+          hiker_avatar: hikerProfile?.avatar_url,
+          tour_id: review.tour_id,
+          tour_title: tourMap.get(review.tour_id)?.title,
+        };
+      }) as GuideReview[];
     },
     enabled: !!guideId,
     staleTime: 5 * 60 * 1000,
