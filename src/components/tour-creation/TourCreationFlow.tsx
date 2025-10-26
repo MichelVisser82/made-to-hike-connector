@@ -109,7 +109,7 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
       case 12:
         return <Step11Pricing onNext={handleNext} onPrev={handlePrev} isSaving={isSaving} />;
       case 13:
-        return <Step12Review onSubmit={handleSubmit} isSubmitting={isSubmitting} editMode={false} />;
+        return <Step12Review onSubmit={handleSubmit} isSubmitting={isSubmitting} editMode={false} onPrev={handlePrev} />;
       default:
         return null;
     }

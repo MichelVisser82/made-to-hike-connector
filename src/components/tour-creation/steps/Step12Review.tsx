@@ -9,9 +9,10 @@ interface Step12ReviewProps {
   onSubmit: () => void;
   isSubmitting: boolean;
   editMode?: boolean;
+  onPrev?: () => void;
 }
 
-export default function Step12Review({ onSubmit, isSubmitting, editMode = false }: Step12ReviewProps) {
+export default function Step12Review({ onSubmit, isSubmitting, editMode = false, onPrev }: Step12ReviewProps) {
   const form = useFormContext<TourFormData>();
   const data = form.getValues();
 
@@ -136,7 +137,17 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false 
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-4">
+      <div className="flex justify-between gap-4">
+        {onPrev && (
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={onPrev}
+            disabled={isSubmitting}
+          >
+            Back
+          </Button>
+        )}
         <Button
           size="lg"
           onClick={onSubmit}
