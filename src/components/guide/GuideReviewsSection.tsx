@@ -81,7 +81,7 @@ export function GuideReviewsSection({
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-charcoal text-lg">{review.hiker_name || 'Anonymous'}</span>
+                            <span className="font-semibold text-charcoal text-lg">{review.hiker_name}</span>
                             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1">
                               <CheckCircle className="h-3 w-3" />
                               Verified Booking

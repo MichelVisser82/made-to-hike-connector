@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { formatPublicName } from '@/lib/utils';
 
 export interface GuideReview {
   id: string;
@@ -55,7 +56,7 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
         comment: review.comment || '',
         created_at: review.created_at,
         hiker_id: review.hiker_id,
-        hiker_name: profileMap.get(review.hiker_id)?.name,
+        hiker_name: formatPublicName(profileMap.get(review.hiker_id)?.name),
         hiker_avatar: profileMap.get(review.hiker_id)?.avatar_url,
         tour_id: review.tour_id,
         tour_title: tourMap.get(review.tour_id)?.title,
