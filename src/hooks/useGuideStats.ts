@@ -23,12 +23,19 @@ export function useGuideStats(guideId: string | undefined) {
         .eq('review_type', 'hiker_to_guide')
         .eq('review_status', 'published');
 
-      // Get total bookings
-      const { data: bookings } = await supabase
+      // Get total bookings for this guide's tours
+      const { data: tours } = await supabase
+        .from('tours')
+        .select('id')
+        .eq('guide_id', guideId);
+
+      const tourIds = tours?.map(t => t.id) || [];
+
+      const { data: bookings } = tourIds.length > 0 ? await supabase
         .from('bookings')
         .select('participants')
-        .eq('tour_id', guideId)
-        .eq('status', 'completed');
+        .in('tour_id', tourIds)
+        .eq('status', 'completed') : { data: null };
 
       const averageRating = reviews && reviews.length > 0
         ? reviews.reduce((sum, r) => sum + r.overall_rating, 0) / reviews.length
