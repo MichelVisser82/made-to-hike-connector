@@ -20,7 +20,7 @@ export function useTourReviews(tourId: string | undefined, limit = 3) {
 
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('reviews')
-        .select('id, overall_rating, comment, created_at, hiker_id')
+        .select('id, overall_rating, comment, created_at, hiker_id, hiker_name')
         .eq('tour_id', tourId)
         .eq('review_type', 'hiker_to_guide')
         .eq('review_status', 'published')
@@ -30,23 +30,14 @@ export function useTourReviews(tourId: string | undefined, limit = 3) {
       if (reviewsError) throw reviewsError;
       if (!reviewsData || reviewsData.length === 0) return [];
 
-      // Fetch hiker profiles separately
-      const hikerIds = reviewsData.map(r => r.hiker_id);
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url')
-        .in('id', hikerIds);
-
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
       return reviewsData.map(review => ({
         id: review.id,
         rating: review.overall_rating,
         comment: review.comment || '',
         created_at: review.created_at,
         hiker_id: review.hiker_id,
-        hiker_name: formatPublicName(profileMap.get(review.hiker_id)?.name),
-        hiker_avatar: profileMap.get(review.hiker_id)?.avatar_url,
+        hiker_name: formatPublicName(review.hiker_name),
+        hiker_avatar: null, // Avatar not exposed for privacy
       })) as TourReview[];
     },
     enabled: !!tourId,

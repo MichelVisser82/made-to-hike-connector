@@ -22,7 +22,7 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
 
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('reviews')
-        .select('id, overall_rating, comment, created_at, hiker_id, tour_id')
+        .select('id, overall_rating, comment, created_at, hiker_id, tour_id, hiker_name')
         .eq('guide_id', guideId)
         .eq('review_type', 'hiker_to_guide')
         .eq('review_status', 'published')
@@ -31,15 +31,6 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
 
       if (reviewsError) throw reviewsError;
       if (!reviewsData) return [];
-
-      // Fetch hiker profiles separately
-      const hikerIds = reviewsData.map(r => r.hiker_id);
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url')
-        .in('id', hikerIds);
-
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
       // Fetch tour titles
       const tourIds = reviewsData.map(r => r.tour_id);
@@ -51,13 +42,7 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
       const tourMap = new Map(tours?.map(t => [t.id, t]) || []);
 
       return reviewsData.map(review => {
-        const hikerProfile = profileMap.get(review.hiker_id);
-        const formattedName = formatPublicName(hikerProfile?.name);
-        console.log('Review mapping:', {
-          hiker_id: review.hiker_id,
-          raw_name: hikerProfile?.name,
-          formatted_name: formattedName
-        });
+        const formattedName = formatPublicName(review.hiker_name);
         return {
           id: review.id,
           rating: review.overall_rating,
@@ -65,7 +50,7 @@ export function useGuideReviews(guideId: string | undefined, limit = 3) {
           created_at: review.created_at,
           hiker_id: review.hiker_id,
           hiker_name: formattedName,
-          hiker_avatar: hikerProfile?.avatar_url,
+          hiker_avatar: null, // Avatar not exposed for privacy
           tour_id: review.tour_id,
           tour_title: tourMap.get(review.tour_id)?.title,
         };

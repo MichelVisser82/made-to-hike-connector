@@ -1020,6 +1020,7 @@ export type Database = {
           guide_id: string
           highlight_tags: string[] | null
           hiker_id: string
+          hiker_name: string | null
           id: string
           last_reminder_sent_at: string | null
           overall_rating: number
@@ -1043,6 +1044,7 @@ export type Database = {
           guide_id: string
           highlight_tags?: string[] | null
           hiker_id: string
+          hiker_name?: string | null
           id?: string
           last_reminder_sent_at?: string | null
           overall_rating: number
@@ -1066,6 +1068,7 @@ export type Database = {
           guide_id?: string
           highlight_tags?: string[] | null
           hiker_id?: string
+          hiker_name?: string | null
           id?: string
           last_reminder_sent_at?: string | null
           overall_rating?: number
