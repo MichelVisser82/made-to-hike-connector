@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +43,23 @@ function LocationClickHandler({ onLocationClick }: LocationClickHandlerProps) {
   return null;
 }
 
+interface MapCenterControllerProps {
+  center: [number, number] | null;
+}
+
+function MapCenterController({ center }: MapCenterControllerProps) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (center) {
+      // Zoom level 12 shows approximately 20km radius
+      map.setView(center, 12, { animate: true });
+    }
+  }, [center, map]);
+  
+  return null;
+}
+
 export function InteractiveLocationMap({ 
   coordinates, 
   onLocationSelect, 
@@ -50,6 +67,9 @@ export function InteractiveLocationMap({
 }: InteractiveLocationMapProps) {
   const [thunderforestKey, setThunderforestKey] = useState<string | null>(null);
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(
+    coordinates ? [coordinates.lat, coordinates.lng] : null
+  );
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(
     coordinates ? [coordinates.lat, coordinates.lng] : null
   );
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
@@ -73,7 +93,9 @@ export function InteractiveLocationMap({
 
   useEffect(() => {
     if (coordinates) {
-      setMarkerPosition([coordinates.lat, coordinates.lng]);
+      const newPosition: [number, number] = [coordinates.lat, coordinates.lng];
+      setMarkerPosition(newPosition);
+      setMapCenter(newPosition);
     }
   }, [coordinates]);
 
@@ -144,6 +166,7 @@ export function InteractiveLocationMap({
             url={`https://tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${thunderforestKey}`}
           />
           <LocationClickHandler onLocationClick={handleMapClick} />
+          <MapCenterController center={mapCenter} />
           {markerPosition && (
             <Marker
               position={markerPosition}
