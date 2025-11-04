@@ -259,7 +259,22 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
         onOpenChange={setAddRegionOpen}
         preselectedCountry={selectedCountry}
         onSuccess={(region) => {
-          onChange(region);
+          // Parse the region string to populate all dropdowns
+          // Format: "Country - Region - Subregion" or "Country - Subregion"
+          const parts = region.split(' - ').map(p => p.trim());
+          
+          if (parts.length === 3) {
+            // Has country, region, and subregion
+            setSelectedCountry(parts[0]);
+            setSelectedRegion(parts[1]);
+            onChange(region);
+          } else if (parts.length === 2) {
+            // Has country and subregion only
+            setSelectedCountry(parts[0]);
+            setSelectedRegion(null);
+            onChange(region);
+          }
+          
           setAddRegionOpen(false);
         }}
       />
