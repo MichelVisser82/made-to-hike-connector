@@ -35,6 +35,7 @@ interface RegionSubmission {
   created_at: string;
   declined_reason: string | null;
   reviewed_at: string | null;
+  ticket_number?: string;
   profiles: {
     name: string;
     email: string;
@@ -57,7 +58,7 @@ export const RegionSubmissionsPanel = () => {
 
       if (error) throw error;
 
-      // Fetch profile data separately for each submission
+      // Fetch profile data and ticket info for each submission
       const submissionsWithProfiles = await Promise.all(
         (data || []).map(async (submission) => {
           const { data: profile } = await supabase
@@ -66,9 +67,22 @@ export const RegionSubmissionsPanel = () => {
             .eq('id', submission.submitted_by)
             .single();
 
+          // Find associated ticket
+          const regionDisplayName = submission.region
+            ? `${submission.country} - ${submission.region} - ${submission.subregion}`
+            : `${submission.country} - ${submission.subregion}`;
+
+          const { data: ticket } = await supabase
+            .from('tickets')
+            .select('ticket_number')
+            .eq('title', `Region Submission: ${regionDisplayName}`)
+            .eq('category', 'region_submission')
+            .single();
+
           return {
             ...submission,
             profiles: profile || { name: 'Unknown', email: 'unknown@example.com' },
+            ticket_number: ticket?.ticket_number,
           };
         })
       );
@@ -209,6 +223,13 @@ export const RegionSubmissionsPanel = () => {
                         <div className="text-xs text-muted-foreground space-y-1">
                           <div>Submitted by: <span className="font-medium">{submission.profiles?.name}</span> ({submission.profiles?.email})</div>
                           <div>Submitted: {formatDistanceToNow(new Date(submission.created_at), { addSuffix: true })}</div>
+                          {submission.ticket_number && (
+                            <div>
+                              <Badge variant="outline" className="text-xs">
+                                Ticket: {submission.ticket_number}
+                              </Badge>
+                            </div>
+                          )}
                         </div>
                       </div>
                       

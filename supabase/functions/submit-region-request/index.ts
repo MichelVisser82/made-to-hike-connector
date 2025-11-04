@@ -92,6 +92,59 @@ Deno.serve(async (req) => {
       .eq('id', user.id)
       .single()
 
+    // Create a conversation for the region submission ticket
+    const regionDisplayName = region 
+      ? `${country} - ${region} - ${subregion}`
+      : `${country} - ${subregion}`;
+
+    const { data: conversation, error: conversationError } = await supabaseClient
+      .from('conversations')
+      .insert({
+        hiker_id: user.id,
+        guide_id: null,
+        tour_id: null,
+        conversation_type: 'support',
+        status: 'active',
+      })
+      .select()
+      .single();
+
+    if (conversationError) {
+      console.error('Failed to create conversation:', conversationError);
+    }
+
+    // Create a ticket for this region submission
+    if (conversation) {
+      const { data: ticket, error: ticketError } = await supabaseClient
+        .from('tickets')
+        .insert({
+          conversation_id: conversation.id,
+          title: `Region Submission: ${regionDisplayName}`,
+          category: 'region_submission',
+          priority: 'medium',
+          status: 'open',
+        })
+        .select()
+        .single();
+
+      if (ticketError) {
+        console.error('Failed to create ticket:', ticketError);
+      } else {
+        console.log('Ticket created for region submission:', ticket.ticket_number);
+        
+        // Add an initial message to the conversation with region details
+        await supabaseClient
+          .from('messages')
+          .insert({
+            conversation_id: conversation.id,
+            sender_id: user.id,
+            sender_type: 'hiker',
+            content: `New region submission:\n\n**Region:** ${regionDisplayName}\n\n**Description:** ${description}\n\n**Key Features:** ${key_features.join(', ')}\n\nThis region is pending admin review.`,
+            message_type: 'text',
+          });
+      }
+    }
+
     // Notify admin via Slack
     const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL')
     if (slackWebhookUrl) {

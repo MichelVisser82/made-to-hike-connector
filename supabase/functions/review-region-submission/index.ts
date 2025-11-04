@@ -102,6 +102,48 @@ serve(async (req) => {
       throw updateError;
     }
 
+    // Find and update the associated ticket
+    const regionDisplayName = submission.region 
+      ? `${submission.country} - ${submission.region} - ${submission.subregion}`
+      : `${submission.country} - ${submission.subregion}`;
+
+    const { data: ticket } = await supabaseClient
+      .from('tickets')
+      .select('id, conversation_id')
+      .eq('title', `Region Submission: ${regionDisplayName}`)
+      .eq('category', 'region_submission')
+      .single();
+
+    if (ticket) {
+      // Update ticket status
+      const ticketStatus = action === 'approve' ? 'resolved' : 'closed';
+      await supabaseClient
+        .from('tickets')
+        .update({
+          status: ticketStatus,
+          resolved_at: new Date().toISOString(),
+        })
+        .eq('id', ticket.id);
+
+      // Add a message to the conversation with the decision
+      const decisionMessage = action === 'approve'
+        ? `✅ **Region Approved**\n\nYour region submission has been approved and is now available for all guides to use.`
+        : `❌ **Region Declined**\n\n**Reason:** ${declined_reason}\n\nYour tours using this region have been temporarily taken offline. Please update them with an approved region from your dashboard.`;
+
+      await supabaseClient
+        .from('messages')
+        .insert({
+          conversation_id: ticket.conversation_id,
+          sender_id: user.id,
+          sender_type: 'guide',
+          sender_name: 'Admin',
+          content: decisionMessage,
+          message_type: 'text',
+        });
+
+      console.log(`Ticket ${ticketStatus} for region submission`);
+    }
+
     // Send email notification if declined
     if (action === 'decline' && guideProfile?.email) {
       const regionName = submission.region 
