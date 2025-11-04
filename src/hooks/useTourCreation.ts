@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { DateSlotFormData } from '@/types/tourDateSlot';
+import { parseDurationStringToDays, formatDurationFromDays } from '@/utils/durationFormatter';
 
 const tourSchema = z.object({
   // Step 2: Basic Info
@@ -20,7 +21,7 @@ const tourSchema = z.object({
   meeting_point_formatted: z.string().optional(),
   
   // Step 4: Duration & Difficulty
-  duration: z.string().min(1, 'Duration is required'),
+  duration: z.number().min(0.5, 'Duration must be at least half a day').max(30, 'Duration cannot exceed 30 days'),
   difficulty: z.enum(['easy', 'moderate', 'challenging', 'expert']),
   
   // Step 5: Tour Details
@@ -108,7 +109,9 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         meeting_point_lat: initialData.meeting_point_lat,
         meeting_point_lng: initialData.meeting_point_lng,
         meeting_point_formatted: initialData.meeting_point_formatted,
-        duration: initialData.duration,
+        duration: typeof initialData.duration === 'number' 
+          ? initialData.duration 
+          : parseDurationStringToDays(initialData.duration),
         difficulty: initialData.difficulty,
         pack_weight: initialData.pack_weight || 10,
         daily_hours: initialData.daily_hours || '',
@@ -142,7 +145,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       meeting_point_lat: undefined,
       meeting_point_lng: undefined,
       meeting_point_formatted: undefined,
-      duration: '',
+      duration: 1,
       difficulty: 'moderate' as const,
       pack_weight: 10,
       daily_hours: '',
@@ -255,6 +258,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       
       const formattedTourData = {
         ...tourData,
+        duration: formatDurationFromDays(tourData.duration), // Convert number to formatted string
         guide_id: user.id,
         available_dates: date_slots?.map((slot: DateSlotFormData) => 
           slot.date.toISOString().split('T')[0]
@@ -340,6 +344,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       
       const formattedTourData = {
         ...tourData,
+        duration: formatDurationFromDays(tourData.duration), // Convert number to formatted string
         guide_id: user.id,
         available_dates: date_slots?.map((slot: DateSlotFormData) => 
           slot.date.toISOString().split('T')[0]

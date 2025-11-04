@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
+import DurationSlider from '@/components/tour-creation/DurationSlider';
 
 interface Step4DurationDifficultyProps {
   onSave?: () => Promise<void>;
@@ -43,25 +43,11 @@ export default function Step4DurationDifficulty({ onSave, onNext, onPrev, isSavi
           name="duration"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Duration</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select duration" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1 day">1 Day</SelectItem>
-                  <SelectItem value="2 days">2 Days</SelectItem>
-                  <SelectItem value="3 days">3 Days</SelectItem>
-                  <SelectItem value="4 days">4 Days</SelectItem>
-                  <SelectItem value="5 days">5 Days</SelectItem>
-                  <SelectItem value="6 days">6 Days</SelectItem>
-                  <SelectItem value="7 days">1 Week</SelectItem>
-                  <SelectItem value="10 days">10 Days</SelectItem>
-                  <SelectItem value="14 days">2 Weeks</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormLabel>How long is this tour?</FormLabel>
+              <DurationSlider
+                value={field.value}
+                onChange={field.onChange}
+              />
               <FormMessage />
             </FormItem>
           )}
