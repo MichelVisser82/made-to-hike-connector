@@ -28,7 +28,8 @@ const tourSchema = z.object({
   pack_weight: z.number().min(1).max(50),
   daily_hours: z.string().min(1, 'Daily hours is required'),
   terrain_types: z.array(z.string()).min(1, 'Select at least one terrain type'),
-  distance_km: z.number().min(0.1).optional(),
+  total_distance_km: z.number().min(0.1).optional(),
+  average_distance_per_day_km: z.number().min(0.1).optional(),
   elevation_gain_m: z.number().min(0).optional(),
   
   // Step 6: Available Dates - NEW: Date slots with pricing/capacity
@@ -116,7 +117,8 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         pack_weight: initialData.pack_weight || 10,
         daily_hours: initialData.daily_hours || '',
         terrain_types: initialData.terrain_types || [],
-        distance_km: initialData.distance_km,
+        total_distance_km: initialData.total_distance_km || initialData.distance_km,
+        average_distance_per_day_km: initialData.average_distance_per_day_km,
         elevation_gain_m: initialData.elevation_gain_m,
         available_dates: initialData.available_dates?.map((d: string) => new Date(d)) || [],
         date_slots: initialData.available_dates?.map((d: string) => ({
@@ -150,7 +152,8 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       pack_weight: 10,
       daily_hours: '',
       terrain_types: [],
-      distance_km: undefined,
+      total_distance_km: undefined,
+      average_distance_per_day_km: undefined,
       elevation_gain_m: undefined,
       available_dates: [],
       date_slots: [],
@@ -259,6 +262,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       const formattedTourData = {
         ...tourData,
         duration: formatDurationFromDays(tourData.duration), // Convert number to formatted string
+        distance_km: tourData.total_distance_km, // Store total distance in existing column
         guide_id: user.id,
         available_dates: date_slots?.map((slot: DateSlotFormData) => 
           slot.date.toISOString().split('T')[0]
@@ -345,6 +349,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       const formattedTourData = {
         ...tourData,
         duration: formatDurationFromDays(tourData.duration), // Convert number to formatted string
+        distance_km: tourData.total_distance_km, // Store total distance in existing column
         guide_id: user.id,
         available_dates: date_slots?.map((slot: DateSlotFormData) => 
           slot.date.toISOString().split('T')[0]

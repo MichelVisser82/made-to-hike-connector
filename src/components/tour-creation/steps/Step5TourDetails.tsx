@@ -25,12 +25,12 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
   const [customTerrain, setCustomTerrain] = useState('');
 
   const handleSave = async () => {
-    const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types', 'distance_km', 'elevation_gain_m']);
+    const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types', 'total_distance_km', 'average_distance_per_day_km', 'elevation_gain_m']);
     if (isValid && onSave) await onSave();
   };
 
   const handleNext = async () => {
-    const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types', 'distance_km', 'elevation_gain_m']);
+    const isValid = await form.trigger(['pack_weight', 'daily_hours', 'terrain_types', 'total_distance_km', 'average_distance_per_day_km', 'elevation_gain_m']);
     if (isValid && onNext) await onNext();
   };
 
@@ -82,46 +82,6 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
 
           <FormField
             control={form.control}
-            name="daily_hours"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Daily Hours</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="e.g., 6-8 hours" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="distance_km"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Distance (km)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    min="0.1"
-                    step="0.1"
-                    placeholder="e.g., 12.5"
-                    {...field} 
-                    onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="elevation_gain_m"
             render={({ field }) => (
               <FormItem>
@@ -132,7 +92,68 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
                     min="0"
                     placeholder="e.g., 850"
                     {...field} 
-                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                    onChange={e => field.onChange(parseInt(e.target.value) || undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="daily_hours"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Daily Hours</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="e.g., 6-8 hours" 
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="total_distance_km"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Total Distance (km)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0.1"
+                    step="0.1"
+                    placeholder="e.g., 45.5"
+                    {...field} 
+                    onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="average_distance_per_day_km"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Average Distance per Day (km)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0.1"
+                    step="0.1"
+                    placeholder="e.g., 12.5"
+                    {...field} 
+                    onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
                   />
                 </FormControl>
                 <FormMessage />
