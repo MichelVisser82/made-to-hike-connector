@@ -93,7 +93,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
               </Button>
             </PopoverTrigger>
             <PopoverContent 
-              className="p-0 z-[100]" 
+              className="p-0 z-[1000]" 
               align="start" 
               sideOffset={8}
               collisionPadding={16}
@@ -142,7 +142,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent 
-                className="p-0 z-[100]" 
+                className="p-0 z-[1000]" 
                 align="start" 
                 sideOffset={8}
                 collisionPadding={16}
@@ -194,7 +194,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent 
-                className="p-0 z-[100]" 
+                className="p-0 z-[1000]" 
                 align="start" 
                 sideOffset={8}
                 collisionPadding={16}
