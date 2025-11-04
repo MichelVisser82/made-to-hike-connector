@@ -97,6 +97,7 @@ export const LocationAutocomplete = ({
       formatted: suggestion.place_name
     });
     setSearchQuery(suggestion.place_name);
+    setSuggestions([]);
     setShowSuggestions(false);
     setSelectedIndex(-1);
   };
