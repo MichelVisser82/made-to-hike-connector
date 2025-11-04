@@ -77,3 +77,9 @@ verify_jwt = false
 
 [functions.post-review-response]
 verify_jwt = false
+
+[functions.submit-region-request]
+verify_jwt = true
+
+[functions.import-hiking-regions]
+verify_jwt = true

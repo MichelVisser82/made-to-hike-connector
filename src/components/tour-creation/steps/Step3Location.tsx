@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
-import { MapPin } from 'lucide-react';
 import { LocationAutocomplete } from '../LocationAutocomplete';
 import { InteractiveLocationMap } from '../InteractiveLocationMap';
+import { RegionSelector } from '../RegionSelector';
 
 interface Step3LocationProps {
   onSave?: () => Promise<void>;
@@ -13,12 +13,6 @@ interface Step3LocationProps {
   onPrev?: () => void;
   isSaving: boolean;
 }
-
-const regions = [
-  { value: 'dolomites', label: 'Dolomites, Italy', description: 'Dramatic limestone peaks' },
-  { value: 'pyrenees', label: 'Pyrenees', description: 'France-Spain border range' },
-  { value: 'scotland', label: 'Scottish Highlands', description: 'Rugged mountain terrain' },
-];
 
 export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step3LocationProps) {
   const form = useFormContext<TourFormData>();
@@ -49,29 +43,10 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
           name="region"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Region</FormLabel>
-              <div className="grid grid-cols-1 gap-3">
-                {regions.map((region) => (
-                  <button
-                    key={region.value}
-                    type="button"
-                    onClick={() => field.onChange(region.value)}
-                    className={`p-4 border-2 rounded-lg text-left transition-all ${
-                      field.value === region.value
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 mt-0.5 text-primary" />
-                      <div>
-                        <div className="font-medium">{region.label}</div>
-                        <div className="text-sm text-muted-foreground">{region.description}</div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <FormLabel>Hiking Region *</FormLabel>
+              <FormControl>
+                <RegionSelector value={field.value} onChange={field.onChange} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

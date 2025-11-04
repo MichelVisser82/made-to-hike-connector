@@ -629,6 +629,42 @@ export type Database = {
           },
         ]
       }
+      hiking_regions: {
+        Row: {
+          country: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          key_features: string[]
+          region: string | null
+          subregion: string
+          updated_at: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          key_features?: string[]
+          region?: string | null
+          subregion: string
+          updated_at?: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          key_features?: string[]
+          region?: string | null
+          subregion?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kv_store: {
         Row: {
           created_at: string | null
@@ -1783,6 +1819,54 @@ export type Database = {
           timezone?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_submitted_regions: {
+        Row: {
+          admin_notes: string | null
+          country: string
+          created_at: string
+          description: string
+          id: string
+          key_features: string[]
+          region: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          submitted_by: string
+          subregion: string
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          country: string
+          created_at?: string
+          description: string
+          id?: string
+          key_features?: string[]
+          region?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          submitted_by: string
+          subregion: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          country?: string
+          created_at?: string
+          description?: string
+          id?: string
+          key_features?: string[]
+          region?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          submitted_by?: string
+          subregion?: string
+          updated_at?: string
+          verification_status?: string
         }
         Relationships: []
       }

@@ -1,0 +1,236 @@
+import { useState } from 'react';
+import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { useCountries, useRegionsByCountry, useSubregionsByRegion } from '@/hooks/useHikingRegions';
+import { AddRegionModal } from './AddRegionModal';
+
+interface RegionSelectorProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [regionOpen, setRegionOpen] = useState(false);
+  const [subregionOpen, setSubregionOpen] = useState(false);
+  const [addRegionOpen, setAddRegionOpen] = useState(false);
+
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+
+  const { countries } = useCountries();
+  const { regions: countryRegions, hasRegions } = useRegionsByCountry(selectedCountry);
+  const { subregions } = useSubregionsByRegion(selectedCountry, selectedRegion);
+
+  // Extract unique region names (parent regions)
+  const parentRegions = Array.from(
+    new Set(countryRegions.filter(r => r.region).map(r => r.region!))
+  ).sort();
+
+  const handleCountrySelect = (country: string) => {
+    setSelectedCountry(country);
+    setSelectedRegion(null);
+    onChange(''); // Reset final value
+    setCountryOpen(false);
+  };
+
+  const handleRegionSelect = (region: string) => {
+    setSelectedRegion(region);
+    onChange(''); // Reset final value
+    setRegionOpen(false);
+  };
+
+  const handleSubregionSelect = (subregion: string) => {
+    const fullValue = selectedRegion 
+      ? `${selectedCountry} - ${selectedRegion} - ${subregion}`
+      : `${selectedCountry} - ${subregion}`;
+    onChange(fullValue);
+    setSubregionOpen(false);
+  };
+
+  const displayValue = value || 'Select hiking region...';
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Country Selector */}
+        <div>
+          <label className="text-sm font-medium mb-2 block">Country</label>
+          <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={countryOpen}
+                className="w-full justify-between"
+              >
+                {selectedCountry || 'Select country...'}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search country..." />
+                <CommandList>
+                  <CommandEmpty>No country found.</CommandEmpty>
+                  <CommandGroup>
+                    {countries.map((country) => (
+                      <CommandItem
+                        key={country}
+                        value={country}
+                        onSelect={() => handleCountrySelect(country)}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            selectedCountry === country ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
+                        {country}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Region Selector (if applicable) */}
+        {selectedCountry && hasRegions && (
+          <div>
+            <label className="text-sm font-medium mb-2 block">Region</label>
+            <Popover open={regionOpen} onOpenChange={setRegionOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={regionOpen}
+                  className="w-full justify-between"
+                >
+                  {selectedRegion || 'Select region...'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search region..." />
+                  <CommandList>
+                    <CommandEmpty>No region found.</CommandEmpty>
+                    <CommandGroup>
+                      {parentRegions.map((region) => (
+                        <CommandItem
+                          key={region}
+                          value={region}
+                          onSelect={() => handleRegionSelect(region)}
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              selectedRegion === region ? 'opacity-100' : 'opacity-0'
+                            )}
+                          />
+                          {region}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+
+        {/* Subregion Selector */}
+        {selectedCountry && (!hasRegions || selectedRegion) && (
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              {hasRegions ? 'Specific Area' : 'Hiking Area'}
+            </label>
+            <Popover open={subregionOpen} onOpenChange={setSubregionOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={subregionOpen}
+                  className="w-full justify-between"
+                >
+                  {value ? value.split(' - ').pop() : 'Select area...'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search area..." />
+                  <CommandList>
+                    <CommandEmpty>No area found.</CommandEmpty>
+                    <CommandGroup>
+                      {subregions.map((sub) => (
+                        <CommandItem
+                          key={sub.id}
+                          value={sub.subregion}
+                          onSelect={() => handleSubregionSelect(sub.subregion)}
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              value.endsWith(sub.subregion) ? 'opacity-100' : 'opacity-0'
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span>{sub.subregion}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {sub.description}
+                            </span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+      </div>
+
+      {/* Add Custom Region Button */}
+      {selectedCountry && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setAddRegionOpen(true)}
+          className="w-full md:w-auto"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add my own region
+        </Button>
+      )}
+
+      <AddRegionModal
+        open={addRegionOpen}
+        onOpenChange={setAddRegionOpen}
+        preselectedCountry={selectedCountry}
+        onSuccess={(region) => {
+          onChange(region);
+          setAddRegionOpen(false);
+        }}
+      />
+    </div>
+  );
+};
