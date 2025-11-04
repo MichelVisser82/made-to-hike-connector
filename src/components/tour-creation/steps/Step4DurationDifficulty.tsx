@@ -59,6 +59,7 @@ export default function Step4DurationDifficulty({ onSave, onNext, onPrev, isSavi
           render={({ field }) => (
             <FormItem>
               <FormLabel>Difficulty Level</FormLabel>
+              <p className="text-sm text-muted-foreground mb-3">(Pick the most difficult terrain you will encounter)</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {difficultyLevels.map((level) => (
                   <button
