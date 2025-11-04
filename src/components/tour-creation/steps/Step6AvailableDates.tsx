@@ -180,7 +180,7 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
                   </div>
 
                   <div>
-                    <FormLabel className="text-xs">Price Override ({baseCurrency})</FormLabel>
+                    <FormLabel className="text-xs">Base Price</FormLabel>
                     <Input
                       type="number"
                       min="0"
