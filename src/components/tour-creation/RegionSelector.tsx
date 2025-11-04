@@ -241,7 +241,8 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
       </div>
 
       {/* Add Custom Region Button */}
-      {selectedCountry && (
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-muted-foreground">or</span>
         <Button
           type="button"
           variant="outline"
@@ -252,7 +253,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
           <Plus className="mr-2 h-4 w-4" />
           Add my own region
         </Button>
-      )}
+      </div>
 
       <AddRegionModal
         open={addRegionOpen}
