@@ -13,7 +13,7 @@ const tourSchema = z.object({
   description: z.string().min(50, 'Description must be at least 50 characters').max(2000),
   
   // Step 3: Location
-  region: z.enum(['dolomites', 'pyrenees', 'scotland']),
+  region: z.string().min(1, 'Region is required'),
   meeting_point: z.string().min(1, 'Meeting point is required'),
   meeting_point_lat: z.number().optional(),
   meeting_point_lng: z.number().optional(),
