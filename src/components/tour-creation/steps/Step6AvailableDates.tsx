@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
-import { format } from 'date-fns';
+import { format, addDays, isWithinInterval, isSameDay } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { X, Percent, Calendar as CalendarIcon, Users } from 'lucide-react';
 import type { DateSlotFormData } from '@/types/tourDateSlot';
@@ -27,6 +27,28 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
   const basePrice = form.watch('price') || 0;
   const baseCurrency = form.watch('currency') || 'EUR';
   const baseGroupSize = form.watch('group_size') || 1;
+  const tourDuration = form.watch('duration') || 1; // Duration in days
+
+  // Calculate blocked dates based on tour duration
+  const getBlockedDates = () => {
+    const blocked: Date[] = [];
+    dateSlots.forEach(slot => {
+      // For each start date, block the subsequent days (duration - 1)
+      for (let i = 1; i < Math.ceil(tourDuration); i++) {
+        blocked.push(addDays(slot.date, i));
+      }
+    });
+    return blocked;
+  };
+
+  const blockedDates = getBlockedDates();
+
+  // Check if a date is blocked (falls within any tour period)
+  const isDateBlocked = (date: Date) => {
+    return blockedDates.some(blockedDate => 
+      isSameDay(blockedDate, date)
+    );
+  };
 
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
@@ -102,18 +124,20 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
                 mode="single"
                 selected={selectedDate}
                 onSelect={handleDateSelect}
-                disabled={(date) => date < new Date()}
+                disabled={(date) => date < new Date() || isDateBlocked(date)}
                 className="rounded-md border"
                 modifiers={{
-                  booked: dateSlots.map(slot => slot.date)
+                  booked: dateSlots.map(slot => slot.date),
+                  blocked: blockedDates
                 }}
                 modifiersStyles={{
-                  booked: { backgroundColor: 'hsl(var(--primary))', color: 'white' }
+                  booked: { backgroundColor: 'hsl(var(--primary))', color: 'white' },
+                  blocked: { backgroundColor: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--muted-foreground))', textDecoration: 'line-through' }
                 }}
               />
             </div>
             <p className="text-sm text-muted-foreground mt-2">
-              Click dates to add/configure them
+              Click dates to add start dates. Days during the tour ({Math.ceil(tourDuration)} day{Math.ceil(tourDuration) !== 1 ? 's' : ''}) are automatically blocked.
             </p>
           </div>
 
