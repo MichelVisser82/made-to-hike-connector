@@ -95,10 +95,14 @@ export function InteractiveLocationMap({
 }: InteractiveLocationMapProps) {
   const [thunderforestKey, setThunderforestKey] = useState<string | null>(null);
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(
-    coordinates ? [coordinates.lat, coordinates.lng] : null
+    coordinates?.lat !== undefined && coordinates?.lng !== undefined 
+      ? [coordinates.lat, coordinates.lng] 
+      : null
   );
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(
-    coordinates ? [coordinates.lat, coordinates.lng] : null
+    coordinates?.lat !== undefined && coordinates?.lng !== undefined 
+      ? [coordinates.lat, coordinates.lng] 
+      : null
   );
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
   const markerRef = useRef<L.Marker>(null);
@@ -120,7 +124,7 @@ export function InteractiveLocationMap({
   }, []);
 
   useEffect(() => {
-    if (coordinates) {
+    if (coordinates?.lat !== undefined && coordinates?.lng !== undefined) {
       const newPosition: [number, number] = [coordinates.lat, coordinates.lng];
       setMarkerPosition(newPosition);
       setMapCenter(newPosition);
