@@ -84,7 +84,7 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
 
         <div className="pt-4">
           <InteractiveLocationMap
-            coordinates={meetingPointLat && meetingPointLng ? {
+            coordinates={typeof meetingPointLat === 'number' && typeof meetingPointLng === 'number' ? {
               lat: meetingPointLat,
               lng: meetingPointLng
             } : undefined}
@@ -94,7 +94,6 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
               form.setValue('meeting_point_lng', data.lng);
               form.setValue('meeting_point_formatted', data.formatted);
             }}
-            regionHint={selectedRegion}
           />
         </div>
 
