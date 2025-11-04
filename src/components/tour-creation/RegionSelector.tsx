@@ -92,8 +92,13 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
-              <Command>
+            <PopoverContent 
+              className="p-0 z-[100]" 
+              align="start" 
+              sideOffset={8}
+              collisionPadding={16}
+            >
+              <Command className="bg-background border">
                 <CommandInput placeholder="Search country..." />
                 <CommandList>
                   <CommandEmpty>No country found.</CommandEmpty>
@@ -136,8 +141,13 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
-                <Command>
+              <PopoverContent 
+                className="p-0 z-[100]" 
+                align="start" 
+                sideOffset={8}
+                collisionPadding={16}
+              >
+                <Command className="bg-background border">
                   <CommandInput placeholder="Search region..." />
                   <CommandList>
                     <CommandEmpty>No region found.</CommandEmpty>
@@ -183,8 +193,13 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
-                <Command>
+              <PopoverContent 
+                className="p-0 z-[100]" 
+                align="start" 
+                sideOffset={8}
+                collisionPadding={16}
+              >
+                <Command className="bg-background border">
                   <CommandInput placeholder="Search area..." />
                   <CommandList>
                     <CommandEmpty>No area found.</CommandEmpty>
