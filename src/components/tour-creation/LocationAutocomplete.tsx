@@ -38,6 +38,11 @@ export const LocationAutocomplete = ({
   const debounceRef = useRef<number | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Sync internal state with external value prop
+  useEffect(() => {
+    setSearchQuery(value);
+  }, [value]);
+
   // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
