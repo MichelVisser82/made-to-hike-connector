@@ -41,25 +41,35 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
     new Set(countryRegions.filter(r => r.region).map(r => r.region!))
   ).sort();
 
-  const handleCountrySelect = (country: string) => {
-    setSelectedCountry(country);
-    setSelectedRegion(null);
-    onChange(''); // Reset final value
-    setCountryOpen(false);
+  const handleCountrySelect = (selectedValue: string) => {
+    // Find the original country name (case-sensitive) from the lowercased value
+    const country = countries.find(c => c.toLowerCase() === selectedValue.toLowerCase());
+    if (country) {
+      setSelectedCountry(country);
+      setSelectedRegion(null);
+      onChange(''); // Reset final value
+      setCountryOpen(false);
+    }
   };
 
-  const handleRegionSelect = (region: string) => {
-    setSelectedRegion(region);
-    onChange(''); // Reset final value
-    setRegionOpen(false);
+  const handleRegionSelect = (selectedValue: string) => {
+    const region = parentRegions.find(r => r.toLowerCase() === selectedValue.toLowerCase());
+    if (region) {
+      setSelectedRegion(region);
+      onChange(''); // Reset final value
+      setRegionOpen(false);
+    }
   };
 
-  const handleSubregionSelect = (subregion: string) => {
-    const fullValue = selectedRegion 
-      ? `${selectedCountry} - ${selectedRegion} - ${subregion}`
-      : `${selectedCountry} - ${subregion}`;
-    onChange(fullValue);
-    setSubregionOpen(false);
+  const handleSubregionSelect = (selectedValue: string) => {
+    const subregion = subregions.find(s => s.subregion.toLowerCase() === selectedValue.toLowerCase());
+    if (subregion) {
+      const fullValue = selectedRegion 
+        ? `${selectedCountry} - ${selectedRegion} - ${subregion.subregion}`
+        : `${selectedCountry} - ${subregion.subregion}`;
+      onChange(fullValue);
+      setSubregionOpen(false);
+    }
   };
 
   const displayValue = value || 'Select hiking region...';
@@ -92,7 +102,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                       <CommandItem
                         key={country}
                         value={country}
-                        onSelect={() => handleCountrySelect(country)}
+                        onSelect={handleCountrySelect}
                       >
                         <Check
                           className={cn(
@@ -136,7 +146,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                         <CommandItem
                           key={region}
                           value={region}
-                          onSelect={() => handleRegionSelect(region)}
+                          onSelect={handleRegionSelect}
                         >
                           <Check
                             className={cn(
@@ -183,7 +193,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                         <CommandItem
                           key={sub.id}
                           value={sub.subregion}
-                          onSelect={() => handleSubregionSelect(sub.subregion)}
+                          onSelect={handleSubregionSelect}
                         >
                           <Check
                             className={cn(
