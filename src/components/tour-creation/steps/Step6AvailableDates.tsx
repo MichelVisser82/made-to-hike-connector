@@ -8,7 +8,7 @@ import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 import { format, addDays, isWithinInterval, isSameDay } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { X, Percent, Calendar as CalendarIcon, Users } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Users } from 'lucide-react';
 import type { DateSlotFormData } from '@/types/tourDateSlot';
 
 interface Step6AvailableDatesProps {
@@ -111,7 +111,7 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
       <CardHeader>
         <CardTitle>Configure Available Dates</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Select dates and customize pricing, capacity, and discounts for each slot
+          Select dates and customize pricing and capacity for each slot
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -192,36 +192,6 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
                       placeholder={`Base: ${basePrice}`}
                     />
                   </div>
-
-                  <div>
-                    <FormLabel className="text-xs">Discount %</FormLabel>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Percent className="w-4 h-4 text-muted-foreground" />
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={currentSlot.discountPercentage || ''}
-                        onChange={(e) => handleUpdateSlot(editingSlotIndex, { 
-                          discountPercentage: parseInt(e.target.value) || undefined 
-                        })}
-                        className="w-24"
-                      />
-                    </div>
-                  </div>
-
-                  {currentSlot.discountPercentage && (
-                    <div>
-                      <FormLabel className="text-xs">Discount Label</FormLabel>
-                      <Input
-                        value={currentSlot.discountLabel || ''}
-                        onChange={(e) => handleUpdateSlot(editingSlotIndex, { 
-                          discountLabel: e.target.value 
-                        })}
-                        placeholder="e.g., Early Bird Special"
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
             ) : (
@@ -249,7 +219,6 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
                   }}
                 >
                   {format(slot.date, 'MMM d')}
-                  {slot.discountPercentage && ` (-${slot.discountPercentage}%)`}
                 </Badge>
               ))}
             </div>
