@@ -60,6 +60,34 @@ function MapCenterController({ center }: MapCenterControllerProps) {
   return null;
 }
 
+function ScrollWheelController() {
+  const map = useMap();
+  
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        map.scrollWheelZoom.enable();
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) {
+        map.scrollWheelZoom.disable();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [map]);
+  
+  return null;
+}
+
 export function InteractiveLocationMap({ 
   coordinates, 
   onLocationSelect, 
@@ -159,7 +187,7 @@ export function InteractiveLocationMap({
           center={[defaultCenter.lat, defaultCenter.lng]}
           zoom={defaultCenter.zoom}
           className="h-full w-full"
-          scrollWheelZoom={true}
+          scrollWheelZoom={false}
         >
           <TileLayer
             attribution='Maps &copy; <a href="https://www.thunderforest.com">Thunderforest</a>'
@@ -167,6 +195,7 @@ export function InteractiveLocationMap({
           />
           <LocationClickHandler onLocationClick={handleMapClick} />
           <MapCenterController center={mapCenter} />
+          <ScrollWheelController />
           {markerPosition && (
             <Marker
               position={markerPosition}
@@ -187,7 +216,7 @@ export function InteractiveLocationMap({
       </div>
       <div className="flex items-start gap-2 text-sm text-muted-foreground">
         <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-        <p>Click anywhere on the map to drop a pin, or drag the marker to adjust the exact meeting point location.</p>
+        <p>Click anywhere on the map to drop a pin, or drag the marker to adjust the location. Hold <kbd className="px-1.5 py-0.5 text-xs bg-muted border border-border rounded">⌘</kbd> or <kbd className="px-1.5 py-0.5 text-xs bg-muted border border-border rounded">Ctrl</kbd> to scroll zoom.</p>
       </div>
       {markerPosition && (
         <p className="text-xs text-muted-foreground">
