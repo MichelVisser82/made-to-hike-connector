@@ -14,7 +14,7 @@ const tourSchema = z.object({
   
   // Step 3: Location
   region: z.enum(['dolomites', 'pyrenees', 'scotland']),
-  meeting_point: z.string().min(10, 'Meeting point is required'),
+  meeting_point: z.string().min(1, 'Meeting point is required'),
   meeting_point_lat: z.number().optional(),
   meeting_point_lng: z.number().optional(),
   meeting_point_formatted: z.string().optional(),
