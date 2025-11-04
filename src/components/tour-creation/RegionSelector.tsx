@@ -205,7 +205,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                     <CommandEmpty>No area found.</CommandEmpty>
                     <CommandGroup>
                       {subregions.map((sub) => (
-                        <CommandItem
+                         <CommandItem
                           key={sub.id}
                           value={sub.subregion}
                           onSelect={handleSubregionSelect}
@@ -217,7 +217,14 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                             )}
                           />
                           <div className="flex flex-col">
-                            <span>{sub.subregion}</span>
+                            <div className="flex items-center gap-2">
+                              <span>{sub.subregion}</span>
+                              {sub.isPendingApproval && (
+                                <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded">
+                                  Pending Review
+                                </span>
+                              )}
+                            </div>
                             <span className="text-xs text-muted-foreground">
                               {sub.description}
                             </span>

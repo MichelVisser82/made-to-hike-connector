@@ -8,22 +8,66 @@ export interface HikingRegion {
   subregion: string;
   description: string;
   key_features: string[];
+  isUserSubmitted?: boolean;
+  isPendingApproval?: boolean;
 }
 
 export const useHikingRegions = () => {
   return useQuery({
     queryKey: ['hiking-regions'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Fetch official regions
+      const { data: officialRegions, error: officialError } = await supabase
         .from('hiking_regions')
         .select('*')
-        .eq('is_active', true)
-        .order('country', { ascending: true })
-        .order('region', { ascending: true, nullsFirst: false })
-        .order('subregion', { ascending: true });
+        .eq('is_active', true);
 
-      if (error) throw error;
-      return data as HikingRegion[];
+      if (officialError) throw officialError;
+
+      // Fetch user-submitted regions (approved OR submitted by current user)
+      const { data: userRegions, error: userError } = await supabase
+        .from('user_submitted_regions')
+        .select('*')
+        .or(user ? `verification_status.eq.approved,submitted_by.eq.${user.id}` : 'verification_status.eq.approved');
+
+      if (userError) throw userError;
+
+      // Combine and format regions
+      const formattedOfficial: HikingRegion[] = (officialRegions || []).map(r => ({
+        id: r.id,
+        country: r.country,
+        region: r.region,
+        subregion: r.subregion,
+        description: r.description,
+        key_features: r.key_features,
+      }));
+
+      const formattedUser: HikingRegion[] = (userRegions || []).map(r => ({
+        id: r.id,
+        country: r.country,
+        region: r.region,
+        subregion: r.subregion,
+        description: r.description,
+        key_features: r.key_features,
+        isUserSubmitted: true,
+        isPendingApproval: r.verification_status === 'pending',
+      }));
+
+      // Combine and sort
+      const allRegions = [...formattedOfficial, ...formattedUser];
+      allRegions.sort((a, b) => {
+        if (a.country !== b.country) return a.country.localeCompare(b.country);
+        if (a.region !== b.region) {
+          if (!a.region) return 1;
+          if (!b.region) return -1;
+          return a.region.localeCompare(b.region);
+        }
+        return a.subregion.localeCompare(b.subregion);
+      });
+
+      return allRegions;
     },
   });
 };

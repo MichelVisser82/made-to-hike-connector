@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,7 @@ export const AddRegionModal = ({
   onSuccess,
 }: AddRegionModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<RegionFormData>({
     resolver: zodResolver(regionSchema),
@@ -87,12 +89,15 @@ export const AddRegionModal = ({
         return;
       }
 
-      toast.success(result.message);
+      toast.success('Region submitted! You can use it immediately while it awaits admin review.');
+      
+      // Invalidate the regions query to fetch the newly submitted region
+      await queryClient.invalidateQueries({ queryKey: ['hiking-regions'] });
       
       // Create the display value
       const displayValue = data.region
-        ? `${data.country} - ${data.region} - ${data.subregion} (Pending Verification)`
-        : `${data.country} - ${data.subregion} (Pending Verification)`;
+        ? `${data.country} - ${data.region} - ${data.subregion}`
+        : `${data.country} - ${data.subregion}`;
       
       onSuccess(displayValue);
       form.reset();

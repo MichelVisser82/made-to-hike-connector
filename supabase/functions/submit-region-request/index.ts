@@ -159,7 +159,15 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Your region has been submitted for admin verification. You will be notified once it is reviewed.'
+        message: 'Your region has been submitted and is ready to use! It will be reviewed by our admin team.',
+        submission: {
+          id: submission.id,
+          country: submission.country,
+          region: submission.region,
+          subregion: submission.subregion,
+          description: submission.description,
+          key_features: submission.key_features,
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
