@@ -125,7 +125,7 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
             name="elevation_gain_m"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Elevation Gain (m)</FormLabel>
+                <FormLabel>Elevation Gain (m) (average per day)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
