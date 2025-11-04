@@ -35,12 +35,17 @@ export const LocationAutocomplete = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const debounceRef = useRef<number | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Sync internal state with external value prop
   useEffect(() => {
-    setSearchQuery(value);
+    if (value !== searchQuery) {
+      setSearchQuery(value);
+      setIsUserTyping(false);
+      setShowSuggestions(false);
+    }
   }, [value]);
 
   // Close suggestions when clicking outside
@@ -55,9 +60,9 @@ export const LocationAutocomplete = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch suggestions with debounce
+  // Fetch suggestions with debounce (only when user is typing)
   useEffect(() => {
-    if (searchQuery.length < 3) {
+    if (!isUserTyping || searchQuery.length < 3) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -91,7 +96,7 @@ export const LocationAutocomplete = ({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [searchQuery]);
+  }, [searchQuery, isUserTyping]);
 
   const handleSelectSuggestion = (suggestion: LocationSuggestion) => {
     const [lng, lat] = suggestion.center;
@@ -147,7 +152,10 @@ export const LocationAutocomplete = ({
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setIsUserTyping(true);
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="pl-10 pr-10"
