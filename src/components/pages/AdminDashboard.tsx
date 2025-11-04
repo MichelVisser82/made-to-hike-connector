@@ -11,6 +11,7 @@ import { GuideVerificationManager } from '../admin/GuideVerificationManager';
 import { TicketDashboard } from '../admin/TicketDashboard';
 import { FlaggedMessagesPanel } from '../admin/FlaggedMessagesPanel';
 import { AllConversationsPanel } from '../admin/AllConversationsPanel';
+import { RegionSubmissionsPanel } from '../admin/RegionSubmissionsPanel';
 import { type User } from '../../types';
 import { MainLayout } from '../layout/MainLayout';
 import type { DashboardSection } from '@/types/dashboard';
@@ -49,9 +50,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
+            <TabsTrigger value="regions">Regions</TabsTrigger>
             <TabsTrigger value="flagged">Flagged</TabsTrigger>
             <TabsTrigger value="conversations">Conversations</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
@@ -95,6 +97,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
           <TabsContent value="tickets">
             <TicketDashboard selectedTicketId={searchParams.get('ticket') || undefined} />
+          </TabsContent>
+
+          <TabsContent value="regions">
+            <RegionSubmissionsPanel />
           </TabsContent>
 
           <TabsContent value="flagged">

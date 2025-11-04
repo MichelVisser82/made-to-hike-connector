@@ -1827,6 +1827,7 @@ export type Database = {
           admin_notes: string | null
           country: string
           created_at: string
+          declined_reason: string | null
           description: string
           id: string
           key_features: string[]
@@ -1842,6 +1843,7 @@ export type Database = {
           admin_notes?: string | null
           country: string
           created_at?: string
+          declined_reason?: string | null
           description: string
           id?: string
           key_features?: string[]
@@ -1857,6 +1859,7 @@ export type Database = {
           admin_notes?: string | null
           country?: string
           created_at?: string
+          declined_reason?: string | null
           description?: string
           id?: string
           key_features?: string[]
