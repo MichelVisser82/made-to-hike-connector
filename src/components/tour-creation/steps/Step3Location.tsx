@@ -23,6 +23,7 @@ const regions = [
 export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step3LocationProps) {
   const form = useFormContext<TourFormData>();
   
+  const meetingPoint = form.watch('meeting_point');
   const meetingPointLat = form.watch('meeting_point_lat');
   const meetingPointLng = form.watch('meeting_point_lng');
   const selectedRegion = form.watch('region');
@@ -84,7 +85,7 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
               <FormLabel>Meeting Point</FormLabel>
               <FormControl>
                 <LocationAutocomplete
-                  value={field.value}
+                  value={meetingPoint || ''}
                   coordinates={{
                     lat: meetingPointLat || 0,
                     lng: meetingPointLng || 0
