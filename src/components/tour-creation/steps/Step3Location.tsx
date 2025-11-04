@@ -5,6 +5,7 @@ import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 import { MapPin } from 'lucide-react';
 import { LocationAutocomplete } from '../LocationAutocomplete';
+import { InteractiveLocationMap } from '../InteractiveLocationMap';
 
 interface Step3LocationProps {
   onSave?: () => Promise<void>;
@@ -24,6 +25,7 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
   
   const meetingPointLat = form.watch('meeting_point_lat');
   const meetingPointLng = form.watch('meeting_point_lng');
+  const selectedRegion = form.watch('region');
 
   const handleSave = async () => {
     const isValid = await form.trigger(['region', 'meeting_point']);
@@ -97,9 +99,28 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
                 />
               </FormControl>
               <FormMessage />
+              <p className="text-sm text-muted-foreground mt-2">
+                You can search above or drop a pin on the map below
+              </p>
             </FormItem>
           )}
         />
+
+        <div className="pt-4">
+          <InteractiveLocationMap
+            coordinates={meetingPointLat && meetingPointLng ? {
+              lat: meetingPointLat,
+              lng: meetingPointLng
+            } : undefined}
+            onLocationSelect={(data) => {
+              form.setValue('meeting_point', data.address);
+              form.setValue('meeting_point_lat', data.lat);
+              form.setValue('meeting_point_lng', data.lng);
+              form.setValue('meeting_point_formatted', data.formatted);
+            }}
+            regionHint={selectedRegion}
+          />
+        </div>
 
         <div className="flex justify-between">
           {onPrev && (
