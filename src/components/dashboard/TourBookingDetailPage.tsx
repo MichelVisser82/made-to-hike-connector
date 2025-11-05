@@ -37,13 +37,7 @@ interface TourBooking {
   booking_reference: string;
   booking_date: string;
   participants: number;
-  participants_details: {
-    dietaryPreferences?: string[];
-    emergencyContactName?: string;
-    emergencyContactPhone?: string;
-    emergencyContactRelationship?: string;
-    participants?: any[];
-  };
+  participants_details: any[];
   total_price: number;
   currency: string;
   status: string;
@@ -55,6 +49,10 @@ interface TourBooking {
     email: string;
     phone: string;
     avatar_url: string | null;
+    dietary_preferences?: string[];
+    emergency_contact_name?: string;
+    emergency_contact_phone?: string;
+    emergency_contact_relationship?: string;
   };
 }
 
@@ -125,7 +123,11 @@ export function TourBookingDetailPage() {
             name,
             email,
             phone,
-            avatar_url
+            avatar_url,
+            dietary_preferences,
+            emergency_contact_name,
+            emergency_contact_phone,
+            emergency_contact_relationship
           )
         `)
         .eq('tour_id', tourData.id)
@@ -439,24 +441,20 @@ export function TourBookingDetailPage() {
                     </span>
                   )}
                 </div>
-                {booking.participants_details?.dietaryPreferences && booking.participants_details.dietaryPreferences.length > 0 && (
-                  <div className="text-sm text-charcoal/60 flex items-start gap-1">
-                    <span className="font-medium">Dietary:</span>
-                    <span>{booking.participants_details.dietaryPreferences.join(', ')}</span>
-                  </div>
-                )}
-                {booking.participants_details?.emergencyContactName && (
-                  <div className="text-sm text-charcoal/60">
-                    <span className="font-medium">Emergency Contact:</span> {booking.participants_details.emergencyContactName}
-                    {booking.participants_details.emergencyContactPhone && ` • ${booking.participants_details.emergencyContactPhone}`}
-                    {booking.participants_details.emergencyContactRelationship && ` (${booking.participants_details.emergencyContactRelationship})`}
-                  </div>
-                )}
-                {booking.participants_details?.[0]?.emergencyContactName && (
-                  <div className="text-xs text-charcoal/60">
-                    Emergency: {booking.participants_details[0].emergencyContactName} +{booking.participants_details[0].emergencyContactPhone}
-                  </div>
-                )}
+                <div className="text-sm text-charcoal/60 flex items-start gap-1">
+                  <span className="font-medium">Dietary:</span>
+                  <span>
+                    {booking.hiker.dietary_preferences && booking.hiker.dietary_preferences.length > 0
+                      ? booking.hiker.dietary_preferences.join(', ')
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="text-sm text-charcoal/60">
+                  <span className="font-medium">Emergency Contact:</span>{' '}
+                  {booking.hiker.emergency_contact_name || 'N/A'}
+                  {booking.hiker.emergency_contact_phone && ` • ${booking.hiker.emergency_contact_phone}`}
+                  {booking.hiker.emergency_contact_relationship && ` (${booking.hiker.emergency_contact_relationship})`}
+                </div>
                 {booking !== bookings[bookings.length - 1] && <Separator />}
               </div>
             ))}
