@@ -31,6 +31,7 @@ export function MessagesModal({
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [moderationWarning, setModerationWarning] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -60,6 +61,7 @@ export function MessagesModal({
   }, [messages]);
 
   const fetchOrCreateConversation = async () => {
+    setIsLoadingConversation(true);
     try {
       if (!booking.tour?.guide_id || !booking.hiker_id || !booking.tour_id) {
         console.error('Missing required booking data:', { 
@@ -72,6 +74,7 @@ export function MessagesModal({
           description: 'Unable to load conversation. Missing booking information.',
           variant: 'destructive'
         });
+        setIsLoadingConversation(false);
         return;
       }
 
@@ -113,15 +116,19 @@ export function MessagesModal({
         if (newConv) {
           console.log('Created new conversation:', newConv.id);
           setConversationId(newConv.id);
+        } else {
+          throw new Error('Failed to create conversation - no data returned');
         }
       }
     } catch (error) {
       console.error('Failed to fetch or create conversation:', error);
       toast({
         title: 'Error',
-        description: 'Unable to set up messaging. Please try again.',
+        description: 'Unable to set up messaging. Please refresh and try again.',
         variant: 'destructive'
       });
+    } finally {
+      setIsLoadingConversation(false);
     }
   };
 
@@ -284,54 +291,66 @@ export function MessagesModal({
 
           {/* Messages Area */}
           <div className="md:col-span-2">
-            {moderationWarning && (
-              <Alert className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {moderationWarning}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {loading ? (
+            {isLoadingConversation ? (
               <div className="py-12 text-center">
                 <MessageSquare className="w-16 h-16 text-burgundy/20 mx-auto mb-4 animate-pulse" />
-                <p className="text-sm text-charcoal/60">Loading messages...</p>
+                <p className="text-sm text-charcoal/60">Setting up conversation...</p>
               </div>
-            ) : messages.length === 0 ? (
+            ) : !conversationId ? (
               <div className="py-12 text-center">
-                <MessageSquare className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
+                <AlertCircle className="w-16 h-16 text-destructive/20 mx-auto mb-4" />
                 <h3 className="text-lg font-playfair text-charcoal mb-2">
-                  No messages yet
+                  Unable to load conversation
                 </h3>
-                <p className="text-sm text-charcoal/60">
-                  Send the first message to start the conversation
+                <p className="text-sm text-charcoal/60 mb-4">
+                  Please close and try again
                 </p>
+                <Button onClick={onClose} variant="outline">
+                  Close
+                </Button>
               </div>
             ) : (
-              <ScrollArea className="h-96 pr-4" ref={scrollRef}>
-                <div className="space-y-4">
-                  {messages.map((message) => (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
+              <>
+                {moderationWarning && (
+                  <Alert className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {moderationWarning}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {loading ? (
+                  <div className="py-12 text-center">
+                    <MessageSquare className="w-16 h-16 text-burgundy/20 mx-auto mb-4 animate-pulse" />
+                    <p className="text-sm text-charcoal/60">Loading messages...</p>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <MessageSquare className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
+                    <h3 className="text-lg font-playfair text-charcoal mb-2">
+                      No messages yet
+                    </h3>
+                    <p className="text-sm text-charcoal/60">
+                      Send the first message to start the conversation
+                    </p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-96 pr-4" ref={scrollRef}>
+                    <div className="space-y-4">
+                      {messages.map((message) => (
+                        <MessageBubble
+                          key={message.id}
+                          message={message}
+                        />
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
 
-            {/* Message Input */}
-            <div className="mt-4 space-y-2">
-              {!conversationId && (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Setting up conversation...
-                  </AlertDescription>
-                </Alert>
-              )}
-              <div className="flex gap-2">
+                {/* Message Input */}
+                <div className="mt-4 space-y-2">
+                  <div className="flex gap-2">
                 <Input
                   placeholder="Type your message..."
                   value={newMessage}
@@ -342,13 +361,13 @@ export function MessagesModal({
                       handleSendMessage();
                     }
                   }}
-                  disabled={!conversationId}
+                  disabled={isLoadingConversation || !conversationId}
                   className="flex-1 border-burgundy/20"
                 />
                 <Button
                   onClick={handleSendMessage}
                   className="bg-burgundy hover:bg-burgundy-dark"
-                  disabled={!newMessage.trim() || !conversationId}
+                  disabled={!newMessage.trim() || isLoadingConversation || !conversationId}
                 >
                   <Send className="w-4 h-4" />
                 </Button>
@@ -359,6 +378,7 @@ export function MessagesModal({
                   size="sm" 
                   className="flex-1"
                   onClick={() => setShowTemplates(!showTemplates)}
+                  disabled={isLoadingConversation || !conversationId}
                 >
                   <FileText className="w-4 h-4 mr-2" />
                   Templates
@@ -368,6 +388,7 @@ export function MessagesModal({
                   size="sm" 
                   className="flex-1"
                   onClick={handleAttachFile}
+                  disabled={isLoadingConversation || !conversationId}
                 >
                   <Paperclip className="w-4 h-4 mr-2" />
                   Attach File
@@ -377,6 +398,7 @@ export function MessagesModal({
                   size="sm" 
                   className="flex-1"
                   onClick={handleCallGuest}
+                  disabled={isLoadingConversation}
                 >
                   <Phone className="w-4 h-4 mr-2" />
                   Call Guest
@@ -392,22 +414,24 @@ export function MessagesModal({
                 accept="image/*,.pdf,.doc,.docx"
               />
 
-              {/* Templates dropdown */}
-              {showTemplates && (
-                <Card className="p-2 space-y-1">
-                  {messageTemplates.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => handleTemplateSelect(template.text)}
-                      className="w-full text-left px-3 py-2 rounded-md hover:bg-cream/50 transition-colors"
-                    >
-                      <p className="text-sm font-medium text-charcoal">{template.label}</p>
-                      <p className="text-xs text-charcoal/60 mt-0.5 line-clamp-1">{template.text}</p>
-                    </button>
-                  ))}
-                </Card>
-              )}
-            </div>
+                  {/* Templates dropdown */}
+                  {showTemplates && (
+                    <Card className="p-2 space-y-1">
+                      {messageTemplates.map((template) => (
+                        <button
+                          key={template.id}
+                          onClick={() => handleTemplateSelect(template.text)}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-cream/50 transition-colors"
+                        >
+                          <p className="text-sm font-medium text-charcoal">{template.label}</p>
+                          <p className="text-xs text-charcoal/60 mt-0.5 line-clamp-1">{template.text}</p>
+                        </button>
+                      ))}
+                    </Card>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </DialogContent>
