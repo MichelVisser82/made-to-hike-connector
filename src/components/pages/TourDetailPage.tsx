@@ -780,6 +780,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         alt="Professional hiking guide"
                       />
                     )}
+                    {/* Bottom gradient overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 h-32 md:h-40 bg-gradient-to-b from-transparent to-background" />
                   </div>
 
                   {/* Guide Info - Right Side */}
