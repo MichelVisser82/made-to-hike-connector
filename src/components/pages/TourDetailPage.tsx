@@ -410,13 +410,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
               {/* Meeting Location Map */}
               {tour.meeting_point_lat && tour.meeting_point_lng && (
-                <Card className="border-burgundy/20 shadow-lg bg-white">
-                  <CardContent className="p-6">
+                <Card className="border-burgundy/20 shadow-lg bg-white flex flex-col">
+                  <CardContent className="p-6 flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-4">
                       <MapPin className="h-5 w-5 text-burgundy" />
                       <h3 className="text-lg font-semibold text-charcoal/80">Meeting Location</h3>
                     </div>
-                    <div className="h-[400px] rounded-lg overflow-hidden">
+                    <div className="flex-1 min-h-[300px] rounded-lg overflow-hidden">
                       <HikingLocationMap
                         latitude={tour.meeting_point_lat}
                         longitude={tour.meeting_point_lng}
