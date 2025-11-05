@@ -5,9 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
-import { Plus, Trash2, Lightbulb } from 'lucide-react';
+import { Plus, Trash2, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ItineraryImageSelector } from '@/components/tour-creation/ItineraryImageSelector';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface Step9ItineraryProps {
   onSave?: () => Promise<void>;
@@ -112,13 +118,21 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
 
                         {/* Day Description */}
                         <div>
-                          <FormLabel className="text-sm">Day Description</FormLabel>
-                          <div className="flex items-start gap-2 mb-2 p-3 bg-accent/50 rounded-lg border border-accent">
-                            <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                              Paint a vivid picture of the day! Describe the terrain, the views hikers will experience, 
-                              any challenging sections, rest stops, and what makes this day special. Help them feel the adventure!
-                            </p>
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <FormLabel className="text-sm">Day Description</FormLabel>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                  <p className="text-sm">
+                                    Paint a vivid picture of the day! Describe the terrain, the views hikers will experience, 
+                                    any challenging sections, rest stops, and what makes this day special. Help them feel the adventure!
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                           <Textarea
                             placeholder="e.g., Today we tackle the breathtaking ascent to the summit. Starting at dawn, we'll navigate through ancient pine forests as the morning mist clears. The trail gradually steepens with stunning panoramic views opening up at every turn. We'll pause at Eagle's Nest viewpoint for snacks and photos before the final push. The reward at the top? 360-degree views of snow-capped peaks stretching to the horizon..."
