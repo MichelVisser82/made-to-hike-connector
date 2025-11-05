@@ -211,7 +211,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   guideInfo={guideInfo}
                   isLoadingProfessional={isLoadingProfessional}
                   showBadge={true}
-                  size="sm"
+                  size="lg"
                   certifications={guideProfile?.certifications}
                   isGuideVerified={guideProfile?.verified ?? false}
                   guideSlug={guideProfile?.slug}
@@ -337,7 +337,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 guideInfo={guideInfo}
                 isLoadingProfessional={isLoadingProfessional}
                 showBadge={true}
-                size="sm"
+                size="lg"
                 certifications={guideProfile?.certifications}
                 isGuideVerified={guideProfile?.verified ?? false}
                 guideSlug={guideProfile?.slug}

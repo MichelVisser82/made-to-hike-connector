@@ -35,7 +35,7 @@ export function GuideInfoDisplay({
   const avatarSizes = {
     sm: 'h-12 w-12',
     md: 'h-20 w-20',
-    lg: 'h-24 w-24',
+    lg: 'h-32 w-32',
   };
   
   const badgeSizes = {
