@@ -392,7 +392,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </Card>
 
             {/* Tour Highlights & Meeting Location - Side by Side */}
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
               {/* Tour Highlights */}
               <Card className="border-burgundy/20 shadow-lg bg-white">
                 <CardContent className="p-6">
