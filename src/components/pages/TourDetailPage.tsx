@@ -602,36 +602,53 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   </div>
 
                   {/* Terrain Illustration */}
-                  <div className="relative w-full h-64 bg-gradient-to-r from-sky-200 via-sky-100 to-slate-300 rounded-lg overflow-hidden">
-                    {/* Sky elements */}
-                    <div className="absolute top-8 left-20 w-20 h-12 bg-white rounded-full opacity-80" />
-                    <div className="absolute top-12 right-32 w-16 h-10 bg-white rounded-full opacity-80" />
-                    <div className="absolute top-6 right-12 w-12 h-8 bg-yellow-400 rounded-full" />
+                  <div className="relative w-full h-64 bg-gradient-to-b from-sky-50 to-cream-light rounded-lg overflow-hidden border border-burgundy/10">
+                    {/* Subtle cloud elements */}
+                    <div className="absolute top-6 left-16 w-24 h-10 bg-white/40 rounded-full blur-sm" />
+                    <div className="absolute top-10 right-24 w-20 h-8 bg-white/30 rounded-full blur-sm" />
                     
-                    {/* Terrain layers */}
-                    <svg className="absolute bottom-0 w-full h-40" viewBox="0 0 1200 160" preserveAspectRatio="none">
-                      {/* Flat terrain - A */}
-                      <path d="M 0,120 L 300,120 L 300,160 L 0,160 Z" fill="#84cc16" />
-                      {/* Rolling hills - B */}
-                      <path d="M 300,120 Q 350,100 400,90 Q 450,80 500,85 Q 550,90 600,100 L 600,160 L 300,160 Z" fill="#a3e635" />
-                      {/* Mountain - C */}
-                      <path d="M 600,100 L 750,40 L 900,70 L 900,160 L 600,160 Z" fill="#92400e" />
-                      {/* Alpine - D */}
-                      <path d="M 900,70 L 1050,30 L 1200,50 L 1200,160 L 900,160 Z" fill="#64748b" />
+                    {/* Terrain layers with brand colors */}
+                    <svg className="absolute bottom-0 w-full h-48" viewBox="0 0 1200 192" preserveAspectRatio="none">
+                      {/* Flat terrain - A (Easy) */}
+                      <path d="M 0,140 L 300,140 L 300,192 L 0,192 Z" fill="#d4c5b9" />
+                      <path d="M 0,136 L 300,136 L 300,140 L 0,140 Z" fill="#c4b5a9" opacity="0.5" />
+                      
+                      {/* Rolling hills - B (Moderate) */}
+                      <path d="M 300,140 Q 350,120 400,110 Q 450,100 500,105 Q 550,110 600,125 L 600,192 L 300,192 Z" fill="#b89f8f" />
+                      <path d="M 300,136 Q 350,116 400,106 Q 450,96 500,101 Q 550,106 600,121 L 600,125 L 300,140 Z" fill="#a88f7f" opacity="0.4" />
+                      
+                      {/* Mountain - C (Challenging) */}
+                      <path d="M 600,125 L 750,50 L 900,85 L 900,192 L 600,192 Z" fill="#9a7565" />
+                      <path d="M 750,50 L 780,60 L 750,70 Z" fill="#f5f0eb" opacity="0.8" />
+                      <path d="M 600,121 L 750,46 L 900,81 L 900,85 L 600,125 Z" fill="#8a6555" opacity="0.4" />
+                      
+                      {/* Alpine - D (Expert) */}
+                      <path d="M 900,85 L 1050,20 L 1200,55 L 1200,192 L 900,192 Z" fill="#7a5545" />
+                      <path d="M 1050,20 L 1070,28 L 1050,36 Z" fill="#f5f0eb" opacity="0.9" />
+                      <path d="M 1080,30 L 1095,36 L 1080,42 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 900,81 L 1050,16 L 1200,51 L 1200,55 L 900,85 Z" fill="#6a4535" opacity="0.4" />
                     </svg>
                     
-                    {/* Trees on mountain */}
-                    <div className="absolute bottom-16 left-[52%] flex gap-2">
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="w-2 h-6 bg-green-800" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+                    {/* Subtle tree silhouettes */}
+                    <div className="absolute bottom-20 left-[52%] flex gap-1.5 opacity-60">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={i} className="w-1.5 h-5 bg-charcoal/60" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
                       ))}
                     </div>
 
-                    {/* Level markers */}
-                    <div className="absolute bottom-24 left-[12%] w-10 h-10 bg-green-700 rounded-full border-4 border-white flex items-center justify-center text-white font-bold">A</div>
-                    <div className="absolute bottom-32 left-[38%] w-10 h-10 bg-red-900 rounded-full border-4 border-white flex items-center justify-center text-white font-bold">B</div>
-                    <div className="absolute bottom-36 left-[63%] w-10 h-10 bg-orange-700 rounded-full border-4 border-white flex items-center justify-center text-white font-bold">C</div>
-                    <div className="absolute top-12 right-[8%] w-10 h-10 bg-red-900 rounded-full border-4 border-white flex items-center justify-center text-white font-bold">D</div>
+                    {/* Level markers with brand styling */}
+                    <div className="absolute bottom-28 left-[12%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/20 shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-charcoal">A</span>
+                    </div>
+                    <div className="absolute bottom-36 left-[38%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/30 shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-burgundy">B</span>
+                    </div>
+                    <div className="absolute bottom-40 left-[63%] w-12 h-12 bg-burgundy/10 rounded-full border-3 border-burgundy shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-burgundy">C</span>
+                    </div>
+                    <div className="absolute top-16 right-[8%] w-12 h-12 bg-burgundy rounded-full border-3 border-burgundy-dark shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-white">D</span>
+                    </div>
                   </div>
 
                   {/* Legend */}
