@@ -1595,6 +1595,7 @@ export type Database = {
           archived: boolean | null
           auto_confirm: boolean | null
           available_dates: string[]
+          average_distance_per_day_km: number | null
           created_at: string
           currency: Database["public"]["Enums"]["currency"]
           custom_cancellation_approach: string | null
@@ -1651,6 +1652,7 @@ export type Database = {
           archived?: boolean | null
           auto_confirm?: boolean | null
           available_dates?: string[]
+          average_distance_per_day_km?: number | null
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
           custom_cancellation_approach?: string | null
@@ -1707,6 +1709,7 @@ export type Database = {
           archived?: boolean | null
           auto_confirm?: boolean | null
           available_dates?: string[]
+          average_distance_per_day_km?: number | null
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
           custom_cancellation_approach?: string | null
