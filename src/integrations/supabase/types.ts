@@ -1639,6 +1639,7 @@ export type Database = {
           service_fee_percentage: number | null
           short_description: string | null
           slug: string | null
+          status: string
           terrain_types: string[] | null
           title: string
           updated_at: string
@@ -1694,6 +1695,7 @@ export type Database = {
           service_fee_percentage?: number | null
           short_description?: string | null
           slug?: string | null
+          status?: string
           terrain_types?: string[] | null
           title: string
           updated_at?: string
@@ -1749,6 +1751,7 @@ export type Database = {
           service_fee_percentage?: number | null
           short_description?: string | null
           slug?: string | null
+          status?: string
           terrain_types?: string[] | null
           title?: string
           updated_at?: string
