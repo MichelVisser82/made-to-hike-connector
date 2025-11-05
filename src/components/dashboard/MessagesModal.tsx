@@ -286,7 +286,7 @@ export function MessagesModal({
                 <Button
                   onClick={handleSendMessage}
                   className="bg-burgundy hover:bg-burgundy-dark"
-                  disabled={!newMessage.trim()}
+                  disabled={!newMessage.trim() || !conversationId}
                 >
                   <Send className="w-4 h-4" />
                 </Button>

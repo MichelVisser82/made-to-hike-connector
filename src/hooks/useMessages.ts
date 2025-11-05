@@ -71,6 +71,10 @@ export function useMessages(conversationId: string | undefined) {
   }
 
   async function sendMessage(content: string, senderType: string, senderName?: string) {
+    if (!conversationId) {
+      throw new Error('No conversation ID available');
+    }
+
     const { data: session } = await supabase.auth.getSession();
     
     const response = await supabase.functions.invoke('send-message', {
