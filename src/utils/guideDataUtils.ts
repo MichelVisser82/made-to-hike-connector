@@ -31,16 +31,16 @@ export interface GuideDisplayInfo {
 
 /**
  * Extracts and normalizes guide information with robust fallback hierarchy
- * Priority: tour fields → guide profile → calculated values → defaults
+ * Priority: guide profile (fresh) → tour fields (cached) → calculated values → defaults
  */
 export function getGuideDisplayInfo(
   tour: Tour,
   guideProfile?: GuideProfile | null,
   guideStats?: GuideStats | null
 ): GuideDisplayInfo {
-  // Basic Info - prioritize tour data (fast, always available)
-  const displayName = tour.guide_display_name || guideProfile?.display_name || 'Professional Guide';
-  const avatarUrl = tour.guide_avatar_url || guideProfile?.profile_image_url || null;
+  // Basic Info - prioritize fresh guide profile data over cached tour data
+  const displayName = guideProfile?.display_name || tour.guide_display_name || 'Professional Guide';
+  const avatarUrl = guideProfile?.profile_image_url || tour.guide_avatar_url || null;
   
   // Professional Info - require guide profile
   const certificationTitle = guideProfile?.certifications?.[0]?.title || null;
