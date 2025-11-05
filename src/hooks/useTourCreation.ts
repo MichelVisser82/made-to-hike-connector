@@ -66,7 +66,7 @@ const tourSchema = z.object({
   itinerary: z.array(z.object({
     day: z.number(),
     title: z.string(),
-    activities: z.array(z.string()),
+    description: z.string().min(20, 'Day description must be at least 20 characters'),
     accommodation: z.string(),
     meals: z.string(),
     image_url: z.string().optional()
@@ -148,7 +148,11 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         hero_image: initialData.hero_image,
         images: initialData.images || [],
         highlights: initialData.highlights || [],
-        itinerary: initialData.itinerary || [],
+        itinerary: initialData.itinerary?.map((day: any) => ({
+          ...day,
+          // Migrate activities array to description string if needed
+          description: day.description || (day.activities ? day.activities.join('. ') + '.' : '')
+        })) || [],
         includes: initialData.includes || [],
         excluded_items: initialData.excluded_items || [],
         price: initialData.price,

@@ -579,23 +579,36 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     {
                       day: 1,
                       title: "Meeting Point",
+                      description: "Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead",
                       activities: ["Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead"],
                       accommodation: null,
                       meals: null
                     }
-                  ]).map((item: any, index: number) => (
+                  ]).map((item: any, index: number) => {
+                    // Handle both old format (activities array) and new format (description string)
+                    const dayDescription = item.description || (item.activities ? item.activities.join('. ') : '');
+                    
+                    return (
                     <div key={index} className="group">
                       <div className="flex flex-col md:flex-row gap-4">
                         <div className="md:w-64 w-full flex-shrink-0">
                           <div className="aspect-[3/2] rounded-lg overflow-hidden">
-                            <SmartImage
-                              category="tour"
-                              usageContext={tour.region}
-                              tags={[tour.region, 'hiking', 'trail']}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              fallbackSrc={tour.images[Math.min(index, tour.images.length - 1)]}
-                              alt={item.title}
-                            />
+                            {item.image_url ? (
+                              <img 
+                                src={item.image_url} 
+                                alt={item.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <SmartImage
+                                category="tour"
+                                usageContext={tour.region}
+                                tags={[tour.region, 'hiking', 'trail']}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                fallbackSrc={tour.images[Math.min(index, tour.images.length - 1)]}
+                                alt={item.title}
+                              />
+                            )}
                           </div>
                         </div>
                         <div className="flex-1">
@@ -604,17 +617,15 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                             <h3 className="font-semibold text-lg">{item.title}</h3>
                           </div>
                           <div className="space-y-2">
-                            {item.activities?.map((activity: string, actIndex: number) => (
-                              <p key={actIndex} className="text-sm text-muted-foreground leading-relaxed">
-                                {expandedItinerary[index] 
-                                  ? activity
-                                  : actIndex === 0 ? (activity.length > 120 ? `${activity.substring(0, 120)}...` : activity) : null
-                                }
-                              </p>
-                            ))}
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {expandedItinerary[index] 
+                                ? dayDescription
+                                : dayDescription.length > 120 ? `${dayDescription.substring(0, 120)}...` : dayDescription
+                              }
+                            </p>
                           </div>
                           
-                          {item.activities && item.activities.length > 1 && (
+                          {dayDescription.length > 120 && (
                             <button
                               onClick={() => toggleItinerary(index)}
                               className="text-sm text-primary hover:underline mt-2 font-medium transition-colors"
@@ -640,7 +651,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </CardContent>
             </Card>

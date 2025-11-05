@@ -5,10 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Lightbulb } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
-import { useState } from 'react';
 import { ItineraryImageSelector } from '@/components/tour-creation/ItineraryImageSelector';
 
 interface Step9ItineraryProps {
@@ -20,7 +18,6 @@ interface Step9ItineraryProps {
 
 export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Step9ItineraryProps) {
   const form = useFormContext<TourFormData>();
-  const [newActivity, setNewActivity] = useState<{ [key: number]: string }>({});
 
   const itinerary = form.watch('itinerary') || [];
 
@@ -41,7 +38,7 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
       {
         day: current.length + 1,
         title: '',
-        activities: [],
+        description: '',
         accommodation: '',
         meals: '',
         image_url: ''
@@ -54,23 +51,6 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
     form.setValue('itinerary', current.filter((_, i) => i !== index));
   };
 
-  const addActivity = (dayIndex: number) => {
-    const activity = newActivity[dayIndex]?.trim();
-    if (!activity) return;
-
-    const current = form.getValues('itinerary') || [];
-    const updated = [...current];
-    updated[dayIndex].activities = [...updated[dayIndex].activities, activity];
-    form.setValue('itinerary', updated);
-    setNewActivity({ ...newActivity, [dayIndex]: '' });
-  };
-
-  const removeActivity = (dayIndex: number, activityIndex: number) => {
-    const current = form.getValues('itinerary') || [];
-    const updated = [...current];
-    updated[dayIndex].activities = updated[dayIndex].activities.filter((_, i) => i !== activityIndex);
-    form.setValue('itinerary', updated);
-  };
 
   return (
     <Card>
@@ -130,41 +110,27 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
                           />
                         </div>
 
-                        {/* Activities Section */}
+                        {/* Day Description */}
                         <div>
-                          <FormLabel className="text-sm">Activities</FormLabel>
-                          {day.activities.length > 0 && (
-                            <div className="flex flex-wrap gap-2 my-2">
-                              {day.activities.map((activity, actIndex) => (
-                                <Badge key={actIndex} variant="secondary">
-                                  {activity}
-                                  <button
-                                    type="button"
-                                    onClick={() => removeActivity(index, actIndex)}
-                                    className="ml-2 hover:text-destructive"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="Add activity"
-                              value={newActivity[index] || ''}
-                              onChange={(e) => setNewActivity({ ...newActivity, [index]: e.target.value })}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  addActivity(index);
-                                }
-                              }}
-                            />
-                            <Button type="button" size="sm" onClick={() => addActivity(index)}>
-                              <Plus className="w-4 h-4" />
-                            </Button>
+                          <FormLabel className="text-sm">Day Description</FormLabel>
+                          <div className="flex items-start gap-2 mb-2 p-3 bg-accent/50 rounded-lg border border-accent">
+                            <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              Paint a vivid picture of the day! Describe the terrain, the views hikers will experience, 
+                              any challenging sections, rest stops, and what makes this day special. Help them feel the adventure!
+                            </p>
                           </div>
+                          <Textarea
+                            placeholder="e.g., Today we tackle the breathtaking ascent to the summit. Starting at dawn, we'll navigate through ancient pine forests as the morning mist clears. The trail gradually steepens with stunning panoramic views opening up at every turn. We'll pause at Eagle's Nest viewpoint for snacks and photos before the final push. The reward at the top? 360-degree views of snow-capped peaks stretching to the horizon..."
+                            value={day.description}
+                            onChange={(e) => {
+                              const updated = [...itinerary];
+                              updated[index].description = e.target.value;
+                              form.setValue('itinerary', updated);
+                            }}
+                            rows={5}
+                            className="resize-none"
+                          />
                         </div>
 
                         {/* Accommodation */}
