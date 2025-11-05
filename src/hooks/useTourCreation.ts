@@ -255,18 +255,21 @@ export function useTourCreation(options?: UseTourCreationOptions) {
           title: tourData.title || 'Untitled Tour Draft',
           short_description: tourData.short_description || '',
           description: tourData.description || '',
-          region: tourData.region || 'dolomites',
+          region: 'dolomites' as const, // Use default region for draft
           meeting_point: tourData.meeting_point || 'TBD',
+          meeting_point_lat: tourData.meeting_point_lat,
+          meeting_point_lng: tourData.meeting_point_lng,
+          meeting_point_formatted: tourData.meeting_point_formatted,
           duration: formatDurationFromDays(tourData.duration || 1),
-          difficulty: tourData.difficulty || 'moderate',
+          difficulty: tourData.difficulty || 'moderate' as const,
           pack_weight: tourData.pack_weight || 10,
           daily_hours: tourData.daily_hours || '6-8 hours',
           terrain_types: tourData.terrain_types || [],
           price: tourData.price || 100,
-          currency: tourData.currency || 'EUR',
+          currency: (tourData.currency || 'EUR') as 'EUR' | 'GBP',
           group_size: tourData.group_size || 8,
           guide_id: user.id,
-          status: 'draft',
+          status: 'draft' as const,
         };
 
         const { data: newTour, error } = await supabase
