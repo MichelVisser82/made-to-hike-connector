@@ -160,7 +160,7 @@ export function GuideInfoDisplay({
                 <div className="mb-1.5">
                   <CertificationBadge
                     certification={primaryCert}
-                    displayMode="detailed"
+                    size="compact"
                     showTooltip
                     isGuideVerified={isGuideVerified}
                   />
