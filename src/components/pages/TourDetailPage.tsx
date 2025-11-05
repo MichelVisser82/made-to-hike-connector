@@ -376,7 +376,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
       {/* Main Content Area - Guide-style Two-Column Layout */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto" style={{maxWidth: '1600px'}}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Main Content Column (2/3 width) */}
           <div className="lg:col-span-2 space-y-6">
@@ -488,7 +488,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
       {/* Continue Main Content Area */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto" style={{maxWidth: '1600px'}}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
 
             {/* Fitness Requirements */}
@@ -898,7 +898,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           {isLoadingReviews ? (
             <div className="text-center text-muted-foreground">Loading reviews...</div>
           ) : tourReviews.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-6 mx-auto" style={{maxWidth: '1600px'}}>
+            <div className="grid md:grid-cols-3 gap-6">
               {tourReviews.map((review) => (
                 <Card key={review.id} className="bg-background">
                   <CardContent className="p-6">
@@ -958,7 +958,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       <section className="py-12">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-8">Other Tours in the Area</h2>
-          <div className="grid md:grid-cols-3 gap-8 mx-auto" style={{maxWidth: '1600px'}}>
+          <div className="grid md:grid-cols-3 gap-8">
                 {[
                   {
                     id: '1',
