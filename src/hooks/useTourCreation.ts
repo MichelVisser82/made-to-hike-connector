@@ -312,12 +312,12 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       }
 
       // Update existing draft or published tour
-      const { date_slots, routeData, ...tourData } = data as any;
+      const { date_slots, routeData, total_distance_km, average_distance_per_day_km, ...tourData } = data as any;
       
       const formattedTourData = {
         ...tourData,
         duration: formatDurationFromDays(tourData.duration), // Convert number to formatted string
-        distance_km: tourData.total_distance_km, // Store total distance in existing column
+        distance_km: total_distance_km, // Map total_distance_km to distance_km
         guide_id: user.id,
         available_dates: date_slots?.map((slot: DateSlotFormData) => 
           slot.date.toISOString().split('T')[0]
@@ -398,13 +398,13 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         return { success: false };
       }
 
-      // Format the data for submission (exclude date_slots and routeData, we handle them separately)
-      const { date_slots, routeData, ...tourData } = data as any;
+      // Format the data for submission (exclude date_slots, routeData, and form-only fields)
+      const { date_slots, routeData, total_distance_km, average_distance_per_day_km, ...tourData } = data as any;
       
       const formattedTourData = {
         ...tourData,
         duration: formatDurationFromDays(tourData.duration), // Convert number to formatted string
-        distance_km: tourData.total_distance_km, // Store total distance in existing column
+        distance_km: total_distance_km, // Map total_distance_km to distance_km
         guide_id: user.id,
         available_dates: date_slots?.map((slot: DateSlotFormData) => 
           slot.date.toISOString().split('T')[0]
