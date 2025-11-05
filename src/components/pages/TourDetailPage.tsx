@@ -863,7 +863,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                           <CertificationBadge
                             key={index}
                             certification={cert}
-                            size="compact"
+                            size="full"
                             showTooltip
                             isGuideVerified={guideProfile?.verified ?? false}
                           />
