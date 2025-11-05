@@ -375,8 +375,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       </section>
 
       {/* Main Content Area - Guide-style Two-Column Layout */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto" style={{maxWidth: '1600px'}}>
           
           {/* Main Content Column (2/3 width) */}
           <div className="lg:col-span-2 space-y-6">
@@ -448,7 +448,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       {/* Photo Gallery - Full Width Section */}
       {tour.images && tour.images.length > 0 && (
         <div className="w-full py-8 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 mb-6">
               <Camera className="h-6 w-6 text-burgundy" />
               <h2 className="text-3xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
@@ -487,8 +487,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       )}
 
       {/* Continue Main Content Area */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto" style={{maxWidth: '1600px'}}>
           <div className="lg:col-span-2 space-y-6">
 
             {/* Fitness Requirements */}
@@ -873,7 +873,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
       {/* Reviews & Testimonials - Bottom Section */}
       <section className="py-12 bg-muted/30">
-        <div className="container mx-auto px-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-2">Reviews & Testimonials</h2>
             {tour.reviews_count > 0 && (
@@ -898,7 +898,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           {isLoadingReviews ? (
             <div className="text-center text-muted-foreground">Loading reviews...</div>
           ) : tourReviews.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-6 mx-auto" style={{maxWidth: '1600px'}}>
               {tourReviews.map((review) => (
                 <Card key={review.id} className="bg-background">
                   <CardContent className="p-6">
@@ -956,9 +956,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
       {/* Other Tours in the Area */}
       <section className="py-12">
-        <div className="container mx-auto px-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-8">Other Tours in the Area</h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 mx-auto" style={{maxWidth: '1600px'}}>
                 {[
                   {
                     id: '1',
