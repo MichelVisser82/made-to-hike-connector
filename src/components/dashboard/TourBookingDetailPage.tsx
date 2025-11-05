@@ -255,9 +255,9 @@ export function TourBookingDetailPage() {
   if (!tour) {
     return (
       <div className="p-6">
-        <Card>
+        <Card className="border-burgundy/10">
           <CardContent className="pt-6">
-            <p className="text-muted-foreground">Tour not found</p>
+            <p className="text-charcoal/60">Tour not found</p>
           </CardContent>
         </Card>
       </div>
@@ -298,7 +298,7 @@ export function TourBookingDetailPage() {
       </Button>
 
       {/* Hero Section */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border-burgundy/10">
         <div className="relative h-64">
           {tour.hero_image ? (
             <img
@@ -307,12 +307,12 @@ export function TourBookingDetailPage() {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <MapPin className="w-16 h-16 text-muted-foreground" />
+            <div className="w-full h-full bg-cream flex items-center justify-center">
+              <MapPin className="w-16 h-16 text-charcoal/40" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/15 to-transparent" />
-          <div className="absolute bottom-6 left-6 text-primary-foreground">
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-charcoal/15 to-transparent" />
+          <div className="absolute bottom-6 left-6 text-white">
             <h1 className="text-3xl font-playfair mb-2">{tour.title}</h1>
             <div className="flex items-center gap-4 text-sm">
               <span className="flex items-center gap-1">
@@ -325,7 +325,7 @@ export function TourBookingDetailPage() {
                   {tour.location}
                 </span>
               )}
-              <Badge variant="secondary" className="bg-background/90">
+              <Badge variant="secondary" className="bg-white/90 text-charcoal">
                 {tour.difficulty}
               </Badge>
             </div>
@@ -335,43 +335,43 @@ export function TourBookingDetailPage() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-burgundy/10">
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground mb-1">DURATION</div>
-            <div className="text-2xl font-semibold text-foreground">{tour.duration}</div>
+            <div className="text-sm text-charcoal/60 mb-1">DURATION</div>
+            <div className="text-2xl font-semibold text-charcoal">{tour.duration}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-burgundy/10">
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground mb-1">PARTICIPANTS</div>
-            <div className="text-2xl font-semibold text-foreground">
+            <div className="text-sm text-charcoal/60 mb-1">PARTICIPANTS</div>
+            <div className="text-2xl font-semibold text-charcoal">
               {totalParticipants} / {tour.max_group_size}
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-burgundy/10">
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground mb-1">PRICE</div>
-            <div className="text-2xl font-semibold text-foreground">
+            <div className="text-sm text-charcoal/60 mb-1">PRICE</div>
+            <div className="text-2xl font-semibold text-charcoal">
               €{pricePerPerson} per person
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-burgundy/10">
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground mb-1">TOTAL BOOKINGS</div>
-            <div className="text-2xl font-semibold text-foreground">{bookings.length} bookings</div>
+            <div className="text-sm text-charcoal/60 mb-1">TOTAL BOOKINGS</div>
+            <div className="text-2xl font-semibold text-charcoal">{bookings.length} bookings</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Meeting Point */}
-      <Card>
+      <Card className="border-burgundy/10">
         <CardContent className="pt-6">
-          <div className="text-sm text-muted-foreground mb-1">MEETING POINT</div>
-          <div className="font-medium text-foreground">{tour.meeting_point}</div>
+          <div className="text-sm text-charcoal/60 mb-1">MEETING POINT</div>
+          <div className="font-medium text-charcoal">{tour.meeting_point}</div>
           {tour.meeting_point_lat && tour.meeting_point_lng && (
-            <div className="text-sm text-muted-foreground mt-1">
+            <div className="text-sm text-charcoal/60 mt-1">
               {tour.meeting_point_lat.toFixed(4)}°N, {tour.meeting_point_lng.toFixed(4)}°E
             </div>
           )}
@@ -381,9 +381,9 @@ export function TourBookingDetailPage() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Participants List */}
-        <Card>
+        <Card className="border-burgundy/10">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Participants ({totalParticipants})</CardTitle>
+            <CardTitle className="font-playfair text-charcoal">Participants ({totalParticipants})</CardTitle>
             <Button variant="outline" size="sm" onClick={handleExportParticipants}>
               <Download className="w-4 h-4 mr-2" />
               Export List
@@ -394,17 +394,26 @@ export function TourBookingDetailPage() {
               <div key={booking.id} className="space-y-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-foreground">{booking.hiker.name}</p>
-                    <Badge variant="secondary" className="text-xs mt-1">
+                    <p className="font-medium text-charcoal">{booking.hiker.name}</p>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs mt-1 ${
+                        booking.status === 'confirmed' || booking.status === 'pending_confirmation'
+                          ? 'bg-sage/10 text-sage border-sage/20'
+                          : booking.status === 'pending'
+                          ? 'bg-gold/10 text-gold border-gold/20'
+                          : 'bg-charcoal/10 text-charcoal border-charcoal/20'
+                      }`}
+                    >
                       {booking.status === 'pending_confirmation' ? 'Confirmed' : booking.status}
                     </Badge>
                   </div>
-                  <div className="text-right text-sm text-muted-foreground">
+                  <div className="text-right text-sm text-charcoal/60">
                     <div>Booked {format(new Date(booking.created_at), 'MMM dd, yyyy')}</div>
-                    <div className="font-medium text-foreground">{booking.participants} people</div>
+                    <div className="font-medium text-charcoal">{booking.participants} people</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-4 text-sm text-charcoal/60">
                   <span className="flex items-center gap-1">
                     <Mail className="w-3 h-3" />
                     {booking.hiker.email}
@@ -417,12 +426,12 @@ export function TourBookingDetailPage() {
                   )}
                 </div>
                 {booking.participants_details?.[0]?.dietaryPreferences && (
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-charcoal/60">
                     Dietary: {booking.participants_details[0].dietaryPreferences.join(', ')}
                   </div>
                 )}
                 {booking.participants_details?.[0]?.emergencyContactName && (
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-charcoal/60">
                     Emergency: {booking.participants_details[0].emergencyContactName} +{booking.participants_details[0].emergencyContactPhone}
                   </div>
                 )}
@@ -433,17 +442,17 @@ export function TourBookingDetailPage() {
         </Card>
 
         {/* Group Message */}
-        <Card>
+        <Card className="border-burgundy/10">
           <CardHeader>
-            <CardTitle>Group Message</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="font-playfair text-charcoal">Group Message</CardTitle>
+            <p className="text-sm text-charcoal/60">
               Send a message to all {totalParticipants} participants
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Quick Templates */}
             <div>
-              <div className="text-sm font-medium text-foreground mb-2">Quick Templates</div>
+              <div className="text-sm font-medium text-charcoal mb-2">Quick Templates</div>
               <div className="grid grid-cols-2 gap-2">
                 {quickTemplates.map((template, idx) => (
                   <Button
@@ -464,7 +473,7 @@ export function TourBookingDetailPage() {
 
             {/* Message Input */}
             <div>
-              <div className="text-sm font-medium text-foreground mb-2">Message</div>
+              <div className="text-sm font-medium text-charcoal mb-2">Message</div>
               <Textarea
                 placeholder="Type your message to all participants..."
                 value={groupMessage}
@@ -479,14 +488,14 @@ export function TourBookingDetailPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1"
+                className="flex-1 border-burgundy/20 text-charcoal hover:bg-burgundy/10"
                 onClick={() => setGroupMessage('')}
               >
                 Clear
               </Button>
               <Button
                 size="sm"
-                className="flex-1 bg-primary text-primary-foreground"
+                className="flex-1 bg-burgundy hover:bg-burgundy/90 text-white"
                 onClick={handleSendGroupMessage}
                 disabled={!groupMessage.trim() || sendingMessage}
               >

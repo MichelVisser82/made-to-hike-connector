@@ -61,15 +61,15 @@ export function BookingsSection({
     switch (status) {
       case 'pending':
       case 'pending_confirmation':
-        return 'bg-accent/10 text-accent border-accent/20';
+        return 'bg-gold/10 text-gold border-gold/20';
       case 'confirmed':
-        return 'bg-primary/10 text-primary border-primary/20';
+        return 'bg-sage/10 text-sage border-sage/20';
       case 'completed':
-        return 'bg-primary/10 text-primary border-primary/20';
+        return 'bg-sage/10 text-sage border-sage/20';
       case 'cancelled':
-        return 'bg-muted text-muted-foreground border-border';
+        return 'bg-charcoal/10 text-charcoal border-charcoal/20';
       default:
-        return 'bg-muted text-muted-foreground border-border';
+        return 'bg-charcoal/10 text-charcoal border-charcoal/20';
     }
   };
 
@@ -88,14 +88,14 @@ export function BookingsSection({
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-playfair text-foreground mb-2">
+          <h1 className="text-3xl font-playfair text-charcoal mb-2">
             Bookings
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-charcoal/60">
             Manage your tour bookings and guest communications
           </p>
         </div>
-        <Button variant="outline" onClick={onExport}>
+        <Button variant="outline" onClick={onExport} className="border-burgundy/20 text-burgundy hover:bg-burgundy/10">
           <Download className="w-4 h-4 mr-2" />
           Export
         </Button>
@@ -103,37 +103,37 @@ export function BookingsSection({
 
       {/* View Mode Tabs */}
       <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
-        <TabsList className="bg-muted p-1 rounded-lg mb-6">
+        <TabsList className="bg-cream p-1 rounded-lg mb-6">
           <TabsTrigger 
             value="status" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             All Bookings ({counts.all})
           </TabsTrigger>
           <TabsTrigger 
             value="status" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
             onClick={() => { setViewMode('status'); setActiveTab('pending'); }}
           >
             Pending ({counts.pending})
           </TabsTrigger>
           <TabsTrigger 
             value="status" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
             onClick={() => { setViewMode('status'); setActiveTab('confirmed'); }}
           >
             Confirmed ({counts.confirmed})
           </TabsTrigger>
           <TabsTrigger 
             value="status" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
             onClick={() => { setViewMode('status'); setActiveTab('completed'); }}
           >
             Completed ({counts.completed})
           </TabsTrigger>
           <TabsTrigger 
             value="tour" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             By Tour ({tours.length})
           </TabsTrigger>
@@ -142,57 +142,57 @@ export function BookingsSection({
         {/* Status View */}
         <TabsContent value="status">
           {filteredBookings.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-playfair text-foreground mb-2">
+            <Card className="p-12 text-center border-burgundy/10">
+              <Users className="w-16 h-16 text-charcoal/40 mx-auto mb-4" />
+              <h3 className="text-lg font-playfair text-charcoal mb-2">
                 No bookings yet
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-charcoal/60">
                 Bookings will appear here once guests start booking your tours
               </p>
             </Card>
           ) : (
-            <Card className="overflow-x-auto">
+            <Card className="overflow-x-auto border-burgundy/10">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/70 border-b border-border">
-                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                  <TableRow className="bg-cream/70 border-b border-burgundy/10">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
                       Date
                     </TableHead>
-                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
                       Tour
                     </TableHead>
-                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
                       Guest
                     </TableHead>
-                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
                       Participants
                     </TableHead>
-                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
                       Status
                     </TableHead>
-                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
                       Amount
                     </TableHead>
-                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
                       Actions
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody className="divide-y divide-border">
+                <TableBody className="divide-y divide-burgundy/10">
                   {filteredBookings.map((booking) => (
                     <TableRow 
                       key={booking.id}
-                      className="hover:bg-muted/30 transition-colors cursor-pointer"
+                      className="hover:bg-cream/30 transition-colors cursor-pointer"
                       onClick={() => handleBookingClick(booking)}
                     >
-                      <TableCell className="px-6 py-4">
+                      <TableCell className="px-6 py-4 text-charcoal">
                         {format(new Date(booking.booking_date), 'MMM dd, yyyy')}
                       </TableCell>
-                      <TableCell className="px-6 py-4 font-medium text-foreground">
+                      <TableCell className="px-6 py-4 font-medium text-charcoal">
                         {booking.tour?.title || 'Unknown Tour'}
                       </TableCell>
-                      <TableCell className="px-6 py-4">
+                      <TableCell className="px-6 py-4 text-charcoal">
                         {booking.guest?.name || 'Unknown Guest'}
                       </TableCell>
                       <TableCell className="px-6 py-4">{booking.participants}</TableCell>
