@@ -262,6 +262,14 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
         )}
       </div>
 
+      {/* Display Selected Region Path */}
+      {value && (
+        <div className="px-4 py-3 bg-muted/50 rounded-md border border-border">
+          <p className="text-sm font-medium text-foreground mb-1">Selected Region:</p>
+          <p className="text-sm text-muted-foreground">{value}</p>
+        </div>
+      )}
+
       {/* Add Custom Region Button */}
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted-foreground">or</span>
