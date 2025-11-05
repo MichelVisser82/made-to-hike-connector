@@ -603,11 +603,15 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   </div>
 
                   {/* Terrain Illustration */}
-                  <div className="relative w-full rounded-lg overflow-hidden border border-burgundy/10">
+                  <div className="relative w-full rounded-lg overflow-hidden">
                     <img 
                       src={difficultyTerrainIllustration} 
                       alt="Difficulty levels: Easy moorland, Moderate rolling hills, Challenging lower mountains, Expert high alpine" 
-                      className="w-full h-auto"
+                      className="w-full h-auto object-contain"
+                      style={{ 
+                        clipPath: 'inset(8% 2% 8% 2%)',
+                        transform: 'scale(1.05)'
+                      }}
                     />
                   </div>
                 </div>
