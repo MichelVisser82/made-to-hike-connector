@@ -35,7 +35,7 @@ export function GuideInfoDisplay({
   const avatarSizes = {
     sm: 'h-12 w-12',
     md: 'h-20 w-20',
-    lg: 'h-32 w-32',
+    lg: 'h-20 w-20',
   };
   
   const badgeSizes = {
@@ -131,18 +131,20 @@ export function GuideInfoDisplay({
 
   return (
     <div className="relative">
-      <div className="flex items-start gap-4">
-        {AvatarComponent}
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0">
+          {AvatarComponent}
+        </div>
         
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {guideSlug ? (
             <Link to={`/${guideSlug}`} className="hover:text-primary transition-colors">
-              <h3 className={`${titleSizes[size]} font-semibold mb-1`}>
+              <h3 className={`${titleSizes[size]} font-semibold mb-1 leading-tight`}>
                 {guideInfo.displayName}
               </h3>
             </Link>
           ) : (
-            <h3 className={`${titleSizes[size]} font-semibold mb-1`}>
+            <h3 className={`${titleSizes[size]} font-semibold mb-1 leading-tight`}>
               {guideInfo.displayName}
             </h3>
           )}
@@ -155,7 +157,7 @@ export function GuideInfoDisplay({
           ) : (
             <>
               {primaryCert ? (
-                <div className="mb-2">
+                <div className="mb-1.5">
                   <CertificationBadge
                     certification={primaryCert}
                     displayMode="detailed"
@@ -168,7 +170,7 @@ export function GuideInfoDisplay({
                   Certified Professional
                 </p>
               )}
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground leading-tight">
                 {getExperienceDisplayText(guideInfo)}
               </p>
             </>
