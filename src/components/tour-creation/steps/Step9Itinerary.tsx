@@ -9,6 +9,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { ItineraryImageSelector } from '@/components/tour-creation/ItineraryImageSelector';
 
 interface Step9ItineraryProps {
   onSave?: () => Promise<void>;
@@ -42,7 +43,8 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
         title: '',
         activities: [],
         accommodation: '',
-        meals: ''
+        meals: '',
+        image_url: ''
       }
     ]);
   };
@@ -107,6 +109,20 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
                           form.setValue('itinerary', updated);
                         }}
                       />
+
+                      <div>
+                        <FormLabel className="text-sm mb-2 block">Day Image</FormLabel>
+                        <ItineraryImageSelector
+                          selectedImageUrl={day.image_url}
+                          existingTourImages={form.watch('images') || []}
+                          onImageSelect={(url) => {
+                            const updated = [...itinerary];
+                            updated[index].image_url = url;
+                            form.setValue('itinerary', updated);
+                          }}
+                          dayNumber={day.day}
+                        />
+                      </div>
 
                       <div>
                         <FormLabel className="text-sm">Activities</FormLabel>

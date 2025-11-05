@@ -68,7 +68,8 @@ const tourSchema = z.object({
     title: z.string(),
     activities: z.array(z.string()),
     accommodation: z.string(),
-    meals: z.string()
+    meals: z.string(),
+    image_url: z.string().optional()
   })).min(1),
   
   // Step 10: Inclusions/Exclusions
