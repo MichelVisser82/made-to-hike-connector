@@ -602,45 +602,66 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   </div>
 
                   {/* Terrain Illustration */}
-                  <div className="relative w-full h-64 bg-gradient-to-b from-sky-50 to-cream-light rounded-lg overflow-hidden border border-burgundy/10">
+                  <div className="relative w-full h-64 bg-gradient-to-b from-sky-100 to-sky-50 rounded-lg overflow-hidden border border-burgundy/10">
                     {/* Subtle cloud elements */}
-                    <div className="absolute top-6 left-16 w-24 h-10 bg-white/40 rounded-full blur-sm" />
-                    <div className="absolute top-10 right-24 w-20 h-8 bg-white/30 rounded-full blur-sm" />
+                    <div className="absolute top-6 left-16 w-24 h-10 bg-white/50 rounded-full blur-sm" />
+                    <div className="absolute top-10 right-24 w-20 h-8 bg-white/40 rounded-full blur-sm" />
                     
-                    {/* Terrain layers with brand colors */}
+                    {/* Terrain layers with accurate representation */}
                     <svg className="absolute bottom-0 w-full h-48" viewBox="0 0 1200 192" preserveAspectRatio="none">
-                      {/* Flat terrain - A (Easy) */}
-                      <path d="M 0,140 L 300,140 L 300,192 L 0,192 Z" fill="#d4c5b9" />
-                      <path d="M 0,136 L 300,136 L 300,140 L 0,140 Z" fill="#c4b5a9" opacity="0.5" />
+                      {/* A - Easy: Flat moorland with subtle texture */}
+                      <path d="M 0,145 L 300,145 L 300,192 L 0,192 Z" fill="#8b9f7f" />
+                      <path d="M 0,143 L 300,143 L 300,145 L 0,145 Z" fill="#7a8e6f" opacity="0.4" />
+                      {/* Grass texture */}
+                      <path d="M 0,142 Q 50,141 100,142 Q 150,143 200,141 Q 250,142 300,143 L 300,145 L 0,145 Z" fill="#9aaf8f" opacity="0.3" />
                       
-                      {/* Rolling hills - B (Moderate) */}
-                      <path d="M 300,140 Q 350,120 400,110 Q 450,100 500,105 Q 550,110 600,125 L 600,192 L 300,192 Z" fill="#b89f8f" />
-                      <path d="M 300,136 Q 350,116 400,106 Q 450,96 500,101 Q 550,106 600,121 L 600,125 L 300,140 Z" fill="#a88f7f" opacity="0.4" />
+                      {/* B - Moderate: Gentle rolling hills */}
+                      <path d="M 300,145 Q 350,135 400,128 Q 450,125 500,130 Q 550,133 600,138 L 600,192 L 300,192 Z" fill="#a89878" />
+                      <path d="M 300,143 Q 350,133 400,126 Q 450,123 500,128 Q 550,131 600,136 L 600,138 L 300,145 Z" fill="#988868" opacity="0.3" />
+                      {/* Gentle slopes highlight */}
+                      <path d="M 350,132 Q 400,125 450,124 L 450,192 L 350,192 Z" fill="#b8a888" opacity="0.2" />
                       
-                      {/* Mountain - C (Challenging) */}
-                      <path d="M 600,125 L 750,50 L 900,85 L 900,192 L 600,192 Z" fill="#9a7565" />
-                      <path d="M 750,50 L 780,60 L 750,70 Z" fill="#f5f0eb" opacity="0.8" />
-                      <path d="M 600,121 L 750,46 L 900,81 L 900,85 L 600,125 Z" fill="#8a6555" opacity="0.4" />
+                      {/* C - Challenging: Lower mountains with defined peaks */}
+                      <path d="M 600,138 L 680,75 L 750,90 L 820,68 L 900,105 L 900,192 L 600,192 Z" fill="#8a6f5f" />
+                      {/* Mountain shadows */}
+                      <path d="M 680,75 L 750,90 L 750,192 L 680,192 Z" fill="#7a5f4f" opacity="0.3" />
+                      <path d="M 820,68 L 900,105 L 900,192 L 820,192 Z" fill="#7a5f4f" opacity="0.3" />
+                      {/* Small snow patches on peaks */}
+                      <path d="M 680,75 L 690,82 L 670,82 Z" fill="#f5f0eb" opacity="0.6" />
+                      <path d="M 820,68 L 830,75 L 810,75 Z" fill="#f5f0eb" opacity="0.6" />
                       
-                      {/* Alpine - D (Expert) */}
-                      <path d="M 900,85 L 1050,20 L 1200,55 L 1200,192 L 900,192 Z" fill="#7a5545" />
-                      <path d="M 1050,20 L 1070,28 L 1050,36 Z" fill="#f5f0eb" opacity="0.9" />
-                      <path d="M 1080,30 L 1095,36 L 1080,42 Z" fill="#f5f0eb" opacity="0.7" />
-                      <path d="M 900,81 L 1050,16 L 1200,51 L 1200,55 L 900,85 Z" fill="#6a4535" opacity="0.4" />
+                      {/* D - Expert: High alpine with dramatic peaks and snow */}
+                      <path d="M 900,105 L 980,20 L 1050,45 L 1120,15 L 1200,65 L 1200,192 L 900,192 Z" fill="#6a5545" />
+                      {/* Alpine shadows and ridges */}
+                      <path d="M 980,20 L 1050,45 L 1050,192 L 980,192 Z" fill="#5a4535" opacity="0.4" />
+                      <path d="M 1120,15 L 1200,65 L 1200,192 L 1120,192 Z" fill="#5a4535" opacity="0.4" />
+                      {/* Prominent snow caps */}
+                      <path d="M 980,20 L 1000,32 L 960,32 Z" fill="#ffffff" opacity="0.95" />
+                      <path d="M 975,32 L 985,40 L 965,40 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 1120,15 L 1140,28 L 1100,28 Z" fill="#ffffff" opacity="0.95" />
+                      <path d="M 1115,28 L 1125,36 L 1105,36 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 1150,32 L 1165,42 L 1135,42 Z" fill="#f5f0eb" opacity="0.8" />
                     </svg>
                     
-                    {/* Subtle tree silhouettes */}
-                    <div className="absolute bottom-20 left-[52%] flex gap-1.5 opacity-60">
-                      {[...Array(6)].map((_, i) => (
-                        <div key={i} className="w-1.5 h-5 bg-charcoal/60" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+                    {/* Small shrubs/vegetation on moorland */}
+                    <div className="absolute bottom-16 left-[10%] flex gap-3 opacity-50">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={i} className="w-1 h-2 bg-charcoal/60 rounded-full" />
+                      ))}
+                    </div>
+                    
+                    {/* Trees on lower mountains */}
+                    <div className="absolute bottom-24 left-[63%] flex gap-1.5 opacity-60">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="w-1.5 h-4 bg-charcoal/70" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
                       ))}
                     </div>
 
                     {/* Level markers with brand styling */}
-                    <div className="absolute bottom-28 left-[12%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/20 shadow-lg flex items-center justify-center">
+                    <div className="absolute bottom-20 left-[12%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/20 shadow-lg flex items-center justify-center">
                       <span className="text-lg font-bold text-charcoal">A</span>
                     </div>
-                    <div className="absolute bottom-36 left-[38%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/30 shadow-lg flex items-center justify-center">
+                    <div className="absolute bottom-32 left-[38%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/30 shadow-lg flex items-center justify-center">
                       <span className="text-lg font-bold text-burgundy">B</span>
                     </div>
                     <div className="absolute bottom-40 left-[63%] w-12 h-12 bg-burgundy/10 rounded-full border-3 border-burgundy shadow-lg flex items-center justify-center">
@@ -654,20 +675,20 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   {/* Legend */}
                   <div className="grid grid-cols-4 gap-4 text-center text-sm">
                     <div>
-                      <div className="font-semibold text-muted-foreground">A - Easy</div>
-                      <div className="text-muted-foreground">Flat terrain</div>
+                      <div className="font-semibold text-charcoal">A - Easy</div>
+                      <div className="text-charcoal/60">Moorland</div>
                     </div>
                     <div>
-                      <div className="font-semibold text-red-900">B - Moderate</div>
-                      <div className="text-muted-foreground">Rolling hills</div>
+                      <div className="font-semibold text-burgundy">B - Moderate</div>
+                      <div className="text-charcoal/60">Rolling hills</div>
                     </div>
                     <div>
-                      <div className="font-semibold text-muted-foreground">C - Challenging</div>
-                      <div className="text-muted-foreground">Mountain trails</div>
+                      <div className="font-semibold text-burgundy">C - Challenging</div>
+                      <div className="text-charcoal/60">Lower mountains</div>
                     </div>
                     <div>
-                      <div className="font-semibold text-muted-foreground">D - Expert</div>
-                      <div className="text-muted-foreground">Alpine terrain</div>
+                      <div className="font-semibold text-burgundy">D - Expert</div>
+                      <div className="text-charcoal/60">High alpine</div>
                     </div>
                   </div>
                 </div>
