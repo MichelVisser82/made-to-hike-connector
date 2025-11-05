@@ -3,7 +3,7 @@ import { useTourCreation } from '@/hooks/useTourCreation';
 import { FormProvider } from 'react-hook-form';
 import { type Tour } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Info, FileText, Mountain, Settings, CheckCircle } from 'lucide-react';
 import Step1Welcome from './steps/Step1Welcome';
 import Step2BasicInfo from './steps/Step2BasicInfo';
 import Step3Location from './steps/Step3Location';
@@ -26,23 +26,55 @@ interface TourCreationFlowProps {
   tourId?: string;
 }
 
-const tabs = [
-  { value: 'basic', label: 'Basic Info' },
-  { value: 'location', label: 'Location' },
-  { value: 'duration', label: 'Duration & Difficulty' },
-  { value: 'details', label: 'Tour Details' },
-  { value: 'dates', label: 'Available Dates' },
-  { value: 'images', label: 'Images' },
-  { value: 'route', label: 'Route & Map' },
-  { value: 'highlights', label: 'Highlights' },
-  { value: 'itinerary', label: 'Itinerary' },
-  { value: 'inclusions', label: 'Inclusions' },
-  { value: 'pricing', label: 'Pricing' },
-  { value: 'review', label: 'Review' },
-];
+// Two-level tab configuration
+const mainTabsConfig = {
+  basics: {
+    label: 'Basics',
+    icon: Info,
+    subTabs: [
+      { value: 'basic-info', label: 'Basic Info', component: Step2BasicInfo },
+      { value: 'location', label: 'Location', component: Step3Location },
+      { value: 'duration', label: 'Duration & Difficulty', component: Step4DurationDifficulty }
+    ]
+  },
+  content: {
+    label: 'Content',
+    icon: FileText,
+    subTabs: [
+      { value: 'details', label: 'Tour Details', component: Step5TourDetails },
+      { value: 'images', label: 'Images', component: Step7Images }
+    ]
+  },
+  experience: {
+    label: 'Experience',
+    icon: Mountain,
+    subTabs: [
+      { value: 'route', label: 'Route & Map', component: Step8RouteMap },
+      { value: 'highlights', label: 'Highlights', component: Step8Highlights },
+      { value: 'itinerary', label: 'Itinerary', component: Step9Itinerary }
+    ]
+  },
+  logistics: {
+    label: 'Logistics',
+    icon: Settings,
+    subTabs: [
+      { value: 'dates', label: 'Available Dates', component: Step6AvailableDates },
+      { value: 'inclusions', label: 'Inclusions', component: Step10Inclusions },
+      { value: 'pricing', label: 'Pricing', component: Step11Pricing }
+    ]
+  },
+  review: {
+    label: 'Review',
+    icon: CheckCircle,
+    subTabs: []
+  }
+} as const;
+
+type MainTabKey = keyof typeof mainTabsConfig;
 
 export function TourCreationFlow({ onComplete, onCancel, initialData, editMode = false, tourId }: TourCreationFlowProps) {
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeMainTab, setActiveMainTab] = useState<MainTabKey>('basics');
+  const [activeSubTab, setActiveSubTab] = useState('basic-info');
   const { 
     form, 
     currentStep,
@@ -78,6 +110,17 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
 
   const handlePrev = () => {
     prevStep();
+  };
+
+  // Handle main tab changes
+  const handleMainTabChange = (newMainTab: string) => {
+    setActiveMainTab(newMainTab as MainTabKey);
+    const config = mainTabsConfig[newMainTab as MainTabKey];
+    
+    // If the new main tab has sub-tabs, set to the first one
+    if (config.subTabs.length > 0) {
+      setActiveSubTab(config.subTabs[0].value);
+    }
   };
 
   // Step-by-step flow for new tours
@@ -136,71 +179,67 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
           </div>
 
           {isEditMode ? (
-            // Tab view for editing existing tours
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <ScrollArea className="w-full">
-                <TabsList className="bg-cream p-1 rounded-lg mb-6 inline-flex w-max min-w-full">
-                  {tabs.map((tab) => (
-                    <TabsTrigger 
-                      key={tab.value} 
-                      value={tab.value} 
-                      className="whitespace-nowrap data-[state=active]:bg-burgundy data-[state=active]:text-white"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
+            // Two-level tab navigation for editing
+            <div className="w-full">
+              {/* Main Tabs */}
+              <Tabs value={activeMainTab} onValueChange={handleMainTabChange}>
+                <TabsList className="bg-card border border-border rounded-lg p-1 mb-6 w-full justify-start">
+                  {Object.entries(mainTabsConfig).map(([key, config]) => {
+                    const Icon = config.icon;
+                    return (
+                      <TabsTrigger 
+                        key={key}
+                        value={key}
+                        className="flex items-center gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white transition-all"
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{config.label}</span>
+                      </TabsTrigger>
+                    );
+                  })}
                 </TabsList>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
 
-              <TabsContent value="basic" className="mt-6">
-                <Step2BasicInfo onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
+                {/* Sub-Tabs (conditional) */}
+                {mainTabsConfig[activeMainTab].subTabs.length > 0 && (
+                  <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
+                    <TabsList className="bg-muted/50 rounded-lg p-1 mb-4 w-full justify-start">
+                      {mainTabsConfig[activeMainTab].subTabs.map((subTab) => (
+                        <TabsTrigger
+                          key={subTab.value}
+                          value={subTab.value}
+                          className="data-[state=active]:bg-background data-[state=active]:text-foreground"
+                        >
+                          {subTab.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
 
-              <TabsContent value="location" className="mt-6">
-                <Step3Location onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
+                    {/* Sub-Tab Content */}
+                    {mainTabsConfig[activeMainTab].subTabs.map((subTab) => {
+                      const Component = subTab.component;
+                      const isRouteMap = subTab.value === 'route';
+                      
+                      return (
+                        <TabsContent key={subTab.value} value={subTab.value} className="mt-6">
+                          {isRouteMap ? (
+                            <Component onSave={handleSaveTab} isSaving={isSaving} tourId={draftTourId || tourId} />
+                          ) : (
+                            <Component onSave={handleSaveTab} isSaving={isSaving} />
+                          )}
+                        </TabsContent>
+                      );
+                    })}
+                  </Tabs>
+                )}
 
-              <TabsContent value="duration" className="mt-6">
-                <Step4DurationDifficulty onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
-
-              <TabsContent value="details" className="mt-6">
-                <Step5TourDetails onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
-
-              <TabsContent value="dates" className="mt-6">
-                <Step6AvailableDates onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
-
-              <TabsContent value="images" className="mt-6">
-                <Step7Images onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
-
-              <TabsContent value="route" className="mt-6">
-                <Step8RouteMap onSave={handleSaveTab} isSaving={isSaving} tourId={draftTourId || tourId} />
-              </TabsContent>
-
-              <TabsContent value="highlights" className="mt-6">
-                <Step8Highlights onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
-
-              <TabsContent value="itinerary" className="mt-6">
-                <Step9Itinerary onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
-
-              <TabsContent value="inclusions" className="mt-6">
-                <Step10Inclusions onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
-
-              <TabsContent value="pricing" className="mt-6">
-                <Step11Pricing onSave={handleSaveTab} isSaving={isSaving} />
-              </TabsContent>
-
-              <TabsContent value="review" className="mt-6">
-                <Step12Review onSubmit={handleSubmit} isSubmitting={isSubmitting} editMode={isEditMode} />
-              </TabsContent>
-            </Tabs>
+                {/* Review Tab Content (no sub-tabs) */}
+                {activeMainTab === 'review' && (
+                  <div className="mt-6">
+                    <Step12Review onSubmit={handleSubmit} isSubmitting={isSubmitting} editMode={isEditMode} />
+                  </div>
+                )}
+              </Tabs>
+            </div>
           ) : (
             // Step-by-step flow for new tours
             <div className="mt-6">
