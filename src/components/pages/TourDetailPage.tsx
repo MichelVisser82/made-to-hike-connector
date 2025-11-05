@@ -761,11 +761,10 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             <div className="space-y-6">
               <h2 className="text-4xl font-bold">Meet Your Guide</h2>
               
-              <div className="max-w-[600px] mx-auto">
-                {/* Guide Image with Overlapping Stats Box */}
-                <div className="relative mb-32">
-                  {/* Guide Image */}
-                  <div className="relative h-[500px] rounded-lg overflow-hidden">
+              <div className="bg-background border rounded-lg overflow-hidden">
+                <div className="grid md:grid-cols-[400px,1fr] gap-0">
+                  {/* Guide Image - Left Side with Overlapping Stats Box */}
+                  <div className="relative h-[500px]">
                     {guideInfo.avatarUrl ? (
                       <img 
                         src={guideInfo.avatarUrl} 
@@ -781,123 +780,125 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         alt="Professional hiking guide"
                       />
                     )}
-                    {/* Dark overlay for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+                    {/* Dark gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
                     
-                    {/* Guide Name & Location - Overlaid on image */}
+                    {/* Guide Name & Location - Overlaid on top of image */}
                     <div className="absolute top-6 left-6 right-6 text-white">
-                      <h3 className="text-4xl font-bold mb-2 drop-shadow-lg">
+                      <h3 className="text-3xl font-bold mb-2 drop-shadow-lg">
                         {guideInfo.displayName}
                       </h3>
                       {primaryCert && (
-                        <p className="text-lg mb-1 drop-shadow-md">
+                        <p className="text-sm mb-1 drop-shadow-md">
                           {primaryCert.title} - {guideInfo.experienceYears}+ Years Experience
                         </p>
                       )}
                       {guideInfo.location && (
-                        <p className="flex items-center gap-1 drop-shadow-md">
+                        <p className="flex items-center gap-1 text-sm drop-shadow-md">
                           <MapPin className="h-4 w-4" />
                           {guideInfo.location}
                         </p>
                       )}
                     </div>
-                  </div>
 
-                  {/* Stats Box - Overlapping bottom 10% of image */}
-                  <div className="absolute bottom-0 left-6 right-6 transform translate-y-1/2">
-                    <div className="bg-background border border-border rounded-lg shadow-lg p-6">
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Rating */}
-                        {guideInfo.averageRating > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Star className="h-5 w-5 fill-primary text-primary" />
-                            <div>
-                              <div className="font-bold text-lg">{guideInfo.averageRating.toFixed(1)}</div>
-                              <div className="text-xs text-muted-foreground">
-                                ({tourReviews.length || 1} reviews)
+                    {/* Stats Box - Overlapping bottom 10% of image */}
+                    <div className="absolute bottom-0 left-4 right-4 transform translate-y-1/2 z-10">
+                      <div className="bg-background border border-border rounded-lg shadow-xl p-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          {/* Rating */}
+                          {guideInfo.averageRating > 0 && (
+                            <div className="flex items-center gap-2">
+                              <Star className="h-4 w-4 fill-primary text-primary" />
+                              <div>
+                                <div className="font-bold text-sm">{guideInfo.averageRating.toFixed(1)}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  ({tourReviews.length || 1} reviews)
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {/* Tours */}
-                        {guideInfo.toursCompleted > 0 && (
+                          {/* Tours */}
+                          {guideInfo.toursCompleted > 0 && (
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <div className="font-bold text-sm">{guideInfo.toursCompleted}+</div>
+                                <div className="text-xs text-muted-foreground">tours</div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Response Time */}
                           <div className="flex items-center gap-2">
-                            <Users className="h-5 w-5 text-muted-foreground" />
+                            <Clock className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <div className="font-bold text-lg">{guideInfo.toursCompleted}+</div>
-                              <div className="text-xs text-muted-foreground">tours</div>
+                              <div className="font-bold text-sm">2 hours</div>
+                              <div className="text-xs text-muted-foreground">response</div>
                             </div>
                           </div>
-                        )}
 
-                        {/* Response Time */}
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <div className="font-bold text-lg">2 hours</div>
-                            <div className="text-xs text-muted-foreground">response</div>
-                          </div>
+                          {/* Experience */}
+                          {guideInfo.experienceYears && (
+                            <div className="flex items-center gap-2">
+                              <Award className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <div className="font-bold text-sm">{guideInfo.experienceYears}</div>
+                                <div className="text-xs text-muted-foreground">years experience</div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-
-                        {/* Experience */}
-                        {guideInfo.experienceYears && (
-                          <div className="flex items-center gap-2">
-                            <Award className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <div className="font-bold text-lg">{guideInfo.experienceYears}</div>
-                              <div className="text-xs text-muted-foreground">years experience</div>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Guide Details Below */}
-                <div className="space-y-6">
-                  {/* Certification Badges */}
-                  {guideProfile?.certifications && guideProfile.certifications.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {guideProfile.certifications.map((cert, index) => (
-                        <CertificationBadge
-                          key={index}
-                          certification={cert}
-                          size={cert.isPrimary ? "compact" : "mini"}
-                          showTooltip
-                          isGuideVerified={guideProfile?.verified ?? false}
-                        />
-                      ))}
+                  {/* Guide Info - Right Side */}
+                  <div className="p-8 flex flex-col pt-16">
+                    {/* Certification Badges */}
+                    {guideProfile?.certifications && guideProfile.certifications.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {guideProfile.certifications.map((cert, index) => (
+                          <CertificationBadge
+                            key={index}
+                            certification={cert}
+                            size={cert.isPrimary ? "compact" : "mini"}
+                            showTooltip
+                            isGuideVerified={guideProfile?.verified ?? false}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Bio */}
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-lg mb-2">About Me</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {guideInfo.bio || `Professional mountain guide with extensive experience leading tours in ${tour.region.replace('-', ' ')}. Passionate about sharing the beauty and adventure of the mountains with hikers of all levels.`}
+                      </p>
                     </div>
-                  )}
 
-                  {/* Bio */}
-                  <div>
-                    <h4 className="font-semibold text-lg mb-2">About Me</h4>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {guideInfo.bio || `Professional mountain guide with extensive experience leading tours in ${tour.region.replace('-', ' ')}. Passionate about sharing the beauty and adventure of the mountains with hikers of all levels.`}
-                    </p>
+                    {/* Guide Owned Badge */}
+                    <div className="mb-4">
+                      <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-lg">
+                        <Shield className="h-5 w-5" />
+                        <span className="font-semibold">Guide Owned</span>
+                      </div>
+                    </div>
+
+                    {/* Profit Sharing Banner */}
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
+                      <p className="text-sm text-destructive font-medium">
+                        100% of profits go directly to your guide - we only charge a small platform fee to cover costs
+                      </p>
+                    </div>
+
+                    {/* Ask Question Button */}
+                    <Button variant="default" size="lg" className="w-full mt-auto">
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      Ask {guideInfo.displayName.split(' ')[0]} a question
+                    </Button>
                   </div>
-
-                  {/* Guide Owned Badge */}
-                  <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-lg">
-                    <Shield className="h-5 w-5" />
-                    <span className="font-semibold">Guide Owned</span>
-                  </div>
-
-                  {/* Profit Sharing Banner */}
-                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                    <p className="text-sm text-destructive font-medium">
-                      100% of profits go directly to your guide - we only charge a small platform fee to cover costs
-                    </p>
-                  </div>
-
-                  {/* Ask Question Button */}
-                  <Button variant="default" size="lg" className="w-full">
-                    <MessageCircle className="mr-2 h-5 w-5" />
-                    Ask {guideInfo.displayName.split(' ')[0]} a question
-                  </Button>
                 </div>
               </div>
             </div>
