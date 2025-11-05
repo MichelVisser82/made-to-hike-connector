@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { TourCreationFlow } from '@/components/tour-creation/TourCreationFlow';
+import { MainLayout } from '@/components/layout/MainLayout';
 import type { Tour } from '@/types';
 
 export default function TourCreationPage() {
@@ -13,12 +14,14 @@ export default function TourCreationPage() {
   const tourId = locationState?.tourId;
 
   return (
-    <TourCreationFlow
-      onComplete={() => navigate('/dashboard')}
-      onCancel={() => navigate('/dashboard')}
-      initialData={initialData}
-      editMode={editMode}
-      tourId={tourId}
-    />
+    <MainLayout>
+      <TourCreationFlow
+        onComplete={() => navigate('/dashboard')}
+        onCancel={() => navigate('/dashboard')}
+        initialData={initialData}
+        editMode={editMode}
+        tourId={tourId}
+      />
+    </MainLayout>
   );
 }
