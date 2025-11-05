@@ -37,7 +37,13 @@ interface TourBooking {
   booking_reference: string;
   booking_date: string;
   participants: number;
-  participants_details: any[];
+  participants_details: {
+    dietaryPreferences?: string[];
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactRelationship?: string;
+    participants?: any[];
+  };
   total_price: number;
   currency: string;
   status: string;
@@ -433,9 +439,17 @@ export function TourBookingDetailPage() {
                     </span>
                   )}
                 </div>
-                {booking.participants_details?.[0]?.dietaryPreferences && (
-                  <div className="text-xs text-charcoal/60">
-                    Dietary: {booking.participants_details[0].dietaryPreferences.join(', ')}
+                {booking.participants_details?.dietaryPreferences && booking.participants_details.dietaryPreferences.length > 0 && (
+                  <div className="text-sm text-charcoal/60 flex items-start gap-1">
+                    <span className="font-medium">Dietary:</span>
+                    <span>{booking.participants_details.dietaryPreferences.join(', ')}</span>
+                  </div>
+                )}
+                {booking.participants_details?.emergencyContactName && (
+                  <div className="text-sm text-charcoal/60">
+                    <span className="font-medium">Emergency Contact:</span> {booking.participants_details.emergencyContactName}
+                    {booking.participants_details.emergencyContactPhone && ` • ${booking.participants_details.emergencyContactPhone}`}
+                    {booking.participants_details.emergencyContactRelationship && ` (${booking.participants_details.emergencyContactRelationship})`}
                   </div>
                 )}
                 {booking.participants_details?.[0]?.emergencyContactName && (
