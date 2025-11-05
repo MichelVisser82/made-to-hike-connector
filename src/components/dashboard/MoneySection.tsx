@@ -5,6 +5,8 @@ import {
   Euro,
   BarChart3,
   FileText,
+  Percent,
+  XCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -110,6 +112,12 @@ export function MoneySection({
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             Payouts & Tax
+          </TabsTrigger>
+          <TabsTrigger 
+            value="cancellation-discounts"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+          >
+            Cancellation & Discounts
           </TabsTrigger>
           <TabsTrigger 
             value="analytics"
@@ -395,6 +403,57 @@ export function MoneySection({
                   <p className="text-sm text-charcoal/60">No tax documents available yet</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* CANCELLATION & DISCOUNTS TAB */}
+        <TabsContent value="cancellation-discounts" className="space-y-6">
+          {/* Cancellation Policy Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-playfair text-charcoal flex items-center gap-2">
+                <XCircle className="w-5 h-5 text-burgundy" />
+                Cancellation Policy
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <XCircle className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
+                <h3 className="text-xl font-playfair text-charcoal mb-2">
+                  Configure Cancellation Rules
+                </h3>
+                <p className="text-sm text-charcoal/60 max-w-md mx-auto mb-4">
+                  Set up flexible or strict cancellation policies for your tours. Define refund percentages based on cancellation timing.
+                </p>
+                <Button className="bg-burgundy hover:bg-burgundy-dark text-white">
+                  Set Up Cancellation Policy
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Discount Management Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-playfair text-charcoal flex items-center gap-2">
+                <Percent className="w-5 h-5 text-burgundy" />
+                Discount Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Percent className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
+                <h3 className="text-xl font-playfair text-charcoal mb-2">
+                  Create Discount Strategies
+                </h3>
+                <p className="text-sm text-charcoal/60 max-w-md mx-auto mb-4">
+                  Set up early bird discounts, group pricing, seasonal offers, and last-minute deals to maximize bookings.
+                </p>
+                <Button className="bg-burgundy hover:bg-burgundy-dark text-white">
+                  Configure Discounts
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
