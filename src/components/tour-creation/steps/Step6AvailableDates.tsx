@@ -63,8 +63,7 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
       const newSlot: DateSlotFormData = {
         date,
         spotsTotal: baseGroupSize,
-        priceOverride: basePrice,
-        currencyOverride: baseCurrency
+        // Don't set priceOverride - let it remain undefined to use tour base price
       };
       form.setValue('date_slots', [...dateSlots, newSlot]);
     }
