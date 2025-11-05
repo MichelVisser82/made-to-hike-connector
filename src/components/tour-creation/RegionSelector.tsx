@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +40,28 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
   const parentRegions = Array.from(
     new Set(countryRegions.filter(r => r.region).map(r => r.region!))
   ).sort();
+
+  // Sync internal state with form value when it changes
+  useEffect(() => {
+    if (value && value !== '') {
+      // Parse the value string: "Country - Region - Subregion" or "Country - Subregion"
+      const parts = value.split(' - ').map(p => p.trim());
+      
+      if (parts.length === 3) {
+        // Has country, region, and subregion
+        setSelectedCountry(parts[0]);
+        setSelectedRegion(parts[1]);
+      } else if (parts.length === 2) {
+        // Has country and subregion only
+        setSelectedCountry(parts[0]);
+        setSelectedRegion(null);
+      }
+    } else if (value === '') {
+      // Reset if value is cleared
+      setSelectedCountry(null);
+      setSelectedRegion(null);
+    }
+  }, [value]);
 
   const handleCountrySelect = (selectedValue: string) => {
     // Find the original country name (case-sensitive) from the lowercased value
