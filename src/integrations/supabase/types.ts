@@ -395,14 +395,21 @@ export type Database = {
           active_since: string | null
           bank_account_last4: string | null
           bio: string | null
+          cancellation_approach: string | null
+          cancellation_policy_type: string | null
           certifications: Json | null
           created_at: string
           daily_rate: number | null
           daily_rate_currency: Database["public"]["Enums"]["currency"] | null
+          deposit_amount: number | null
+          deposit_type: string | null
           difficulty_levels: string[] | null
           display_name: string
+          early_bird_settings: Json | null
           experience_years: number | null
           facebook_url: string | null
+          final_payment_days: number | null
+          group_discount_settings: Json | null
           guiding_areas: string[] | null
           hero_background_url: string | null
           id: string
@@ -414,6 +421,7 @@ export type Database = {
           intro_video_url: string | null
           is_featured: boolean | null
           languages_spoken: string[] | null
+          last_minute_settings: Json | null
           location: string | null
           location_formatted: string | null
           location_lat: number | null
@@ -444,14 +452,21 @@ export type Database = {
           active_since?: string | null
           bank_account_last4?: string | null
           bio?: string | null
+          cancellation_approach?: string | null
+          cancellation_policy_type?: string | null
           certifications?: Json | null
           created_at?: string
           daily_rate?: number | null
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
+          deposit_amount?: number | null
+          deposit_type?: string | null
           difficulty_levels?: string[] | null
           display_name: string
+          early_bird_settings?: Json | null
           experience_years?: number | null
           facebook_url?: string | null
+          final_payment_days?: number | null
+          group_discount_settings?: Json | null
           guiding_areas?: string[] | null
           hero_background_url?: string | null
           id?: string
@@ -463,6 +478,7 @@ export type Database = {
           intro_video_url?: string | null
           is_featured?: boolean | null
           languages_spoken?: string[] | null
+          last_minute_settings?: Json | null
           location?: string | null
           location_formatted?: string | null
           location_lat?: number | null
@@ -493,14 +509,21 @@ export type Database = {
           active_since?: string | null
           bank_account_last4?: string | null
           bio?: string | null
+          cancellation_approach?: string | null
+          cancellation_policy_type?: string | null
           certifications?: Json | null
           created_at?: string
           daily_rate?: number | null
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
+          deposit_amount?: number | null
+          deposit_type?: string | null
           difficulty_levels?: string[] | null
           display_name?: string
+          early_bird_settings?: Json | null
           experience_years?: number | null
           facebook_url?: string | null
+          final_payment_days?: number | null
+          group_discount_settings?: Json | null
           guiding_areas?: string[] | null
           hero_background_url?: string | null
           id?: string
@@ -512,6 +535,7 @@ export type Database = {
           intro_video_url?: string | null
           is_featured?: boolean | null
           languages_spoken?: string[] | null
+          last_minute_settings?: Json | null
           location?: string | null
           location_formatted?: string | null
           location_lat?: number | null
@@ -1573,9 +1597,16 @@ export type Database = {
           available_dates: string[]
           created_at: string
           currency: Database["public"]["Enums"]["currency"]
+          custom_cancellation_approach: string | null
+          custom_cancellation_policy_type: string | null
+          custom_deposit_amount: number | null
+          custom_deposit_type: string | null
+          custom_discount_settings: Json | null
+          custom_final_payment_days: number | null
           daily_hours: string | null
           description: string
           difficulty: Database["public"]["Enums"]["difficulty"]
+          discounts_disabled: boolean | null
           distance_km: number | null
           duration: string
           elevation_gain_m: number | null
@@ -1611,6 +1642,9 @@ export type Database = {
           terrain_types: string[] | null
           title: string
           updated_at: string
+          using_default_cancellation: boolean | null
+          using_default_discounts: boolean | null
+          using_default_payment: boolean | null
         }
         Insert: {
           archived?: boolean | null
@@ -1618,9 +1652,16 @@ export type Database = {
           available_dates?: string[]
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
+          custom_cancellation_approach?: string | null
+          custom_cancellation_policy_type?: string | null
+          custom_deposit_amount?: number | null
+          custom_deposit_type?: string | null
+          custom_discount_settings?: Json | null
+          custom_final_payment_days?: number | null
           daily_hours?: string | null
           description: string
           difficulty: Database["public"]["Enums"]["difficulty"]
+          discounts_disabled?: boolean | null
           distance_km?: number | null
           duration: string
           elevation_gain_m?: number | null
@@ -1656,6 +1697,9 @@ export type Database = {
           terrain_types?: string[] | null
           title: string
           updated_at?: string
+          using_default_cancellation?: boolean | null
+          using_default_discounts?: boolean | null
+          using_default_payment?: boolean | null
         }
         Update: {
           archived?: boolean | null
@@ -1663,9 +1707,16 @@ export type Database = {
           available_dates?: string[]
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
+          custom_cancellation_approach?: string | null
+          custom_cancellation_policy_type?: string | null
+          custom_deposit_amount?: number | null
+          custom_deposit_type?: string | null
+          custom_discount_settings?: Json | null
+          custom_final_payment_days?: number | null
           daily_hours?: string | null
           description?: string
           difficulty?: Database["public"]["Enums"]["difficulty"]
+          discounts_disabled?: boolean | null
           distance_km?: number | null
           duration?: string
           elevation_gain_m?: number | null
@@ -1701,6 +1752,9 @@ export type Database = {
           terrain_types?: string[] | null
           title?: string
           updated_at?: string
+          using_default_cancellation?: boolean | null
+          using_default_discounts?: boolean | null
+          using_default_payment?: boolean | null
         }
         Relationships: [
           {
