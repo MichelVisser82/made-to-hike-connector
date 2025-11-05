@@ -70,30 +70,32 @@ export function PaymentScheduleSettings({
           </RadioGroup>
         </div>
 
-        {/* Final Payment Due */}
-        <div className="space-y-4">
-          <Label className="text-base font-medium">Final Payment Due</Label>
-          <RadioGroup value={finalPaymentDays.toString()} onValueChange={(v) => onFinalPaymentDaysChange(Number(v))}>
-            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-              <RadioGroupItem value="14" id="14days" />
-              <Label htmlFor="14days" className="font-medium cursor-pointer">
-                14 days before tour
-              </Label>
-            </div>
-            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-              <RadioGroupItem value="21" id="21days" />
-              <Label htmlFor="21days" className="font-medium cursor-pointer">
-                21 days before tour
-              </Label>
-            </div>
-            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-              <RadioGroupItem value="30" id="30days" />
-              <Label htmlFor="30days" className="font-medium cursor-pointer">
-                30 days before tour
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
+        {/* Final Payment Due - Only show when deposit is required */}
+        {depositType !== 'none' && (
+          <div className="space-y-4">
+            <Label className="text-base font-medium">Final Payment Due</Label>
+            <RadioGroup value={finalPaymentDays.toString()} onValueChange={(v) => onFinalPaymentDaysChange(Number(v))}>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                <RadioGroupItem value="14" id="14days" />
+                <Label htmlFor="14days" className="font-medium cursor-pointer">
+                  14 days before tour
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                <RadioGroupItem value="21" id="21days" />
+                <Label htmlFor="21days" className="font-medium cursor-pointer">
+                  21 days before tour
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                <RadioGroupItem value="30" id="30days" />
+                <Label htmlFor="30days" className="font-medium cursor-pointer">
+                  30 days before tour
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+        )}
 
         {/* Timeline Visualization */}
         <div className="p-4 border rounded-lg bg-accent/10">
