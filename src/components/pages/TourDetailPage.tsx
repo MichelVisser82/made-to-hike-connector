@@ -8,7 +8,6 @@ import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, H
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
-import difficultyTerrainIllustration from '@/assets/difficulty-terrain-illustration.png';
 import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
@@ -603,16 +602,97 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   </div>
 
                   {/* Terrain Illustration */}
-                  <div className="relative w-full rounded-lg overflow-hidden">
-                    <img 
-                      src={difficultyTerrainIllustration} 
-                      alt="Difficulty levels: Easy moorland, Moderate rolling hills, Challenging lower mountains, Expert high alpine" 
-                      className="w-full h-auto object-contain"
-                      style={{ 
-                        clipPath: 'inset(8% 2% 8% 2%)',
-                        transform: 'scale(1.05)'
-                      }}
-                    />
+                  <div className="relative w-full h-64 bg-gradient-to-b from-sky-100 to-sky-50 rounded-lg overflow-hidden border border-burgundy/10">
+                    {/* Subtle cloud elements */}
+                    <div className="absolute top-8 left-16 w-24 h-10 bg-white/50 rounded-full blur-sm" />
+                    <div className="absolute top-12 right-24 w-20 h-8 bg-white/40 rounded-full blur-sm" />
+                    
+                    {/* Terrain layers with accurate representation */}
+                    <svg className="absolute bottom-0 w-full h-48" viewBox="0 0 1200 192" preserveAspectRatio="none">
+                      {/* A - Easy: Flat moorland with subtle texture */}
+                      <path d="M 0,145 L 300,145 L 300,192 L 0,192 Z" fill="#8b9f7f" />
+                      <path d="M 0,143 L 300,143 L 300,145 L 0,145 Z" fill="#7a8e6f" opacity="0.4" />
+                      {/* Grass texture */}
+                      <path d="M 0,142 Q 50,141 100,142 Q 150,143 200,141 Q 250,142 300,143 L 300,145 L 0,145 Z" fill="#9aaf8f" opacity="0.3" />
+                      {/* Moorland vegetation (small dots) */}
+                      <circle cx="50" cy="140" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      <circle cx="100" cy="141" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      <circle cx="150" cy="139" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      <circle cx="200" cy="141" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      <circle cx="250" cy="140" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      
+                      {/* B - Moderate: Gentle rolling hills */}
+                      <path d="M 300,145 Q 350,135 400,128 Q 450,125 500,130 Q 550,133 600,138 L 600,192 L 300,192 Z" fill="#a89878" />
+                      <path d="M 300,143 Q 350,133 400,126 Q 450,123 500,128 Q 550,131 600,136 L 600,138 L 300,145 Z" fill="#988868" opacity="0.3" />
+                      {/* Gentle slopes highlight */}
+                      <path d="M 350,132 Q 400,125 450,124 L 450,192 L 350,192 Z" fill="#b8a888" opacity="0.2" />
+                      {/* Trees on hills - properly positioned */}
+                      <polygon points="380,130 375,138 385,138" fill="#5a6a4a" opacity="0.7" />
+                      <polygon points="420,125 415,133 425,133" fill="#5a6a4a" opacity="0.7" />
+                      <polygon points="460,126 455,134 465,134" fill="#5a6a4a" opacity="0.7" />
+                      <polygon points="500,128 495,136 505,136" fill="#5a6a4a" opacity="0.7" />
+                      
+                      {/* C - Challenging: Lower mountains with defined peaks */}
+                      <path d="M 600,138 L 680,75 L 750,90 L 820,68 L 900,105 L 900,192 L 600,192 Z" fill="#8a6f5f" />
+                      {/* Mountain shadows */}
+                      <path d="M 680,75 L 750,90 L 750,192 L 680,192 Z" fill="#7a5f4f" opacity="0.3" />
+                      <path d="M 820,68 L 900,105 L 900,192 L 820,192 Z" fill="#7a5f4f" opacity="0.3" />
+                      {/* Small snow patches on peaks */}
+                      <path d="M 680,75 L 690,82 L 670,82 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 820,68 L 830,75 L 810,75 Z" fill="#f5f0eb" opacity="0.7" />
+                      {/* Forest on lower slopes */}
+                      <polygon points="640,130 635,140 645,140" fill="#4a5a3a" opacity="0.8" />
+                      <polygon points="660,125 655,135 665,135" fill="#4a5a3a" opacity="0.8" />
+                      <polygon points="680,120 675,130 685,130" fill="#4a5a3a" opacity="0.8" />
+                      <polygon points="700,118 695,128 705,128" fill="#4a5a3a" opacity="0.8" />
+                      <polygon points="720,115 715,125 725,125" fill="#4a5a3a" opacity="0.8" />
+                      
+                      {/* D - Expert: High alpine with dramatic peaks and snow */}
+                      <path d="M 900,105 L 980,20 L 1050,45 L 1120,15 L 1200,65 L 1200,192 L 900,192 Z" fill="#6a5545" />
+                      {/* Alpine shadows and ridges */}
+                      <path d="M 980,20 L 1050,45 L 1050,192 L 980,192 Z" fill="#5a4535" opacity="0.4" />
+                      <path d="M 1120,15 L 1200,65 L 1200,192 L 1120,192 Z" fill="#5a4535" opacity="0.4" />
+                      {/* Prominent snow caps and glaciers */}
+                      <path d="M 980,20 L 1000,32 L 960,32 Z" fill="#ffffff" opacity="0.95" />
+                      <path d="M 975,32 L 985,42 L 965,42 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 1120,15 L 1140,28 L 1100,28 Z" fill="#ffffff" opacity="0.95" />
+                      <path d="M 1115,28 L 1125,38 L 1105,38 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 1150,32 L 1165,44 L 1135,44 Z" fill="#f5f0eb" opacity="0.85" />
+                    </svg>
+
+                    {/* Level markers in sky above terrain */}
+                    <div className="absolute top-32 left-[12%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/20 shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-charcoal">A</span>
+                    </div>
+                    <div className="absolute top-24 left-[38%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/30 shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-burgundy">B</span>
+                    </div>
+                    <div className="absolute top-16 left-[63%] w-12 h-12 bg-burgundy/10 rounded-full border-3 border-burgundy shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-burgundy">C</span>
+                    </div>
+                    <div className="absolute top-8 right-[10%] w-12 h-12 bg-burgundy rounded-full border-3 border-burgundy-dark shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-white">D</span>
+                    </div>
+                  </div>
+
+                  {/* Legend */}
+                  <div className="grid grid-cols-4 gap-4 text-center text-sm">
+                    <div>
+                      <div className="font-semibold text-charcoal">A - Easy</div>
+                      <div className="text-charcoal/60">Moorland</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-burgundy">B - Moderate</div>
+                      <div className="text-charcoal/60">Rolling hills</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-burgundy">C - Challenging</div>
+                      <div className="text-charcoal/60">Lower mountains</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-burgundy">D - Expert</div>
+                      <div className="text-charcoal/60">High alpine</div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
