@@ -323,12 +323,26 @@ export function MessagesModal({
 
             {/* Message Input */}
             <div className="mt-4 space-y-2">
+              {!conversationId && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Setting up conversation...
+                  </AlertDescription>
+                </Alert>
+              )}
               <div className="flex gap-2">
                 <Input
                   placeholder="Type your message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={!conversationId}
                   className="flex-1 border-burgundy/20"
                 />
                 <Button

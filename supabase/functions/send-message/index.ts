@@ -83,6 +83,33 @@ serve(async (req) => {
 
     const { conversationId, content, senderType, senderName }: SendMessageRequest = await req.json();
 
+    console.log('Send message request:', { conversationId, senderType, content: content?.substring(0, 50) });
+
+    // Validate required fields
+    if (!conversationId || conversationId === 'undefined') {
+      console.error('Missing or invalid conversationId:', conversationId);
+      return new Response(
+        JSON.stringify({ error: 'Conversation ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!content || content.trim() === '') {
+      console.error('Missing or empty content');
+      return new Response(
+        JSON.stringify({ error: 'Message content is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!senderType) {
+      console.error('Missing senderType');
+      return new Response(
+        JSON.stringify({ error: 'Sender type is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get auth header
     const authHeader = req.headers.get('Authorization');
     let senderId: string | null = null;
@@ -93,7 +120,7 @@ serve(async (req) => {
       senderId = user?.id || null;
     }
 
-    console.log('Send message request:', { conversationId, senderId, senderType });
+    console.log('Authenticated user:', senderId);
 
     // Fetch sender's actual name from profiles if authenticated
     let actualSenderName = senderName;
