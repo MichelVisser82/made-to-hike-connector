@@ -52,9 +52,19 @@ export default function DashboardPage() {
     return null; // Will redirect via useEffect
   }
 
-  // If viewing a booking detail, show that view
+  // If viewing a booking detail, wrap it with layout
   if (bookingId) {
-    return <BookingDetailView />;
+    return (
+      <DashboardShell
+        user={mappedUser}
+        activeSection="bookings"
+        onSectionChange={setActiveSection}
+        onNavigateToProfile={() => navigate('/profile')}
+        onLogout={signOut}
+      >
+        <BookingDetailView />
+      </DashboardShell>
+    );
   }
 
   // Render appropriate dashboard based on role
