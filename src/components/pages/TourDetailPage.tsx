@@ -822,7 +822,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       />
                     )}
                     {/* Gradient overlay - matching hero style */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-transparent z-[1]" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/15 to-transparent z-[1]" />
                     <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background z-[1]" />
                     
                     {/* Guide Name & Location - Overlaid on top of image */}
@@ -929,8 +929,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     </div>
 
                     {/* Profit Sharing Banner */}
-                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
-                      <p className="text-sm text-destructive font-medium">
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
+                      <p className="text-sm text-primary font-medium">
                         100% of profits go directly to your guide - we only charge a small platform fee to cover costs
                       </p>
                     </div>
@@ -1009,7 +1009,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       key={star} 
                       className={`h-4 w-4 ${
                         star <= Math.round(tour.rating) 
-                          ? 'text-yellow-400 fill-current' 
+                          ? 'text-accent fill-current' 
                           : 'text-muted-foreground/30'
                       }`} 
                     />
@@ -1033,7 +1033,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                           key={star} 
                           className={`h-4 w-4 ${
                             star <= review.rating 
-                              ? 'text-yellow-400 fill-current' 
+                              ? 'text-accent fill-current' 
                               : 'text-muted-foreground/30'
                           }`} 
                         />
@@ -1135,9 +1135,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop"
                         alt={`${otherTour.title} - Scottish Highlands hiking tour`}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
                       <Badge
-                        className="absolute top-4 left-4 bg-white/90 text-foreground hover:bg-white"
+                        className="absolute top-4 left-4 bg-background/90 hover:bg-background"
                         variant="secondary"
                       >
                         {otherTour.difficulty}
