@@ -5,10 +5,13 @@ import { Eye, Download, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BookingWithDetails } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { useGuideBookingsByTour } from '@/hooks/useGuideBookingsByTour';
+import { TourBookingsList } from './TourBookingsList';
 
 interface BookingsSectionProps {
   bookings: BookingWithDetails[];
@@ -26,7 +29,12 @@ export function BookingsSection({
   onBookingsChange,
 }: BookingsSectionProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<'status' | 'tour'>('status');
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
+  
+  // Fetch tour bookings
+  const { tours, loading: toursLoading } = useGuideBookingsByTour(user?.id);
 
   const handleBookingClick = (booking: BookingWithDetails) => {
     navigate(`/dashboard/bookings/${booking.id}`);
@@ -53,15 +61,15 @@ export function BookingsSection({
     switch (status) {
       case 'pending':
       case 'pending_confirmation':
-        return 'bg-gold/10 text-gold border-gold/20';
+        return 'bg-accent/10 text-accent border-accent/20';
       case 'confirmed':
-        return 'bg-sage/10 text-sage border-sage/20';
+        return 'bg-primary/10 text-primary border-primary/20';
       case 'completed':
-        return 'bg-burgundy/10 text-burgundy border-burgundy/20';
+        return 'bg-primary/10 text-primary border-primary/20';
       case 'cancelled':
-        return 'bg-charcoal/10 text-charcoal border-charcoal/20';
+        return 'bg-muted text-muted-foreground border-border';
       default:
-        return 'bg-charcoal/10 text-charcoal border-charcoal/20';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -80,10 +88,10 @@ export function BookingsSection({
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-playfair text-charcoal mb-2">
-            Bookings & Guests
+          <h1 className="text-3xl font-playfair text-foreground mb-2">
+            Bookings
           </h1>
-          <p className="text-charcoal/60">
+          <p className="text-muted-foreground">
             Manage your tour bookings and guest communications
           </p>
         </div>
@@ -93,124 +101,135 @@ export function BookingsSection({
         </Button>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsList className="bg-cream p-1 rounded-lg">
+      {/* View Mode Tabs */}
+      <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
+        <TabsList className="bg-muted p-1 rounded-lg mb-6">
           <TabsTrigger 
-            value="all" 
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            value="status" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
           >
             All Bookings ({counts.all})
           </TabsTrigger>
           <TabsTrigger 
-            value="pending" 
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            value="status" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            onClick={() => { setViewMode('status'); setActiveTab('pending'); }}
           >
             Pending ({counts.pending})
           </TabsTrigger>
           <TabsTrigger 
-            value="confirmed" 
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            value="status" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            onClick={() => { setViewMode('status'); setActiveTab('confirmed'); }}
           >
             Confirmed ({counts.confirmed})
           </TabsTrigger>
           <TabsTrigger 
-            value="completed" 
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            value="status" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            onClick={() => { setViewMode('status'); setActiveTab('completed'); }}
           >
             Completed ({counts.completed})
           </TabsTrigger>
           <TabsTrigger 
-            value="cancelled" 
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            value="tour" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
           >
-            Cancelled ({counts.cancelled})
+            By Tour ({tours.length})
           </TabsTrigger>
         </TabsList>
+
+        {/* Status View */}
+        <TabsContent value="status">
+          {filteredBookings.length === 0 ? (
+            <Card className="p-12 text-center">
+              <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-playfair text-foreground mb-2">
+                No bookings yet
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Bookings will appear here once guests start booking your tours
+              </p>
+            </Card>
+          ) : (
+            <Card className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/70 border-b border-border">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                      Date
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                      Tour
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                      Guest
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                      Participants
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                      Status
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                      Amount
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-border">
+                  {filteredBookings.map((booking) => (
+                    <TableRow 
+                      key={booking.id}
+                      className="hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => handleBookingClick(booking)}
+                    >
+                      <TableCell className="px-6 py-4">
+                        {format(new Date(booking.booking_date), 'MMM dd, yyyy')}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 font-medium text-foreground">
+                        {booking.tour?.title || 'Unknown Tour'}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">
+                        {booking.guest?.name || 'Unknown Guest'}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">{booking.participants}</TableCell>
+                      <TableCell className="px-6 py-4">
+                        <Badge className={getStatusBadgeClass(booking.status)}>
+                          {booking.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-6 py-4 font-medium">
+                        €{booking.total_price}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBookingClick(booking);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Tour View */}
+        <TabsContent value="tour">
+          <TourBookingsList tours={tours} loading={toursLoading} />
+        </TabsContent>
       </Tabs>
 
-      {/* Table Card */}
-      {filteredBookings.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Users className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
-          <h3 className="text-lg font-playfair text-charcoal mb-2">
-            No bookings yet
-          </h3>
-          <p className="text-sm text-charcoal/60">
-            Bookings will appear here once guests start booking your tours
-          </p>
-        </Card>
-      ) : (
-        <Card className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-cream/70 border-b border-burgundy/10">
-                <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
-                  Date
-                </TableHead>
-                <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
-                  Tour
-                </TableHead>
-                <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
-                  Guest
-                </TableHead>
-                <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
-                  Participants
-                </TableHead>
-                <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
-                  Status
-                </TableHead>
-                <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
-                  Amount
-                </TableHead>
-                <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-burgundy/5">
-              {filteredBookings.map((booking) => (
-                <TableRow 
-                  key={booking.id}
-                  className="hover:bg-cream/30 transition-colors cursor-pointer"
-                  onClick={() => handleBookingClick(booking)}
-                >
-                  <TableCell className="px-6 py-4">
-                    {format(new Date(booking.booking_date), 'MMM dd, yyyy')}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 font-medium text-charcoal">
-                    {booking.tour?.title || 'Unknown Tour'}
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    {booking.guest?.name || 'Unknown Guest'}
-                  </TableCell>
-                  <TableCell className="px-6 py-4">{booking.participants}</TableCell>
-                  <TableCell className="px-6 py-4">
-                    <Badge className={getStatusBadgeClass(booking.status)}>
-                      {booking.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-6 py-4 font-medium">
-                    €{booking.total_price}
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleBookingClick(booking);
-                      }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
     </div>
   );
 }

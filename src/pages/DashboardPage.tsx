@@ -6,6 +6,7 @@ import { GuideDashboard } from '@/components/pages/GuideDashboard';
 import { AdminDashboard } from '@/components/pages/AdminDashboard';
 import { UserDashboard } from '@/components/pages/UserDashboard';
 import { BookingDetailView } from '@/components/dashboard/BookingDetailView';
+import { TourBookingDetailPage } from '@/components/dashboard/TourBookingDetailPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import type { DashboardSection } from '@/types/dashboard';
@@ -14,7 +15,7 @@ import type { User } from '@/types';
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { bookingId } = useParams();
+  const { bookingId, tourSlug } = useParams();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const [activeSection, setActiveSection] = useState<DashboardSection>(
@@ -52,7 +53,22 @@ export default function DashboardPage() {
     return null; // Will redirect via useEffect
   }
 
-  // If viewing a booking detail, wrap it with layout
+  // If viewing a booking detail by tour, wrap it with layout
+  if (tourSlug) {
+    return (
+      <DashboardShell
+        user={mappedUser}
+        activeSection="bookings"
+        onSectionChange={setActiveSection}
+        onNavigateToProfile={() => navigate('/profile')}
+        onLogout={signOut}
+      >
+        <TourBookingDetailPage />
+      </DashboardShell>
+    );
+  }
+  
+  // If viewing a specific booking detail, wrap it with layout
   if (bookingId) {
     return (
       <DashboardShell
