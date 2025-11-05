@@ -485,7 +485,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     {/* Left half - rotate backward */}
                     <button
                       onClick={rotateImagesBackward}
-                      className="absolute left-0 top-0 bottom-0 w-1/2 bg-black/0 hover:bg-black/20 transition-colors cursor-pointer group/left"
+                      className="absolute left-0 top-0 bottom-0 w-1/2 transition-colors cursor-pointer group/left"
                       aria-label="Previous image"
                     >
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/left:opacity-100 transition-opacity">
@@ -499,7 +499,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     {/* Right half - rotate forward */}
                     <button
                       onClick={rotateImagesForward}
-                      className="absolute right-0 top-0 bottom-0 w-1/2 bg-black/0 hover:bg-black/20 transition-colors cursor-pointer group/right"
+                      className="absolute right-0 top-0 bottom-0 w-1/2 transition-colors cursor-pointer group/right"
                       aria-label="Next image"
                     >
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/right:opacity-100 transition-opacity">
