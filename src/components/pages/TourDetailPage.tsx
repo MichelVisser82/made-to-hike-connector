@@ -411,60 +411,42 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
 
             {/* Photo Gallery */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Tour Photos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4">
-                  <div className="flex-1 aspect-video rounded-lg overflow-hidden">
-                    <SmartImage
-                      category="tour"
-                      usageContext={tour.region}
-                      tags={[tour.region, 'landscape', 'main', 'featured']}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      fallbackSrc={tour.images[0]}
-                      alt={`${tour.title} - Featured landscape view`}
-                    />
+            {tour.images && tour.images.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tour Photos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-4">
+                    <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src={tour.images[0]}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        alt={`${tour.title} - Main view`}
+                      />
+                    </div>
+                    {tour.images.length > 1 && (
+                      <div className="flex flex-col gap-3 w-32">
+                        {tour.images.slice(1, 4).map((image, index) => (
+                          <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                            <img
+                              src={image}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                              alt={`${tour.title} - Photo ${index + 2}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex flex-col gap-3 w-32">
-                    <div className="aspect-square rounded-lg overflow-hidden">
-                      <SmartImage
-                        category="tour"
-                        usageContext={tour.region}
-                        tags={[tour.region, 'trail', 'hiking']}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        fallbackSrc={tour.images[1] || tour.images[0]}
-                        alt={`${tour.title} - Trail views`}
-                      />
-                    </div>
-                    <div className="aspect-square rounded-lg overflow-hidden">
-                      <SmartImage
-                        category="tour"
-                        usageContext={tour.region}
-                        tags={[tour.region, 'summit', 'peak']}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        fallbackSrc={tour.images[2] || tour.images[0]}
-                        alt={`${tour.title} - Summit views`}
-                      />
-                    </div>
-                    <div className="aspect-square rounded-lg overflow-hidden">
-                      <SmartImage
-                        category="tour"
-                        usageContext={tour.region}
-                        tags={[tour.region, 'group', 'adventure']}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        fallbackSrc={tour.images[3] || tour.images[0]}
-                        alt={`${tour.title} - Group adventures`}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">
-                  See all photos from this amazing adventure
-                </p>
-              </CardContent>
-            </Card>
+                  {tour.images.length > 4 && (
+                    <p className="text-sm text-muted-foreground mt-4 text-center">
+                      +{tour.images.length - 4} more photos
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
 
             {/* Fitness Requirements */}
