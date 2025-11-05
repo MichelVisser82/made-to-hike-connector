@@ -604,8 +604,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   {/* Terrain Illustration */}
                   <div className="relative w-full h-64 bg-gradient-to-b from-sky-100 to-sky-50 rounded-lg overflow-hidden border border-burgundy/10">
                     {/* Subtle cloud elements */}
-                    <div className="absolute top-6 left-16 w-24 h-10 bg-white/50 rounded-full blur-sm" />
-                    <div className="absolute top-10 right-24 w-20 h-8 bg-white/40 rounded-full blur-sm" />
+                    <div className="absolute top-8 left-16 w-24 h-10 bg-white/50 rounded-full blur-sm" />
+                    <div className="absolute top-12 right-24 w-20 h-8 bg-white/40 rounded-full blur-sm" />
                     
                     {/* Terrain layers with accurate representation */}
                     <svg className="absolute bottom-0 w-full h-48" viewBox="0 0 1200 192" preserveAspectRatio="none">
@@ -643,31 +643,52 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <path d="M 1150,32 L 1165,42 L 1135,42 Z" fill="#f5f0eb" opacity="0.8" />
                     </svg>
                     
-                    {/* Small shrubs/vegetation on moorland */}
-                    <div className="absolute bottom-16 left-[10%] flex gap-3 opacity-50">
+                    {/* Terrain-specific elements */}
+                    
+                    {/* A - Moorland: Small shrubs and grass tufts */}
+                    <div className="absolute bottom-16 left-[8%] flex gap-2 opacity-60">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={`shrub-${i}`} className="w-1 h-3 bg-charcoal/50 rounded-full" />
+                      ))}
+                    </div>
+                    <div className="absolute bottom-14 left-[14%] flex gap-3 opacity-40">
                       {[...Array(4)].map((_, i) => (
-                        <div key={i} className="w-1 h-2 bg-charcoal/60 rounded-full" />
+                        <div key={`grass-${i}`} className="w-0.5 h-2 bg-charcoal/40" />
                       ))}
                     </div>
                     
-                    {/* Trees on lower mountains */}
-                    <div className="absolute bottom-24 left-[63%] flex gap-1.5 opacity-60">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="w-1.5 h-4 bg-charcoal/70" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+                    {/* B - Rolling Hills: Scattered trees */}
+                    <div className="absolute bottom-28 left-[38%] flex gap-2 opacity-70">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={`hill-tree-${i}`} className="w-2 h-5 bg-charcoal/60" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
                       ))}
                     </div>
+                    
+                    {/* C - Lower Mountains: Dense forest on slopes */}
+                    <div className="absolute bottom-32 left-[62%] flex gap-1.5 opacity-70">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={`forest-${i}`} className="w-1.5 h-5 bg-charcoal/70" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+                      ))}
+                    </div>
+                    <div className="absolute bottom-30 left-[71%] flex gap-1 opacity-60">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={`forest2-${i}`} className="w-1.5 h-4 bg-charcoal/60" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+                      ))}
+                    </div>
+                    
+                    {/* D - High Alpine: No vegetation, just snow and rocks (already in SVG) */}
 
-                    {/* Level markers with brand styling */}
-                    <div className="absolute bottom-20 left-[12%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/20 shadow-lg flex items-center justify-center">
+                    {/* Level markers in sky above terrain */}
+                    <div className="absolute top-32 left-[12%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/20 shadow-lg flex items-center justify-center">
                       <span className="text-lg font-bold text-charcoal">A</span>
                     </div>
-                    <div className="absolute bottom-32 left-[38%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/30 shadow-lg flex items-center justify-center">
+                    <div className="absolute top-24 left-[38%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/30 shadow-lg flex items-center justify-center">
                       <span className="text-lg font-bold text-burgundy">B</span>
                     </div>
-                    <div className="absolute bottom-40 left-[63%] w-12 h-12 bg-burgundy/10 rounded-full border-3 border-burgundy shadow-lg flex items-center justify-center">
+                    <div className="absolute top-16 left-[63%] w-12 h-12 bg-burgundy/10 rounded-full border-3 border-burgundy shadow-lg flex items-center justify-center">
                       <span className="text-lg font-bold text-burgundy">C</span>
                     </div>
-                    <div className="absolute top-16 right-[8%] w-12 h-12 bg-burgundy rounded-full border-3 border-burgundy-dark shadow-lg flex items-center justify-center">
+                    <div className="absolute top-8 right-[10%] w-12 h-12 bg-burgundy rounded-full border-3 border-burgundy-dark shadow-lg flex items-center justify-center">
                       <span className="text-lg font-bold text-white">D</span>
                     </div>
                   </div>
