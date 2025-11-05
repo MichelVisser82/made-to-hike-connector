@@ -102,32 +102,36 @@ export function BookingsSection({
       </div>
 
       {/* View Mode Tabs */}
-      <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
+      <Tabs value={viewMode === 'tour' ? 'tour' : activeTab} onValueChange={(value) => {
+        if (value === 'tour') {
+          setViewMode('tour');
+        } else {
+          setViewMode('status');
+          setActiveTab(value as any);
+        }
+      }}>
         <TabsList className="bg-cream p-1 rounded-lg mb-6">
           <TabsTrigger 
-            value="status" 
+            value="all" 
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             All Bookings ({counts.all})
           </TabsTrigger>
           <TabsTrigger 
-            value="status" 
+            value="pending" 
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
-            onClick={() => { setViewMode('status'); setActiveTab('pending'); }}
           >
             Pending ({counts.pending})
           </TabsTrigger>
           <TabsTrigger 
-            value="status" 
+            value="confirmed" 
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
-            onClick={() => { setViewMode('status'); setActiveTab('confirmed'); }}
           >
             Confirmed ({counts.confirmed})
           </TabsTrigger>
           <TabsTrigger 
-            value="status" 
+            value="completed" 
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
-            onClick={() => { setViewMode('status'); setActiveTab('completed'); }}
           >
             Completed ({counts.completed})
           </TabsTrigger>
@@ -140,7 +144,7 @@ export function BookingsSection({
         </TabsList>
 
         {/* Status View */}
-        <TabsContent value="status">
+        <TabsContent value="all">
           {filteredBookings.length === 0 ? (
             <Card className="p-12 text-center border-burgundy/10">
               <Users className="w-16 h-16 text-charcoal/40 mx-auto mb-4" />
@@ -149,6 +153,255 @@ export function BookingsSection({
               </h3>
               <p className="text-sm text-charcoal/60">
                 Bookings will appear here once guests start booking your tours
+              </p>
+            </Card>
+          ) : (
+            <Card className="overflow-x-auto border-burgundy/10">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-cream/70 border-b border-burgundy/10">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Date
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Tour
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Guest
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Participants
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Status
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Amount
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-burgundy/10">
+                  {filteredBookings.map((booking) => (
+                    <TableRow 
+                      key={booking.id}
+                      className="hover:bg-cream/30 transition-colors cursor-pointer"
+                      onClick={() => handleBookingClick(booking)}
+                    >
+                      <TableCell className="px-6 py-4 text-charcoal">
+                        {format(new Date(booking.booking_date), 'MMM dd, yyyy')}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 font-medium text-charcoal">
+                        {booking.tour?.title || 'Unknown Tour'}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-charcoal">
+                        {booking.guest?.name || 'Unknown Guest'}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">{booking.participants}</TableCell>
+                      <TableCell className="px-6 py-4">
+                        <Badge className={getStatusBadgeClass(booking.status)}>
+                          {booking.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-6 py-4 font-medium">
+                        €{booking.total_price}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBookingClick(booking);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
+        </TabsContent>
+        <TabsContent value="pending">
+          {filteredBookings.length === 0 ? (
+            <Card className="p-12 text-center border-burgundy/10">
+              <Users className="w-16 h-16 text-charcoal/40 mx-auto mb-4" />
+              <h3 className="text-lg font-playfair text-charcoal mb-2">
+                No pending bookings
+              </h3>
+              <p className="text-sm text-charcoal/60">
+                Pending bookings will appear here
+              </p>
+            </Card>
+          ) : (
+            <Card className="overflow-x-auto border-burgundy/10">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-cream/70 border-b border-burgundy/10">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Date
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Tour
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Guest
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Participants
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Status
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Amount
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-burgundy/10">
+                  {filteredBookings.map((booking) => (
+                    <TableRow 
+                      key={booking.id}
+                      className="hover:bg-cream/30 transition-colors cursor-pointer"
+                      onClick={() => handleBookingClick(booking)}
+                    >
+                      <TableCell className="px-6 py-4 text-charcoal">
+                        {format(new Date(booking.booking_date), 'MMM dd, yyyy')}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 font-medium text-charcoal">
+                        {booking.tour?.title || 'Unknown Tour'}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-charcoal">
+                        {booking.guest?.name || 'Unknown Guest'}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">{booking.participants}</TableCell>
+                      <TableCell className="px-6 py-4">
+                        <Badge className={getStatusBadgeClass(booking.status)}>
+                          {booking.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-6 py-4 font-medium">
+                        €{booking.total_price}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBookingClick(booking);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
+        </TabsContent>
+        <TabsContent value="confirmed">
+          {filteredBookings.length === 0 ? (
+            <Card className="p-12 text-center border-burgundy/10">
+              <Users className="w-16 h-16 text-charcoal/40 mx-auto mb-4" />
+              <h3 className="text-lg font-playfair text-charcoal mb-2">
+                No confirmed bookings
+              </h3>
+              <p className="text-sm text-charcoal/60">
+                Confirmed bookings will appear here
+              </p>
+            </Card>
+          ) : (
+            <Card className="overflow-x-auto border-burgundy/10">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-cream/70 border-b border-burgundy/10">
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Date
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Tour
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Guest
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Participants
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Status
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Amount
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-xs uppercase tracking-wider text-charcoal/60">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-burgundy/10">
+                  {filteredBookings.map((booking) => (
+                    <TableRow 
+                      key={booking.id}
+                      className="hover:bg-cream/30 transition-colors cursor-pointer"
+                      onClick={() => handleBookingClick(booking)}
+                    >
+                      <TableCell className="px-6 py-4 text-charcoal">
+                        {format(new Date(booking.booking_date), 'MMM dd, yyyy')}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 font-medium text-charcoal">
+                        {booking.tour?.title || 'Unknown Tour'}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-charcoal">
+                        {booking.guest?.name || 'Unknown Guest'}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">{booking.participants}</TableCell>
+                      <TableCell className="px-6 py-4">
+                        <Badge className={getStatusBadgeClass(booking.status)}>
+                          {booking.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-6 py-4 font-medium">
+                        €{booking.total_price}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBookingClick(booking);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
+        </TabsContent>
+        <TabsContent value="completed">
+          {filteredBookings.length === 0 ? (
+            <Card className="p-12 text-center border-burgundy/10">
+              <Users className="w-16 h-16 text-charcoal/40 mx-auto mb-4" />
+              <h3 className="text-lg font-playfair text-charcoal mb-2">
+                No completed bookings
+              </h3>
+              <p className="text-sm text-charcoal/60">
+                Completed bookings will appear here
               </p>
             </Card>
           ) : (
