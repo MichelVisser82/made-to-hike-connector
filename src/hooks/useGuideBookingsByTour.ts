@@ -43,7 +43,22 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
       setLoading(true);
       setError(null);
 
-      // Fetch all bookings for this guide's tours
+      // First, get all tours for this guide
+      const { data: tours, error: toursError } = await supabase
+        .from('tours')
+        .select('id')
+        .eq('guide_id', guideId);
+
+      if (toursError) throw toursError;
+      if (!tours || tours.length === 0) {
+        setTours([]);
+        setLoading(false);
+        return;
+      }
+
+      const tourIds = tours.map(t => t.id);
+
+      // Fetch all bookings for these tours
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
@@ -64,11 +79,10 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
             meeting_point_lat,
             meeting_point_lng,
             hero_image,
-            max_group_size,
-            guide_id
+            max_group_size
           )
         `)
-        .eq('tours.guide_id', guideId)
+        .in('tour_id', tourIds)
         .in('status', ['confirmed', 'pending', 'pending_confirmation', 'completed']);
 
       if (bookingsError) throw bookingsError;
