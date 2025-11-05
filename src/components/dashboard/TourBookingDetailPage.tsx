@@ -394,7 +394,15 @@ export function TourBookingDetailPage() {
               <div key={booking.id} className="space-y-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-charcoal">{booking.hiker.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-charcoal">{booking.hiker.name}</p>
+                  <Link 
+                    to={`/dashboard/bookings/${booking.id}`}
+                    className="text-sm text-burgundy hover:text-burgundy/80 hover:underline transition-colors"
+                  >
+                    #{booking.booking_reference}
+                  </Link>
+                </div>
                     <Badge 
                       variant="secondary" 
                       className={`text-xs mt-1 ${
