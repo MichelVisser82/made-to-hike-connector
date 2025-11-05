@@ -614,12 +614,23 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <path d="M 0,143 L 300,143 L 300,145 L 0,145 Z" fill="#7a8e6f" opacity="0.4" />
                       {/* Grass texture */}
                       <path d="M 0,142 Q 50,141 100,142 Q 150,143 200,141 Q 250,142 300,143 L 300,145 L 0,145 Z" fill="#9aaf8f" opacity="0.3" />
+                      {/* Moorland vegetation (small dots) */}
+                      <circle cx="50" cy="140" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      <circle cx="100" cy="141" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      <circle cx="150" cy="139" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      <circle cx="200" cy="141" r="1.5" fill="#6a7a5f" opacity="0.6" />
+                      <circle cx="250" cy="140" r="1.5" fill="#6a7a5f" opacity="0.6" />
                       
                       {/* B - Moderate: Gentle rolling hills */}
                       <path d="M 300,145 Q 350,135 400,128 Q 450,125 500,130 Q 550,133 600,138 L 600,192 L 300,192 Z" fill="#a89878" />
                       <path d="M 300,143 Q 350,133 400,126 Q 450,123 500,128 Q 550,131 600,136 L 600,138 L 300,145 Z" fill="#988868" opacity="0.3" />
                       {/* Gentle slopes highlight */}
                       <path d="M 350,132 Q 400,125 450,124 L 450,192 L 350,192 Z" fill="#b8a888" opacity="0.2" />
+                      {/* Trees on hills - properly positioned */}
+                      <polygon points="380,130 375,138 385,138" fill="#5a6a4a" opacity="0.7" />
+                      <polygon points="420,125 415,133 425,133" fill="#5a6a4a" opacity="0.7" />
+                      <polygon points="460,126 455,134 465,134" fill="#5a6a4a" opacity="0.7" />
+                      <polygon points="500,128 495,136 505,136" fill="#5a6a4a" opacity="0.7" />
                       
                       {/* C - Challenging: Lower mountains with defined peaks */}
                       <path d="M 600,138 L 680,75 L 750,90 L 820,68 L 900,105 L 900,192 L 600,192 Z" fill="#8a6f5f" />
@@ -627,56 +638,27 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <path d="M 680,75 L 750,90 L 750,192 L 680,192 Z" fill="#7a5f4f" opacity="0.3" />
                       <path d="M 820,68 L 900,105 L 900,192 L 820,192 Z" fill="#7a5f4f" opacity="0.3" />
                       {/* Small snow patches on peaks */}
-                      <path d="M 680,75 L 690,82 L 670,82 Z" fill="#f5f0eb" opacity="0.6" />
-                      <path d="M 820,68 L 830,75 L 810,75 Z" fill="#f5f0eb" opacity="0.6" />
+                      <path d="M 680,75 L 690,82 L 670,82 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 820,68 L 830,75 L 810,75 Z" fill="#f5f0eb" opacity="0.7" />
+                      {/* Forest on lower slopes */}
+                      <polygon points="640,130 635,140 645,140" fill="#4a5a3a" opacity="0.8" />
+                      <polygon points="660,125 655,135 665,135" fill="#4a5a3a" opacity="0.8" />
+                      <polygon points="680,120 675,130 685,130" fill="#4a5a3a" opacity="0.8" />
+                      <polygon points="700,118 695,128 705,128" fill="#4a5a3a" opacity="0.8" />
+                      <polygon points="720,115 715,125 725,125" fill="#4a5a3a" opacity="0.8" />
                       
                       {/* D - Expert: High alpine with dramatic peaks and snow */}
                       <path d="M 900,105 L 980,20 L 1050,45 L 1120,15 L 1200,65 L 1200,192 L 900,192 Z" fill="#6a5545" />
                       {/* Alpine shadows and ridges */}
                       <path d="M 980,20 L 1050,45 L 1050,192 L 980,192 Z" fill="#5a4535" opacity="0.4" />
                       <path d="M 1120,15 L 1200,65 L 1200,192 L 1120,192 Z" fill="#5a4535" opacity="0.4" />
-                      {/* Prominent snow caps */}
+                      {/* Prominent snow caps and glaciers */}
                       <path d="M 980,20 L 1000,32 L 960,32 Z" fill="#ffffff" opacity="0.95" />
-                      <path d="M 975,32 L 985,40 L 965,40 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 975,32 L 985,42 L 965,42 Z" fill="#f5f0eb" opacity="0.7" />
                       <path d="M 1120,15 L 1140,28 L 1100,28 Z" fill="#ffffff" opacity="0.95" />
-                      <path d="M 1115,28 L 1125,36 L 1105,36 Z" fill="#f5f0eb" opacity="0.7" />
-                      <path d="M 1150,32 L 1165,42 L 1135,42 Z" fill="#f5f0eb" opacity="0.8" />
+                      <path d="M 1115,28 L 1125,38 L 1105,38 Z" fill="#f5f0eb" opacity="0.7" />
+                      <path d="M 1150,32 L 1165,44 L 1135,44 Z" fill="#f5f0eb" opacity="0.85" />
                     </svg>
-                    
-                    {/* Terrain-specific elements */}
-                    
-                    {/* A - Moorland: Small shrubs and grass tufts */}
-                    <div className="absolute bottom-16 left-[8%] flex gap-2 opacity-60">
-                      {[...Array(6)].map((_, i) => (
-                        <div key={`shrub-${i}`} className="w-1 h-3 bg-charcoal/50 rounded-full" />
-                      ))}
-                    </div>
-                    <div className="absolute bottom-14 left-[14%] flex gap-3 opacity-40">
-                      {[...Array(4)].map((_, i) => (
-                        <div key={`grass-${i}`} className="w-0.5 h-2 bg-charcoal/40" />
-                      ))}
-                    </div>
-                    
-                    {/* B - Rolling Hills: Scattered trees */}
-                    <div className="absolute bottom-28 left-[38%] flex gap-2 opacity-70">
-                      {[...Array(4)].map((_, i) => (
-                        <div key={`hill-tree-${i}`} className="w-2 h-5 bg-charcoal/60" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
-                      ))}
-                    </div>
-                    
-                    {/* C - Lower Mountains: Dense forest on slopes */}
-                    <div className="absolute bottom-32 left-[62%] flex gap-1.5 opacity-70">
-                      {[...Array(6)].map((_, i) => (
-                        <div key={`forest-${i}`} className="w-1.5 h-5 bg-charcoal/70" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
-                      ))}
-                    </div>
-                    <div className="absolute bottom-30 left-[71%] flex gap-1 opacity-60">
-                      {[...Array(4)].map((_, i) => (
-                        <div key={`forest2-${i}`} className="w-1.5 h-4 bg-charcoal/60" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
-                      ))}
-                    </div>
-                    
-                    {/* D - High Alpine: No vegetation, just snow and rocks (already in SVG) */}
 
                     {/* Level markers in sky above terrain */}
                     <div className="absolute top-32 left-[12%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/20 shadow-lg flex items-center justify-center">
