@@ -219,7 +219,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </div>
 
               {/* Price Display */}
-              <div className="text-center py-3 border-y border-burgundy/10 mb-4">
+              <div className="text-center py-3 border-b border-burgundy/10 mb-4">
                 <div className="text-sm text-charcoal/60 mb-1">From</div>
                 <div className="text-3xl font-bold text-charcoal">
                   {tour.currency === 'EUR' ? '€' : '£'}{lowestPrice}
@@ -345,7 +345,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
 
             {/* Price Display */}
-            <div className="text-center py-3 border-y border-burgundy/10 mb-4">
+            <div className="text-center py-3 border-b border-burgundy/10 mb-4">
               <div className="text-sm text-charcoal/60 mb-1">From</div>
               <div className="text-3xl font-bold text-charcoal">
                 {tour.currency === 'EUR' ? '€' : '£'}{lowestPrice}
