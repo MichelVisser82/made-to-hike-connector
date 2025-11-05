@@ -392,7 +392,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </Card>
 
             {/* Tour Highlights & Meeting Location - Side by Side */}
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-[1.3fr_1fr] gap-6">
               {/* Tour Highlights */}
               <Card className="border-burgundy/20 shadow-lg bg-white">
                 <CardContent className="p-6">
@@ -416,7 +416,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <MapPin className="h-5 w-5 text-burgundy" />
                       <h3 className="text-lg font-semibold text-charcoal/80">Meeting Location</h3>
                     </div>
-                    <div className="flex-1 min-h-[300px] rounded-lg overflow-hidden">
+                    <div className="flex-1 min-h-[240px] rounded-lg overflow-hidden">
                       <HikingLocationMap
                         latitude={tour.meeting_point_lat}
                         longitude={tour.meeting_point_lng}
