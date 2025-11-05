@@ -781,10 +781,10 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       />
                     )}
                     {/* Dark gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/70 z-[1]" />
                     
                     {/* Guide Name & Location - Overlaid on top of image */}
-                    <div className="absolute top-6 left-6 right-6 text-white">
+                    <div className="absolute top-6 left-6 right-6 text-white z-[2]">
                       <h3 className="text-3xl font-bold mb-2 drop-shadow-lg">
                         {guideInfo.displayName}
                       </h3>
