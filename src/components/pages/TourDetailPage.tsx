@@ -785,19 +785,19 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background z-[1]" />
                     
                     {/* Guide Name & Location - Overlaid on top of image */}
-                    <div className="absolute top-6 left-6 right-6 text-white z-[2]">
+                    <div className="absolute top-6 left-6 right-6 text-white z-[10]">
                       <h3 className="text-3xl font-bold mb-2 drop-shadow-lg">
                         {guideInfo.displayName}
                       </h3>
-                      {primaryCert && (
-                        <p className="text-sm mb-1 drop-shadow-md">
-                          {primaryCert.title} - {guideInfo.experienceYears}+ Years Experience
-                        </p>
-                      )}
                       {guideInfo.location && (
-                        <p className="flex items-center gap-1 text-sm drop-shadow-md">
+                        <p className="flex items-center gap-1 text-sm mb-1 drop-shadow-md">
                           <MapPin className="h-4 w-4" />
                           {guideInfo.location}
+                        </p>
+                      )}
+                      {primaryCert && (
+                        <p className="text-sm drop-shadow-md">
+                          {primaryCert.title} - {guideInfo.experienceYears}+ Years Experience
                         </p>
                       )}
                     </div>
