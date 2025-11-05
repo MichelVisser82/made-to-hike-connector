@@ -107,47 +107,15 @@ function CertificationBadge({
       return Shield;
     }, [lowerTitle, isMedical]);
 
-    // Size-based styling for simple mode
-    const sizeClasses = React.useMemo(() => {
-      switch(size) {
-        case 'mini':
-          return 'gap-1 px-2 py-0.5 text-xs';
-        case 'compact':
-          return 'gap-1.5 px-2.5 py-1 text-sm';
-        case 'full':
-          return 'gap-2 px-4 py-2 text-base';
-        case 'hero':
-          return 'gap-2.5 px-5 py-3 text-lg';
-        default:
-          return 'gap-1.5 px-3 py-1.5 text-sm';
-      }
-    }, [size]);
-
-    const iconSize = React.useMemo(() => {
-      switch(size) {
-        case 'mini':
-          return 'w-3 h-3';
-        case 'compact':
-          return 'w-4 h-4';
-        case 'full':
-          return 'w-5 h-5';
-        case 'hero':
-          return 'w-6 h-6';
-        default:
-          return 'w-4 h-4';
-      }
-    }, [size]);
-
     const badgeElement = (
       <div className={cn(
-        "inline-flex items-center rounded-full font-semibold cursor-pointer border shadow-sm",
-        sizeClasses,
+        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold cursor-pointer border shadow-sm",
         colorClass,
         (lowerTitle.includes('iml') || lowerTitle.includes('ifmga') || isMedical) ? 'border-transparent' : 'border-cert-neutral-foreground/20'
       )}>
-        <LeftIcon className={cn(iconSize, "flex-shrink-0")} />
+        <LeftIcon className="w-4 h-4 flex-shrink-0" />
         <span className="flex-1">{metadata?.abbreviation || certification.title}</span>
-        <CheckCircle2 className={cn(iconSize, "flex-shrink-0")} />
+        <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
       </div>
     );
 
