@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
-import { CreditCard, Euro } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { DepositType } from '@/types/policySettings';
 
 interface PaymentScheduleSettingsProps {
@@ -55,28 +55,6 @@ export function PaymentScheduleSettings({
                       className="w-24"
                     />
                     <span className="text-sm text-muted-foreground">% (10-50%)</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-              <RadioGroupItem value="fixed" id="fixed" />
-              <div className="flex-1">
-                <Label htmlFor="fixed" className="font-medium cursor-pointer">
-                  Fixed Amount
-                </Label>
-                {depositType === 'fixed' && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <Euro className="w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="number"
-                      min="50"
-                      max="500"
-                      value={depositAmount}
-                      onChange={(e) => onDepositAmountChange(Number(e.target.value))}
-                      className="w-32"
-                    />
-                    <span className="text-sm text-muted-foreground">(€50-500)</span>
                   </div>
                 )}
               </div>

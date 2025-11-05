@@ -4,7 +4,7 @@
 
 export type CancellationApproach = 'single' | 'customer_choice';
 export type CancellationPolicyType = 'flexible' | 'moderate' | 'strict' | 'non_refundable';
-export type DepositType = 'percentage' | 'fixed' | 'none';
+export type DepositType = 'percentage' | 'none';
 
 export interface EarlyBirdSettings {
   enabled: boolean;
