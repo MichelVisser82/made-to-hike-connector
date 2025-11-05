@@ -93,10 +93,11 @@ interface UseTourCreationOptions {
 const STORAGE_KEY = 'tour_creation_draft';
 
 export function useTourCreation(options?: UseTourCreationOptions) {
-  const { initialData, editMode = false, tourId } = options || {};
+  const { initialData, editMode = false, tourId: initialTourId } = options || {};
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [draftTourId, setDraftTourId] = useState<string | undefined>(initialTourId);
 
   const getDefaultValues = () => {
     if (initialData) {
@@ -246,17 +247,68 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         return { success: false };
       }
 
-      if (!editMode || !tourId) {
-        // For new tours, just save to localStorage
+      // After step 2, create a draft tour in the database
+      if (currentStep === 2 && !draftTourId && !editMode) {
+        const { date_slots, routeData, ...tourData } = data as any;
+        
+        const draftTourData = {
+          title: tourData.title || 'Untitled Tour Draft',
+          short_description: tourData.short_description || '',
+          description: tourData.description || '',
+          region: tourData.region || 'dolomites',
+          meeting_point: tourData.meeting_point || 'TBD',
+          duration: formatDurationFromDays(tourData.duration || 1),
+          difficulty: tourData.difficulty || 'moderate',
+          pack_weight: tourData.pack_weight || 10,
+          daily_hours: tourData.daily_hours || '6-8 hours',
+          terrain_types: tourData.terrain_types || [],
+          price: tourData.price || 100,
+          currency: tourData.currency || 'EUR',
+          group_size: tourData.group_size || 8,
+          guide_id: user.id,
+          status: 'draft',
+        };
+
+        const { data: newTour, error } = await supabase
+          .from('tours')
+          .insert([draftTourData])
+          .select('id')
+          .single();
+
+        if (error) {
+          console.error('Error creating draft tour:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create draft. Please try again.",
+            variant: "destructive",
+          });
+          return { success: false };
+        }
+
+        setDraftTourId(newTour.id);
+        localStorage.setItem(STORAGE_KEY + '_tour_id', newTour.id);
+        
+        toast({
+          title: "Draft created",
+          description: "Your tour has been saved as a draft",
+        });
+        return { success: true, tourId: newTour.id };
+      }
+
+      // For subsequent steps or edit mode, update the existing tour
+      const tourIdToUpdate = draftTourId || initialTourId;
+      
+      if (!tourIdToUpdate) {
+        // No tour ID yet, just save to localStorage
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         toast({
           title: "Progress saved",
-          description: "Your changes have been saved as a draft",
+          description: "Your changes have been saved locally",
         });
         return { success: true };
       }
 
-      // For existing tours, save to database
+      // Update existing draft or published tour
       const { date_slots, routeData, ...tourData } = data as any;
       
       const formattedTourData = {
@@ -272,7 +324,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       const { error } = await supabase
         .from('tours')
         .update(formattedTourData)
-        .eq('id', tourId)
+        .eq('id', tourIdToUpdate)
         .eq('guide_id', user.id);
 
       if (error) {
@@ -289,11 +341,11 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       await supabase
         .from('tour_date_slots')
         .delete()
-        .eq('tour_id', tourId);
+        .eq('tour_id', tourIdToUpdate);
 
       if (date_slots && date_slots.length > 0) {
         const dateSlotInserts = date_slots.map((slot: DateSlotFormData) => ({
-          tour_id: tourId,
+          tour_id: tourIdToUpdate,
           slot_date: slot.date.toISOString().split('T')[0],
           spots_total: slot.spotsTotal,
           price_override: slot.priceOverride,
@@ -315,7 +367,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         description: "Your changes have been saved",
       });
       
-      return { success: true };
+      return { success: true, tourId: tourIdToUpdate };
     } catch (error) {
       console.error('Error saving progress:', error);
       toast({
@@ -356,14 +408,14 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         ) || [],
       };
 
-      let createdTourId = tourId;
+      let createdTourId = draftTourId || initialTourId;
 
-      if (editMode && tourId) {
-        // UPDATE existing tour
+      if (createdTourId) {
+        // UPDATE existing tour (draft or published)
         const { error } = await supabase
           .from('tours')
-          .update(formattedTourData)
-          .eq('id', tourId)
+          .update({ ...formattedTourData, status: 'published' })
+          .eq('id', createdTourId)
           .eq('guide_id', user.id);
 
         if (error) {
@@ -380,13 +432,13 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         await supabase
           .from('tour_date_slots')
           .delete()
-          .eq('tour_id', tourId);
+          .eq('tour_id', createdTourId);
 
       } else {
-        // INSERT new tour
+        // INSERT new tour (shouldn't happen if auto-save worked, but fallback)
         const { data: newTour, error } = await supabase
           .from('tours')
-          .insert([formattedTourData])
+          .insert([{ ...formattedTourData, status: 'published' }])
           .select('id')
           .single();
 
@@ -435,6 +487,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       // Clear draft from local storage on successful submission
       if (!editMode) {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEY + '_tour_id');
       }
 
       toast({
@@ -468,5 +521,6 @@ export function useTourCreation(options?: UseTourCreationOptions) {
     isSaving,
     totalSteps: 13,
     editMode,
+    draftTourId,
   };
 }

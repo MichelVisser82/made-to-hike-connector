@@ -52,7 +52,8 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
     saveProgress, 
     isSubmitting, 
     isSaving, 
-    editMode: isEditMode 
+    editMode: isEditMode,
+    draftTourId
   } = useTourCreation({ 
     initialData, 
     editMode, 
@@ -97,7 +98,7 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
       case 7:
         return <Step7Images onNext={handleNext} onPrev={handlePrev} isSaving={isSaving} />;
       case 8:
-        return <Step8RouteMap onNext={handleNext} onPrev={handlePrev} isSaving={isSaving} tourId={tourId} />;
+        return <Step8RouteMap onNext={handleNext} onPrev={handlePrev} isSaving={isSaving} tourId={draftTourId || tourId} />;
       case 9:
         return <Step8Highlights onNext={handleNext} onPrev={handlePrev} isSaving={isSaving} />;
       case 10:
@@ -155,7 +156,7 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
             </TabsContent>
 
             <TabsContent value="route" className="mt-6">
-              <Step8RouteMap onSave={handleSaveTab} isSaving={isSaving} tourId={tourId} />
+              <Step8RouteMap onSave={handleSaveTab} isSaving={isSaving} tourId={draftTourId || tourId} />
             </TabsContent>
 
             <TabsContent value="highlights" className="mt-6">
