@@ -72,18 +72,20 @@ export function PricingPreview({ breakdown, currency = 'EUR' }: PricingPreviewPr
           </div>
         </div>
 
-        {/* Payment Schedule */}
-        <div className="mt-4 pt-4 border-t space-y-2">
-          <div className="text-sm font-medium">Payment Schedule:</div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Deposit (at booking):</span>
-            <span className="font-medium">€{breakdown.depositAmount.toFixed(2)}</span>
+        {/* Payment Schedule - Only show when deposit is required */}
+        {breakdown.depositAmount > 0 && (
+          <div className="mt-4 pt-4 border-t space-y-2">
+            <div className="text-sm font-medium">Payment Schedule:</div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Deposit (at booking):</span>
+              <span className="font-medium">€{breakdown.depositAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Final Payment:</span>
+              <span className="font-medium">€{breakdown.finalPaymentAmount.toFixed(2)}</span>
+            </div>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Final Payment:</span>
-            <span className="font-medium">€{breakdown.finalPaymentAmount.toFixed(2)}</span>
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
