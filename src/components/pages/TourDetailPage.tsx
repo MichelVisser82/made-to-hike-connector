@@ -31,6 +31,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // Use unified hook for consistent guide data
   const { guideInfo, isLoadingProfessional, guideProfile } = useEnhancedGuideInfo(tour);
@@ -79,6 +80,23 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       ...prev,
       [index]: !prev[index]
     }));
+  };
+
+  // Rotate images: move current to end, show next as main
+  const rotateImagesForward = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % tour.images.length);
+  };
+
+  // Rotate images: show previous as main
+  const rotateImagesBackward = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + tour.images.length) % tour.images.length);
+  };
+
+  // Get ordered array of images starting from current index
+  const getOrderedImages = () => {
+    if (!tour.images || tour.images.length === 0) return [];
+    const images = [...tour.images];
+    return [...images.slice(currentImageIndex), ...images.slice(0, currentImageIndex)];
   };
 
   const selectedDateOption = dateOptions.find(d => d.date === selectedDate);
@@ -454,23 +472,66 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </h2>
             </div>
             <div className="flex gap-4">
-              <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-charcoal/5 shadow-lg">
+              {/* Main Image with Interactive Overlay */}
+              <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-charcoal/5 shadow-lg relative group">
                 <img
-                  src={tour.images[0]}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                  src={getOrderedImages()[0]}
+                  className="w-full h-full object-cover transition-transform duration-300"
                   alt={`${tour.title} - Main view`}
                 />
+                {/* Semi-transparent Interactive Overlay */}
+                {tour.images.length > 1 && (
+                  <>
+                    {/* Left half - rotate backward */}
+                    <button
+                      onClick={rotateImagesBackward}
+                      className="absolute left-0 top-0 bottom-0 w-1/2 bg-black/0 hover:bg-black/20 transition-colors cursor-pointer group/left"
+                      aria-label="Previous image"
+                    >
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/left:opacity-100 transition-opacity">
+                        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                          <svg className="w-6 h-6 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </button>
+                    {/* Right half - rotate forward */}
+                    <button
+                      onClick={rotateImagesForward}
+                      className="absolute right-0 top-0 bottom-0 w-1/2 bg-black/0 hover:bg-black/20 transition-colors cursor-pointer group/right"
+                      aria-label="Next image"
+                    >
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/right:opacity-100 transition-opacity">
+                        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                          <svg className="w-6 h-6 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </button>
+                    {/* Image counter */}
+                    <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                      {currentImageIndex + 1} / {tour.images.length}
+                    </div>
+                  </>
+                )}
               </div>
+              {/* Thumbnail Stack */}
               {tour.images.length > 1 && (
                 <div className="flex flex-col gap-3 w-48">
-                  {tour.images.slice(1, 4).map((image, index) => (
-                    <div key={index} className="aspect-square rounded-lg overflow-hidden bg-charcoal/5 shadow-lg">
+                  {getOrderedImages().slice(1, 4).map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex((currentImageIndex + index + 1) % tour.images.length)}
+                      className="aspect-square rounded-lg overflow-hidden bg-charcoal/5 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+                    >
                       <img
                         src={image}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         alt={`${tour.title} - Photo ${index + 2}`}
                       />
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
