@@ -29,7 +29,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Check, X, Clock, Loader2, MapPin, Edit, Trash2, Save } from 'lucide-react';
+import { Check, X, Clock, Loader2, MapPin, Edit, Trash2, Save, Upload, FileUp, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatDistanceToNow } from 'date-fns';
 import { useHikingRegions } from '@/hooks/useHikingRegions';
 
@@ -59,6 +60,13 @@ export const RegionSubmissionsPanel = () => {
   const [showEditRegionsDialog, setShowEditRegionsDialog] = useState(false);
   const [editingRegionId, setEditingRegionId] = useState<string | null>(null);
   const [editedRegion, setEditedRegion] = useState<any>({});
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [importResults, setImportResults] = useState<{
+    successCount: number;
+    errorCount: number;
+    errors: string[];
+  } | null>(null);
   const queryClient = useQueryClient();
   const { data: allRegions } = useHikingRegions();
 
@@ -232,6 +240,84 @@ export const RegionSubmissionsPanel = () => {
     }
   };
 
+  const readCsvFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  };
+
+  const importRegionsMutation = useMutation({
+    mutationFn: async (csvData: string) => {
+      const { data, error } = await supabase.functions.invoke('import-hiking-regions', {
+        body: { csvData }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['hiking-regions'] });
+      setImportResults({
+        successCount: data.successCount,
+        errorCount: data.errorCount,
+        errors: data.errors || []
+      });
+      toast.success(`Import complete: ${data.successCount} regions added/updated`);
+      if (data.errorCount > 0) {
+        toast.warning(`${data.errorCount} errors occurred. Check details below.`);
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to import regions');
+      setImportResults(null);
+    }
+  });
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.name.endsWith('.csv')) {
+        toast.error('Please select a CSV file');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+      setSelectedFile(file);
+      setImportResults(null);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!selectedFile) return;
+    
+    try {
+      const csvData = await readCsvFile(selectedFile);
+      importRegionsMutation.mutate(csvData);
+    } catch (error: any) {
+      toast.error('Failed to read CSV file');
+    }
+  };
+
+  const downloadTemplate = () => {
+    const template = `Country,Region,Subregion,Description,Key Features
+Austria,Tirol (Tyrol),Stubai Alps,Kingdom of Glaciers with 80+ glaciers,Stubai High Trail | Mountain hut network | Alpine terrain | Glaciers
+Switzerland,,Jungfrau Region,UNESCO World Heritage alpine wonderland,Eiger North Face | Historic railways | High-altitude hiking | Mountain villages`;
+    
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hiking_regions_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -275,13 +361,22 @@ export const RegionSubmissionsPanel = () => {
                     Review and approve or decline region submissions from guides
                   </CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowEditRegionsDialog(true)}
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit All Regions
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowImportDialog(true)}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import CSV
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowEditRegionsDialog(true)}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit All Regions
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -519,66 +614,163 @@ export const RegionSubmissionsPanel = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Import CSV Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Import Hiking Regions from CSV</DialogTitle>
+            <DialogDescription>
+              Upload a CSV file to bulk import multiple hiking regions
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* CSV Format Instructions */}
+            <Alert>
+              <FileUp className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="font-medium">Expected CSV format:</p>
+                  <code className="block text-xs bg-muted p-2 rounded">
+                    Country,Region,Subregion,Description,Key Features
+                  </code>
+                  <ul className="text-xs space-y-1 mt-2">
+                    <li>• <strong>Region</strong> column can be empty for regions without a parent</li>
+                    <li>• Separate <strong>Key Features</strong> with pipe symbol: <code>Feature 1 | Feature 2 | Feature 3</code></li>
+                    <li>• Duplicate regions (same country+region+subregion) will be updated</li>
+                  </ul>
+                </div>
+              </AlertDescription>
+            </Alert>
+
+            {/* Template Download */}
+            <Button
+              variant="outline"
+              onClick={downloadTemplate}
+              className="w-full"
+            >
+              <FileUp className="w-4 h-4 mr-2" />
+              Download CSV Template
+            </Button>
+
+            {/* File Upload */}
+            <div className="border-2 border-dashed rounded-lg p-6 text-center">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="csv-upload"
+              />
+              <label htmlFor="csv-upload" className="cursor-pointer">
+                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">
+                  {selectedFile ? selectedFile.name : 'Click to upload CSV file'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {selectedFile 
+                    ? `${(selectedFile.size / 1024).toFixed(1)} KB` 
+                    : 'Maximum file size: 5MB'}
+                </p>
+              </label>
+            </div>
+
+            {/* Import Results */}
+            {importResults && (
+              <Alert className={importResults.errorCount > 0 ? "border-yellow-500" : "border-green-500"}>
+                {importResults.errorCount > 0 ? (
+                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                )}
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <p className="font-medium">
+                      Import completed: {importResults.successCount} regions added/updated
+                    </p>
+                    {importResults.errorCount > 0 && (
+                      <div className="text-xs space-y-1">
+                        <p className="font-medium text-red-600">
+                          {importResults.errorCount} errors occurred:
+                        </p>
+                        <ul className="list-disc list-inside space-y-0.5 max-h-32 overflow-y-auto">
+                          {importResults.errors.map((error, idx) => (
+                            <li key={idx}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowImportDialog(false);
+                setSelectedFile(null);
+                setImportResults(null);
+              }}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={handleImport}
+              disabled={!selectedFile || importRegionsMutation.isPending}
+            >
+              {importRegionsMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import Regions
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Decline Dialog */}
       <Dialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Decline Region Submission</DialogTitle>
             <DialogDescription>
-              Please provide a reason for declining this region. The guide will receive an email notification and their tours using this region will be archived.
+              Please provide a reason for declining this submission
             </DialogDescription>
           </DialogHeader>
           
-          {selectedSubmission && (
-            <div className="space-y-4">
-              <div className="bg-muted p-3 rounded">
-                <p className="font-medium">{getRegionDisplayName(selectedSubmission)}</p>
-                <p className="text-sm text-muted-foreground mt-1">{selectedSubmission.description}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Reason for Decline *
-                </label>
-                <Textarea
-                  value={declineReason}
-                  onChange={(e) => setDeclineReason(e.target.value)}
-                  placeholder="Explain why this region cannot be approved (e.g., duplicate of existing region, incorrect information, too vague, etc.)"
-                  rows={4}
-                  className="w-full"
-                />
-              </div>
-              
-              <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
-                <strong>⚠️ Warning:</strong> This action will:
-                <ul className="list-disc ml-5 mt-2 space-y-1">
-                  <li>Send an email notification to the guide</li>
-                  <li>Archive all tours using this region</li>
-                  <li>Allow the guide to edit and reactivate their tours with a different region</li>
-                </ul>
-              </div>
-            </div>
-          )}
-          
+          <Textarea
+            placeholder="Enter reason for declining..."
+            value={declineReason}
+            onChange={(e) => setDeclineReason(e.target.value)}
+            rows={4}
+          />
+
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowDeclineDialog(false);
-                setSelectedSubmission(null);
-                setDeclineReason('');
-              }}
-              disabled={reviewMutation.isPending}
-            >
+            <Button variant="outline" onClick={() => setShowDeclineDialog(false)}>
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeclineConfirm}
-              disabled={reviewMutation.isPending || !declineReason.trim()}
+              disabled={!declineReason.trim() || reviewMutation.isPending}
             >
-              {reviewMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Decline & Notify Guide
+              {reviewMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Declining...
+                </>
+              ) : (
+                'Confirm Decline'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
