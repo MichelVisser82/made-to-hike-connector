@@ -81,6 +81,14 @@ export function PaymentScheduleSettings({
                 )}
               </div>
             </div>
+            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+              <RadioGroupItem value="none" id="none" />
+              <div className="flex-1">
+                <Label htmlFor="none" className="font-medium cursor-pointer">
+                  No deposit - Immediate full payment
+                </Label>
+              </div>
+            </div>
           </RadioGroup>
         </div>
 
@@ -113,16 +121,25 @@ export function PaymentScheduleSettings({
         <div className="p-4 border rounded-lg bg-accent/10">
           <div className="text-sm font-medium mb-3">Payment Timeline</div>
           <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Booking Date:</span>
-              <span className="font-medium">
-                {depositType === 'percentage' ? `${depositAmount}%` : `€${depositAmount}`} deposit charged
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">{finalPaymentDays} days before tour:</span>
-              <span className="font-medium">Remaining balance auto-charged</span>
-            </div>
+            {depositType === 'none' ? (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Booking Date:</span>
+                <span className="font-medium">Full payment charged immediately</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Booking Date:</span>
+                  <span className="font-medium">
+                    {depositType === 'percentage' ? `${depositAmount}%` : `€${depositAmount}`} deposit charged
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{finalPaymentDays} days before tour:</span>
+                  <span className="font-medium">Remaining balance auto-charged</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </CardContent>

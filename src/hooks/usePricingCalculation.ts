@@ -14,7 +14,7 @@ interface UsePricingCalculationProps {
   groupSettings?: GroupDiscountSettings;
   lastMinuteSettings?: LastMinuteSettings;
   discountsDisabled?: boolean;
-  depositType: 'percentage' | 'fixed';
+  depositType: 'percentage' | 'fixed' | 'none';
   depositAmount: number;
 }
 
@@ -31,7 +31,9 @@ export function usePricingCalculation({
 }: UsePricingCalculationProps): PricingBreakdown {
   return useMemo(() => {
     if (discountsDisabled || basePrice <= 0) {
-      const deposit = depositType === 'percentage' 
+      const deposit = depositType === 'none'
+        ? 0
+        : depositType === 'percentage' 
         ? basePrice * (depositAmount / 100)
         : depositAmount;
 
@@ -104,7 +106,9 @@ export function usePricingCalculation({
     const finalPrice = Math.max(currentPrice, 20);
 
     // Calculate deposit
-    const deposit = depositType === 'percentage'
+    const deposit = depositType === 'none' 
+      ? 0 
+      : depositType === 'percentage'
       ? finalPrice * (depositAmount / 100)
       : depositAmount;
 
