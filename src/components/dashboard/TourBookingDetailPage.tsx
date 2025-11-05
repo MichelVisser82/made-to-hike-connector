@@ -31,6 +31,7 @@ import {
   Send,
   Paperclip,
 } from 'lucide-react';
+import WeatherForecastCard from './WeatherForecastCard';
 
 interface TourBooking {
   id: string;
@@ -373,18 +374,30 @@ export function TourBookingDetailPage() {
         </Card>
       </div>
 
-      {/* Meeting Point */}
-      <Card className="border-burgundy/10">
-        <CardContent className="pt-6">
-          <div className="text-sm text-charcoal/60 mb-1">MEETING POINT</div>
-          <div className="font-medium text-charcoal">{tour.meeting_point}</div>
-          {tour.meeting_point_lat && tour.meeting_point_lng && (
-            <div className="text-sm text-charcoal/60 mt-1">
-              {tour.meeting_point_lat.toFixed(4)}°N, {tour.meeting_point_lng.toFixed(4)}°E
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Meeting Point and Weather */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="border-burgundy/10">
+          <CardContent className="pt-6">
+            <div className="text-sm text-charcoal/60 mb-1">MEETING POINT</div>
+            <div className="font-medium text-charcoal">{tour.meeting_point}</div>
+            {tour.meeting_point_lat && tour.meeting_point_lng && (
+              <div className="text-sm text-charcoal/60 mt-1">
+                {tour.meeting_point_lat.toFixed(4)}°N, {tour.meeting_point_lng.toFixed(4)}°E
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Weather Forecast */}
+        {tour.meeting_point_lat && tour.meeting_point_lng && bookings.length > 0 && (
+          <WeatherForecastCard
+            location={tour.meeting_point}
+            latitude={tour.meeting_point_lat}
+            longitude={tour.meeting_point_lng}
+            date={bookings[0].booking_date}
+          />
+        )}
+      </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
