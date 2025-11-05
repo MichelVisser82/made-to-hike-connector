@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -19,9 +20,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Check, X, Clock, Loader2, MapPin } from 'lucide-react';
+import { Check, X, Clock, Loader2, MapPin, Edit, Trash2, Save } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useHikingRegions } from '@/hooks/useHikingRegions';
 
 interface RegionSubmission {
   id: string;
@@ -46,7 +56,11 @@ export const RegionSubmissionsPanel = () => {
   const [selectedSubmission, setSelectedSubmission] = useState<RegionSubmission | null>(null);
   const [declineReason, setDeclineReason] = useState('');
   const [showDeclineDialog, setShowDeclineDialog] = useState(false);
+  const [showEditRegionsDialog, setShowEditRegionsDialog] = useState(false);
+  const [editingRegionId, setEditingRegionId] = useState<string | null>(null);
+  const [editedRegion, setEditedRegion] = useState<any>({});
   const queryClient = useQueryClient();
+  const { data: allRegions } = useHikingRegions();
 
   const { data: submissions, isLoading } = useQuery({
     queryKey: ['region-submissions'],
@@ -158,6 +172,66 @@ export const RegionSubmissionsPanel = () => {
       : `${submission.country} - ${submission.subregion}`;
   };
 
+  const updateRegionMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+      const { error } = await supabase
+        .from('hiking_regions')
+        .update(updates)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hiking-regions'] });
+      toast.success('Region updated successfully');
+      setEditingRegionId(null);
+      setEditedRegion({});
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update region');
+    },
+  });
+
+  const deleteRegionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('hiking_regions')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hiking-regions'] });
+      toast.success('Region deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete region');
+    },
+  });
+
+  const handleEditRegion = (region: any) => {
+    setEditingRegionId(region.id);
+    setEditedRegion({ ...region });
+  };
+
+  const handleSaveRegion = () => {
+    if (!editingRegionId) return;
+    updateRegionMutation.mutate({
+      id: editingRegionId,
+      updates: {
+        country: editedRegion.country,
+        region: editedRegion.region,
+        subregion: editedRegion.subregion,
+        description: editedRegion.description,
+      },
+    });
+  };
+
+  const handleDeleteRegion = (id: string) => {
+    if (confirm('Are you sure you want to delete this region? This action cannot be undone.')) {
+      deleteRegionMutation.mutate(id);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -191,13 +265,24 @@ export const RegionSubmissionsPanel = () => {
         {pendingSubmissions.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Pending Region Submissions ({pendingSubmissions.length})
-              </CardTitle>
-              <CardDescription>
-                Review and approve or decline region submissions from guides
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Pending Region Submissions ({pendingSubmissions.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Review and approve or decline region submissions from guides
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditRegionsDialog(true)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit All Regions
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {pendingSubmissions.map((submission) => (
@@ -306,6 +391,133 @@ export const RegionSubmissionsPanel = () => {
           </Card>
         )}
       </div>
+
+      {/* Edit All Regions Dialog */}
+      <Dialog open={showEditRegionsDialog} onOpenChange={setShowEditRegionsDialog}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit All Regions</DialogTitle>
+            <DialogDescription>
+              Manage all hiking regions in the database
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Country</TableHead>
+                  <TableHead>Region</TableHead>
+                  <TableHead>Subregion</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allRegions?.map((region) => (
+                  <TableRow key={region.id}>
+                    <TableCell>
+                      {editingRegionId === region.id ? (
+                        <Input
+                          value={editedRegion.country}
+                          onChange={(e) => setEditedRegion({ ...editedRegion, country: e.target.value })}
+                          className="h-8"
+                        />
+                      ) : (
+                        region.country
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editingRegionId === region.id ? (
+                        <Input
+                          value={editedRegion.region || ''}
+                          onChange={(e) => setEditedRegion({ ...editedRegion, region: e.target.value || null })}
+                          className="h-8"
+                          placeholder="Optional"
+                        />
+                      ) : (
+                        region.region || '-'
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editingRegionId === region.id ? (
+                        <Input
+                          value={editedRegion.subregion}
+                          onChange={(e) => setEditedRegion({ ...editedRegion, subregion: e.target.value })}
+                          className="h-8"
+                        />
+                      ) : (
+                        region.subregion
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-md">
+                      {editingRegionId === region.id ? (
+                        <Textarea
+                          value={editedRegion.description}
+                          onChange={(e) => setEditedRegion({ ...editedRegion, description: e.target.value })}
+                          className="min-h-[60px]"
+                        />
+                      ) : (
+                        <span className="text-sm line-clamp-2">{region.description}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {editingRegionId === region.id ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleSaveRegion}
+                              disabled={updateRegionMutation.isPending}
+                            >
+                              <Save className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingRegionId(null);
+                                setEditedRegion({});
+                              }}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditRegion(region)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteRegion(region.id)}
+                              disabled={deleteRegionMutation.isPending}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditRegionsDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Decline Dialog */}
       <Dialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
