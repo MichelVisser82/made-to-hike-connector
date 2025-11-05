@@ -60,32 +60,68 @@ export function MessagesModal({
   }, [messages]);
 
   const fetchOrCreateConversation = async () => {
-    const { data: existing } = await supabase
-      .from('conversations')
-      .select('id')
-      .eq('tour_id', booking.tour_id)
-      .eq('hiker_id', booking.hiker_id)
-      .eq('guide_id', booking.tour?.guide_id)
-      .eq('conversation_type', 'booking_chat')
-      .maybeSingle();
-
-    if (existing) {
-      setConversationId(existing.id);
-    } else {
-      const { data: newConv } = await supabase
-        .from('conversations')
-        .insert({
-          tour_id: booking.tour_id,
-          hiker_id: booking.hiker_id,
-          guide_id: booking.tour?.guide_id,
-          conversation_type: 'booking_chat'
-        })
-        .select('id')
-        .single();
-
-      if (newConv) {
-        setConversationId(newConv.id);
+    try {
+      if (!booking.tour?.guide_id || !booking.hiker_id || !booking.tour_id) {
+        console.error('Missing required booking data:', { 
+          guideId: booking.tour?.guide_id, 
+          hikerId: booking.hiker_id, 
+          tourId: booking.tour_id 
+        });
+        toast({
+          title: 'Error',
+          description: 'Unable to load conversation. Missing booking information.',
+          variant: 'destructive'
+        });
+        return;
       }
+
+      const { data: existing, error: fetchError } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('tour_id', booking.tour_id)
+        .eq('hiker_id', booking.hiker_id)
+        .eq('guide_id', booking.tour.guide_id)
+        .eq('conversation_type', 'booking_chat')
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error fetching conversation:', fetchError);
+        throw fetchError;
+      }
+
+      if (existing) {
+        console.log('Found existing conversation:', existing.id);
+        setConversationId(existing.id);
+      } else {
+        console.log('Creating new conversation...');
+        const { data: newConv, error: createError } = await supabase
+          .from('conversations')
+          .insert({
+            tour_id: booking.tour_id,
+            hiker_id: booking.hiker_id,
+            guide_id: booking.tour.guide_id,
+            conversation_type: 'booking_chat'
+          })
+          .select('id')
+          .single();
+
+        if (createError) {
+          console.error('Error creating conversation:', createError);
+          throw createError;
+        }
+
+        if (newConv) {
+          console.log('Created new conversation:', newConv.id);
+          setConversationId(newConv.id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch or create conversation:', error);
+      toast({
+        title: 'Error',
+        description: 'Unable to set up messaging. Please try again.',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -100,7 +136,18 @@ export function MessagesModal({
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !conversationId) return;
+    if (!newMessage.trim()) {
+      return;
+    }
+
+    if (!conversationId) {
+      toast({
+        title: 'Please wait',
+        description: 'Conversation is being set up...',
+        variant: 'default'
+      });
+      return;
+    }
     
     try {
       const result = await sendMessage(newMessage, 'guide', user?.email);
@@ -122,9 +169,10 @@ export function MessagesModal({
       setNewMessage('');
       setModerationWarning(null);
     } catch (error) {
+      console.error('Send message error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to send message. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to send message. Please try again.',
         variant: 'destructive'
       });
     }
