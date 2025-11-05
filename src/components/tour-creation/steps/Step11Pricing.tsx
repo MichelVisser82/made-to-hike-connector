@@ -17,18 +17,16 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
   const form = useFormContext<TourFormData>();
 
   const handleSave = async () => {
-    const isValid = await form.trigger(['price', 'currency', 'service_fee', 'group_size']);
+    const isValid = await form.trigger(['price', 'currency', 'group_size']);
     if (isValid && onSave) await onSave();
   };
 
   const handleNext = async () => {
-    const isValid = await form.trigger(['price', 'currency', 'service_fee', 'group_size']);
+    const isValid = await form.trigger(['price', 'currency', 'group_size']);
     if (isValid && onNext) await onNext();
   };
 
   const price = form.watch('price') || 0;
-  const serviceFee = form.watch('service_fee') || 0;
-  const total = price + serviceFee;
 
   return (
     <Card>
@@ -82,26 +80,6 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
 
         <FormField
           control={form.control}
-          name="service_fee"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Service Fee (Optional)</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  min="0"
-                  placeholder="0"
-                  {...field} 
-                  onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="group_size"
           render={({ field }) => (
             <FormItem>
@@ -124,24 +102,10 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
         <Card className="bg-muted">
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Base Price:</span>
-                <span className="font-medium">
-                  {form.watch('currency') === 'EUR' ? '€' : '£'}{price.toFixed(2)}
-                </span>
-              </div>
-              {serviceFee > 0 && (
-                <div className="flex justify-between">
-                  <span>Service Fee:</span>
-                  <span className="font-medium">
-                    {form.watch('currency') === 'EUR' ? '€' : '£'}{serviceFee.toFixed(2)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between text-lg font-bold border-t pt-2">
-                <span>Total Price:</span>
+              <div className="flex justify-between text-lg font-bold">
+                <span>Price per person:</span>
                 <span>
-                  {form.watch('currency') === 'EUR' ? '€' : '£'}{total.toFixed(2)}
+                  {form.watch('currency') === 'EUR' ? '€' : '£'}{price.toFixed(2)}
                 </span>
               </div>
             </div>
