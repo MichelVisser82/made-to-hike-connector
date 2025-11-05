@@ -336,7 +336,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       }
 
       // Update existing draft or published tour
-      const { date_slots, routeData, total_distance_km, average_distance_per_day_km, policy_overrides, ...tourData } = data as any;
+      const { date_slots, routeData, total_distance_km, average_distance_per_day_km, ...tourData } = data as any;
       
       const formattedTourData = {
         ...tourData,
@@ -423,7 +423,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       }
 
       // Format the data for submission (exclude date_slots, routeData, and form-only fields)
-      const { date_slots, routeData, total_distance_km, average_distance_per_day_km, policy_overrides, ...tourData } = data as any;
+      const { date_slots, routeData, total_distance_km, average_distance_per_day_km, ...tourData } = data as any;
       
       const formattedTourData = {
         ...tourData,

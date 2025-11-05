@@ -55,6 +55,18 @@ export interface Tour {
   slug?: string;
   meta_title?: string;
   meta_description?: string;
+  policy_overrides?: {
+    using_default_cancellation?: boolean;
+    custom_cancellation_approach?: string;
+    custom_cancellation_policy_type?: string;
+    using_default_discounts?: boolean;
+    custom_discount_settings?: any;
+    discounts_disabled?: boolean;
+    using_default_payment?: boolean;
+    custom_deposit_type?: string;
+    custom_deposit_amount?: number;
+    custom_final_payment_days?: number;
+  };
 }
 
 export interface SearchFilters {

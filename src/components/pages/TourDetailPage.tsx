@@ -18,6 +18,7 @@ import { useTourReviews } from '@/hooks/useTourReviews';
 import { format, addDays, parse } from 'date-fns';
 import { HikingLocationMap } from '../tour/HikingLocationMap';
 import { PublicTourMapSection } from '../tour/PublicTourMapSection';
+import { TourPolicyDisplay } from '../tour/TourPolicyDisplay';
 
 interface TourDetailPageProps {
   tour: Tour;
@@ -820,6 +821,15 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   )}
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Cancellation Policy & Payment Terms */}
+            <div className="mt-6">
+              <TourPolicyDisplay
+                guideId={tour.guide_id}
+                policyOverrides={tour.policy_overrides as any}
+                tourPrice={tour.price}
+              />
             </div>
           </div>
 
