@@ -170,24 +170,29 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Deposit required:</span>
+            <span className="text-muted-foreground font-medium">Booking Date:</span>
             <span className="font-medium">
-              {depositType === 'percentage' 
-                ? `${depositAmount}% of total`
-                : depositType === 'none'
-                ? 'No deposit required'
-                : `${currencySymbol}${depositAmount}`
+              {depositType === 'none'
+                ? 'Full payment charged'
+                : depositType === 'percentage'
+                ? `${depositAmount}% deposit charged`
+                : `${currencySymbol}${depositAmount} deposit charged`
               }
             </span>
           </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Final payment due:</span>
-            <span className="font-medium">{finalPaymentDays} days before tour</span>
-          </div>
+          {depositType !== 'none' && (
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground font-medium">{finalPaymentDays} days before tour:</span>
+              <span className="font-medium">Remaining balance auto-charged</span>
+            </div>
+          )}
           <div className="flex items-start gap-2 mt-3 p-3 bg-muted rounded-lg">
             <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
             <p className="text-xs text-muted-foreground">
-              Pay a deposit to secure your spot, then the remaining balance {finalPaymentDays} days before your tour starts.
+              {depositType === 'none'
+                ? 'The full amount will be charged when you complete your booking.'
+                : `Your deposit secures your booking. The remaining balance will be automatically charged ${finalPaymentDays} days before your tour.`
+              }
             </p>
           </div>
         </CardContent>
