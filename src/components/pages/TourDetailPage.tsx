@@ -858,12 +858,12 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   <div className="p-8 flex flex-col pt-16">
                     {/* Certification Badges */}
                     {guideProfile?.certifications && guideProfile.certifications.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-6">
+                      <div className="flex flex-wrap gap-3 mb-6">
                         {guideProfile.certifications.map((cert, index) => (
                           <CertificationBadge
                             key={index}
                             certification={cert}
-                            size="compact"
+                            displayMode="detailed"
                             showTooltip
                             isGuideVerified={guideProfile?.verified ?? false}
                           />
