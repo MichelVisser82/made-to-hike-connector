@@ -8,7 +8,6 @@ import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, H
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
-import difficultyTerrainIllustration from '@/assets/difficulty-terrain-illustration.png';
 import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
@@ -603,16 +602,127 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   </div>
 
                   {/* Terrain Illustration */}
-                  <div className="relative w-full rounded-lg overflow-hidden bg-white">
-                    <img 
-                      src={difficultyTerrainIllustration} 
-                      alt="Difficulty levels: Easy moorland, Moderate rolling hills, Challenging lower mountains, Expert high alpine" 
-                      className="w-full h-auto object-contain"
-                      style={{ 
-                        clipPath: 'inset(8% 2% 8% 2%)',
-                        transform: 'scale(1.05)'
-                      }}
-                    />
+                  <div className="relative w-full rounded-lg overflow-hidden border-4 border-[#B8860B]" style={{ background: 'linear-gradient(180deg, #E8F4F8 0%, #D4E9F2 50%, #C0DDE8 100%)' }}>
+                    <svg className="w-full h-auto" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
+                      {/* Sky gradient background */}
+                      <defs>
+                        <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" style={{ stopColor: '#E8F4F8', stopOpacity: 1 }} />
+                          <stop offset="100%" style={{ stopColor: '#C0DDE8', stopOpacity: 1 }} />
+                        </linearGradient>
+                        
+                        {/* Patterns for texture */}
+                        <pattern id="grassTexture" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                          <line x1="0" y1="10" x2="20" y2="10" stroke="#7a8e6f" strokeWidth="0.5" opacity="0.3" />
+                          <line x1="5" y1="0" x2="5" y2="20" stroke="#7a8e6f" strokeWidth="0.5" opacity="0.2" />
+                        </pattern>
+                        
+                        <pattern id="hillTexture" x="0" y="0" width="30" height="15" patternUnits="userSpaceOnUse">
+                          <path d="M0,10 Q7.5,5 15,10 Q22.5,15 30,10" stroke="#a89068" strokeWidth="1" fill="none" opacity="0.4" />
+                        </pattern>
+                        
+                        <pattern id="mountainTexture" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse">
+                          <path d="M0,20 L5,10 L10,15 L15,5 L20,12 L25,8" stroke="#6a5545" strokeWidth="1.5" fill="none" opacity="0.3" />
+                        </pattern>
+                        
+                        <pattern id="alpineTexture" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                          <circle cx="5" cy="5" r="1" fill="#4a5a6a" opacity="0.2" />
+                          <circle cx="15" cy="12" r="1" fill="#4a5a6a" opacity="0.2" />
+                        </pattern>
+                      </defs>
+                      
+                      {/* Background sky */}
+                      <rect width="1200" height="400" fill="url(#skyGradient)" />
+                      
+                      {/* Gold border frame */}
+                      <rect x="10" y="10" width="1180" height="380" fill="none" stroke="#B8860B" strokeWidth="8" />
+                      <rect x="18" y="18" width="1164" height="364" fill="none" stroke="#DAA520" strokeWidth="2" />
+                      
+                      {/* A - Easy: Moorland with topographic lines */}
+                      <path d="M 40,280 L 340,280 L 340,380 L 40,380 Z" fill="#8b9f7f" />
+                      <rect x="40" y="280" width="300" height="100" fill="url(#grassTexture)" />
+                      {/* Topographic lines */}
+                      <path d="M 40,285 Q 100,283 160,285 Q 220,287 280,285 Q 310,284 340,285" stroke="#6a7a5f" strokeWidth="1.5" fill="none" opacity="0.6" />
+                      <path d="M 40,295 Q 80,293 140,295 Q 200,297 260,295 Q 300,294 340,296" stroke="#6a7a5f" strokeWidth="1.5" fill="none" opacity="0.5" />
+                      <path d="M 40,310 Q 120,308 200,310 Q 260,312 340,310" stroke="#6a7a5f" strokeWidth="1.5" fill="none" opacity="0.4" />
+                      {/* Vegetation dots */}
+                      <circle cx="80" cy="300" r="3" fill="#5a6a4a" opacity="0.7" />
+                      <circle cx="160" cy="310" r="3" fill="#5a6a4a" opacity="0.7" />
+                      <circle cx="240" cy="295" r="3" fill="#5a6a4a" opacity="0.7" />
+                      <circle cx="120" cy="330" r="3" fill="#5a6a4a" opacity="0.7" />
+                      <circle cx="280" cy="320" r="3" fill="#5a6a4a" opacity="0.7" />
+                      
+                      {/* B - Moderate: Rolling hills with topographic contours */}
+                      <path d="M 340,280 Q 380,250 420,240 Q 460,235 500,245 Q 540,252 580,265 Q 620,275 660,280 L 660,380 L 340,380 Z" fill="#c4a574" />
+                      <rect x="340" y="235" width="320" height="145" fill="url(#hillTexture)" />
+                      {/* Contour lines */}
+                      <path d="M 340,282 Q 400,252 460,240 Q 520,242 580,268 Q 620,278 660,282" stroke="#a89068" strokeWidth="2" fill="none" opacity="0.5" />
+                      <path d="M 360,295 Q 410,270 470,260 Q 530,262 590,285 Q 630,292 660,295" stroke="#a89068" strokeWidth="2" fill="none" opacity="0.4" />
+                      <path d="M 380,315 Q 440,290 500,285 Q 560,290 620,310 Q 645,315 660,318" stroke="#a89068" strokeWidth="2" fill="none" opacity="0.3" />
+                      {/* Trees on hills */}
+                      <polygon points="400,255 395,268 405,268" fill="#4a5a3a" />
+                      <polygon points="480,248 475,261 485,261" fill="#4a5a3a" />
+                      <polygon points="560,260 555,273 565,273" fill="#4a5a3a" />
+                      <polygon points="440,270 435,283 445,283" fill="#3a4a2a" />
+                      <polygon points="520,265 515,278 525,278" fill="#3a4a2a" />
+                      
+                      {/* C - Challenging: Lower mountains with dramatic peaks */}
+                      <path d="M 660,280 L 730,160 L 780,180 L 830,140 L 880,170 L 930,190 L 980,210 L 980,380 L 660,380 Z" fill="#8a6f5f" />
+                      <rect x="660" y="140" width="320" height="240" fill="url(#mountainTexture)" />
+                      {/* Mountain shadows and contours */}
+                      <path d="M 730,160 L 780,180 L 780,380 L 730,380 Z" fill="#6a4f3f" opacity="0.3" />
+                      <path d="M 830,140 L 880,170 L 880,380 L 830,380 Z" fill="#6a4f3f" opacity="0.3" />
+                      {/* Topographic lines on mountains */}
+                      <path d="M 660,285 Q 720,200 780,185 Q 840,165 900,185 Q 940,200 980,220" stroke="#6a4f3f" strokeWidth="2.5" fill="none" opacity="0.4" />
+                      <path d="M 670,310 Q 730,230 790,215 Q 850,200 910,220 Q 950,235 980,250" stroke="#6a4f3f" strokeWidth="2" fill="none" opacity="0.3" />
+                      {/* Snow patches on peaks */}
+                      <path d="M 728,160 L 732,165 L 724,165 Z" fill="#f5f5f0" opacity="0.9" />
+                      <path d="M 828,140 L 832,146 L 824,146 Z" fill="#f5f5f0" opacity="0.9" />
+                      {/* Forest at base */}
+                      <polygon points="700,290 695,303 705,303" fill="#2a3a1a" />
+                      <polygon points="740,285 735,298 745,298" fill="#2a3a1a" />
+                      <polygon points="780,295 775,308 785,308" fill="#2a3a1a" />
+                      <polygon points="820,300 815,313 825,313" fill="#2a3a1a" />
+                      <polygon points="860,305 855,318 865,318" fill="#2a3a1a" />
+                      
+                      {/* D - Expert: High alpine with snow-capped peaks */}
+                      <path d="M 980,210 L 1040,80 L 1090,110 L 1140,60 L 1160,380 L 980,380 Z" fill="#5a6f7f" />
+                      <rect x="980" y="60" width="180" height="320" fill="url(#alpineTexture)" />
+                      {/* Alpine shadows */}
+                      <path d="M 1040,80 L 1090,110 L 1090,380 L 1040,380 Z" fill="#3a4f5f" opacity="0.4" />
+                      <path d="M 1140,60 L 1160,90 L 1160,380 L 1140,380 Z" fill="#3a4f5f" opacity="0.4" />
+                      {/* Dramatic snow caps and glaciers */}
+                      <path d="M 1038,80 L 1042,88 L 1034,88 Z" fill="#ffffff" opacity="0.95" />
+                      <path d="M 1036,88 L 1044,98 L 1032,98 Z" fill="#f0f5f8" opacity="0.8" />
+                      <path d="M 1138,60 L 1142,70 L 1134,70 Z" fill="#ffffff" opacity="0.95" />
+                      <path d="M 1136,70 L 1144,82 L 1132,82 Z" fill="#f0f5f8" opacity="0.8" />
+                      {/* Glacier flows */}
+                      <path d="M 1040,100 Q 1050,140 1060,180 Q 1070,220 1080,260" stroke="#d0e5f0" strokeWidth="3" fill="none" opacity="0.6" />
+                      <path d="M 1090,120 Q 1100,160 1110,200 Q 1120,240 1130,280" stroke="#d0e5f0" strokeWidth="3" fill="none" opacity="0.6" />
+                      {/* Rocky texture */}
+                      <path d="M 1000,250 L 1020,240 L 1040,255 L 1060,245 L 1080,260" stroke="#4a5a6a" strokeWidth="2" fill="none" opacity="0.3" />
+                      
+                      {/* Difficulty badges - positioned in sky above terrain */}
+                      {/* Badge A */}
+                      <circle cx="190" cy="140" r="45" fill="#ffffff" stroke="#B8860B" strokeWidth="4" />
+                      <circle cx="190" cy="140" r="38" fill="none" stroke="#DAA520" strokeWidth="2" />
+                      <text x="190" y="160" fontSize="48" fontWeight="bold" fill="#722f37" textAnchor="middle" fontFamily="serif">A</text>
+                      
+                      {/* Badge B */}
+                      <circle cx="500" cy="120" r="45" fill="#ffffff" stroke="#B8860B" strokeWidth="4" />
+                      <circle cx="500" cy="120" r="38" fill="none" stroke="#DAA520" strokeWidth="2" />
+                      <text x="500" y="140" fontSize="48" fontWeight="bold" fill="#722f37" textAnchor="middle" fontFamily="serif">B</text>
+                      
+                      {/* Badge C */}
+                      <circle cx="820" cy="90" r="45" fill="#ffffff" stroke="#B8860B" strokeWidth="4" />
+                      <circle cx="820" cy="90" r="38" fill="none" stroke="#DAA520" strokeWidth="2" />
+                      <text x="820" y="110" fontSize="48" fontWeight="bold" fill="#722f37" textAnchor="middle" fontFamily="serif">C</text>
+                      
+                      {/* Badge D */}
+                      <circle cx="1070" cy="40" r="45" fill="#ffffff" stroke="#B8860B" strokeWidth="4" />
+                      <circle cx="1070" cy="40" r="38" fill="none" stroke="#DAA520" strokeWidth="2" />
+                      <text x="1070" y="60" fontSize="48" fontWeight="bold" fill="#722f37" textAnchor="middle" fontFamily="serif">D</text>
+                    </svg>
                   </div>
                 </div>
               </CardContent>
