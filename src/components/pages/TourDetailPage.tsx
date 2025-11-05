@@ -179,7 +179,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </p>
 
               {/* Stats Card */}
-              <Card className="bg-white/95 backdrop-blur-sm shadow-xl rounded-xl p-4 max-w-xl mx-auto lg:mx-0">
+              <Card className="bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-4 max-w-xl mx-auto lg:mx-0">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-burgundy flex-shrink-0" />
@@ -204,7 +204,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
 
             {/* Right Side - Booking Card (Desktop) */}
-            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 bg-white/95 backdrop-blur-sm shadow-xl rounded-xl p-5">
+            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-5">
               {/* Guide Info */}
               <div className="mb-4 pb-4 border-b border-burgundy/10">
                 <GuideInfoDisplay 
@@ -219,7 +219,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </div>
 
               {/* Price Display */}
-              <div className="text-center py-3 border-b border-burgundy/10 mb-4">
+              <div className="text-center py-3 border-b mb-4">
                 <div className="text-sm text-charcoal/60 mb-1">From</div>
                 <div className="text-3xl font-bold text-charcoal">
                   {tour.currency === 'EUR' ? '€' : '£'}{lowestPrice}
@@ -233,7 +233,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 <button
                   type="button"
                   onClick={() => setShowDateDropdown(!showDateDropdown)}
-                  className="w-full px-4 py-3 border border-charcoal/20 rounded-lg bg-white hover:border-burgundy transition-colors flex items-center justify-between text-left"
+                  className="w-full px-4 py-3 border rounded-lg bg-card hover:border-primary transition-colors flex items-center justify-between text-left"
                 >
                   <span className={selectedDate ? "text-charcoal" : "text-charcoal/60"}>
                     {selectedDate 
@@ -244,7 +244,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 </button>
                 
                 {showDateDropdown && (
-                  <div className="absolute z-[100] w-full mt-2 bg-white border border-charcoal/20 rounded-lg shadow-lg max-h-80 overflow-auto">
+                  <div className="absolute z-[100] w-full mt-2 bg-card border rounded-lg shadow-lg max-h-80 overflow-auto">
                     {isLoadingDates ? (
                       <div className="p-4 text-center text-charcoal/60">Loading dates...</div>
                     ) : dateOptions.length === 0 ? (
@@ -271,7 +271,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                           </div>
                           <div className="text-right flex-shrink-0">
                             {option.discount && (
-                              <Badge variant="secondary" className="mb-1 text-xs px-2 py-0 bg-burgundy/10 text-burgundy border-0">
+                              <Badge variant="secondary" className="mb-1 text-xs px-2 py-0 bg-primary/10 text-primary border-0">
                                 {option.discount}
                               </Badge>
                             )}
@@ -310,13 +310,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 <Button 
                   onClick={() => onBookTour(tour)}
                   disabled={!selectedDate}
-                  className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm py-2.5"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-2.5"
                 >
-                  {selectedDate ? 'Book Now' : 'Select a Date to Book'}
+                  Book Now
                 </Button>
                 <Button 
                   variant="outline"
-                  className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 text-sm py-2.5"
+                  className="w-full border-primary text-primary hover:bg-primary/10 text-sm py-2.5"
                   onClick={() => setChatOpen(true)}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
@@ -330,9 +330,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           </div>
 
           {/* Mobile Booking Card */}
-          <Card className="lg:hidden mt-6 bg-white/95 backdrop-blur-sm shadow-xl rounded-xl p-5">
+          <Card className="lg:hidden mt-6 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-5">
             {/* Guide Info */}
-            <div className="mb-4 pb-4 border-b border-burgundy/10">
+            <div className="mb-4 pb-4 border-b">
               <GuideInfoDisplay 
                 guideInfo={guideInfo}
                 isLoadingProfessional={isLoadingProfessional}
@@ -345,7 +345,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
 
             {/* Price Display */}
-            <div className="text-center py-3 border-b border-burgundy/10 mb-4">
+            <div className="text-center py-3 border-b mb-4">
               <div className="text-sm text-charcoal/60 mb-1">From</div>
               <div className="text-3xl font-bold text-charcoal">
                 {tour.currency === 'EUR' ? '€' : '£'}{lowestPrice}
@@ -359,7 +359,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               <button
                 type="button"
                 onClick={() => setShowDateDropdown(!showDateDropdown)}
-                className="w-full px-4 py-3 border border-charcoal/20 rounded-lg bg-white hover:border-burgundy transition-colors flex items-center justify-between text-left"
+                className="w-full px-4 py-3 border rounded-lg bg-card hover:border-primary transition-colors flex items-center justify-between text-left"
               >
                 <span className={selectedDate ? "text-charcoal" : "text-charcoal/60"}>
                   {selectedDate 
@@ -398,12 +398,12 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           {/* Main Content Column */}
           <div className="space-y-6">
             {/* About This Tour Section */}
-            <Card className="border-burgundy/20 shadow-lg bg-white">
+            <Card className="shadow-lg">
               <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-charcoal mb-4" style={{fontFamily: 'Playfair Display, serif'}}>
+                <h2 className="text-2xl font-bold mb-4" style={{fontFamily: 'Playfair Display, serif'}}>
                   About This Tour
                 </h2>
-                <p className="text-charcoal/80 leading-relaxed whitespace-pre-line">
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                   {tour.description}
                 </p>
               </CardContent>
@@ -412,7 +412,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* Tour Highlights & Meeting Location - Side by Side */}
             <div className="grid lg:grid-cols-2 gap-6">
               {/* Tour Highlights */}
-              <Card className="border-burgundy/20 shadow-lg bg-white">
+              <Card className="shadow-lg">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-charcoal/80 mb-4">Tour Highlights</h3>
                   <div className="space-y-3">
@@ -428,7 +428,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
               {/* Meeting Location Map */}
               {tour.meeting_point_lat && tour.meeting_point_lng && (
-                <Card className="border-burgundy/20 shadow-lg bg-white flex flex-col">
+                <Card className="shadow-lg flex flex-col">
                   <CardContent className="p-6 flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-4">
                       <MapPin className="h-5 w-5 text-burgundy" />
@@ -473,7 +473,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
             <div className="flex gap-4">
               {/* Main Image with Interactive Overlay */}
-              <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-charcoal/5 shadow-lg relative group">
+              <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-muted shadow-lg relative group">
                 <img
                   src={getOrderedImages()[0]}
                   className="w-full h-full object-cover transition-transform duration-300"
@@ -489,7 +489,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       aria-label="Previous image"
                     >
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/left:opacity-100 transition-opacity">
-                        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                        <div className="w-12 h-12 rounded-full bg-card/90 flex items-center justify-center shadow-lg">
                           <svg className="w-6 h-6 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                           </svg>
@@ -503,7 +503,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       aria-label="Next image"
                     >
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/right:opacity-100 transition-opacity">
-                        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                        <div className="w-12 h-12 rounded-full bg-card/90 flex items-center justify-center shadow-lg">
                           <svg className="w-6 h-6 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
@@ -524,7 +524,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex((currentImageIndex + index + 1) % tour.images.length)}
-                      className="aspect-square rounded-lg overflow-hidden bg-charcoal/5 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+                      className="aspect-square rounded-lg overflow-hidden bg-muted shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
                     >
                       <img
                         src={image}
@@ -550,7 +550,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           <div className="space-y-6">
 
             {/* Fitness Requirements */}
-            <Card className="border-burgundy/20 shadow-lg bg-white">
+            <Card className="shadow-lg">
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold text-charcoal mb-6" style={{fontFamily: 'Playfair Display, serif'}}>
                   Fitness Requirements
@@ -661,17 +661,17 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     </svg>
 
                     {/* Level markers in sky above terrain */}
-                    <div className="absolute top-32 left-[12%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/20 shadow-lg flex items-center justify-center">
-                      <span className="text-lg font-bold text-charcoal">A</span>
+                    <div className="absolute top-32 left-[12%] w-12 h-12 bg-card rounded-full border-2 border-border shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-foreground">A</span>
                     </div>
-                    <div className="absolute top-24 left-[38%] w-12 h-12 bg-white rounded-full border-3 border-burgundy/30 shadow-lg flex items-center justify-center">
-                      <span className="text-lg font-bold text-burgundy">B</span>
+                    <div className="absolute top-24 left-[38%] w-12 h-12 bg-card rounded-full border-2 border-primary shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-primary">B</span>
                     </div>
-                    <div className="absolute top-16 left-[63%] w-12 h-12 bg-burgundy/10 rounded-full border-3 border-burgundy shadow-lg flex items-center justify-center">
-                      <span className="text-lg font-bold text-burgundy">C</span>
+                    <div className="absolute top-16 left-[63%] w-12 h-12 bg-primary/10 rounded-full border-2 border-primary shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-primary">C</span>
                     </div>
-                    <div className="absolute top-8 right-[10%] w-12 h-12 bg-burgundy rounded-full border-3 border-burgundy-dark shadow-lg flex items-center justify-center">
-                      <span className="text-lg font-bold text-white">D</span>
+                    <div className="absolute top-8 right-[10%] w-12 h-12 bg-primary rounded-full border-2 border-primary-glow shadow-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-primary-foreground">D</span>
                     </div>
                   </div>
 
@@ -711,7 +711,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             )}
 
             {/* Detailed Itinerary */}
-            <Card className="border-burgundy/20 shadow-lg bg-white">
+            <Card className="shadow-lg">
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold text-charcoal mb-6" style={{fontFamily: 'Playfair Display, serif'}}>
                   Detailed Itinerary
