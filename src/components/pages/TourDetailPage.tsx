@@ -603,7 +603,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   </div>
 
                   {/* Terrain Illustration */}
-                  <div className="relative w-full rounded-lg overflow-hidden">
+                  <div className="relative w-full rounded-lg overflow-hidden bg-white">
                     <img 
                       src={difficultyTerrainIllustration} 
                       alt="Difficulty levels: Easy moorland, Moderate rolling hills, Challenging lower mountains, Expert high alpine" 
