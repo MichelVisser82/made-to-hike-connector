@@ -441,6 +441,55 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 </Card>
               )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Photo Gallery - Full Width Section */}
+      {tour.images && tour.images.length > 0 && (
+        <div className="w-full py-8 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Camera className="h-6 w-6 text-burgundy" />
+              <h2 className="text-3xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                Tour Photos
+              </h2>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-charcoal/5 shadow-lg">
+                <img
+                  src={tour.images[0]}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                  alt={`${tour.title} - Main view`}
+                />
+              </div>
+              {tour.images.length > 1 && (
+                <div className="flex flex-col gap-3 w-48">
+                  {tour.images.slice(1, 4).map((image, index) => (
+                    <div key={index} className="aspect-square rounded-lg overflow-hidden bg-charcoal/5 shadow-lg">
+                      <img
+                        src={image}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        alt={`${tour.title} - Photo ${index + 2}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {tour.images.length > 4 && (
+              <p className="text-sm text-charcoal/60 mt-4 text-center">
+                +{tour.images.length - 4} more photos
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Continue Main Content Area */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
 
             {/* Fitness Requirements */}
             <Card className="border-burgundy/20 shadow-lg bg-white">
@@ -821,47 +870,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           </div>
         </div>
       </div>
-
-      {/* Photo Gallery - Full Width */}
-      {tour.images && tour.images.length > 0 && (
-        <div className="w-full py-8 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 mb-6">
-              <Camera className="h-6 w-6 text-burgundy" />
-              <h2 className="text-3xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                Tour Photos
-              </h2>
-            </div>
-            <div className="flex gap-4">
-              <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-charcoal/5 shadow-lg">
-                <img
-                  src={tour.images[0]}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                  alt={`${tour.title} - Main view`}
-                />
-              </div>
-              {tour.images.length > 1 && (
-                <div className="flex flex-col gap-3 w-48">
-                  {tour.images.slice(1, 4).map((image, index) => (
-                    <div key={index} className="aspect-square rounded-lg overflow-hidden bg-charcoal/5 shadow-lg">
-                      <img
-                        src={image}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        alt={`${tour.title} - Photo ${index + 2}`}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            {tour.images.length > 4 && (
-              <p className="text-sm text-charcoal/60 mt-4 text-center">
-                +{tour.images.length - 4} more photos
-              </p>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Reviews & Testimonials - Bottom Section */}
       <section className="py-12 bg-muted/30">
