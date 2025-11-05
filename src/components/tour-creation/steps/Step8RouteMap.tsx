@@ -16,10 +16,10 @@ interface Step8RouteMapProps {
 
 export function Step8RouteMap({ onSave, onNext, onPrev, isSaving, tourId }: Step8RouteMapProps) {
   const { setValue, watch } = useFormContext();
-  const duration = watch('duration') || '1 day';
+  const duration = watch('duration') || 1;
   
-  // Parse days from duration string (e.g., "3 days" -> 3)
-  const daysCount = parseInt(duration.match(/\d+/)?.[0] || '1');
+  // Duration is already a number representing days
+  const daysCount = Math.ceil(typeof duration === 'number' ? duration : parseFloat(duration) || 1);
 
   const handleDataChange = (data: any) => {
     setValue('routeData', data);
