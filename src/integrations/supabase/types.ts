@@ -1634,7 +1634,7 @@ export type Database = {
           pack_weight: number | null
           price: number
           rating: number | null
-          region: Database["public"]["Enums"]["region"]
+          region: string
           reviews_count: number | null
           service_fee: number | null
           service_fee_percentage: number | null
@@ -1691,7 +1691,7 @@ export type Database = {
           pack_weight?: number | null
           price: number
           rating?: number | null
-          region: Database["public"]["Enums"]["region"]
+          region: string
           reviews_count?: number | null
           service_fee?: number | null
           service_fee_percentage?: number | null
@@ -1748,7 +1748,7 @@ export type Database = {
           pack_weight?: number | null
           price?: number
           rating?: number | null
-          region?: Database["public"]["Enums"]["region"]
+          region?: string
           reviews_count?: number | null
           service_fee?: number | null
           service_fee_percentage?: number | null

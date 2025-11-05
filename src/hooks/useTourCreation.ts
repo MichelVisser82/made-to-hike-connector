@@ -143,7 +143,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       title: '',
       short_description: '',
       description: '',
-      region: 'dolomites' as const,
+      region: '',
       meeting_point: '',
       meeting_point_lat: undefined,
       meeting_point_lng: undefined,
