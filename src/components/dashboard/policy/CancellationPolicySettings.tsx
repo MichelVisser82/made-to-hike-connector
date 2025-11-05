@@ -90,11 +90,25 @@ export function CancellationPolicySettings({
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">{policy.description}</p>
                     <div className="mt-2 text-xs space-y-1">
-                      {policy.tiers.map((tier, idx) => (
-                        <div key={idx} className="text-muted-foreground">
-                          {tier.daysOrMore > 0 ? `${tier.daysOrMore}+ days:` : 'Less than 3 days:'} {tier.refundPercent}% refund
-                        </div>
-                      ))}
+                      {policy.tiers.map((tier, idx) => {
+                        const isLastTier = idx === policy.tiers.length - 1;
+                        const previousTier = idx > 0 ? policy.tiers[idx - 1] : null;
+                        
+                        let label = '';
+                        if (tier.daysOrMore > 0) {
+                          label = `${tier.daysOrMore}+ days:`;
+                        } else if (previousTier) {
+                          label = `Less than ${previousTier.daysOrMore} days:`;
+                        } else {
+                          label = 'Any time:';
+                        }
+                        
+                        return (
+                          <div key={idx} className="text-muted-foreground">
+                            {label} {tier.refundPercent}% refund
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
