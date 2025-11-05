@@ -26,11 +26,21 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
 
   // Determine active cancellation policy
   const usingDefaultCancellation = policyOverrides?.using_default_cancellation ?? true;
+  const cancellationApproach = usingDefaultCancellation
+    ? defaults?.cancellation_approach || 'single'
+    : policyOverrides?.custom_cancellation_approach || 'single';
+  
   const cancellationPolicyType = usingDefaultCancellation
     ? defaults?.cancellation_policy_type || 'flexible'
     : policyOverrides?.custom_cancellation_policy_type || 'flexible';
 
   const cancellationPolicy = CANCELLATION_POLICIES[cancellationPolicyType];
+  
+  // For customer choice, show all available policies
+  const isCustomerChoice = cancellationApproach === 'customer_choice';
+  const availablePolicies = isCustomerChoice 
+    ? Object.values(CANCELLATION_POLICIES)
+    : [cancellationPolicy];
 
   // Determine active discounts
   const discountsDisabled = policyOverrides?.discounts_disabled ?? false;
@@ -73,26 +83,39 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="font-semibold">
-              {cancellationPolicy.name}
-            </Badge>
-            <p className="text-sm text-muted-foreground">{cancellationPolicy.description}</p>
-          </div>
-          <div className="space-y-2">
-            {cancellationPolicy.tiers.map((tier, idx) => (
-              <div key={idx} className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">
-                  {tier.daysOrMore === 0 
-                    ? 'Less than ' + cancellationPolicy.tiers[idx - 1]?.daysOrMore + ' days'
-                    : tier.daysOrMore + '+ days before'}
-                </span>
-                <span className={tier.refundPercent > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
-                  {tier.refundPercent}% refund
-                </span>
+          {isCustomerChoice && (
+            <div className="flex items-start gap-2 p-3 bg-muted rounded-lg mb-3">
+              <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
+              <p className="text-xs text-muted-foreground">
+                Choose your preferred cancellation policy at booking. More flexible policies may have higher prices.
+              </p>
+            </div>
+          )}
+          
+          {availablePolicies.map((policy, policyIdx) => (
+            <div key={policyIdx} className={policyIdx > 0 ? 'mt-4 pt-4 border-t' : ''}>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary" className="font-semibold">
+                  {policy.name}
+                </Badge>
+                <p className="text-sm text-muted-foreground">{policy.description}</p>
               </div>
-            ))}
-          </div>
+              <div className="space-y-2">
+                {policy.tiers.map((tier, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">
+                      {tier.daysOrMore === 0 
+                        ? 'Less than ' + policy.tiers[idx - 1]?.daysOrMore + ' days'
+                        : tier.daysOrMore + '+ days before'}
+                    </span>
+                    <span className={tier.refundPercent > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
+                      {tier.refundPercent}% refund
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
 
