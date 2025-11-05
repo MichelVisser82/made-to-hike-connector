@@ -374,12 +374,11 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
         </div>
       </section>
 
-      {/* Main Content Area - Guide-style Two-Column Layout */}
+      {/* Main Content Area - Full Width Layout */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Main Content Column (2/3 width) */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Main Content Column */}
+          <div className="space-y-6">
             {/* About This Tour Section */}
             <Card className="border-burgundy/20 shadow-lg bg-white">
               <CardContent className="p-6">
@@ -442,7 +441,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               )}
             </div>
           </div>
-        </div>
       </div>
 
       {/* Photo Gallery - Full Width Section */}
@@ -488,8 +486,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
       {/* Continue Main Content Area */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6">
 
             {/* Fitness Requirements */}
             <Card className="border-burgundy/20 shadow-lg bg-white">
@@ -868,7 +865,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               />
             </div>
           </div>
-        </div>
       </div>
 
       {/* Reviews & Testimonials - Bottom Section */}
