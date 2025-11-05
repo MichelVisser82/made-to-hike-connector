@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { TourCreationLayout } from './TourCreationLayout';
 import { useTourCreation } from '@/hooks/useTourCreation';
 import { FormProvider } from 'react-hook-form';
 import { type Tour } from '@/types';
@@ -117,12 +116,8 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
 
   return (
     <MainLayout>
-      <FormProvider {...form}>
-        <TourCreationLayout
-          onBack={onCancel}
-          editMode={isEditMode}
-          tourTitle={initialData?.title}
-        >
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <FormProvider {...form}>
           {isEditMode ? (
             // Tab view for editing existing tours
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -191,8 +186,8 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
               {renderStepContent()}
             </div>
           )}
-        </TourCreationLayout>
-      </FormProvider>
+        </FormProvider>
+      </div>
     </MainLayout>
   );
 }
