@@ -152,7 +152,7 @@ export function CancellationDiscountsTab() {
           <div className="sticky top-6">
             <PricingPreview breakdown={previewPricing} />
             <p className="text-xs text-muted-foreground mt-2 text-center">
-              Example: €250 tour, 4 people, booked 45 days ahead
+              Example: €250 per person, booked 45 days ahead
             </p>
           </div>
         </div>
