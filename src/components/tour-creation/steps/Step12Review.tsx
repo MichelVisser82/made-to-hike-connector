@@ -99,13 +99,18 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false,
           <CardTitle>Available Dates</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {data.available_dates?.map((date, index) => (
-              <Badge key={index} variant="secondary">
-                {format(date, 'PP P')}
-              </Badge>
-            ))}
-          </div>
+          {data.date_slots && data.date_slots.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {data.date_slots.map((slot, index) => (
+                <Badge key={index} variant="secondary">
+                  {format(slot.date, 'PP')} • {slot.spotsTotal} spots
+                  {slot.priceOverride && ` • ${data.currency === 'EUR' ? '€' : '£'}${slot.priceOverride}`}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No dates configured yet</p>
+          )}
         </CardContent>
       </Card>
 
