@@ -442,48 +442,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               )}
             </div>
 
-            {/* Photo Gallery */}
-            {tour.images && tour.images.length > 0 && (
-              <Card className="border-burgundy/20 shadow-lg bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Camera className="h-5 w-5 text-burgundy" />
-                    <h2 className="text-2xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                      Tour Photos
-                    </h2>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-charcoal/5">
-                      <img
-                        src={tour.images[0]}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        alt={`${tour.title} - Main view`}
-                      />
-                    </div>
-                    {tour.images.length > 1 && (
-                      <div className="flex flex-col gap-3 w-32">
-                        {tour.images.slice(1, 4).map((image, index) => (
-                          <div key={index} className="aspect-square rounded-lg overflow-hidden bg-charcoal/5">
-                            <img
-                              src={image}
-                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                              alt={`${tour.title} - Photo ${index + 2}`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {tour.images.length > 4 && (
-                    <p className="text-sm text-charcoal/60 mt-4 text-center">
-                      +{tour.images.length - 4} more photos
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-
             {/* Fitness Requirements */}
             <Card className="border-burgundy/20 shadow-lg bg-white">
               <CardContent className="p-6">
@@ -861,95 +819,138 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               />
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Reviews & Testimonials - Bottom Section */}
-          <section className="py-12 bg-muted/30">
-            <div className="container mx-auto px-4">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-2">Reviews & Testimonials</h2>
-                {tour.reviews_count > 0 && (
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <div className="flex items-center gap-1">
+      {/* Photo Gallery - Full Width */}
+      {tour.images && tour.images.length > 0 && (
+        <div className="w-full py-8 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Camera className="h-6 w-6 text-burgundy" />
+              <h2 className="text-3xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+                Tour Photos
+              </h2>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-charcoal/5 shadow-lg">
+                <img
+                  src={tour.images[0]}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                  alt={`${tour.title} - Main view`}
+                />
+              </div>
+              {tour.images.length > 1 && (
+                <div className="flex flex-col gap-3 w-48">
+                  {tour.images.slice(1, 4).map((image, index) => (
+                    <div key={index} className="aspect-square rounded-lg overflow-hidden bg-charcoal/5 shadow-lg">
+                      <img
+                        src={image}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        alt={`${tour.title} - Photo ${index + 2}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {tour.images.length > 4 && (
+              <p className="text-sm text-charcoal/60 mt-4 text-center">
+                +{tour.images.length - 4} more photos
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Reviews & Testimonials - Bottom Section */}
+      <section className="py-12 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-2">Reviews & Testimonials</h2>
+            {tour.reviews_count > 0 && (
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map((star) => (
+                    <Star 
+                      key={star} 
+                      className={`h-4 w-4 ${
+                        star <= Math.round(tour.rating) 
+                          ? 'text-yellow-400 fill-current' 
+                          : 'text-muted-foreground/30'
+                      }`} 
+                    />
+                  ))}
+                </div>
+                <span>{tour.rating.toFixed(1)} • {tour.reviews_count} {tour.reviews_count === 1 ? 'review' : 'reviews'}</span>
+              </div>
+            )}
+          </div>
+          
+          {isLoadingReviews ? (
+            <div className="text-center text-muted-foreground">Loading reviews...</div>
+          ) : tourReviews.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {tourReviews.map((review) => (
+                <Card key={review.id} className="bg-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-1 mb-3">
                       {[1,2,3,4,5].map((star) => (
                         <Star 
                           key={star} 
                           className={`h-4 w-4 ${
-                            star <= Math.round(tour.rating) 
+                            star <= review.rating 
                               ? 'text-yellow-400 fill-current' 
                               : 'text-muted-foreground/30'
                           }`} 
                         />
                       ))}
                     </div>
-                    <span>{tour.rating.toFixed(1)} • {tour.reviews_count} {tour.reviews_count === 1 ? 'review' : 'reviews'}</span>
-                  </div>
-                )}
-              </div>
-              
-              {isLoadingReviews ? (
-                <div className="text-center text-muted-foreground">Loading reviews...</div>
-              ) : tourReviews.length > 0 ? (
-                <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                  {tourReviews.map((review) => (
-                    <Card key={review.id} className="bg-background">
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-1 mb-3">
-                          {[1,2,3,4,5].map((star) => (
-                            <Star 
-                              key={star} 
-                              className={`h-4 w-4 ${
-                                star <= review.rating 
-                                  ? 'text-yellow-400 fill-current' 
-                                  : 'text-muted-foreground/30'
-                              }`} 
-                            />
-                          ))}
+                    {review.comment && (
+                      <p className="text-sm italic mb-4 line-clamp-4">
+                        "{review.comment}"
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3">
+                      {review.hiker_avatar ? (
+                        <img 
+                          src={review.hiker_avatar}
+                          className="w-8 h-8 rounded-full object-cover"
+                          alt={`${review.hiker_name || 'Reviewer'} profile`}
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-medium text-primary">
+                            {review.hiker_name?.[0]?.toUpperCase() || '?'}
+                          </span>
                         </div>
-                        {review.comment && (
-                          <p className="text-sm italic mb-4 line-clamp-4">
-                            "{review.comment}"
-                          </p>
-                        )}
-                        <div className="flex items-center gap-3">
-                          {review.hiker_avatar ? (
-                            <img 
-                              src={review.hiker_avatar}
-                              className="w-8 h-8 rounded-full object-cover"
-                              alt={`${review.hiker_name || 'Reviewer'} profile`}
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-sm font-medium text-primary">
-                                {review.hiker_name?.[0]?.toUpperCase() || '?'}
-                              </span>
-                            </div>
-                          )}
-                          <div>
-                            <div className="text-sm font-medium">
-                              {review.hiker_name || 'Anonymous'}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {format(new Date(review.created_at), 'MMMM yyyy')}
-                            </div>
-                          </div>
+                      )}
+                      <div>
+                        <div className="text-sm font-medium">
+                          {review.hiker_name || 'Anonymous'}
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  No reviews yet. Be the first to book and review this tour!
-                </div>
-              )}
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(review.created_at), 'MMMM yyyy')}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          </section>
+          ) : (
+            <div className="text-center text-muted-foreground">
+              No reviews yet. Be the first to book and review this tour!
+            </div>
+          )}
+        </div>
+      </section>
 
-          {/* Other Tours in the Area */}
-          <section className="py-12">
-            <div className="container mx-auto px-4">
-              <h2 className="text-3xl font-bold text-center mb-8">Other Tours in the Area</h2>
-              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      {/* Other Tours in the Area */}
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">Other Tours in the Area</h2>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 {[
                   {
                     id: '1',
@@ -1064,11 +1065,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     </CardContent>
                   </Card>
                 ))}
-              </div>
-            </div>
-          </section>
+          </div>
         </div>
-      </div>
+      </section>
       
       {/* Anonymous Chat Modal */}
       <AnonymousChat
