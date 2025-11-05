@@ -37,9 +37,10 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
   };
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-burgundy">
       <CardHeader>
-        <CardTitle>Pricing</CardTitle>
+        <CardTitle className="text-2xl font-playfair text-charcoal">Pricing</CardTitle>
+        <p className="text-sm text-charcoal/60 mt-2">Set your tour pricing and configure payment policies</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid md:grid-cols-2 gap-4">
@@ -48,12 +49,13 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Base Price</FormLabel>
+                <FormLabel className="text-charcoal font-medium">Base Price</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
                     min="1"
                     placeholder="0"
+                    className="border-burgundy/20 focus:border-burgundy"
                     {...field} 
                     onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
                   />
@@ -68,10 +70,10 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
             name="currency"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Currency</FormLabel>
+                <FormLabel className="text-charcoal font-medium">Currency</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="border-burgundy/20">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -91,12 +93,13 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
           name="group_size"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Maximum Group Size</FormLabel>
+              <FormLabel className="text-charcoal font-medium">Maximum Group Size</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
                   min="1"
                   max="20"
+                  className="border-burgundy/20 focus:border-burgundy"
                   {...field} 
                   onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                 />
@@ -107,12 +110,12 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
         />
 
         {/* Price Summary */}
-        <Card className="bg-muted">
+        <Card className="bg-cream/50 border-burgundy/20">
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <div className="flex justify-between text-lg font-bold">
+              <div className="flex justify-between text-lg font-semibold text-charcoal">
                 <span>Price per person:</span>
-                <span>
+                <span className="text-burgundy">
                   {form.watch('currency') === 'EUR' ? '€' : '£'}{price.toFixed(2)}
                 </span>
               </div>
@@ -121,9 +124,9 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
         </Card>
 
         {/* Tour-Specific Policy Settings */}
-        <div className="pt-6">
-          <h3 className="text-lg font-semibold mb-4">Cancellation & Discount Settings</h3>
-          <p className="text-sm text-muted-foreground mb-4">
+        <div className="pt-6 border-t border-burgundy/10">
+          <h3 className="text-lg font-playfair text-charcoal mb-2">Cancellation & Discount Settings</h3>
+          <p className="text-sm text-charcoal/60 mb-4">
             Choose whether to use your default policies or customize settings specifically for this tour.
           </p>
           <TourPolicyOverrides
@@ -134,19 +137,19 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
             }}
           />
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-4 border-t border-burgundy/10">
           {onPrev && (
-            <Button type="button" variant="outline" onClick={onPrev}>
+            <Button type="button" variant="outline" onClick={onPrev} className="border-burgundy/20 text-charcoal hover:bg-cream">
               Previous
             </Button>
           )}
           <div className="flex-1" />
           {onNext ? (
-            <Button onClick={handleNext} disabled={isSaving}>
+            <Button onClick={handleNext} disabled={isSaving} className="bg-burgundy hover:bg-burgundy-dark text-white">
               {isSaving ? 'Saving...' : 'Next'}
             </Button>
           ) : (
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button onClick={handleSave} disabled={isSaving} className="bg-burgundy hover:bg-burgundy-dark text-white">
               {isSaving ? 'Saving...' : 'Save Progress'}
             </Button>
           )}

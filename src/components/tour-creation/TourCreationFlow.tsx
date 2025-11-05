@@ -115,77 +115,100 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <FormProvider {...form}>
-        {isEditMode ? (
-          // Tab view for editing existing tours
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <ScrollArea className="w-full">
-              <TabsList className="inline-flex w-max min-w-full justify-start mb-6">
-                {tabs.map((tab) => (
-                  <TabsTrigger key={tab.value} value={tab.value} className="whitespace-nowrap">
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-
-            <TabsContent value="basic" className="mt-6">
-              <Step2BasicInfo onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="location" className="mt-6">
-              <Step3Location onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="duration" className="mt-6">
-              <Step4DurationDifficulty onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="details" className="mt-6">
-              <Step5TourDetails onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="dates" className="mt-6">
-              <Step6AvailableDates onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="images" className="mt-6">
-              <Step7Images onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="route" className="mt-6">
-              <Step8RouteMap onSave={handleSaveTab} isSaving={isSaving} tourId={draftTourId || tourId} />
-            </TabsContent>
-
-            <TabsContent value="highlights" className="mt-6">
-              <Step8Highlights onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="itinerary" className="mt-6">
-              <Step9Itinerary onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="inclusions" className="mt-6">
-              <Step10Inclusions onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="pricing" className="mt-6">
-              <Step11Pricing onSave={handleSaveTab} isSaving={isSaving} />
-            </TabsContent>
-
-            <TabsContent value="review" className="mt-6">
-              <Step12Review onSubmit={handleSubmit} isSubmitting={isSubmitting} editMode={isEditMode} />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          // Step-by-step flow for new tours
-          <div className="mt-6">
-            {renderStepContent()}
+    <div className="min-h-screen bg-gradient-to-b from-cream-light to-cream">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <FormProvider {...form}>
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <h1 className="text-3xl font-playfair text-charcoal mb-2">
+                  {isEditMode ? 'Edit Tour' : 'Create New Tour'}
+                </h1>
+                <p className="text-charcoal/60">
+                  {isEditMode 
+                    ? 'Update your tour details and save changes' 
+                    : 'Build your perfect hiking experience step by step'
+                  }
+                </p>
+              </div>
+            </div>
           </div>
-        )}
-      </FormProvider>
+
+          {isEditMode ? (
+            // Tab view for editing existing tours
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <ScrollArea className="w-full">
+                <TabsList className="bg-cream p-1 rounded-lg mb-6 inline-flex w-max min-w-full">
+                  {tabs.map((tab) => (
+                    <TabsTrigger 
+                      key={tab.value} 
+                      value={tab.value} 
+                      className="whitespace-nowrap data-[state=active]:bg-burgundy data-[state=active]:text-white"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+
+              <TabsContent value="basic" className="mt-6">
+                <Step2BasicInfo onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="location" className="mt-6">
+                <Step3Location onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="duration" className="mt-6">
+                <Step4DurationDifficulty onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="details" className="mt-6">
+                <Step5TourDetails onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="dates" className="mt-6">
+                <Step6AvailableDates onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="images" className="mt-6">
+                <Step7Images onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="route" className="mt-6">
+                <Step8RouteMap onSave={handleSaveTab} isSaving={isSaving} tourId={draftTourId || tourId} />
+              </TabsContent>
+
+              <TabsContent value="highlights" className="mt-6">
+                <Step8Highlights onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="itinerary" className="mt-6">
+                <Step9Itinerary onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="inclusions" className="mt-6">
+                <Step10Inclusions onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="pricing" className="mt-6">
+                <Step11Pricing onSave={handleSaveTab} isSaving={isSaving} />
+              </TabsContent>
+
+              <TabsContent value="review" className="mt-6">
+                <Step12Review onSubmit={handleSubmit} isSubmitting={isSubmitting} editMode={isEditMode} />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            // Step-by-step flow for new tours
+            <div className="mt-6">
+              {renderStepContent()}
+            </div>
+          )}
+        </FormProvider>
+      </div>
     </div>
   );
 }

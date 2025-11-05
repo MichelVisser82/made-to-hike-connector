@@ -27,9 +27,10 @@ export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Ste
   };
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-burgundy">
       <CardHeader>
-        <CardTitle>Tell us about your tour</CardTitle>
+        <CardTitle className="text-2xl font-playfair text-charcoal">Tell us about your tour</CardTitle>
+        <p className="text-sm text-charcoal/60 mt-2">Create a compelling title and description that captures the essence of your hiking experience</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <FormField
@@ -37,10 +38,11 @@ export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Ste
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tour Title</FormLabel>
+              <FormLabel className="text-charcoal font-medium">Tour Title</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="e.g., Alpine Adventure in the Dolomites" 
+                  className="border-burgundy/20 focus:border-burgundy"
                   {...field} 
                 />
               </FormControl>
@@ -54,17 +56,18 @@ export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Ste
           name="short_description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Short Description</FormLabel>
+              <FormLabel className="text-charcoal font-medium">Short Description</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Brief description that will appear over the hero image (max 140 characters)"
                   rows={3}
                   maxLength={140}
+                  className="border-burgundy/20 focus:border-burgundy"
                   {...field} 
                 />
               </FormControl>
               <FormMessage />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-charcoal/50">
                 {field.value.length}/140 characters
               </p>
             </FormItem>
@@ -76,35 +79,36 @@ export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Ste
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Description</FormLabel>
+              <FormLabel className="text-charcoal font-medium">Full Description</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Describe your tour in detail. What makes it special? What will hikers experience?"
                   rows={8}
+                  className="border-burgundy/20 focus:border-burgundy"
                   {...field} 
                 />
               </FormControl>
               <FormMessage />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-charcoal/50">
                 {field.value.length}/2000 characters
               </p>
             </FormItem>
           )}
         />
 
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-4 border-t border-burgundy/10">
           {onPrev && (
-            <Button type="button" variant="outline" onClick={onPrev}>
+            <Button type="button" variant="outline" onClick={onPrev} className="border-burgundy/20 text-charcoal hover:bg-cream">
               Previous
             </Button>
           )}
           <div className="flex-1" />
           {onNext ? (
-            <Button onClick={handleNext} disabled={isSaving}>
+            <Button onClick={handleNext} disabled={isSaving} className="bg-burgundy hover:bg-burgundy-dark text-white">
               {isSaving ? 'Saving...' : 'Next'}
             </Button>
           ) : (
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button onClick={handleSave} disabled={isSaving} className="bg-burgundy hover:bg-burgundy-dark text-white">
               {isSaving ? 'Saving...' : 'Save Progress'}
             </Button>
           )}
