@@ -80,6 +80,24 @@ const tourSchema = z.object({
   currency: z.enum(['EUR', 'GBP']),
   service_fee: z.number().min(0).default(0),
   group_size: z.number().min(1).max(20),
+  
+  // Policy Overrides (optional)
+  policy_overrides: z.object({
+    using_default_cancellation: z.boolean().default(true),
+    custom_cancellation_approach: z.string().optional(),
+    custom_cancellation_policy_type: z.string().optional(),
+    using_default_discounts: z.boolean().default(true),
+    custom_discount_settings: z.object({
+      early_bird: z.any().optional(),
+      group: z.any().optional(),
+      last_minute: z.any().optional(),
+    }).optional(),
+    discounts_disabled: z.boolean().default(false),
+    using_default_payment: z.boolean().default(true),
+    custom_deposit_type: z.string().optional(),
+    custom_deposit_amount: z.number().optional(),
+    custom_final_payment_days: z.number().optional(),
+  }).optional(),
 });
 
 export type TourFormData = z.infer<typeof tourSchema>;
@@ -167,6 +185,12 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       currency: 'EUR' as const,
       service_fee: 0,
       group_size: 8,
+      policy_overrides: {
+        using_default_cancellation: true,
+        using_default_discounts: true,
+        discounts_disabled: false,
+        using_default_payment: true,
+      },
     };
   };
 

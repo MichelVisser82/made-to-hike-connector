@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
+import { TourPolicyOverrides } from '@/components/tour-creation/policy/TourPolicyOverrides';
+import { TourPolicyOverrides as TourPolicyOverridesType } from '@/types/policySettings';
 
 interface Step11PricingProps {
   onSave?: () => Promise<void>;
@@ -27,6 +29,12 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
   };
 
   const price = form.watch('price') || 0;
+  const policyOverrides = form.watch('policy_overrides') || {
+    using_default_cancellation: true,
+    using_default_discounts: true,
+    discounts_disabled: false,
+    using_default_payment: true,
+  };
 
   return (
     <Card>
@@ -112,6 +120,20 @@ export default function Step11Pricing({ onSave, onNext, onPrev, isSaving }: Step
           </CardContent>
         </Card>
 
+        {/* Tour-Specific Policy Settings */}
+        <div className="pt-6">
+          <h3 className="text-lg font-semibold mb-4">Cancellation & Discount Settings</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Choose whether to use your default policies or customize settings specifically for this tour.
+          </p>
+          <TourPolicyOverrides
+            tourPrice={price}
+            overrides={policyOverrides as TourPolicyOverridesType}
+            onChange={(newOverrides) => {
+              form.setValue('policy_overrides', newOverrides);
+            }}
+          />
+        </div>
         <div className="flex justify-between">
           {onPrev && (
             <Button type="button" variant="outline" onClick={onPrev}>
