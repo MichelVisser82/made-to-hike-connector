@@ -385,7 +385,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="lg:flex-1 lg:flex lg:flex-col">
-                    <div className="lg:flex-1 min-h-[200px]">
+                    <div className="lg:flex-1 h-[400px] lg:h-full">
                       <HikingLocationMap
                         latitude={tour.meeting_point_lat}
                         longitude={tour.meeting_point_lng}
