@@ -990,6 +990,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 guideId={tour.guide_id}
                 policyOverrides={tour.policy_overrides as any}
                 tourPrice={tour.price}
+                currency={tour.currency}
               />
             </div>
           </div>

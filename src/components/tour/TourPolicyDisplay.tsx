@@ -8,14 +8,21 @@ interface TourPolicyDisplayProps {
   guideId: string;
   policyOverrides?: TourPolicyOverrides | null;
   tourPrice: number;
+  currency?: 'EUR' | 'GBP';
 }
 
-export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice }: TourPolicyDisplayProps) {
-  const { defaults } = useGuidePolicyDefaults(guideId);
+export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currency = 'EUR' }: TourPolicyDisplayProps) {
+  const { defaults, isLoading } = useGuidePolicyDefaults(guideId);
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!defaults && !policyOverrides) {
     return null;
   }
+
+  const currencySymbol = currency === 'GBP' ? '£' : '€';
 
   // Determine active cancellation policy
   const usingDefaultCancellation = policyOverrides?.using_default_cancellation ?? true;
@@ -167,7 +174,9 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice }: TourP
             <span className="font-medium">
               {depositType === 'percentage' 
                 ? `${depositAmount}% of total`
-                : `€${depositAmount}`
+                : depositType === 'none'
+                ? 'No deposit required'
+                : `${currencySymbol}${depositAmount}`
               }
             </span>
           </div>
