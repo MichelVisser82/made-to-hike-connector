@@ -83,35 +83,24 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
           name="itinerary"
           render={() => (
             <FormItem>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {itinerary.map((day, index) => (
-                  <Card key={index}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">Day {day.day}</CardTitle>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeDay(index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Input
-                        placeholder="Day title (e.g., Summit Day)"
-                        value={day.title}
-                        onChange={(e) => {
-                          const updated = [...itinerary];
-                          updated[index].title = e.target.value;
-                          form.setValue('itinerary', updated);
-                        }}
-                      />
+                  <div key={index} className="group relative border rounded-lg p-6">
+                    {/* Delete button - positioned absolutely */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeDay(index)}
+                      className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
 
-                      <div>
-                        <FormLabel className="text-sm mb-2 block">Day Image</FormLabel>
+                    {/* Horizontal Layout matching public page */}
+                    <div className="flex flex-col md:flex-row gap-4">
+                      {/* Left: Image Section */}
+                      <div className="md:w-64 w-full flex-shrink-0">
                         <ItineraryImageSelector
                           selectedImageUrl={day.image_url}
                           existingTourImages={form.watch('images') || []}
@@ -124,63 +113,90 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
                         />
                       </div>
 
-                      <div>
-                        <FormLabel className="text-sm">Activities</FormLabel>
-                        {day.activities.length > 0 && (
-                          <div className="flex flex-wrap gap-2 my-2">
-                            {day.activities.map((activity, actIndex) => (
-                              <Badge key={actIndex} variant="secondary">
-                                {activity}
-                                <button
-                                  type="button"
-                                  onClick={() => removeActivity(index, actIndex)}
-                                  className="ml-2 hover:text-destructive"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                        <div className="flex gap-2">
+                      {/* Right: Content Section */}
+                      <div className="flex-1 space-y-3">
+                        {/* Day badge and title */}
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">Day {day.day}</Badge>
                           <Input
-                            placeholder="Add activity"
-                            value={newActivity[index] || ''}
-                            onChange={(e) => setNewActivity({ ...newActivity, [index]: e.target.value })}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                addActivity(index);
-                              }
+                            placeholder="Day title (e.g., Summit Day)"
+                            value={day.title}
+                            onChange={(e) => {
+                              const updated = [...itinerary];
+                              updated[index].title = e.target.value;
+                              form.setValue('itinerary', updated);
+                            }}
+                            className="font-semibold flex-1"
+                          />
+                        </div>
+
+                        {/* Activities Section */}
+                        <div>
+                          <FormLabel className="text-sm">Activities</FormLabel>
+                          {day.activities.length > 0 && (
+                            <div className="flex flex-wrap gap-2 my-2">
+                              {day.activities.map((activity, actIndex) => (
+                                <Badge key={actIndex} variant="secondary">
+                                  {activity}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeActivity(index, actIndex)}
+                                    className="ml-2 hover:text-destructive"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Add activity"
+                              value={newActivity[index] || ''}
+                              onChange={(e) => setNewActivity({ ...newActivity, [index]: e.target.value })}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  addActivity(index);
+                                }
+                              }}
+                            />
+                            <Button type="button" size="sm" onClick={() => addActivity(index)}>
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Accommodation */}
+                        <div>
+                          <FormLabel className="text-sm">Accommodation</FormLabel>
+                          <Input
+                            placeholder="e.g., Mountain Refuge Hut"
+                            value={day.accommodation}
+                            onChange={(e) => {
+                              const updated = [...itinerary];
+                              updated[index].accommodation = e.target.value;
+                              form.setValue('itinerary', updated);
                             }}
                           />
-                          <Button type="button" size="sm" onClick={() => addActivity(index)}>
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                        </div>
+
+                        {/* Meals */}
+                        <div>
+                          <FormLabel className="text-sm">Meals</FormLabel>
+                          <Input
+                            placeholder="e.g., Breakfast, Lunch, Dinner"
+                            value={day.meals}
+                            onChange={(e) => {
+                              const updated = [...itinerary];
+                              updated[index].meals = e.target.value;
+                              form.setValue('itinerary', updated);
+                            }}
+                          />
                         </div>
                       </div>
-
-                      <Input
-                        placeholder="Accommodation"
-                        value={day.accommodation}
-                        onChange={(e) => {
-                          const updated = [...itinerary];
-                          updated[index].accommodation = e.target.value;
-                          form.setValue('itinerary', updated);
-                        }}
-                      />
-
-                      <Input
-                        placeholder="Meals included (e.g., Breakfast, Lunch, Dinner)"
-                        value={day.meals}
-                        onChange={(e) => {
-                          const updated = [...itinerary];
-                          updated[index].meals = e.target.value;
-                          form.setValue('itinerary', updated);
-                        }}
-                      />
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
 
                 <Button type="button" variant="outline" onClick={addDay} className="w-full">
