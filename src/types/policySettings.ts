@@ -3,7 +3,7 @@
  */
 
 export type CancellationApproach = 'single' | 'customer_choice';
-export type CancellationPolicyType = 'flexible' | 'moderate' | 'strict' | 'non_refundable';
+export type CancellationPolicyType = 'flexible' | 'moderate' | 'strict' | 'non_refundable' | 'ultra_flexible';
 export type DepositType = 'percentage' | 'none';
 
 export interface EarlyBirdSettings {
@@ -72,8 +72,16 @@ export interface CancellationPolicy {
 }
 
 export const CANCELLATION_POLICIES: Record<CancellationPolicyType, CancellationPolicy> = {
+  ultra_flexible: {
+    name: 'Ultra-Flexible',
+    description: 'Full refund up to 3 days before the tour',
+    tiers: [
+      { daysOrMore: 3, refundPercent: 100 },
+      { daysOrMore: 0, refundPercent: 0 },
+    ],
+  },
   flexible: {
-    name: 'Flexible',
+    name: 'Standard',
     description: 'Full refund up to 15 days before the tour',
     tiers: [
       { daysOrMore: 15, refundPercent: 100 },

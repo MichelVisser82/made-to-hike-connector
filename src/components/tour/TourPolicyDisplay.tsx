@@ -36,11 +36,26 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
 
   const cancellationPolicy = CANCELLATION_POLICIES[cancellationPolicyType];
   
-  // For customer choice, show all available policies
+  // For customer choice, show the three specific options with pricing
   const isCustomerChoice = cancellationApproach === 'customer_choice';
-  const availablePolicies = isCustomerChoice 
-    ? Object.values(CANCELLATION_POLICIES)
-    : [cancellationPolicy];
+  
+  const customerChoiceOptions = [
+    { 
+      policy: CANCELLATION_POLICIES.ultra_flexible, 
+      priceAdjustment: '+10%',
+      adjustedPrice: tourPrice * 1.1 
+    },
+    { 
+      policy: CANCELLATION_POLICIES.flexible, 
+      priceAdjustment: 'Base price',
+      adjustedPrice: tourPrice 
+    },
+    { 
+      policy: CANCELLATION_POLICIES.non_refundable, 
+      priceAdjustment: '-10%',
+      adjustedPrice: tourPrice * 0.9 
+    },
+  ];
 
   // Determine active discounts
   const discountsDisabled = policyOverrides?.discounts_disabled ?? false;
@@ -83,29 +98,62 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {isCustomerChoice && (
-            <div className="flex items-start gap-2 p-3 bg-muted rounded-lg mb-3">
-              <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <p className="text-xs text-muted-foreground">
-                Choose your preferred cancellation policy at booking. More flexible policies may have higher prices.
-              </p>
-            </div>
-          )}
-          
-          {availablePolicies.map((policy, policyIdx) => (
-            <div key={policyIdx} className={policyIdx > 0 ? 'mt-4 pt-4 border-t' : ''}>
-              <div className="flex items-center gap-2 mb-2">
+          {isCustomerChoice ? (
+            <>
+              <div className="flex items-start gap-2 p-3 bg-muted rounded-lg mb-3">
+                <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-muted-foreground">
+                  Choose your preferred cancellation policy at checkout. More flexible policies have higher prices.
+                </p>
+              </div>
+              
+              {customerChoiceOptions.map((option, idx) => (
+                <div key={idx} className={`${idx > 0 ? 'mt-4 pt-4 border-t' : ''} space-y-2`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="font-semibold">
+                        {option.policy.name}
+                      </Badge>
+                      <span className="text-sm font-medium text-primary">
+                        {option.priceAdjustment}
+                      </span>
+                    </div>
+                    <span className="text-sm font-semibold">
+                      {currencySymbol}{option.adjustedPrice.toFixed(0)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{option.policy.description}</p>
+                  <div className="space-y-1 pl-4">
+                    {option.policy.tiers.map((tier, tierIdx) => (
+                      <div key={tierIdx} className="flex justify-between items-center text-xs">
+                        <span className="text-muted-foreground">
+                          {tier.daysOrMore === 0 
+                            ? 'Less than ' + option.policy.tiers[tierIdx - 1]?.daysOrMore + ' days'
+                            : tier.daysOrMore + '+ days before'}
+                        </span>
+                        <span className={tier.refundPercent > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
+                          {tier.refundPercent}% refund
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="font-semibold">
-                  {policy.name}
+                  {cancellationPolicy.name}
                 </Badge>
-                <p className="text-sm text-muted-foreground">{policy.description}</p>
+                <p className="text-sm text-muted-foreground">{cancellationPolicy.description}</p>
               </div>
               <div className="space-y-2">
-                {policy.tiers.map((tier, idx) => (
+                {cancellationPolicy.tiers.map((tier, idx) => (
                   <div key={idx} className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">
                       {tier.daysOrMore === 0 
-                        ? 'Less than ' + policy.tiers[idx - 1]?.daysOrMore + ' days'
+                        ? 'Less than ' + cancellationPolicy.tiers[idx - 1]?.daysOrMore + ' days'
                         : tier.daysOrMore + '+ days before'}
                     </span>
                     <span className={tier.refundPercent > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
@@ -114,8 +162,8 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
                   </div>
                 ))}
               </div>
-            </div>
-          ))}
+            </>
+          )}
         </CardContent>
       </Card>
 
