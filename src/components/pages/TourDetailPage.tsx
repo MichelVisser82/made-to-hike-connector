@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -15,10 +16,13 @@ import { AnonymousChat } from '../chat/AnonymousChat';
 import { useTourDateAvailability } from '@/hooks/useTourDateAvailability';
 import { useTourMapData } from '@/hooks/useTourMapData';
 import { useTourReviews } from '@/hooks/useTourReviews';
+import { useRelatedTours } from '@/hooks/useRelatedTours';
 import { format, addDays, parse } from 'date-fns';
 import { HikingLocationMap } from '../tour/HikingLocationMap';
 import { PublicTourMapSection } from '../tour/PublicTourMapSection';
 import { TourPolicyDisplay } from '../tour/TourPolicyDisplay';
+import { TourCard } from '../tour/TourCard';
+import { Skeleton } from '../ui/skeleton';
 
 interface TourDetailPageProps {
   tour: Tour;
@@ -27,6 +31,7 @@ interface TourDetailPageProps {
 }
 
 export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailPageProps) {
+  const navigate = useNavigate();
   const [expandedItinerary, setExpandedItinerary] = useState<Record<number, boolean>>({});
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -47,6 +52,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   
   // Fetch tour reviews
   const { data: tourReviews = [], isLoading: isLoadingReviews } = useTourReviews(tour.id, 3);
+
+  // Fetch related tours
+  const { data: relatedTours = [], isLoading: isLoadingRelated } = useRelatedTours(tour.id, tour.region);
 
   // Helper to format date range based on tour duration
   const formatDateRange = (startDate: Date, duration: string) => {
@@ -1082,123 +1090,41 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       {/* Other Tours in the Area */}
       <section className="py-12">
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-8">Other Tours in the Area</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  {
-                    id: '1',
-                    title: 'Ben Nevis Summit Challenge',
-                    guide_name: 'James Highland',
-                    region: 'Scotland',
-                    difficulty: 'challenging',
-                    duration: '4 days',
-                    group_size: 8,
-                    price: Math.round(tour.price * 1.2),
-                    rating: 4.8,
-                    reviews_count: 127,
-                    tags: ['summit', 'peak', 'mountain', 'challenge']
-                  },
-                  {
-                    id: '2',
-                    title: 'Loch Ness & Castle Tour',
-                    guide_name: 'Emma Scott',
-                    region: 'Scotland',
-                    difficulty: 'easy',
-                    duration: '2 days',
-                    group_size: 10,
-                    price: Math.round(tour.price * 0.8),
-                    rating: 4.6,
-                    reviews_count: 89,
-                    tags: ['loch', 'castle', 'landscape', 'scenic']
-                  },
-                  {
-                    id: '3',
-                    title: 'Highland Glens Explorer',
-                    guide_name: 'Sarah Mountain',
-                    region: 'Scotland',
-                    difficulty: 'moderate',
-                    duration: '3 days',
-                    group_size: 6,
-                    price: Math.round(tour.price * 1.1),
-                    rating: 4.9,
-                    reviews_count: 45,
-                    tags: ['glen', 'waterfall', 'hiking', 'nature']
-                  }
-                ].map((otherTour) => (
-                  <Card key={otherTour.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
-                    <div className="aspect-[4/5] relative overflow-hidden">
-                      <SmartImage
-                        category="tour"
-                        usageContext="scottish-highlands"
-                        tags={otherTour.tags}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop"
-                        alt={`${otherTour.title} - Scottish Highlands hiking tour`}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
-                      <Badge
-                        className="absolute top-4 left-4 bg-background/90 hover:bg-background"
-                        variant="secondary"
-                      >
-                        {otherTour.difficulty}
-                      </Badge>
-                      <div className="absolute bottom-4 left-4 right-4 text-white">
-                        <h3 className="text-lg font-bold mb-1 group-hover:text-primary-foreground transition-colors">
-                          {otherTour.title}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm opacity-90">
-                          <SmartImage
-                            category="guide"
-                            usageContext="avatar"
-                            tags={['portrait', 'guide', 'professional']}
-                            className="w-5 h-5 rounded-full object-cover"
-                            fallbackSrc="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-                            alt={`${otherTour.guide_name} - Professional hiking guide`}
-                          />
-                          <span>by {otherTour.guide_name}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <CardContent className="p-6">
-                      <div className="space-y-3 text-sm mb-6">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-primary" />
-                          <span>{otherTour.region}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-primary" />
-                          <span>{otherTour.duration}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-primary" />
-                          <span>Max {otherTour.group_size} people</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4 text-accent fill-current" />
-                          <span>{otherTour.rating} ({otherTour.reviews_count} reviews)</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="text-xl font-bold text-primary">
-                          £{otherTour.price}
-                        </div>
-                        <Button 
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle booking
-                          }}
-                          className="bg-primary hover:bg-primary/90"
-                        >
-                          Book Now
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-          </div>
+          <h2 className="font-playfair text-3xl font-bold text-charcoal text-center mb-8">
+            Other Tours in the Area
+          </h2>
+          
+          {isLoadingRelated ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="overflow-hidden border-burgundy/10">
+                  <Skeleton className="aspect-[4/3] w-full bg-cream" />
+                  <CardContent className="p-6">
+                    <Skeleton className="h-6 w-3/4 mb-4 bg-cream" />
+                    <Skeleton className="h-4 w-1/2 mb-2 bg-cream" />
+                    <Skeleton className="h-4 w-2/3 bg-cream" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : relatedTours.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-charcoal/60 text-lg">
+                No other tours available in this area yet. Check back soon!
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedTours.map((relatedTour) => (
+                <TourCard
+                  key={relatedTour.id}
+                  tour={relatedTour}
+                  onTourClick={(tour) => navigate(`/tours/${tour.slug}`)}
+                  onBookTour={(tour) => navigate(`/tours/${tour.slug}`)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
       
