@@ -87,7 +87,7 @@ serve(async (req) => {
       .single();
 
     // Update submission status
-    const newStatus = action === 'approve' ? 'approved' : 'declined';
+    const newStatus = action === 'approve' ? 'approved' : 'rejected';
     const { error: updateError } = await supabaseClient
       .from('user_submitted_regions')
       .update({

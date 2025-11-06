@@ -81,10 +81,12 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
       const bookingsResult = await supabase
         .from('bookings')
         .select('total_price')
-        .eq('booking_status', 'completed')
+        .eq('status', 'completed')
         .gte('created_at', firstDayOfMonth.toISOString());
 
-      const monthlyRevenue = (bookingsResult.data || []).reduce((sum: number, b: any) => sum + (b.total_price || 0), 0);
+      const monthlyRevenue = Array.isArray(bookingsResult.data) 
+        ? bookingsResult.data.reduce((sum: number, b: any) => sum + (b.total_price || 0), 0)
+        : 0;
 
       // Fetch active users count
       const { count: userCount } = await supabase
