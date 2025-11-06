@@ -15,6 +15,66 @@ interface ModerationResult {
   hasViolations: boolean;
 }
 
+interface VariableData {
+  guestFirstName?: string;
+  guestLastName?: string;
+  guestFullName?: string;
+  tourName?: string;
+  tourDate?: string;
+  guestCount?: number;
+  guideName?: string;
+}
+
+const extractFirstName = (fullName: string | null | undefined): string => {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  return parts[0] || '';
+};
+
+const extractLastName = (fullName: string | null | undefined): string => {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  return parts.length > 1 ? parts[parts.length - 1] : '';
+};
+
+const formatMessageDate = (date: string | Date | null | undefined): string => {
+  if (!date) return '';
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  } catch {
+    return '';
+  }
+};
+
+const replaceTemplateVariables = (template: string, data: VariableData): string => {
+  let result = template;
+  
+  const replacements: Record<string, string> = {
+    '{guest-firstname}': data.guestFirstName || 'there',
+    '{guest-lastname}': data.guestLastName || '',
+    '{guest-fullname}': data.guestFullName || 'Guest',
+    '{tour-name}': data.tourName || 'the tour',
+    '{tour-date}': data.tourDate || 'your tour date',
+    '{guest-count}': data.guestCount?.toString() || '1',
+    '{guide-name}': data.guideName || 'your guide',
+    '{meeting-point}': 'the meeting point',
+    '{start-time}': '09:00',
+  };
+  
+  Object.entries(replacements).forEach(([variable, value]) => {
+    const escaped = variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(escaped, 'g'), value);
+  });
+  
+  return result;
+};
+
 // Phone number patterns (international formats)
 const phonePatterns = [
   /\+?\d{1,4}[\s.-]?\(?\d{1,4}\)?[\s.-]?\d{1,4}[\s.-]?\d{1,9}/g,
@@ -136,10 +196,16 @@ serve(async (req) => {
       }
     }
 
-    // Get conversation details
+    // Get conversation details with tour info
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
-      .select('*')
+      .select(`
+        *,
+        tours (
+          id,
+          title
+        )
+      `)
       .eq('id', conversationId)
       .single();
 
@@ -150,6 +216,72 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Fetch booking context for variable replacement
+    let bookingData = null;
+    let hikerProfile = null;
+    let guideProfile = null;
+    let variableData: VariableData = {};
+
+    // Try to get booking from conversation's booking_id first
+    if (conversation.booking_id) {
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('booking_date, participants')
+        .eq('id', conversation.booking_id)
+        .single();
+      bookingData = booking;
+    }
+
+    // If no booking_id, try to find most recent booking by tour_id and hiker_id
+    if (!bookingData && conversation.tour_id && conversation.hiker_id) {
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('booking_date, participants')
+        .eq('tour_id', conversation.tour_id)
+        .eq('hiker_id', conversation.hiker_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      bookingData = booking;
+    }
+
+    // Fetch hiker profile
+    if (conversation.hiker_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', conversation.hiker_id)
+        .single();
+      hikerProfile = profile;
+    }
+
+    // Fetch guide profile
+    if (conversation.guide_id) {
+      const { data: profile } = await supabase
+        .from('guide_profiles')
+        .select('display_name')
+        .eq('user_id', conversation.guide_id)
+        .single();
+      guideProfile = profile;
+    }
+
+    // Build variable data for replacement
+    const fullName = hikerProfile?.name || conversation.anonymous_name || '';
+    variableData = {
+      guestFirstName: extractFirstName(fullName),
+      guestLastName: extractLastName(fullName),
+      guestFullName: fullName || 'Guest',
+      tourName: conversation.tours?.title,
+      tourDate: bookingData ? formatMessageDate(bookingData.booking_date) : undefined,
+      guestCount: bookingData?.participants,
+      guideName: guideProfile?.display_name,
+    };
+
+    // Replace variables in content
+    const processedContent = replaceTemplateVariables(content, variableData);
+    console.log('Variable replacement - Original:', content.substring(0, 100));
+    console.log('Variable replacement - Processed:', processedContent.substring(0, 100));
 
     // Check if sender is admin or guide for this conversation
     const { data: userRole } = await supabase
@@ -162,23 +294,24 @@ serve(async (req) => {
     const isGuideForConversation = senderType === 'guide' && conversation.guide_id === senderId;
 
     // Moderate content (skip for admins and guides for their conversations)
+    // Use processedContent for moderation
     let moderationResult: ModerationResult;
     let moderationStatus = 'approved';
 
     if (isAdmin || isGuideForConversation) {
       moderationResult = {
-        moderatedContent: content,
+        moderatedContent: processedContent,
         violations: [],
         hasViolations: false
       };
     } else {
-      moderationResult = moderateTextContent(content);
+      moderationResult = moderateTextContent(processedContent);
       if (moderationResult.hasViolations) {
         moderationStatus = 'flagged';
       }
     }
 
-    // Insert message
+    // Insert message with processed content
     const { data: message, error: msgError } = await supabase
       .from('messages')
       .insert({
@@ -186,7 +319,7 @@ serve(async (req) => {
         sender_id: senderId,
         sender_type: senderType,
         sender_name: actualSenderName,
-        content: content,
+        content: processedContent,
         moderated_content: moderationResult.moderatedContent,
         moderation_status: moderationStatus,
         moderation_flags: moderationResult.violations
@@ -216,15 +349,19 @@ serve(async (req) => {
       if (autoMessages && autoMessages.length > 0) {
         const autoMsg = autoMessages[0];
         
-        // Send automated response after delay
+        // Send automated response after delay with variable replacement
         if (autoMsg.delay_minutes === 0) {
+          const automatedContent = replaceTemplateVariables(autoMsg.message_template, variableData);
+          console.log('Automated message - Original:', autoMsg.message_template.substring(0, 100));
+          console.log('Automated message - Processed:', automatedContent.substring(0, 100));
+          
           await supabase
             .from('messages')
             .insert({
               conversation_id: conversationId,
               sender_id: conversation.guide_id,
               sender_type: 'guide',
-              content: autoMsg.message_template,
+              content: automatedContent,
               is_automated: true,
               moderation_status: 'approved'
             });

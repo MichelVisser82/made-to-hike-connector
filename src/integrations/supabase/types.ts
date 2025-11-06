@@ -258,6 +258,7 @@ export type Database = {
         Row: {
           anonymous_email: string | null
           anonymous_name: string | null
+          booking_id: string | null
           conversation_type: string
           created_at: string | null
           guide_id: string | null
@@ -271,6 +272,7 @@ export type Database = {
         Insert: {
           anonymous_email?: string | null
           anonymous_name?: string | null
+          booking_id?: string | null
           conversation_type?: string
           created_at?: string | null
           guide_id?: string | null
@@ -284,6 +286,7 @@ export type Database = {
         Update: {
           anonymous_email?: string | null
           anonymous_name?: string | null
+          booking_id?: string | null
           conversation_type?: string
           created_at?: string | null
           guide_id?: string | null
@@ -295,6 +298,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_guide_id_fkey"
             columns: ["guide_id"]
