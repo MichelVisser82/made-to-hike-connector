@@ -118,12 +118,12 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
         subjectInputRef.current.setSelectionRange(position, position)
       } else if (field === 'content' && contentTextareaRef.current) {
         const textarea = contentTextareaRef.current
-        // Restore scroll position first, then set cursor
+        textarea.focus()
+        textarea.setSelectionRange(position, position)
+        // Restore scroll position AFTER setting cursor (setSelectionRange causes scroll)
         if (scrollTop !== undefined) {
           textarea.scrollTop = scrollTop
         }
-        textarea.focus()
-        textarea.setSelectionRange(position, position)
       }
       
       pendingCursorPosition.current = null
