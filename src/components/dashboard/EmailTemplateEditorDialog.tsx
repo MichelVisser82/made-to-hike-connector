@@ -51,7 +51,7 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
 
   const subjectInputRef = useRef<HTMLInputElement>(null)
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null)
-  const pendingCursorPosition = useRef<{ field: 'subject' | 'content', position: number } | null>(null)
+  const pendingCursorPosition = useRef<{ field: 'subject' | 'content', position: number, scrollTop?: number } | null>(null)
 
   useEffect(() => {
     if (template) {
@@ -97,10 +97,11 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
       const textarea = contentTextareaRef.current
       if (textarea) {
         const cursorPos = textarea.selectionStart || content.length
+        const scrollTop = textarea.scrollTop // Save scroll position
         const newValue = content.slice(0, cursorPos) + variable + content.slice(cursorPos)
         setContent(newValue)
-        // Store cursor position to be set after React re-renders
-        pendingCursorPosition.current = { field: 'content', position: cursorPos + variable.length }
+        // Store cursor position and scroll position to be set after React re-renders
+        pendingCursorPosition.current = { field: 'content', position: cursorPos + variable.length, scrollTop }
       } else {
         setContent(prev => prev + variable)
       }
@@ -110,14 +111,19 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
   // Apply cursor position after React finishes rendering
   useEffect(() => {
     if (pendingCursorPosition.current) {
-      const { field, position } = pendingCursorPosition.current
+      const { field, position, scrollTop } = pendingCursorPosition.current
       
       if (field === 'subject' && subjectInputRef.current) {
         subjectInputRef.current.focus()
         subjectInputRef.current.setSelectionRange(position, position)
       } else if (field === 'content' && contentTextareaRef.current) {
-        contentTextareaRef.current.focus()
-        contentTextareaRef.current.setSelectionRange(position, position)
+        const textarea = contentTextareaRef.current
+        // Restore scroll position first, then set cursor
+        if (scrollTop !== undefined) {
+          textarea.scrollTop = scrollTop
+        }
+        textarea.focus()
+        textarea.setSelectionRange(position, position)
       }
       
       pendingCursorPosition.current = null
