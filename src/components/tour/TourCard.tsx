@@ -38,35 +38,37 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
   const isGuideVerified = guideProfile?.verified || false;
 
   return (
-    <Card 
-      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col"
+    <article 
+      className="group relative bg-card rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border cursor-pointer"
       onClick={() => onTourClick(tour)}
     >
       {/* Hero Image Section */}
-      <div className="relative h-96 flex-shrink-0">
+      <div className="relative aspect-[3/4] overflow-hidden">
         {tour.hero_image ? (
           <img
             src={tour.hero_image}
             alt={`${tour.title} - ${tour.region} hiking tour`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
           />
         ) : (
           <SmartImage
             category="tour"
             usageContext={tour.region}
             tags={[tour.region, tour.difficulty, 'landscape', 'hiking']}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             fallbackSrc="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop"
             alt={`${tour.title} - ${tour.region} hiking tour`}
           />
         )}
         
-        {/* Dark gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-cream-light" />
         
-        {/* Difficulty Badge */}
+        {/* Difficulty Badge - Top Left */}
         <Badge 
-          className="absolute top-4 right-4"
+          className="absolute top-3 left-3 border-0"
           variant={
             tour.difficulty === 'easy' ? 'default' :
             tour.difficulty === 'moderate' ? 'secondary' :
@@ -75,62 +77,88 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
         >
           {tour.difficulty}
         </Badge>
-        
-        {/* Overlay Text Content */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <h3 className="text-white text-xl font-semibold mb-2 drop-shadow-lg">
-            {tour.title}
-          </h3>
-          <GuideInfoDisplay
-            guideInfo={guideInfo}
-            isLoadingProfessional={isLoadingProfessional}
-            showBadge={false}
-            size="sm"
-            variant="overlay"
-            certifications={certifications}
-            isGuideVerified={isGuideVerified}
-            guideSlug={guideProfile?.slug}
-          />
+
+        {/* Rating - Top Right */}
+        {tour.rating > 0 && (
+          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
+            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+            <span className="text-sm font-medium text-gray-900">
+              {tour.rating.toFixed(1)}
+            </span>
+            {tour.reviews_count > 0 && (
+              <span className="text-xs text-gray-500">
+                ({tour.reviews_count})
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Guide Avatar - Bottom Left */}
+        <div className="absolute bottom-3 left-3">
+          {guideProfile?.profile_image_url ? (
+            <img
+              src={guideProfile.profile_image_url}
+              alt={guideInfo.displayName}
+              className="w-16 h-16 rounded-full border-2 border-white shadow-lg object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full border-2 border-white shadow-lg bg-muted flex items-center justify-center">
+              <span className="text-lg font-semibold text-muted-foreground">
+                {guideInfo.displayName.charAt(0)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Content Section */}
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
+      <div className="p-4 space-y-4">
+        {/* Tour Title and Guide */}
+        <div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            {tour.title}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            by {guideInfo.displayName}
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <MapPin className="w-4 h-4" />
             <span>{tour.region}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-4 h-4" />
             <span>{tour.duration}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            <span>{tour.group_size}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Star className="h-3 w-3 fill-primary text-primary" />
-            <span className="font-semibold text-foreground">{tour.rating.toFixed(1)}</span>
+          <div className="flex items-center gap-1.5">
+            <Users className="w-4 h-4" />
+            <span>Max {tour.group_size}</span>
           </div>
         </div>
-        
-        <div className="flex justify-between items-center">
-          <div>
-            <span className="text-xl font-bold">{tour.currency === 'EUR' ? '€' : '£'}{tour.price}</span>
-            <span className="text-xs text-muted-foreground ml-1">/ person</span>
+
+        {/* Price */}
+        <div className="flex items-center justify-between">
+          <div className="font-medium text-foreground text-lg">
+            {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
+            <span className="text-sm text-muted-foreground font-normal ml-1">/ person</span>
           </div>
-          <Button 
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onBookTour(tour);
-            }}
-          >
-            Book Now
-          </Button>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Book Now Button */}
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            onBookTour(tour);
+          }}
+          className="w-full bg-[#881337] hover:bg-[#7f1d1d] text-white"
+          size="lg"
+        >
+          Book Now
+        </Button>
+      </div>
+    </article>
   );
 }
