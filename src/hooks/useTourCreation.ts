@@ -231,15 +231,31 @@ export function useTourCreation(options?: UseTourCreationOptions) {
     }
   }, [form, editMode]);
 
-  // Auto-save draft (skip in edit mode)
+  // Auto-save to database with debouncing
   useEffect(() => {
-    if (editMode) return; // Don't auto-save when editing existing tour
+    let timeoutId: NodeJS.Timeout;
     
     const subscription = form.watch((value) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+      // Save to localStorage immediately for drafts
+      if (!editMode) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+      }
+      
+      // Debounce database saves
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(async () => {
+        const tourIdToSave = draftTourId || initialTourId;
+        if (tourIdToSave && value) {
+          await saveProgress(value as TourFormData);
+        }
+      }, 2000); // Save 2 seconds after user stops typing
     });
-    return () => subscription.unsubscribe();
-  }, [form, editMode]);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
+  }, [form, editMode, draftTourId, initialTourId]);
 
   const nextStep = () => {
     if (currentStep < 13) {
@@ -262,7 +278,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
     }
   };
 
-  const saveProgress = async (data: TourFormData) => {
+  const saveProgress = async (data: TourFormData, showToast = false) => {
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -320,10 +336,12 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         setDraftTourId(newTour.id);
         localStorage.setItem(STORAGE_KEY + '_tour_id', newTour.id);
         
-        toast({
-          title: "Draft created",
-          description: "Your tour has been saved as a draft",
-        });
+        if (showToast) {
+          toast({
+            title: "Draft created",
+            description: "Your tour has been saved as a draft",
+          });
+        }
         return { success: true, tourId: newTour.id };
       }
 
@@ -333,10 +351,12 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       if (!tourIdToUpdate) {
         // No tour ID yet, just save to localStorage
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        toast({
-          title: "Progress saved",
-          description: "Your changes have been saved locally",
-        });
+        if (showToast) {
+          toast({
+            title: "Progress saved",
+            description: "Your changes have been saved locally",
+          });
+        }
         return { success: true };
       }
 
@@ -394,10 +414,12 @@ export function useTourCreation(options?: UseTourCreationOptions) {
           .insert(dateSlotInserts);
       }
 
-      toast({
-        title: "Progress saved",
-        description: "Your changes have been saved",
-      });
+      if (showToast) {
+        toast({
+          title: "Progress saved",
+          description: "Your changes have been saved",
+        });
+      }
       
       return { success: true, tourId: tourIdToUpdate };
     } catch (error) {

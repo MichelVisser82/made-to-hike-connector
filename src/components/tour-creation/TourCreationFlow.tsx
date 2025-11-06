@@ -100,11 +100,11 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
   };
 
   const handleSaveTab = async () => {
-    await saveProgress(form.getValues());
+    await saveProgress(form.getValues(), true); // Show toast for manual saves
   };
 
   const handleNext = async () => {
-    await saveProgress(form.getValues());
+    await saveProgress(form.getValues(), false); // Silent auto-save on next
     nextStep();
   };
 
