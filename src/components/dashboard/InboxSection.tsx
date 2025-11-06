@@ -24,6 +24,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
 import { ChatWindow } from '../chat/ChatWindow';
 import { AutomatedResponsesSettings } from '../guide/AutomatedResponsesSettings';
+import { TemplateEditorDialog } from './TemplateEditorDialog';
 import type {
   Conversation as ChatConversation,
   Review,
@@ -64,6 +65,8 @@ export function InboxSection({
 }: InboxSectionProps) {
   const [activeTab, setActiveTab] = useState('messages');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const { user } = useAuth();
   const { profile } = useProfile();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -77,6 +80,22 @@ export function InboxSection({
 
   // Extract bookingId from URL params for review auto-opening
   const bookingId = searchParams.get('bookingId') || undefined;
+
+  // Handler for editing templates
+  const handleEditTemplate = (templateId: string) => {
+    const template = templates.find((t) => t.id === templateId);
+    if (template) {
+      setEditingTemplate(template);
+      setTemplateDialogOpen(true);
+    }
+  };
+
+  const handleSaveTemplate = (templateId: string, updates: Partial<MessageTemplate>) => {
+    // This will call the parent's onEditTemplate with the updated data
+    // For now, we'll just close the dialog - parent should handle the actual save
+    console.log('Saving template:', templateId, updates);
+    setTemplateDialogOpen(false);
+  };
 
   // Auto-select tab from URL parameter
   useEffect(() => {
@@ -323,7 +342,7 @@ export function InboxSection({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onEditTemplate(template.id)}
+                      onClick={() => handleEditTemplate(template.id)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -403,6 +422,14 @@ export function InboxSection({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Template Editor Dialog */}
+      <TemplateEditorDialog
+        template={editingTemplate}
+        open={templateDialogOpen}
+        onOpenChange={setTemplateDialogOpen}
+        onSave={handleSaveTemplate}
+      />
     </div>
   );
 }
