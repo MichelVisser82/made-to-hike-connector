@@ -80,7 +80,7 @@ export function TourBookingDetailPage() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { toast } = useToast();
-  const { templates: chatTemplates } = useChatMessageTemplates(user?.id);
+  const { templates: chatTemplates, isLoading: templatesLoading } = useChatMessageTemplates(user?.id);
   
   const [tour, setTour] = useState<TourDetails | null>(null);
   const [bookings, setBookings] = useState<TourBooking[]>([]);
@@ -558,20 +558,33 @@ export function TourBookingDetailPage() {
             {/* Quick Templates */}
             <div>
               <div className="text-sm font-medium text-charcoal mb-2">Quick Templates</div>
-              <div className="grid grid-cols-2 gap-2">
-                {quickTemplates.map((template, idx) => (
-                  <Button
-                    key={idx}
-                    variant="outline"
-                    size="sm"
-                    className="justify-start h-auto py-2 px-3 text-left"
-                    onClick={() => setGroupMessage(template.message)}
-                  >
-                    <template.icon className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="text-xs line-clamp-1">{template.label}</span>
-                  </Button>
-                ))}
-              </div>
+              {templatesLoading ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : quickTemplates.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {quickTemplates.map((template, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      size="sm"
+                      className="justify-start h-auto py-2 px-3 text-left"
+                      onClick={() => setGroupMessage(template.message)}
+                    >
+                      <template.icon className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="text-xs line-clamp-1">{template.label}</span>
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No active chat templates. Set them up in the Inbox section.
+                </p>
+              )}
             </div>
 
             <Separator />
