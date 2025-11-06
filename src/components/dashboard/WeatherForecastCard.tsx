@@ -137,32 +137,52 @@ const WeatherForecastCard = ({ location, latitude, longitude, date }: WeatherFor
               )}
             </div>
             
-            <div className={`text-sm text-charcoal/80 leading-relaxed whitespace-pre-wrap overflow-hidden transition-all duration-300 ${
-              isExpanded ? 'max-h-none' : 'max-h-32'
-            }`}>
-              {weather.fullForecast}
+            <div className="text-sm text-charcoal/80 leading-relaxed whitespace-pre-wrap">
+              {(() => {
+                // Split content at the first major heading
+                const splitPoint = weather.fullForecast.indexOf('\n\n##');
+                const hasLongContent = splitPoint > 0 && weather.fullForecast.length > 400;
+                
+                if (!hasLongContent) {
+                  return weather.fullForecast;
+                }
+                
+                if (isExpanded) {
+                  return weather.fullForecast;
+                }
+                
+                // Show content up to first heading
+                return weather.fullForecast.substring(0, splitPoint);
+              })()}
             </div>
 
-            {weather.fullForecast.length > 300 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="text-burgundy hover:text-burgundy/80 hover:bg-burgundy/5 h-8 px-2 -ml-2"
-              >
-                {isExpanded ? (
-                  <>
-                    <ChevronUp className="w-4 h-4 mr-1" />
-                    Show Less
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="w-4 h-4 mr-1" />
-                    Read More
-                  </>
-                )}
-              </Button>
-            )}
+            {(() => {
+              const splitPoint = weather.fullForecast.indexOf('\n\n##');
+              const hasLongContent = splitPoint > 0 && weather.fullForecast.length > 400;
+              
+              if (!hasLongContent) return null;
+              
+              return (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="text-burgundy hover:text-burgundy/80 hover:bg-burgundy/5 h-8 px-2 -ml-2"
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="w-4 h-4 mr-1" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4 mr-1" />
+                      Read More
+                    </>
+                  )}
+                </Button>
+              );
+            })()}
 
             {!isForecast && (
               <div className="mt-3 pt-3 border-t border-burgundy/10">
