@@ -157,12 +157,14 @@ export function TourBookingDetailPage() {
 
       // Get all unique hiker IDs from bookings
       const hikerIds = [...new Set(bookings.map(b => b.hiker.id))];
+      let successCount = 0;
+      let failCount = 0;
 
-      // Send message to each hiker
-      await Promise.all(
-        hikerIds.map(async (hikerId) => {
+      // Send message to each hiker sequentially to avoid overwhelming the system
+      for (const hikerId of hikerIds) {
+        try {
           // Find or create conversation
-          let { data: conversation } = await supabase
+          let { data: conversation, error: fetchError } = await supabase
             .from('conversations')
             .select('id')
             .eq('tour_id', tour.id)
@@ -171,9 +173,14 @@ export function TourBookingDetailPage() {
             .eq('conversation_type', 'booking_chat')
             .maybeSingle();
 
+          if (fetchError) {
+            console.error('Error fetching conversation:', fetchError);
+            throw fetchError;
+          }
+
           // Create conversation if it doesn't exist
           if (!conversation) {
-            const { data: newConv } = await supabase
+            const { data: newConv, error: createError } = await supabase
               .from('conversations')
               .insert({
                 tour_id: tour.id,
@@ -184,6 +191,11 @@ export function TourBookingDetailPage() {
               .select('id')
               .single();
             
+            if (createError) {
+              console.error('Error creating conversation:', createError);
+              throw createError;
+            }
+            
             conversation = newConv;
           }
 
@@ -191,7 +203,7 @@ export function TourBookingDetailPage() {
 
           if (conversationId) {
             // Send message using edge function with correct parameters
-            await supabase.functions.invoke('send-message', {
+            const { error: sendError } = await supabase.functions.invoke('send-message', {
               body: {
                 conversationId: conversationId,
                 content: groupMessage,
@@ -199,16 +211,29 @@ export function TourBookingDetailPage() {
                 senderName: user?.email
               },
             });
+
+            if (sendError) {
+              console.error('Error sending message:', sendError);
+              throw sendError;
+            }
+
+            successCount++;
           }
-        })
-      );
+        } catch (error) {
+          console.error(`Failed to send message to hiker ${hikerId}:`, error);
+          failCount++;
+        }
+      }
 
-      toast({
-        title: 'Success',
-        description: `Message sent to all ${hikerIds.length} participants`,
-      });
-
-      setGroupMessage('');
+      if (successCount > 0) {
+        toast({
+          title: 'Success',
+          description: `Message sent to ${successCount} participant${successCount > 1 ? 's' : ''}${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+        });
+        setGroupMessage('');
+      } else {
+        throw new Error('Failed to send messages to any participants');
+      }
     } catch (error) {
       console.error('Error sending group message:', error);
       toast({
