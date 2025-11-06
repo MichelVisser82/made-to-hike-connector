@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuidePolicyDefaults } from '@/hooks/useGuidePolicyDefaults';
 import { CancellationPolicySettings } from './CancellationPolicySettings';
@@ -96,7 +95,16 @@ export function CancellationDiscountsTab() {
     depositAmount,
   });
 
-  const handleSave = () => {
+  const handleSave = (updates: Partial<{
+    cancellation_approach: CancellationApproach;
+    cancellation_policy_type: CancellationPolicyType;
+    early_bird_settings: EarlyBirdSettings;
+    group_discount_settings: GroupDiscountSettings;
+    last_minute_settings: LastMinuteSettings;
+    deposit_type: DepositType;
+    deposit_amount: number;
+    final_payment_days: number;
+  }>) => {
     updateDefaults({
       cancellation_approach: cancellationApproach,
       cancellation_policy_type: cancellationPolicy,
@@ -106,6 +114,7 @@ export function CancellationDiscountsTab() {
       deposit_type: depositType,
       deposit_amount: depositAmount,
       final_payment_days: finalPaymentDays,
+      ...updates,
     });
   };
 
@@ -127,6 +136,7 @@ export function CancellationDiscountsTab() {
             onChange={(approach, policy) => {
               setCancellationApproach(approach);
               setCancellationPolicy(policy);
+              handleSave({ cancellation_approach: approach, cancellation_policy_type: policy });
             }}
           />
 
@@ -134,18 +144,36 @@ export function CancellationDiscountsTab() {
             earlyBird={earlyBird}
             group={group}
             lastMinute={lastMinute}
-            onEarlyBirdChange={setEarlyBird}
-            onGroupChange={setGroup}
-            onLastMinuteChange={setLastMinute}
+            onEarlyBirdChange={(settings) => {
+              setEarlyBird(settings);
+              handleSave({ early_bird_settings: settings });
+            }}
+            onGroupChange={(settings) => {
+              setGroup(settings);
+              handleSave({ group_discount_settings: settings });
+            }}
+            onLastMinuteChange={(settings) => {
+              setLastMinute(settings);
+              handleSave({ last_minute_settings: settings });
+            }}
           />
 
           <PaymentScheduleSettings
             depositType={depositType}
             depositAmount={depositAmount}
             finalPaymentDays={finalPaymentDays}
-            onDepositTypeChange={setDepositType}
-            onDepositAmountChange={setDepositAmount}
-            onFinalPaymentDaysChange={setFinalPaymentDays}
+            onDepositTypeChange={(type) => {
+              setDepositType(type);
+              handleSave({ deposit_type: type });
+            }}
+            onDepositAmountChange={(amount) => {
+              setDepositAmount(amount);
+              handleSave({ deposit_amount: amount });
+            }}
+            onFinalPaymentDaysChange={(days) => {
+              setFinalPaymentDays(days);
+              handleSave({ final_payment_days: days });
+            }}
           />
 
           <DiscountCodesManager guideId={user?.id} isAdmin={false} />
@@ -161,23 +189,6 @@ export function CancellationDiscountsTab() {
         </div>
       </div>
 
-      {/* Save Button */}
-      <div className="sticky bottom-0 bg-background border-t pt-4 pb-2">
-        <Button
-          onClick={handleSave}
-          disabled={isUpdating}
-          className="w-full bg-burgundy hover:bg-burgundy-dark text-white"
-        >
-          {isUpdating ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Saving Changes...
-            </>
-          ) : (
-            'Save Default Settings'
-          )}
-        </Button>
-      </div>
     </div>
   );
 }
