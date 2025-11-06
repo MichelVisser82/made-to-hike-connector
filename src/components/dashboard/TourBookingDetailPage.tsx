@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
+import { useChatMessageTemplates } from '@/hooks/useChatMessageTemplates';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,7 +78,9 @@ export function TourBookingDetailPage() {
   const { tourSlug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { profile } = useProfile();
   const { toast } = useToast();
+  const { templates: chatTemplates } = useChatMessageTemplates(user?.id);
   
   const [tour, setTour] = useState<TourDetails | null>(null);
   const [bookings, setBookings] = useState<TourBooking[]>([]);
@@ -284,28 +288,37 @@ export function TourBookingDetailPage() {
     a.click();
   };
 
-  const quickTemplates = [
-    {
+  const replaceVariablesInTemplate = (template: string): string => {
+    let result = template;
+    
+    // Replace tour name
+    const tourName = tour?.title || 'the tour';
+    result = result.replace(/{tour-name}/g, tourName);
+    
+    // Replace guide name
+    const guideName = profile?.name || 'your guide';
+    result = result.replace(/{guide-name}/g, guideName);
+    
+    // Replace meeting point
+    const meetingPoint = tour?.meeting_point || '[meeting point]';
+    result = result.replace(/{meeting-point}/g, meetingPoint);
+    
+    // For guest names and tour dates in group messages, use placeholders
+    result = result.replace(/{guest-name}/g, 'everyone');
+    result = result.replace(/{tour-date}/g, '[tour date]');
+    
+    return result;
+  };
+
+  // Get active chat templates from database
+  const quickTemplates = chatTemplates
+    .filter(t => t.is_active)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map(template => ({
       icon: FileText,
-      label: 'Welcome & Trip Preparation',
-      message: `Hello everyone! I'm excited to have you join the ${tour?.title}. Please make sure to bring appropriate hiking gear and check the weather forecast. Looking forward to meeting you!`,
-    },
-    {
-      icon: FileText,
-      label: '48-Hour Reminder',
-      message: `Hi team! Just a friendly reminder that our ${tour?.title} is coming up in 48 hours. Meeting point: ${tour?.meeting_point}. See you soon!`,
-    },
-    {
-      icon: FileText,
-      label: 'Weather Update',
-      message: `Weather update for our upcoming tour: Conditions look favorable for hiking. Please dress in layers and bring rain gear just in case.`,
-    },
-    {
-      icon: FileText,
-      label: 'Post-Trip Thank You',
-      message: `Thank you all for joining the ${tour?.title}! It was a pleasure guiding you. I'd appreciate if you could leave a review of your experience.`,
-    },
-  ];
+      label: template.name,
+      message: replaceVariablesInTemplate(template.message_content),
+    }));
 
   if (loading) {
     return (
