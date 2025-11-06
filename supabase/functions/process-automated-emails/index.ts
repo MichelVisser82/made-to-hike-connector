@@ -6,7 +6,7 @@ import {
   extractLastName, 
   formatMessageDate,
   type VariableData 
-} from '../send-message/templateVariables.ts'
+} from './templateVariables.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
