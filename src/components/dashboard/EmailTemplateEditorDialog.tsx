@@ -204,7 +204,7 @@ export const EmailTemplateEditorDialog = ({ template, existingTemplates = [], op
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[1100]">
                   {TRIGGER_TYPES.map(t => {
                     // Check if this trigger is already used (excluding current template when editing)
                     const isUsed = existingTemplates.some(
