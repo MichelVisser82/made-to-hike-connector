@@ -16,39 +16,30 @@ import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
 import { ChatWindow } from '../chat/ChatWindow';
 import { AutomatedResponsesSettings } from '../guide/AutomatedResponsesSettings';
-import { TemplateEditorDialog } from './TemplateEditorDialog';
 import { EmailTemplateEditorDialog } from './EmailTemplateEditorDialog';
 import { useEmailTemplates, type EmailTemplate } from '@/hooks/useEmailTemplates';
-import type { Conversation as ChatConversation, Review, ReviewStats, MessageTemplate, NotificationPreference } from '@/types';
+import type { Conversation as ChatConversation, Review, ReviewStats, NotificationPreference } from '@/types';
 import type { Conversation } from '@/types/chat';
 import { LoadingSpinner, ConversationsSkeleton, StatsCardsSkeleton, ListSkeleton } from './LoadingStates';
 import ReviewsTab from './reviews/ReviewsTab';
 interface InboxSectionProps {
   reviews: Review[];
   reviewStats: ReviewStats;
-  templates: MessageTemplate[];
   notificationPreferences: NotificationPreference[];
   loading: boolean;
   onReplyToReview: (reviewId: string) => void;
-  onToggleTemplate: (templateId: string, enabled: boolean) => void;
-  onEditTemplate: (templateId: string) => void;
   onUpdateNotificationPreference: (preferenceId: string, channel: 'email' | 'sms' | 'push', enabled: boolean) => void;
 }
 export function InboxSection({
   reviews,
   reviewStats,
-  templates,
   notificationPreferences,
   loading,
   onReplyToReview,
-  onToggleTemplate,
-  onEditTemplate,
   onUpdateNotificationPreference
 }: InboxSectionProps) {
   const [activeTab, setActiveTab] = useState('messages');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
-  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [editingEmailTemplate, setEditingEmailTemplate] = useState<Partial<EmailTemplate> | null>(null);
   const [emailTemplateDialogOpen, setEmailTemplateDialogOpen] = useState(false);
   const { user } = useAuth();
@@ -74,21 +65,6 @@ export function InboxSection({
 
   // Extract bookingId from URL params for review auto-opening
   const bookingId = searchParams.get('bookingId') || undefined;
-
-  // Handler for editing templates
-  const handleEditTemplate = (templateId: string) => {
-    const template = templates.find(t => t.id === templateId);
-    if (template) {
-      setEditingTemplate(template);
-      setTemplateDialogOpen(true);
-    }
-  };
-  const handleSaveTemplate = (templateId: string, updates: Partial<MessageTemplate>) => {
-    // This will call the parent's onEditTemplate with the updated data
-    // For now, we'll just close the dialog - parent should handle the actual save
-    console.log('Saving template:', templateId, updates);
-    setTemplateDialogOpen(false);
-  };
 
   // Auto-select tab from URL parameter
   useEffect(() => {
@@ -248,65 +224,7 @@ export function InboxSection({
 
         {/* AUTOMATED MESSAGES TAB */}
         <TabsContent value="automated" className="space-y-6">
-          {/* Quick Reply Templates Section - for chat messages */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Reply Templates</CardTitle>
-              <CardDescription>
-                Pre-written responses for quick chat replies in conversations
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {
-                  setEditingTemplate(null)
-                  setTemplateDialogOpen(true)
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Quick Reply Template
-              </Button>
-
-              <div className="space-y-2">
-                {templates.map((template) => (
-                  <div
-                    key={template.id}
-                    className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium truncate">{template.name}</h4>
-                        <Switch
-                          checked={template.enabled}
-                          onCheckedChange={(checked) => onToggleTemplate(template.id, checked)}
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {template.content}
-                      </p>
-                      {!template.enabled && (
-                        <Badge variant="secondary" className="mt-1">Disabled</Badge>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingTemplate(template)
-                        setTemplateDialogOpen(true)
-                      }}
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Automated Email Templates Section - for scheduled emails */}
+          {/* Automated Email Templates Section */}
           <Card>
             <CardHeader>
               <CardTitle>Automated Email Templates</CardTitle>
@@ -430,14 +348,7 @@ export function InboxSection({
         </TabsContent>
       </Tabs>
 
-      {/* Template Editor Dialogs */}
-      <TemplateEditorDialog 
-        template={editingTemplate} 
-        open={templateDialogOpen} 
-        onOpenChange={setTemplateDialogOpen} 
-        onSave={handleSaveTemplate} 
-      />
-
+      {/* Email Template Editor Dialog */}
       <EmailTemplateEditorDialog
         template={editingEmailTemplate}
         open={emailTemplateDialogOpen}

@@ -13,7 +13,6 @@ import {
   type Conversation,
   type Review,
   type ReviewStats,
-  type MessageTemplate,
   type NotificationPreference,
 } from '../../types';
 import type { DashboardSection, DashboardStats, TodayScheduleItem, Notification } from '@/types/dashboard';
@@ -95,7 +94,6 @@ export function GuideDashboard({
     total: 0,
     breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
   });
-  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreference[]>([]);
   const [loadingInbox, setLoadingInbox] = useState(false);
   const { toast } = useToast();
@@ -620,56 +618,6 @@ export function GuideDashboard({
         },
       ]);
 
-      // Mock message templates
-      setTemplates([
-        {
-          id: 'template-1',
-          name: 'Booking Confirmation',
-          description: 'Sent immediately after booking is confirmed',
-          content: `Welcome {guest_name}, your booking for {tour_name} is confirmed!
-
-We're excited to have you join us. Here are the key details:
-
-📅 Date: {tour_date}
-📍 Meeting Point: {meeting_point}
-⏰ Start Time: {start_time}
-
-What to bring:
-• Hiking boots
-• Layered clothing
-• Water and snacks
-• Camera (optional)
-
-If you have any questions, feel free to reach out!
-
-Best regards,
-{guide_name}`,
-          enabled: true,
-        },
-        {
-          id: 'template-2',
-          name: 'Pre-trip Reminder',
-          description: 'Sent 2 days before tour date',
-          content: `Hi {guest_name}, your trek is coming up in 2 days! Here's what you need to know:
-
-📅 Date: {tour_date}
-📍 Meeting Point: {meeting_point}
-⏰ Arrive by: {arrival_time}
-
-Weather forecast: {weather}
-
-Don't forget to bring:
-✓ Proper hiking boots
-✓ Rain gear (just in case)
-✓ Water bottle
-✓ Sun protection
-
-See you soon!
-{guide_name}`,
-          enabled: true,
-        },
-      ]);
-
       // Mock notification preferences
       setNotificationPreferences([
         {
@@ -737,23 +685,6 @@ See you soon!
     toast({
       title: 'Reply to review',
       description: 'Reply functionality coming soon',
-    });
-  };
-
-  const handleToggleTemplate = (templateId: string, enabled: boolean) => {
-    setTemplates(prev =>
-      prev.map(t => (t.id === templateId ? { ...t, enabled } : t))
-    );
-    toast({
-      title: enabled ? 'Template enabled' : 'Template disabled',
-      description: `Automated message ${enabled ? 'activated' : 'deactivated'}`,
-    });
-  };
-
-  const handleEditTemplate = (templateId: string) => {
-    toast({
-      title: 'Edit template',
-      description: 'Template editor coming soon',
     });
   };
 
@@ -916,12 +847,9 @@ See you soon!
             <InboxSection
               reviews={reviews}
               reviewStats={reviewStats}
-              templates={templates}
               notificationPreferences={notificationPreferences}
               loading={loadingInbox}
               onReplyToReview={handleReplyToReview}
-              onToggleTemplate={handleToggleTemplate}
-              onEditTemplate={handleEditTemplate}
               onUpdateNotificationPreference={handleUpdateNotificationPreference}
             />
           )}
