@@ -151,10 +151,11 @@ export function TourBookingDetailPage() {
 
   const handleSendGroupMessage = async () => {
     if (!groupMessage.trim() || !tour) return;
+    if (sendingMessage) return; // Prevent double-clicks
+
+    setSendingMessage(true);
 
     try {
-      setSendingMessage(true);
-
       // Get all unique hiker IDs from bookings
       const hikerIds = [...new Set(bookings.map(b => b.hiker.id))];
       let successCount = 0;
@@ -175,7 +176,8 @@ export function TourBookingDetailPage() {
 
           if (fetchError) {
             console.error('Error fetching conversation:', fetchError);
-            throw fetchError;
+            failCount++;
+            continue;
           }
 
           // Create conversation if it doesn't exist
@@ -193,7 +195,8 @@ export function TourBookingDetailPage() {
             
             if (createError) {
               console.error('Error creating conversation:', createError);
-              throw createError;
+              failCount++;
+              continue;
             }
             
             conversation = newConv;
@@ -201,48 +204,60 @@ export function TourBookingDetailPage() {
 
           const conversationId = conversation?.id;
 
-          if (conversationId) {
-            // Send message using edge function with correct parameters
-            const { error: sendError } = await supabase.functions.invoke('send-message', {
-              body: {
-                conversationId: conversationId,
-                content: groupMessage,
-                senderType: 'guide',
-                senderName: user?.email
-              },
-            });
-
-            if (sendError) {
-              console.error('Error sending message:', sendError);
-              throw sendError;
-            }
-
-            successCount++;
+          if (!conversationId) {
+            console.error('No conversation ID available');
+            failCount++;
+            continue;
           }
+
+          // Send message using edge function with correct parameters
+          const { error: sendError } = await supabase.functions.invoke('send-message', {
+            body: {
+              conversationId: conversationId,
+              content: groupMessage,
+              senderType: 'guide',
+              senderName: user?.email
+            },
+          });
+
+          if (sendError) {
+            console.error('Error sending message:', sendError);
+            failCount++;
+            continue;
+          }
+
+          successCount++;
         } catch (error) {
           console.error(`Failed to send message to hiker ${hikerId}:`, error);
           failCount++;
         }
       }
 
+      // Clear loading state first
+      setSendingMessage(false);
+
+      // Then show results
       if (successCount > 0) {
+        setGroupMessage('');
         toast({
           title: 'Success',
           description: `Message sent to ${successCount} participant${successCount > 1 ? 's' : ''}${failCount > 0 ? ` (${failCount} failed)` : ''}`,
         });
-        setGroupMessage('');
       } else {
-        throw new Error('Failed to send messages to any participants');
+        toast({
+          title: 'Error',
+          description: 'Failed to send messages to any participants',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error sending group message:', error);
+      setSendingMessage(false);
       toast({
         title: 'Error',
         description: 'Failed to send group message',
         variant: 'destructive',
       });
-    } finally {
-      setSendingMessage(false);
     }
   };
 
