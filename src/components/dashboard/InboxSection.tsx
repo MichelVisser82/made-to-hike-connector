@@ -413,13 +413,7 @@ Best regards,
                 return order.indexOf(a.trigger_type) - order.indexOf(b.trigger_type);
               }).map(template => <div key={template.id} className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium truncate">{template.name}</h4>
-                        <Switch checked={template.is_active} onCheckedChange={checked => toggleTemplate.mutate({
-                      id: template.id,
-                      isActive: checked
-                    })} />
-                      </div>
+                      <h4 className="font-medium truncate">{template.name}</h4>
                       <p className="text-sm text-muted-foreground line-clamp-1">
                         {template.description || template.subject}
                       </p>
@@ -433,7 +427,11 @@ Best regards,
                         {!template.is_active && <Badge variant="secondary">Disabled</Badge>}
                       </div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex items-center gap-1">
+                      <Switch checked={template.is_active} onCheckedChange={checked => toggleTemplate.mutate({
+                      id: template.id,
+                      isActive: checked
+                    })} />
                       <Button variant="ghost" size="sm" onClick={() => {
                     setEditingEmailTemplate(template);
                     setEmailTemplateDialogOpen(true);
@@ -486,18 +484,7 @@ Best regards,
                         className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium truncate">{template.name}</h4>
-                            <Switch
-                              checked={template.is_active}
-                              onCheckedChange={(checked) =>
-                                toggleChatTemplate.mutate({
-                                  id: template.id,
-                                  isActive: checked,
-                                })
-                              }
-                            />
-                          </div>
+                          <h4 className="font-medium truncate">{template.name}</h4>
                           {template.description && (
                             <p className="text-sm text-muted-foreground line-clamp-1">
                               {template.description}
@@ -515,7 +502,16 @@ Best regards,
                             {template.message_content}
                           </p>
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex items-center gap-1">
+                          <Switch
+                            checked={template.is_active}
+                            onCheckedChange={(checked) =>
+                              toggleChatTemplate.mutate({
+                                id: template.id,
+                                isActive: checked,
+                              })
+                            }
+                          />
                           <Button
                             variant="ghost"
                             size="sm"
