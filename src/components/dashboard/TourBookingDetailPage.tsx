@@ -291,26 +291,48 @@ export function TourBookingDetailPage() {
   };
 
   const handleExportParticipants = () => {
-    // Create CSV content
-    const headers = ['Name', 'Email', 'Phone', 'Booking Date', 'Participants', 'Status', 'Dietary', 'Emergency Contact'];
-    const rows = bookings.map(booking => [
-      booking.hiker.name,
-      booking.hiker.email,
-      booking.hiker.phone || '',
-      format(new Date(booking.booking_date), 'yyyy-MM-dd'),
-      booking.participants.toString(),
-      booking.status,
-      booking.participants_details?.[0]?.dietaryPreferences || '',
-      booking.participants_details?.[0]?.emergencyContactName || '',
-    ]);
+    // Create CSV content with comprehensive participant information
+    const headers = [
+      'Name', 
+      'Email', 
+      'Phone', 
+      'Booking Date', 
+      'Participants', 
+      'Status', 
+      'Dietary Requirements',
+      'Emergency Contact Name',
+      'Emergency Contact Phone',
+      'Emergency Contact Relationship'
+    ];
+    
+    const rows = bookings.map(booking => {
+      // Handle dietary preferences array
+      const dietaryReqs = booking.hiker.dietary_preferences && Array.isArray(booking.hiker.dietary_preferences)
+        ? booking.hiker.dietary_preferences.join('; ')
+        : 'None';
+      
+      return [
+        booking.hiker.name,
+        booking.hiker.email,
+        booking.hiker.phone || '',
+        format(new Date(booking.booking_date), 'yyyy-MM-dd'),
+        booking.participants.toString(),
+        booking.status === 'pending_confirmation' ? 'Confirmed' : booking.status,
+        dietaryReqs,
+        booking.hiker.emergency_contact_name || '',
+        booking.hiker.emergency_contact_phone || '',
+        booking.hiker.emergency_contact_relationship || '',
+      ];
+    });
 
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${tour?.slug}-participants.csv`;
+    a.download = `${tour?.slug}-participants-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   // Get active chat templates from database - keep variables intact for personalization
