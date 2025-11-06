@@ -470,6 +470,7 @@ Best regards,
       {/* Email Template Editor Dialog */}
       <EmailTemplateEditorDialog
         template={editingEmailTemplate}
+        existingTemplates={emailTemplates}
         open={emailTemplateDialogOpen}
         onOpenChange={setEmailTemplateDialogOpen}
         onSave={(templateData) => {

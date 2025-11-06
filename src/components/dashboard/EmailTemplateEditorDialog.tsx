@@ -31,12 +31,13 @@ const TRIGGER_TYPES = [
 
 interface EmailTemplateEditorDialogProps {
   template: Partial<EmailTemplate> | null
+  existingTemplates?: EmailTemplate[]
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (templateData: Partial<EmailTemplate>) => void
 }
 
-export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave }: EmailTemplateEditorDialogProps) => {
+export const EmailTemplateEditorDialog = ({ template, existingTemplates = [], open, onOpenChange, onSave }: EmailTemplateEditorDialogProps) => {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [subject, setSubject] = useState('')
@@ -184,14 +185,29 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {TRIGGER_TYPES.map(t => (
-                    <SelectItem key={t.value} value={t.value}>
-                      <div>
-                        <div className="font-medium">{t.label}</div>
-                        <div className="text-xs text-muted-foreground">{t.description}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {TRIGGER_TYPES.map(t => {
+                    // Check if this trigger is already used (excluding current template when editing)
+                    const isUsed = existingTemplates.some(
+                      et => et.trigger_type === t.value && et.id !== template?.id
+                    )
+                    
+                    return (
+                      <SelectItem 
+                        key={t.value} 
+                        value={t.value}
+                        disabled={isUsed}
+                        className={isUsed ? 'opacity-50 cursor-not-allowed' : ''}
+                      >
+                        <div>
+                          <div className="font-medium">
+                            {t.label}
+                            {isUsed && <span className="text-xs ml-2">(Already exists)</span>}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{t.description}</div>
+                        </div>
+                      </SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
             </div>
