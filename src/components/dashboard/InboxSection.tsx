@@ -11,7 +11,7 @@ import {
   Bell,
   Loader2,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -295,7 +295,56 @@ export function InboxSection({
 
         {/* AUTOMATED MESSAGES TAB */}
         <TabsContent value="automated" className="space-y-6">
-          <AutomatedResponsesSettings />
+          {/* Quick Reply Templates Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Reply Templates</CardTitle>
+              <CardDescription>
+                Pre-written messages you can quickly send during conversations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {templates.map((template) => (
+                <div
+                  key={template.id}
+                  className="flex items-start justify-between gap-4 p-4 rounded-lg border bg-card"
+                >
+                  <div className="flex-1 space-y-1">
+                    <h4 className="font-medium">{template.name}</h4>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {template.content}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={template.enabled}
+                      onCheckedChange={(enabled) => onToggleTemplate(template.id, enabled)}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEditTemplate(template.id)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Automated Responses Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Automated Responses</CardTitle>
+              <CardDescription>
+                Set up automatic messages to be sent based on triggers and timing
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AutomatedResponsesSettings />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* NOTIFICATIONS TAB */}
