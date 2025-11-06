@@ -42,15 +42,19 @@ export function InboxSection({
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [editingEmailTemplate, setEditingEmailTemplate] = useState<Partial<EmailTemplate> | null>(null);
   const [emailTemplateDialogOpen, setEmailTemplateDialogOpen] = useState(false);
-  const { user } = useAuth();
-  const { profile } = useProfile();
+  const {
+    user
+  } = useAuth();
+  const {
+    profile
+  } = useProfile();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { 
-    templates: emailTemplates, 
-    createTemplate, 
-    updateTemplate, 
+  const {
+    templates: emailTemplates,
+    createTemplate,
+    updateTemplate,
     toggleTemplate,
-    deleteTemplate 
+    deleteTemplate
   } = useEmailTemplates(user?.id);
   const isAdmin = profile?.role === 'admin';
   const isGuide = profile?.role === 'guide';
@@ -77,15 +81,13 @@ export function InboxSection({
   // Auto-create default email templates if guide has none
   useEffect(() => {
     if (!user?.id || !isGuide || emailTemplates.length > 0 || createTemplate.isPending) return;
-    
     const createDefaultTemplates = async () => {
-      const defaultTemplates: Omit<EmailTemplate, 'id' | 'created_at' | 'updated_at'>[] = [
-        {
-          guide_id: user.id,
-          name: 'Booking Confirmation',
-          description: 'Sent immediately after booking is confirmed',
-          subject: 'Your {tour-name} Booking is Confirmed! 🎉',
-          content: `Hi {guest-firstname},
+      const defaultTemplates: Omit<EmailTemplate, 'id' | 'created_at' | 'updated_at'>[] = [{
+        guide_id: user.id,
+        name: 'Booking Confirmation',
+        description: 'Sent immediately after booking is confirmed',
+        subject: 'Your {tour-name} Booking is Confirmed! 🎉',
+        content: `Hi {guest-firstname},
 
 Welcome aboard! Your booking for {tour-name} is confirmed.
 
@@ -104,19 +106,18 @@ If you have any questions, feel free to reach out!
 
 Best regards,
 {guide-name}`,
-          trigger_type: 'booking_confirmed' as const,
-          timing_value: 0,
-          timing_unit: 'hours' as const,
-          timing_direction: 'after' as const,
-          is_active: true,
-          send_as_email: true
-        },
-        {
-          guide_id: user.id,
-          name: 'Pre-Trip Reminder',
-          description: 'Sent 2 days before tour date',
-          subject: 'Your {tour-name} Adventure is Coming Up! ⛰️',
-          content: `Hi {guest-firstname},
+        trigger_type: 'booking_confirmed' as const,
+        timing_value: 0,
+        timing_unit: 'hours' as const,
+        timing_direction: 'after' as const,
+        is_active: true,
+        send_as_email: true
+      }, {
+        guide_id: user.id,
+        name: 'Pre-Trip Reminder',
+        description: 'Sent 2 days before tour date',
+        subject: 'Your {tour-name} Adventure is Coming Up! ⛰️',
+        content: `Hi {guest-firstname},
 
 Your trek is coming up in 2 days! Here's what you need to know:
 
@@ -135,19 +136,18 @@ Looking forward to an amazing adventure together!
 
 See you soon,
 {guide-name}`,
-          trigger_type: 'booking_reminder' as const,
-          timing_value: 2,
-          timing_unit: 'days' as const,
-          timing_direction: 'before' as const,
-          is_active: true,
-          send_as_email: true
-        },
-        {
-          guide_id: user.id,
-          name: 'Thank You & Review Request',
-          description: 'Sent after tour completes',
-          subject: 'Thank You for Hiking with Us! 🏔️',
-          content: `Hi {guest-firstname},
+        trigger_type: 'booking_reminder' as const,
+        timing_value: 2,
+        timing_unit: 'days' as const,
+        timing_direction: 'before' as const,
+        is_active: true,
+        send_as_email: true
+      }, {
+        guide_id: user.id,
+        name: 'Thank You & Review Request',
+        description: 'Sent after tour completes',
+        subject: 'Thank You for Hiking with Us! 🏔️',
+        content: `Hi {guest-firstname},
 
 Thank you for joining me on {tour-name}! It was a pleasure having you on the trail.
 
@@ -159,20 +159,17 @@ Until our next adventure!
 
 Best regards,
 {guide-name}`,
-          trigger_type: 'tour_completed' as const,
-          timing_value: 1,
-          timing_unit: 'days' as const,
-          timing_direction: 'after' as const,
-          is_active: true,
-          send_as_email: true
-        }
-      ];
-      
+        trigger_type: 'tour_completed' as const,
+        timing_value: 1,
+        timing_unit: 'days' as const,
+        timing_direction: 'after' as const,
+        is_active: true,
+        send_as_email: true
+      }];
       for (const template of defaultTemplates) {
         await createTemplate.mutateAsync(template);
       }
     };
-    
     createDefaultTemplates();
   }, [user?.id, isGuide, emailTemplates.length, createTemplate]);
 
@@ -335,49 +332,32 @@ Best regards,
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {
-                  setEditingEmailTemplate(null)
-                  setEmailTemplateDialogOpen(true)
-                }}
-              >
+              <Button variant="outline" className="w-full" onClick={() => {
+              setEditingEmailTemplate(null);
+              setEmailTemplateDialogOpen(true);
+            }}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Email Template
               </Button>
 
               <div className="space-y-2">
-                {createTemplate.isPending ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                {createTemplate.isPending ? <div className="text-center py-8 text-muted-foreground">
                     <Loader2 className="w-8 h-8 mx-auto mb-3 animate-spin" />
                     <p>Setting up your default templates...</p>
-                  </div>
-                ) : emailTemplates.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  </div> : emailTemplates.length === 0 ? <div className="text-center py-8 text-muted-foreground">
                     <Mail className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p className="mb-2">Loading templates...</p>
-                  </div>
-                ) : (
-                  [...emailTemplates]
-                    .sort((a, b) => {
-                      const order = ['booking_confirmed', 'booking_reminder', 'tour_completed'];
-                      return order.indexOf(a.trigger_type) - order.indexOf(b.trigger_type);
-                    })
-                    .map((template) => (
-                  <div
-                    key={template.id}
-                    className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
-                  >
+                  </div> : [...emailTemplates].sort((a, b) => {
+                const order = ['booking_confirmed', 'booking_reminder', 'tour_completed'];
+                return order.indexOf(a.trigger_type) - order.indexOf(b.trigger_type);
+              }).map(template => <div key={template.id} className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium truncate">{template.name}</h4>
-                        <Switch
-                          checked={template.is_active}
-                          onCheckedChange={(checked) => 
-                            toggleTemplate.mutate({ id: template.id, isActive: checked })
-                          }
-                        />
+                        <Switch checked={template.is_active} onCheckedChange={checked => toggleTemplate.mutate({
+                      id: template.id,
+                      isActive: checked
+                    })} />
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-1">
                         {template.description || template.subject}
@@ -386,38 +366,24 @@ Best regards,
                         <Badge variant="secondary" className="text-xs">
                           {template.trigger_type.replace('_', ' ')}
                         </Badge>
-                        {template.timing_value > 0 && (
-                          <Badge variant="outline" className="text-xs">
+                        {template.timing_value > 0 && <Badge variant="outline" className="text-xs">
                             {template.timing_value} {template.timing_unit} {template.timing_direction}
-                          </Badge>
-                        )}
-                        {!template.is_active && (
-                          <Badge variant="secondary">Disabled</Badge>
-                        )}
+                          </Badge>}
+                        {!template.is_active && <Badge variant="secondary">Disabled</Badge>}
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditingEmailTemplate(template)
-                          setEmailTemplateDialogOpen(true)
-                        }}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => {
+                    setEditingEmailTemplate(template);
+                    setEmailTemplateDialogOpen(true);
+                  }}>
                         <Edit2 className="w-4 h-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteTemplate.mutate(template.id)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => deleteTemplate.mutate(template.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                  </div>
-                ))
-                )}
+                  </div>)}
               </div>
             </CardContent>
           </Card>
@@ -425,7 +391,7 @@ Best regards,
           {/* Automated Responses Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Recurring (Group) Messages</CardTitle>
+              <CardTitle>Recurring (Group) Chat Messages</CardTitle>
               <CardDescription>Set up recurring messages to your guest for (group) chat</CardDescription>
             </CardHeader>
             <CardContent>
@@ -468,24 +434,18 @@ Best regards,
       </Tabs>
 
       {/* Email Template Editor Dialog */}
-      <EmailTemplateEditorDialog
-        template={editingEmailTemplate}
-        existingTemplates={emailTemplates}
-        open={emailTemplateDialogOpen}
-        onOpenChange={setEmailTemplateDialogOpen}
-        onSave={(templateData) => {
-          if (templateData.id) {
-            updateTemplate.mutate({ 
-              id: templateData.id, 
-              updates: templateData 
-            })
-          } else {
-            createTemplate.mutate({
-              ...templateData,
-              guide_id: user!.id
-            } as any)
-          }
-        }}
-      />
+      <EmailTemplateEditorDialog template={editingEmailTemplate} existingTemplates={emailTemplates} open={emailTemplateDialogOpen} onOpenChange={setEmailTemplateDialogOpen} onSave={templateData => {
+      if (templateData.id) {
+        updateTemplate.mutate({
+          id: templateData.id,
+          updates: templateData
+        });
+      } else {
+        createTemplate.mutate({
+          ...templateData,
+          guide_id: user!.id
+        } as any);
+      }
+    }} />
     </div>;
 }
