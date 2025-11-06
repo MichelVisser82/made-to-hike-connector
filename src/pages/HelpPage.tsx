@@ -12,11 +12,16 @@ import { useProfile } from '@/hooks/useProfile';
 export default function HelpPage() {
   const contactFormRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, loading } = useProfile();
 
   const scrollToContact = () => {
     contactFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  // Wait for profile to load to prevent menu flicker
+  if (loading && user) {
+    return null;
+  }
 
   const dashboardMode = profile?.role === 'admin' ? 'admin' : profile?.role === 'guide' ? 'guide' : user ? 'hiker' : undefined;
 
