@@ -150,14 +150,7 @@ export function AppNavigation({
                 return (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      if (onSectionChange) {
-                        onSectionChange(item.id);
-                      } else {
-                        // Navigate to dashboard with section parameter
-                        navigate(`/dashboard?section=${item.id}`);
-                      }
-                    }}
+                    onClick={() => navigate(`/dashboard?section=${item.id}`)}
                     className={`
                       relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors
                       ${isActive 
@@ -380,13 +373,7 @@ export function AppNavigation({
                 return (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      if (onSectionChange) {
-                        onSectionChange(item.id);
-                      } else {
-                        navigate(`/dashboard?section=${item.id}`);
-                      }
-                    }}
+                    onClick={() => navigate(`/dashboard?section=${item.id}`)}
                     className={`
                       relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors
                       ${isActive 
