@@ -12,6 +12,7 @@ import { TicketDashboard } from '../admin/TicketDashboard';
 import { FlaggedMessagesPanel } from '../admin/FlaggedMessagesPanel';
 import { AllConversationsPanel } from '../admin/AllConversationsPanel';
 import { RegionSubmissionsPanel } from '../admin/RegionSubmissionsPanel';
+import { DiscountCodesManager } from '../dashboard/policy/DiscountCodesManager';
 import { type User } from '../../types';
 import { MainLayout } from '../layout/MainLayout';
 import type { DashboardSection } from '@/types/dashboard';
@@ -50,12 +51,13 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
             <TabsTrigger value="regions">Regions</TabsTrigger>
             <TabsTrigger value="flagged">Flagged</TabsTrigger>
             <TabsTrigger value="conversations">Conversations</TabsTrigger>
+            <TabsTrigger value="discount-codes">Codes</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="verifications">Verifications</TabsTrigger>
@@ -109,6 +111,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
           <TabsContent value="conversations">
             <AllConversationsPanel initialConversationId={searchParams.get('conversation') || undefined} />
+          </TabsContent>
+
+          <TabsContent value="discount-codes" className="space-y-6">
+            <DiscountCodesManager isAdmin={true} />
           </TabsContent>
 
           <TabsContent value="images">

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { CancellationDiscountsTab } from './policy/CancellationDiscountsTab';
+import { DiscountCodesManager } from './policy/DiscountCodesManager';
 import { 
   Table, 
   TableHeader, 
@@ -36,6 +37,7 @@ interface MoneySectionProps {
   nextPayout?: Payout;
   taxDocuments: TaxDocument[];
   loading: boolean;
+  guideId?: string;
   onExport: () => void;
   onRequestPayout: () => void;
   onDownloadDocument: (docId: string) => void;
@@ -61,6 +63,7 @@ export function MoneySection({
   nextPayout,
   taxDocuments,
   loading,
+  guideId,
   onExport,
   onRequestPayout,
   onDownloadDocument,
@@ -119,6 +122,12 @@ export function MoneySection({
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             Cancellation & Discounts
+          </TabsTrigger>
+          <TabsTrigger 
+            value="discount-codes"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+          >
+            Discount Codes
           </TabsTrigger>
           <TabsTrigger 
             value="analytics"
@@ -411,6 +420,11 @@ export function MoneySection({
         {/* CANCELLATION & DISCOUNTS TAB */}
         <TabsContent value="cancellation-discounts" className="space-y-6">
           <CancellationDiscountsTab />
+        </TabsContent>
+
+        {/* DISCOUNT CODES TAB */}
+        <TabsContent value="discount-codes" className="space-y-6">
+          <DiscountCodesManager guideId={guideId} isAdmin={false} />
         </TabsContent>
 
         {/* ANALYTICS TAB */}

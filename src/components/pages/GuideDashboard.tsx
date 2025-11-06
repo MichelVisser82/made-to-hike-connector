@@ -836,6 +836,7 @@ export function GuideDashboard({
               nextPayout={nextPayout}
               taxDocuments={taxDocuments}
               loading={loadingMoney}
+              guideId={user.id}
               onExport={handleExportReport}
               onRequestPayout={handleRequestPayout}
               onDownloadDocument={handleDownloadDocument}
