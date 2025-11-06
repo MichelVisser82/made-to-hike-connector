@@ -5,6 +5,7 @@ import { useGuidePolicyDefaults } from '@/hooks/useGuidePolicyDefaults';
 import { CancellationPolicySettings } from './CancellationPolicySettings';
 import { DiscountSettings } from './DiscountSettings';
 import { PaymentScheduleSettings } from './PaymentScheduleSettings';
+import { DiscountCodesManager } from './DiscountCodesManager';
 import { PricingPreview } from './PricingPreview';
 import { usePricingCalculation } from '@/hooks/usePricingCalculation';
 import { Loader2 } from 'lucide-react';
@@ -146,6 +147,8 @@ export function CancellationDiscountsTab() {
             onDepositAmountChange={setDepositAmount}
             onFinalPaymentDaysChange={setFinalPaymentDays}
           />
+
+          <DiscountCodesManager guideId={user?.id} isAdmin={false} />
         </div>
 
         <div className="lg:col-span-1">
