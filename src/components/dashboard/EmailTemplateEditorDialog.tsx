@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -47,6 +47,10 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
   const [timingDirection, setTimingDirection] = useState<'before' | 'after'>('before')
   const [sendAsEmail, setSendAsEmail] = useState(true)
   const [isActive, setIsActive] = useState(true)
+  const [lastFocusedField, setLastFocusedField] = useState<'subject' | 'content'>('content')
+
+  const subjectInputRef = useRef<HTMLInputElement>(null)
+  const contentTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     if (template) {
@@ -74,11 +78,37 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
     }
   }, [template, open])
 
-  const handleInsertVariable = (variable: string, field: 'subject' | 'content') => {
+  const handleInsertVariable = (variable: string) => {
+    const field = lastFocusedField
+    
     if (field === 'subject') {
-      setSubject(prev => prev + variable)
+      const input = subjectInputRef.current
+      if (input) {
+        const cursorPos = input.selectionStart || subject.length
+        const newValue = subject.slice(0, cursorPos) + variable + subject.slice(cursorPos)
+        setSubject(newValue)
+        // Set focus back and position cursor after inserted variable
+        setTimeout(() => {
+          input.focus()
+          input.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length)
+        }, 0)
+      } else {
+        setSubject(prev => prev + variable)
+      }
     } else {
-      setContent(prev => prev + variable)
+      const textarea = contentTextareaRef.current
+      if (textarea) {
+        const cursorPos = textarea.selectionStart || content.length
+        const newValue = content.slice(0, cursorPos) + variable + content.slice(cursorPos)
+        setContent(newValue)
+        // Set focus back and position cursor after inserted variable
+        setTimeout(() => {
+          textarea.focus()
+          textarea.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length)
+        }, 0)
+      } else {
+        setContent(prev => prev + variable)
+      }
     }
   }
 
@@ -214,7 +244,8 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
                   key={variable}
                   variant="outline"
                   className="cursor-pointer hover:bg-accent"
-                  onClick={() => handleInsertVariable(variable, 'subject')}
+                  onClick={() => handleInsertVariable(variable)}
+                  title={description}
                 >
                   <Wand2 className="w-3 h-3 mr-1" />
                   {variable}
@@ -225,9 +256,11 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
             <div>
               <Label htmlFor="subject">Email Subject *</Label>
               <Input
+                ref={subjectInputRef}
                 id="subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
+                onFocus={() => setLastFocusedField('subject')}
                 placeholder="Your tour with {guide-name} starts in 48 hours!"
               />
             </div>
@@ -235,9 +268,11 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
             <div>
               <Label htmlFor="content">Email Content *</Label>
               <Textarea
+                ref={contentTextareaRef}
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onFocus={() => setLastFocusedField('content')}
                 placeholder="Hi {guest-firstname},&#10;&#10;This is a friendly reminder that your {tour-name} tour is coming up on {tour-date}..."
                 rows={8}
               />
