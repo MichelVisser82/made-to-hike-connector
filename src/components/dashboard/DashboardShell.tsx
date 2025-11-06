@@ -105,7 +105,7 @@ export function DashboardShell({
                 return (
                   <button
                     key={item.id}
-                    onClick={() => onSectionChange(item.id)}
+                    onClick={() => navigate(`/dashboard?section=${item.id}`)}
                     className={`
                       flex items-center gap-2 px-3 py-2 rounded-lg transition-colors
                       ${isActive 
