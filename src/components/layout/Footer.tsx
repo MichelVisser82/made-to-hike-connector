@@ -138,7 +138,10 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('/guides')}
+                  onClick={() => {
+                    window.scrollTo(0, 0);
+                    navigate('/guides');
+                  }}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Our Guides
