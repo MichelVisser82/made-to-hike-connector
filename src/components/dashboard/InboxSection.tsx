@@ -10,12 +10,15 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
+import { Trash2, Plus, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
 import { ChatWindow } from '../chat/ChatWindow';
 import { AutomatedResponsesSettings } from '../guide/AutomatedResponsesSettings';
 import { TemplateEditorDialog } from './TemplateEditorDialog';
+import { EmailTemplateEditorDialog } from './EmailTemplateEditorDialog';
+import { useEmailTemplates, type EmailTemplate } from '@/hooks/useEmailTemplates';
 import type { Conversation as ChatConversation, Review, ReviewStats, MessageTemplate, NotificationPreference } from '@/types';
 import type { Conversation } from '@/types/chat';
 import { LoadingSpinner, ConversationsSkeleton, StatsCardsSkeleton, ListSkeleton } from './LoadingStates';
@@ -46,13 +49,18 @@ export function InboxSection({
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
-  const {
-    user
-  } = useAuth();
-  const {
-    profile
-  } = useProfile();
+  const [editingEmailTemplate, setEditingEmailTemplate] = useState<Partial<EmailTemplate> | null>(null);
+  const [emailTemplateDialogOpen, setEmailTemplateDialogOpen] = useState(false);
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { 
+    templates: emailTemplates, 
+    createTemplate, 
+    updateTemplate, 
+    toggleTemplate,
+    deleteTemplate 
+  } = useEmailTemplates(user?.id);
   const isAdmin = profile?.role === 'admin';
   const isGuide = profile?.role === 'guide';
   const {
@@ -240,27 +248,82 @@ export function InboxSection({
 
         {/* AUTOMATED MESSAGES TAB */}
         <TabsContent value="automated" className="space-y-6">
-          {/* Quick Reply Templates Section */}
+          {/* Automated Email Templates Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Reply Templates</CardTitle>
-              <CardDescription>Set up automatic messages to be sent based on triggers and timing</CardDescription>
+              <CardTitle>Automated Email Templates</CardTitle>
+              <CardDescription>
+                Set up automated emails sent to guests based on booking triggers and timing
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {templates.map(template => <div key={template.id} className="flex items-start justify-between gap-4 p-4 rounded-lg border bg-card">
-                  <div className="flex-1 space-y-1">
-                    <h4 className="font-medium">{template.name}</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {template.content}
-                    </p>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  setEditingEmailTemplate(null)
+                  setEmailTemplateDialogOpen(true)
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Email Template
+              </Button>
+
+              <div className="space-y-2">
+                {emailTemplates.map((template) => (
+                  <div
+                    key={template.id}
+                    className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium truncate">{template.name}</h4>
+                        <Switch
+                          checked={template.is_active}
+                          onCheckedChange={(checked) => 
+                            toggleTemplate.mutate({ id: template.id, isActive: checked })
+                          }
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-1">
+                        {template.description || template.subject}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {template.trigger_type.replace('_', ' ')}
+                        </Badge>
+                        {template.timing_value > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {template.timing_value} {template.timing_unit} {template.timing_direction}
+                          </Badge>
+                        )}
+                        {!template.is_active && (
+                          <Badge variant="secondary">Disabled</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingEmailTemplate(template)
+                          setEmailTemplateDialogOpen(true)
+                        }}
+                      >
+                        <Settings className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteTemplate.mutate(template.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={template.enabled} onCheckedChange={enabled => onToggleTemplate(template.id, enabled)} />
-                    <Button variant="ghost" size="icon" onClick={() => handleEditTemplate(template.id)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>)}
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -309,7 +372,31 @@ export function InboxSection({
         </TabsContent>
       </Tabs>
 
-      {/* Template Editor Dialog */}
-      <TemplateEditorDialog template={editingTemplate} open={templateDialogOpen} onOpenChange={setTemplateDialogOpen} onSave={handleSaveTemplate} />
+      {/* Template Editor Dialogs */}
+      <TemplateEditorDialog 
+        template={editingTemplate} 
+        open={templateDialogOpen} 
+        onOpenChange={setTemplateDialogOpen} 
+        onSave={handleSaveTemplate} 
+      />
+
+      <EmailTemplateEditorDialog
+        template={editingEmailTemplate}
+        open={emailTemplateDialogOpen}
+        onOpenChange={setEmailTemplateDialogOpen}
+        onSave={(templateData) => {
+          if (templateData.id) {
+            updateTemplate.mutate({ 
+              id: templateData.id, 
+              updates: templateData 
+            })
+          } else {
+            createTemplate.mutate({
+              ...templateData,
+              guide_id: user!.id
+            } as any)
+          }
+        }}
+      />
     </div>;
 }

@@ -400,6 +400,102 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          booking_id: string
+          id: string
+          recipient_email: string
+          sent_at: string | null
+          status: string | null
+          subject: string
+          template_id: string | null
+        }
+        Insert: {
+          booking_id: string
+          id?: string
+          recipient_email: string
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+          template_id?: string | null
+        }
+        Update: {
+          booking_id?: string
+          id?: string
+          recipient_email?: string
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          description: string | null
+          guide_id: string
+          id: string
+          is_active: boolean | null
+          name: string
+          send_as_email: boolean | null
+          subject: string
+          timing_direction: string | null
+          timing_unit: string | null
+          timing_value: number | null
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          description?: string | null
+          guide_id: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          send_as_email?: boolean | null
+          subject: string
+          timing_direction?: string | null
+          timing_unit?: string | null
+          timing_value?: number | null
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          description?: string | null
+          guide_id?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          send_as_email?: boolean | null
+          subject?: string
+          timing_direction?: string | null
+          timing_unit?: string | null
+          timing_value?: number | null
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       guide_profiles: {
         Row: {
           active_since: string | null

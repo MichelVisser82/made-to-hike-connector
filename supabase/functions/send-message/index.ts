@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { 
+  replaceTemplateVariables, 
+  extractFirstName, 
+  extractLastName, 
+  formatMessageDate,
+  type VariableData 
+} from './templateVariables.ts';
 
 interface SendMessageRequest {
   conversationId: string;
@@ -15,65 +22,7 @@ interface ModerationResult {
   hasViolations: boolean;
 }
 
-interface VariableData {
-  guestFirstName?: string;
-  guestLastName?: string;
-  guestFullName?: string;
-  tourName?: string;
-  tourDate?: string;
-  guestCount?: number;
-  guideName?: string;
-}
-
-const extractFirstName = (fullName: string | null | undefined): string => {
-  if (!fullName) return '';
-  const parts = fullName.trim().split(/\s+/);
-  return parts[0] || '';
-};
-
-const extractLastName = (fullName: string | null | undefined): string => {
-  if (!fullName) return '';
-  const parts = fullName.trim().split(/\s+/);
-  return parts.length > 1 ? parts[parts.length - 1] : '';
-};
-
-const formatMessageDate = (date: string | Date | null | undefined): string => {
-  if (!date) return '';
-  try {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  } catch {
-    return '';
-  }
-};
-
-const replaceTemplateVariables = (template: string, data: VariableData): string => {
-  let result = template;
-  
-  const replacements: Record<string, string> = {
-    '{guest-firstname}': data.guestFirstName || 'there',
-    '{guest-lastname}': data.guestLastName || '',
-    '{guest-fullname}': data.guestFullName || 'Guest',
-    '{tour-name}': data.tourName || 'the tour',
-    '{tour-date}': data.tourDate || 'your tour date',
-    '{guest-count}': data.guestCount?.toString() || '1',
-    '{guide-name}': data.guideName || 'your guide',
-    '{meeting-point}': 'the meeting point',
-    '{start-time}': '09:00',
-  };
-  
-  Object.entries(replacements).forEach(([variable, value]) => {
-    const escaped = variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    result = result.replace(new RegExp(escaped, 'g'), value);
-  });
-  
-  return result;
-};
+// Variable replacement functions now imported from templateVariables.ts
 
 // Phone number patterns (international formats)
 const phonePatterns = [

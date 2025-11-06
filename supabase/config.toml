@@ -83,3 +83,6 @@ verify_jwt = true
 
 [functions.import-hiking-regions]
 verify_jwt = true
+
+[functions.process-automated-emails]
+verify_jwt = false
