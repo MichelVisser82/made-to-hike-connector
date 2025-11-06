@@ -107,7 +107,7 @@ export function DashboardShell({
                     key={item.id}
                     onClick={() => navigate(`/dashboard?section=${item.id}`)}
                     className={`
-                      flex items-center gap-2 px-3 py-2 rounded-lg transition-colors
+                      relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors
                       ${isActive 
                         ? 'text-burgundy bg-burgundy/5' 
                         : 'text-charcoal/60 hover:text-burgundy hover:bg-burgundy/5'
@@ -115,7 +115,7 @@ export function DashboardShell({
                     `}
                   >
                     <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
                   </button>
                 );
               })}
