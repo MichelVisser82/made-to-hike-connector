@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +17,29 @@ interface AutomatedMessage {
   delay_minutes: number;
   is_active: boolean;
 }
+
+const quickTemplates = [
+  {
+    label: 'Welcome & Trip Preparation',
+    message: 'Hello everyone! I\'m excited to have you join the tour. Please make sure to bring appropriate hiking gear and check the weather forecast. Looking forward to meeting you!',
+    delay: 0,
+  },
+  {
+    label: '48-Hour Reminder',
+    message: 'Hi team! Just a friendly reminder that our tour is coming up in 48 hours. See you at the meeting point soon!',
+    delay: 0,
+  },
+  {
+    label: 'Weather Update',
+    message: 'Weather update for our upcoming tour: Conditions look favorable for hiking. Please dress in layers and bring rain gear just in case.',
+    delay: 0,
+  },
+  {
+    label: 'Post-Trip Thank You',
+    message: 'Thank you all for joining the tour! It was a pleasure guiding you. I\'d appreciate if you could leave a review of your experience.',
+    delay: 0,
+  },
+];
 
 export function AutomatedResponsesSettings() {
   const [messages, setMessages] = useState<AutomatedMessage[]>([]);
@@ -125,6 +148,28 @@ export function AutomatedResponsesSettings() {
             Set up automatic replies to new tour inquiries. Use variables like {"{{hiker_name}}"} and {"{{tour_title}}"}.
           </p>
 
+          {/* Quick Templates */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Quick Templates</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {quickTemplates.map((template, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  className="justify-start h-auto py-2 px-3 text-left border-burgundy/20 hover:bg-burgundy/5"
+                  onClick={() => {
+                    setNewMessage(template.message);
+                    setDelayMinutes(template.delay);
+                  }}
+                >
+                  <FileText className="w-4 h-4 mr-2 flex-shrink-0 text-burgundy" />
+                  <span className="text-xs line-clamp-1">{template.label}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-4">
             <div>
               <Label>Message Template</Label>
@@ -147,7 +192,7 @@ export function AutomatedResponsesSettings() {
               />
             </div>
 
-            <Button onClick={handleCreate}>
+            <Button onClick={handleCreate} className="bg-burgundy hover:bg-burgundy/90">
               <Plus className="w-4 h-4 mr-2" />
               Add Automated Response
             </Button>
@@ -163,7 +208,7 @@ export function AutomatedResponsesSettings() {
           <CardContent>
             <div className="space-y-4">
               {messages.map((msg) => (
-                <div key={msg.id} className="flex items-start justify-between p-4 border rounded-lg">
+                <div key={msg.id} className="flex items-start justify-between p-4 border rounded-lg border-burgundy/10">
                   <div className="flex-1">
                     <p className="text-sm">{msg.message_template}</p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -174,11 +219,13 @@ export function AutomatedResponsesSettings() {
                     <Switch
                       checked={msg.is_active}
                       onCheckedChange={() => handleToggle(msg.id, msg.is_active)}
+                      className="data-[state=checked]:bg-burgundy"
                     />
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDelete(msg.id)}
+                      className="text-burgundy hover:bg-burgundy/5"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

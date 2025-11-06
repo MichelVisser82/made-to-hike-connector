@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
 import { ChatWindow } from '../chat/ChatWindow';
+import { AutomatedResponsesSettings } from '../guide/AutomatedResponsesSettings';
 import type {
   Conversation as ChatConversation,
   Review,
@@ -294,38 +295,7 @@ export function InboxSection({
 
         {/* AUTOMATED MESSAGES TAB */}
         <TabsContent value="automated" className="space-y-6">
-          {loading ? (
-            <ListSkeleton items={2} />
-          ) : (
-            templates.map((template) => (
-              <Card key={template.id} className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium text-charcoal">{template.name}</h3>
-                  <Switch
-                    checked={template.enabled}
-                    onCheckedChange={(checked) => onToggleTemplate(template.id, checked)}
-                    className="data-[state=checked]:bg-burgundy"
-                  />
-                </div>
-                <p className="text-sm text-charcoal/60 mb-4">
-                  {template.description}
-                </p>
-                <div className="bg-cream/50 border border-burgundy/10 p-4 rounded-lg mb-4">
-                  <p className="text-sm text-charcoal whitespace-pre-line">
-                    {template.content}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => onEditTemplate(template.id)}
-                  className="border-burgundy/30"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Template
-                </Button>
-              </Card>
-            ))
-          )}
+          <AutomatedResponsesSettings />
         </TabsContent>
 
         {/* NOTIFICATIONS TAB */}
