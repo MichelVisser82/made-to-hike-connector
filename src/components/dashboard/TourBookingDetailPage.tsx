@@ -162,22 +162,41 @@ export function TourBookingDetailPage() {
       await Promise.all(
         hikerIds.map(async (hikerId) => {
           // Find or create conversation
-          const { data: conversation } = await supabase
+          let { data: conversation } = await supabase
             .from('conversations')
             .select('id')
             .eq('tour_id', tour.id)
             .eq('hiker_id', hikerId)
             .eq('guide_id', user?.id)
+            .eq('conversation_type', 'booking_chat')
             .maybeSingle();
+
+          // Create conversation if it doesn't exist
+          if (!conversation) {
+            const { data: newConv } = await supabase
+              .from('conversations')
+              .insert({
+                tour_id: tour.id,
+                hiker_id: hikerId,
+                guide_id: user?.id,
+                conversation_type: 'booking_chat'
+              })
+              .select('id')
+              .single();
+            
+            conversation = newConv;
+          }
 
           const conversationId = conversation?.id;
 
           if (conversationId) {
-            // Send message using edge function
+            // Send message using edge function with correct parameters
             await supabase.functions.invoke('send-message', {
               body: {
-                conversation_id: conversationId,
-                message: groupMessage,
+                conversationId: conversationId,
+                content: groupMessage,
+                senderType: 'guide',
+                senderName: user?.email
               },
             });
           }
