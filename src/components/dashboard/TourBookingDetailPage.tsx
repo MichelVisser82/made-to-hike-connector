@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useChatMessageTemplates } from '@/hooks/useChatMessageTemplates';
 import { useToast } from '@/hooks/use-toast';
+import { replaceTemplateVariables, extractFirstName, extractLastName, formatMessageDate } from '@/utils/templateVariables';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -160,14 +161,38 @@ export function TourBookingDetailPage() {
     setSendingMessage(true);
 
     try {
-      // Get all unique hiker IDs from bookings
-      const hikerIds = [...new Set(bookings.map(b => b.hiker.id))];
+      // Get all unique hiker IDs from bookings with their info
+      const uniqueHikers = new Map();
+      bookings.forEach(b => {
+        if (!uniqueHikers.has(b.hiker.id)) {
+          uniqueHikers.set(b.hiker.id, {
+            id: b.hiker.id,
+            name: b.hiker.name,
+            tourDate: b.booking_date,
+            participants: b.participants
+          });
+        }
+      });
+
       let successCount = 0;
       let failCount = 0;
 
-      // Send message to each hiker sequentially to avoid overwhelming the system
-      for (const hikerId of hikerIds) {
+      // Send personalized message to each hiker
+      for (const [hikerId, hikerInfo] of uniqueHikers) {
         try {
+          // Personalize message for this specific hiker
+          const personalizedMessage = replaceTemplateVariables(groupMessage, {
+            guestFirstName: extractFirstName(hikerInfo.name),
+            guestLastName: extractLastName(hikerInfo.name),
+            guestFullName: hikerInfo.name || 'Guest',
+            tourName: tour.title,
+            tourDate: formatMessageDate(hikerInfo.tourDate),
+            guestCount: hikerInfo.participants,
+            guideName: profile?.name || 'Your guide',
+            meetingPoint: tour.meeting_point || 'the meeting point',
+            startTime: '09:00', // Could be added to tour details if needed
+          });
+
           // Find or create conversation
           let { data: conversation, error: fetchError } = await supabase
             .from('conversations')
@@ -214,11 +239,11 @@ export function TourBookingDetailPage() {
             continue;
           }
 
-          // Send message using edge function with correct parameters
+          // Send personalized message using edge function
           const { error: sendError } = await supabase.functions.invoke('send-message', {
             body: {
               conversationId: conversationId,
-              content: groupMessage,
+              content: personalizedMessage,
               senderType: 'guide',
               senderName: user?.email
             },
@@ -288,36 +313,14 @@ export function TourBookingDetailPage() {
     a.click();
   };
 
-  const replaceVariablesInTemplate = (template: string): string => {
-    let result = template;
-    
-    // Replace tour name
-    const tourName = tour?.title || 'the tour';
-    result = result.replace(/{tour-name}/g, tourName);
-    
-    // Replace guide name
-    const guideName = profile?.name || 'your guide';
-    result = result.replace(/{guide-name}/g, guideName);
-    
-    // Replace meeting point
-    const meetingPoint = tour?.meeting_point || '[meeting point]';
-    result = result.replace(/{meeting-point}/g, meetingPoint);
-    
-    // For guest names and tour dates in group messages, use placeholders
-    result = result.replace(/{guest-name}/g, 'everyone');
-    result = result.replace(/{tour-date}/g, '[tour date]');
-    
-    return result;
-  };
-
-  // Get active chat templates from database
+  // Get active chat templates from database - keep variables intact for personalization
   const quickTemplates = chatTemplates
     .filter(t => t.is_active)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map(template => ({
       icon: FileText,
       label: template.name,
-      message: replaceVariablesInTemplate(template.message_content),
+      message: template.message_content, // Keep template variables for personalization per recipient
     }));
 
   if (loading) {
