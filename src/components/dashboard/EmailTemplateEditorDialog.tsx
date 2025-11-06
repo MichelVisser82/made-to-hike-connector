@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Wand2 } from 'lucide-react'
 import type { EmailTemplate } from '@/hooks/useEmailTemplates'
+import { toast } from '@/hooks/use-toast'
 
 const VARIABLE_SUGGESTIONS = [
   { variable: '{guest-firstname}', description: "Guest's first name" },
@@ -180,7 +181,26 @@ export const EmailTemplateEditorDialog = ({ template, existingTemplates = [], op
             <h4 className="font-medium">Trigger & Timing</h4>
             <div>
               <Label htmlFor="trigger">Trigger Type</Label>
-              <Select value={triggerType} onValueChange={(v) => setTriggerType(v as EmailTemplate['trigger_type'])}>
+              <Select 
+                value={triggerType} 
+                onValueChange={(value) => {
+                  const newTrigger = value as EmailTemplate['trigger_type']
+                  const isAlreadyUsed = existingTemplates.some(
+                    et => et.trigger_type === newTrigger && et.id !== template?.id
+                  )
+                  
+                  if (isAlreadyUsed) {
+                    toast({
+                      title: "Trigger already exists",
+                      description: "This trigger type already has a template. Please select a different trigger or edit the existing template.",
+                      variant: "destructive"
+                    })
+                    return
+                  }
+                  
+                  setTriggerType(newTrigger)
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -195,7 +215,6 @@ export const EmailTemplateEditorDialog = ({ template, existingTemplates = [], op
                       <SelectItem 
                         key={t.value} 
                         value={t.value}
-                        disabled={isUsed}
                         className={isUsed ? 'opacity-50 cursor-not-allowed' : ''}
                       >
                         <div>
