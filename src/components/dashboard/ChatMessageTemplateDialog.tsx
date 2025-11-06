@@ -117,6 +117,39 @@ export function ChatMessageTemplateDialog({
 
           <div className="space-y-2">
             <Label htmlFor="message">Message Content *</Label>
+            <div className="mb-2 p-3 bg-muted/50 rounded-lg">
+              <p className="text-xs font-medium mb-2">Available Variables (click to insert):</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: 'Guest Name', value: '{guest-name}' },
+                  { label: 'Tour Name', value: '{tour-name}' },
+                  { label: 'Tour Date', value: '{tour-date}' },
+                  { label: 'Meeting Point', value: '{meeting-point}' },
+                  { label: 'Guide Name', value: '{guide-name}' },
+                ].map((variable) => (
+                  <Button
+                    key={variable.value}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={() => {
+                      const textarea = document.getElementById('message') as HTMLTextAreaElement;
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const newText = messageContent.substring(0, start) + variable.value + messageContent.substring(end);
+                      setMessageContent(newText);
+                      setTimeout(() => {
+                        textarea.focus();
+                        textarea.setSelectionRange(start + variable.value.length, start + variable.value.length);
+                      }, 0);
+                    }}
+                  >
+                    {variable.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
             <Textarea
               id="message"
               placeholder="Enter your message template here..."
@@ -126,7 +159,7 @@ export function ChatMessageTemplateDialog({
               className="resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              This message will be available to insert in any chat conversation.
+              Use variables to personalize messages. They will be replaced with actual values when sending.
             </p>
           </div>
         </div>

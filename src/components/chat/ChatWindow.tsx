@@ -2,14 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useMessages } from '@/hooks/useMessages';
+import { useChatMessageTemplates } from '@/hooks/useChatMessageTemplates';
 import { MessageBubble } from './MessageBubble';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Send, MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Conversation } from '@/types/chat';
+import { format } from 'date-fns';
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -20,9 +24,11 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { messages, loading, sendMessage, markAsRead } = useMessages(conversation.id);
+  const { templates: chatTemplates } = useChatMessageTemplates(user?.id);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -132,6 +138,34 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
     }
   };
 
+  const replaceVariables = (template: string): string => {
+    let result = template;
+    
+    // Replace guest name
+    const guestName = conversation.profiles?.name || conversation.anonymous_name || 'there';
+    result = result.replace(/{guest-name}/g, guestName);
+    
+    // Replace tour name
+    const tourName = conversation.tours?.title || 'the tour';
+    result = result.replace(/{tour-name}/g, tourName);
+    
+    // Replace guide name
+    const guideName = profile?.name || 'your guide';
+    result = result.replace(/{guide-name}/g, guideName);
+    
+    // For tour date and meeting point, use placeholders that indicate the info needs to be filled
+    result = result.replace(/{tour-date}/g, '[tour date]');
+    result = result.replace(/{meeting-point}/g, '[meeting point]');
+    
+    return result;
+  };
+
+  const insertTemplate = (templateContent: string) => {
+    const processedContent = replaceVariables(templateContent);
+    setNewMessage(processedContent);
+    setTemplatesOpen(false);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -193,7 +227,50 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
 
       {/* Input */}
       <div className="p-4 border-t">
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-end">
+          {chatTemplates.length > 0 && (
+            <Popover open={templatesOpen} onOpenChange={setTemplatesOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-[60px] w-[60px] flex-shrink-0"
+                  title="Insert template"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-2" align="start" side="top">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium px-2 py-1">Quick Reply Templates</p>
+                  <ScrollArea className="max-h-[300px]">
+                    {chatTemplates
+                      .filter(t => t.is_active)
+                      .sort((a, b) => a.sort_order - b.sort_order)
+                      .map((template) => (
+                        <button
+                          key={template.id}
+                          onClick={() => insertTemplate(template.message_content)}
+                          className="w-full text-left p-2 rounded hover:bg-accent transition-colors"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm">{template.name}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {template.category}
+                            </Badge>
+                          </div>
+                          {template.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">
+                              {template.description}
+                            </p>
+                          )}
+                        </button>
+                      ))}
+                  </ScrollArea>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
           <Textarea
             value={newMessage}
             onChange={(e) => {
@@ -209,7 +286,7 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
             onClick={handleSend}
             disabled={!newMessage.trim() || sending}
             size="icon"
-            className="h-[60px] w-[60px]"
+            className="h-[60px] w-[60px] flex-shrink-0"
           >
             {sending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -220,6 +297,7 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
         </div>
         <p className="text-xs text-muted-foreground mt-2">
           Press Enter to send, Shift+Enter for new line
+          {chatTemplates.length > 0 && ' • Click template icon to insert quick replies'}
         </p>
       </div>
     </div>
