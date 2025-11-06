@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Cloud, Sun, CloudRain, CloudSnow, Wind, AlertTriangle } from 'lucide-react';
+import { Cloud, Sun, CloudRain, CloudSnow, Wind, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 interface WeatherData {
   condition: string;
@@ -25,6 +26,7 @@ const WeatherForecastCard = ({ location, latitude, longitude, date }: WeatherFor
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isForecast, setIsForecast] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     fetchWeather();
@@ -135,9 +137,32 @@ const WeatherForecastCard = ({ location, latitude, longitude, date }: WeatherFor
               )}
             </div>
             
-            <div className="text-sm text-charcoal/80 leading-relaxed whitespace-pre-wrap">
+            <div className={`text-sm text-charcoal/80 leading-relaxed whitespace-pre-wrap overflow-hidden transition-all duration-300 ${
+              isExpanded ? 'max-h-none' : 'max-h-32'
+            }`}>
               {weather.fullForecast}
             </div>
+
+            {weather.fullForecast.length > 300 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-burgundy hover:text-burgundy/80 hover:bg-burgundy/5 h-8 px-2 -ml-2"
+              >
+                {isExpanded ? (
+                  <>
+                    <ChevronUp className="w-4 h-4 mr-1" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4 mr-1" />
+                    Read More
+                  </>
+                )}
+              </Button>
+            )}
 
             {!isForecast && (
               <div className="mt-3 pt-3 border-t border-burgundy/10">
