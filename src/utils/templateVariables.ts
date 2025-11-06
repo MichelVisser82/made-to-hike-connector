@@ -64,6 +64,7 @@ export const replaceTemplateVariables = (
 
   const replacements: Record<string, string> = {
     '{guest-firstname}': data.guestFirstName || 'there',
+    '{guest-name}': data.guestFirstName || 'there', // Alias for guest-firstname
     '{guest-lastname}': data.guestLastName || '',
     '{guest-fullname}': data.guestFullName || 'Guest',
     '{tour-name}': data.tourName || 'the tour',
