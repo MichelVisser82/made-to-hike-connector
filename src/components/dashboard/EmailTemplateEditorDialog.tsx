@@ -45,7 +45,6 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
   const [timingValue, setTimingValue] = useState(48)
   const [timingUnit, setTimingUnit] = useState<'minutes' | 'hours' | 'days'>('hours')
   const [timingDirection, setTimingDirection] = useState<'before' | 'after'>('before')
-  const [sendAsEmail, setSendAsEmail] = useState(true)
   const [isActive, setIsActive] = useState(true)
   const [lastFocusedField, setLastFocusedField] = useState<'subject' | 'content'>('content')
 
@@ -63,7 +62,6 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
       setTimingValue(template.timing_value || 48)
       setTimingUnit(template.timing_unit || 'hours')
       setTimingDirection(template.timing_direction || 'before')
-      setSendAsEmail(template.send_as_email ?? true)
       setIsActive(template.is_active ?? true)
     } else {
       setName('')
@@ -74,7 +72,6 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
       setTimingValue(48)
       setTimingUnit('hours')
       setTimingDirection('before')
-      setSendAsEmail(true)
       setIsActive(true)
     }
   }, [template, open])
@@ -141,7 +138,7 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
       timing_value: timingValue,
       timing_unit: timingUnit,
       timing_direction: timingDirection,
-      send_as_email: sendAsEmail,
+      send_as_email: true,
       is_active: isActive
     })
     onOpenChange(false)
@@ -245,15 +242,9 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
 
           {/* Email Configuration */}
           <div className="space-y-4 border-t pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Email Content</h4>
-                <p className="text-sm text-muted-foreground">Click variable badges to insert</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch checked={sendAsEmail} onCheckedChange={setSendAsEmail} />
-                <Label>Send as Email</Label>
-              </div>
+            <div>
+              <h4 className="font-medium">Email Content</h4>
+              <p className="text-sm text-muted-foreground">Click variable badges to insert</p>
             </div>
 
             <div className="flex flex-wrap gap-2">
