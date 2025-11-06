@@ -51,6 +51,7 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
 
   const subjectInputRef = useRef<HTMLInputElement>(null)
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const pendingCursorPosition = useRef<{ field: 'subject' | 'content', position: number } | null>(null)
 
   useEffect(() => {
     if (template) {
@@ -87,11 +88,8 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
         const cursorPos = input.selectionStart || subject.length
         const newValue = subject.slice(0, cursorPos) + variable + subject.slice(cursorPos)
         setSubject(newValue)
-        // Set focus back and position cursor after inserted variable
-        setTimeout(() => {
-          input.focus()
-          input.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length)
-        }, 0)
+        // Store cursor position to be set after React re-renders
+        pendingCursorPosition.current = { field: 'subject', position: cursorPos + variable.length }
       } else {
         setSubject(prev => prev + variable)
       }
@@ -101,16 +99,30 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
         const cursorPos = textarea.selectionStart || content.length
         const newValue = content.slice(0, cursorPos) + variable + content.slice(cursorPos)
         setContent(newValue)
-        // Set focus back and position cursor after inserted variable
-        setTimeout(() => {
-          textarea.focus()
-          textarea.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length)
-        }, 0)
+        // Store cursor position to be set after React re-renders
+        pendingCursorPosition.current = { field: 'content', position: cursorPos + variable.length }
       } else {
         setContent(prev => prev + variable)
       }
     }
   }
+
+  // Apply cursor position after React finishes rendering
+  useEffect(() => {
+    if (pendingCursorPosition.current) {
+      const { field, position } = pendingCursorPosition.current
+      
+      if (field === 'subject' && subjectInputRef.current) {
+        subjectInputRef.current.focus()
+        subjectInputRef.current.setSelectionRange(position, position)
+      } else if (field === 'content' && contentTextareaRef.current) {
+        contentTextareaRef.current.focus()
+        contentTextareaRef.current.setSelectionRange(position, position)
+      }
+      
+      pendingCursorPosition.current = null
+    }
+  }, [content, subject])
 
   const handleSave = () => {
     onSave({
