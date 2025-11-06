@@ -78,6 +78,69 @@ export function ChatMessageTemplateDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {!template?.id && (
+          <div className="space-y-2 py-4 border-b">
+            <Label>Quick Templates</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Start with a suggested template and customize it
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setName('Welcome & Trip Preparation');
+                  setDescription('Initial greeting and preparation info');
+                  setMessageContent('Hello everyone! I\'m excited to have you join the tour. Please make sure to bring appropriate hiking gear and check the weather forecast. Looking forward to meeting you!');
+                  setCategory('greeting');
+                }}
+              >
+                Welcome Message
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setName('48-Hour Reminder');
+                  setDescription('Friendly reminder before the tour');
+                  setMessageContent('Hi team! Just a friendly reminder that our tour is coming up in 48 hours. See you at the meeting point soon!');
+                  setCategory('booking');
+                }}
+              >
+                Tour Reminder
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setName('Weather Update');
+                  setDescription('Share weather conditions');
+                  setMessageContent('Weather update for our upcoming tour: Conditions look favorable for hiking. Please dress in layers and bring rain gear just in case.');
+                  setCategory('weather');
+                }}
+              >
+                Weather Update
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setName('Post-Trip Thank You');
+                  setDescription('Thank participants after the tour');
+                  setMessageContent('Thank you all for joining the tour! It was a pleasure guiding you. I\'d appreciate if you could leave a review of your experience.');
+                  setCategory('farewell');
+                }}
+              >
+                Thank You
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="name">Template Name *</Label>

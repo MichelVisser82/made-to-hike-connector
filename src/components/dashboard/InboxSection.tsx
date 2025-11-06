@@ -15,7 +15,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
 import { ChatWindow } from '../chat/ChatWindow';
-import { AutomatedResponsesSettings } from '../guide/AutomatedResponsesSettings';
 import { EmailTemplateEditorDialog } from './EmailTemplateEditorDialog';
 import { ChatMessageTemplateDialog } from './ChatMessageTemplateDialog';
 import { useEmailTemplates, type EmailTemplate } from '@/hooks/useEmailTemplates';
@@ -184,6 +183,56 @@ Best regards,
     };
     createDefaultTemplates();
   }, [user?.id, isGuide, emailTemplates.length, createTemplate]);
+
+  // Auto-create default chat message templates if guide has none
+  useEffect(() => {
+    if (!user?.id || !isGuide || chatTemplates.length > 0 || createChatTemplate.isPending) return;
+    const createDefaultChatTemplates = async () => {
+      const defaultChatTemplates = [
+        {
+          guide_id: user.id,
+          name: 'Welcome & Trip Preparation',
+          description: 'Initial greeting and preparation info',
+          message_content: 'Hello everyone! I\'m excited to have you join the tour. Please make sure to bring appropriate hiking gear and check the weather forecast. Looking forward to meeting you!',
+          category: 'greeting',
+          is_active: true,
+          sort_order: 1,
+        },
+        {
+          guide_id: user.id,
+          name: '48-Hour Reminder',
+          description: 'Friendly reminder before the tour',
+          message_content: 'Hi team! Just a friendly reminder that our tour is coming up in 48 hours. See you at the meeting point soon!',
+          category: 'booking',
+          is_active: true,
+          sort_order: 2,
+        },
+        {
+          guide_id: user.id,
+          name: 'Weather Update',
+          description: 'Share weather conditions',
+          message_content: 'Weather update for our upcoming tour: Conditions look favorable for hiking. Please dress in layers and bring rain gear just in case.',
+          category: 'weather',
+          is_active: true,
+          sort_order: 3,
+        },
+        {
+          guide_id: user.id,
+          name: 'Post-Trip Thank You',
+          description: 'Thank participants after the tour',
+          message_content: 'Thank you all for joining the tour! It was a pleasure guiding you. I\'d appreciate if you could leave a review of your experience.',
+          category: 'farewell',
+          is_active: true,
+          sort_order: 4,
+        },
+      ];
+
+      for (const template of defaultChatTemplates) {
+        await createChatTemplate.mutateAsync(template);
+      }
+    };
+    createDefaultChatTemplates();
+  }, [user?.id, isGuide, chatTemplates.length, createChatTemplate]);
 
   // Auto-select conversation from URL parameter (only on initial load)
   useEffect(() => {
