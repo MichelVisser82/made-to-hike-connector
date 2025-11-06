@@ -18,7 +18,7 @@ export default function HelpPage() {
     contactFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const dashboardMode = profile?.role === 'guide' ? 'guide' : user ? 'hiker' : undefined;
+  const dashboardMode = profile?.role === 'admin' ? 'admin' : profile?.role === 'guide' ? 'guide' : user ? 'hiker' : undefined;
 
   return (
     <MainLayout dashboardMode={dashboardMode}>
