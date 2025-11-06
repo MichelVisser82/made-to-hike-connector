@@ -62,7 +62,7 @@ const tourSchema = z.object({
   // Step 9: Highlights
   highlights: z.array(z.string()).min(3, 'Add at least 3 highlights').max(10),
   
-  // Step 9: Itinerary
+  // Step 9: Itinerary (optional)
   itinerary: z.array(z.object({
     day: z.number(),
     title: z.string(),
@@ -70,7 +70,7 @@ const tourSchema = z.object({
     accommodation: z.string(),
     meals: z.string(),
     image_url: z.string().optional()
-  })).min(1),
+  })).optional(),
   
   // Step 10: Inclusions/Exclusions
   includes: z.array(z.string()).min(1, 'Add at least 1 inclusion'),
