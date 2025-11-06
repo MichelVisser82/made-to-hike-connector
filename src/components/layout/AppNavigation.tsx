@@ -35,7 +35,11 @@ import {
   Bell,
   HelpCircle,
   Star,
-  Calendar
+  Calendar,
+  Headphones,
+  Image as ImageIcon,
+  ShieldCheck,
+  TrendingUp
 } from 'lucide-react';
 
 interface AppNavigationProps {
@@ -563,8 +567,16 @@ export function AppNavigation({
     );
   }
 
-  // Admin Dashboard Mode - Show header without dashboard navigation
+  // Admin Dashboard Mode - Show section navigation
   if (dashboardMode === 'admin') {
+    const adminNavItems = [
+      { id: 'overview' as DashboardSection, label: 'Overview', icon: Home },
+      { id: 'support' as DashboardSection, label: 'Support', icon: Headphones },
+      { id: 'content' as DashboardSection, label: 'Content', icon: ImageIcon },
+      { id: 'platform' as DashboardSection, label: 'Platform', icon: ShieldCheck },
+      { id: 'analytics' as DashboardSection, label: 'Analytics', icon: TrendingUp },
+    ];
+
     return (
       <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-6 py-4">
@@ -579,23 +591,33 @@ export function AppNavigation({
               <span className="text-xl text-burgundy font-playfair">Made to Hike</span>
             </a>
 
+            {/* Center: Admin Navigation (Desktop) */}
+            <nav className="hidden md:flex items-center gap-6">
+              {adminNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeSection === item.id;
+                
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => navigate(`/dashboard?section=${item.id}`)}
+                    className={`
+                      relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors
+                      ${isActive 
+                        ? 'text-burgundy bg-burgundy/5' 
+                        : 'text-charcoal/60 hover:text-burgundy hover:bg-burgundy/5'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
             {/* Right: Notifications, Help, and User Profile Dropdown */}
             <div className="flex items-center gap-3">
-              {/* Inbox Button with Unread Badge */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy"
-                onClick={() => navigate('/dashboard?section=inbox')}
-              >
-                <MessageSquare className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </Badge>
-                )}
-              </Button>
-
               {/* Notifications Bell */}
               <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                 <Bell className="w-5 h-5" />
