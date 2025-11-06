@@ -175,13 +175,13 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
   return (
     <div className="space-y-6">
       {/* Create Code Section */}
-      <Card>
+      <Card className="border-burgundy/10">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 font-playfair text-charcoal">
+            <Plus className="h-5 w-5 text-burgundy" />
             Create Discount Code
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-charcoal/60">
             {isAdmin 
               ? 'Create platform-wide or guide-specific discount codes'
               : 'Create discount codes for your tours'}
@@ -293,7 +293,7 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
           <Button 
             onClick={handleCreateCode} 
             disabled={createCode.isPending}
-            className="mt-6"
+            className="mt-6 bg-burgundy hover:bg-burgundy-dark text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Discount Code
@@ -303,20 +303,26 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
 
       {/* Active and Inactive Codes */}
       <Tabs defaultValue="active" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="active">
+        <TabsList className="grid w-full grid-cols-2 bg-cream p-1 rounded-lg">
+          <TabsTrigger 
+            value="active"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+          >
             Active Codes ({activeCodes.length})
           </TabsTrigger>
-          <TabsTrigger value="inactive">
+          <TabsTrigger 
+            value="inactive"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+          >
             Inactive Codes ({inactiveCodes.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="mt-6">
-          <Card>
+          <Card className="border-burgundy/10">
             <CardHeader>
-              <CardTitle>Active Discount Codes</CardTitle>
-              <CardDescription>
+              <CardTitle className="font-playfair text-charcoal">Active Discount Codes</CardTitle>
+              <CardDescription className="text-charcoal/60">
                 Currently active codes that can be used by hikers
               </CardDescription>
             </CardHeader>
@@ -331,34 +337,34 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Code</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Discount</TableHead>
-                      <TableHead>Valid Until</TableHead>
-                      <TableHead>Uses</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                    <TableRow className="bg-cream/70 border-b border-burgundy/10">
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Code</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Type</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Discount</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Valid Until</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Uses</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Status</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
+                  <TableBody className="divide-y divide-burgundy/5">
                     {activeCodes.map((discount) => (
-                      <TableRow key={discount.id}>
-                        <TableCell className="font-mono font-semibold">
+                      <TableRow key={discount.id} className="hover:bg-cream/30 transition-colors">
+                        <TableCell className="font-mono font-semibold text-charcoal">
                           {discount.code}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="border-burgundy/20 text-burgundy">
                             {discount.scope === 'platform' ? 'Platform' : 'Guide'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-charcoal">
                           {discount.discount_type === 'percentage' 
                             ? `${discount.discount_value}%` 
                             : `€${discount.discount_value}`}
                         </TableCell>
-                        <TableCell>{formatDate(discount.valid_until)}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-charcoal/80">{formatDate(discount.valid_until)}</TableCell>
+                        <TableCell className="text-charcoal/80">
                           {discount.times_used}
                           {discount.max_uses ? ` / ${discount.max_uses}` : ''}
                         </TableCell>
@@ -375,6 +381,7 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
                             variant="ghost"
                             size="sm"
                             onClick={() => deleteCode.mutate(discount.id)}
+                            className="hover:text-burgundy"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -389,10 +396,10 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
         </TabsContent>
 
         <TabsContent value="inactive" className="mt-6">
-          <Card>
+          <Card className="border-burgundy/10">
             <CardHeader>
-              <CardTitle>Inactive Discount Codes</CardTitle>
-              <CardDescription>
+              <CardTitle className="font-playfair text-charcoal">Inactive Discount Codes</CardTitle>
+              <CardDescription className="text-charcoal/60">
                 Expired or deactivated discount codes
               </CardDescription>
             </CardHeader>
@@ -407,34 +414,34 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Code</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Discount</TableHead>
-                      <TableHead>Valid Until</TableHead>
-                      <TableHead>Uses</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                    <TableRow className="bg-cream/70 border-b border-burgundy/10">
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Code</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Type</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Discount</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Valid Until</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Uses</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Status</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-charcoal/60">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
+                  <TableBody className="divide-y divide-burgundy/5">
                     {inactiveCodes.map((discount) => (
-                      <TableRow key={discount.id}>
-                        <TableCell className="font-mono font-semibold text-muted-foreground">
+                      <TableRow key={discount.id} className="hover:bg-cream/30 transition-colors">
+                        <TableCell className="font-mono font-semibold text-charcoal/40">
                           {discount.code}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="border-charcoal/20 text-charcoal/60">
                             {discount.scope === 'platform' ? 'Platform' : 'Guide'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-charcoal/60">
                           {discount.discount_type === 'percentage' 
                             ? `${discount.discount_value}%` 
                             : `€${discount.discount_value}`}
                         </TableCell>
-                        <TableCell>{formatDate(discount.valid_until)}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-charcoal/60">{formatDate(discount.valid_until)}</TableCell>
+                        <TableCell className="text-charcoal/60">
                           {discount.times_used}
                           {discount.max_uses ? ` / ${discount.max_uses}` : ''}
                         </TableCell>
@@ -451,6 +458,7 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
                             variant="ghost"
                             size="sm"
                             onClick={() => deleteCode.mutate(discount.id)}
+                            className="hover:text-burgundy"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
