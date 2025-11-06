@@ -290,8 +290,9 @@ serve(async (req) => {
         }
       }
 
-      // Send email notification if guide or admin replied
-      if (senderType === 'guide' || senderType === 'admin') {
+      // Send email notification if guide or admin replied to anonymous inquiry or support ticket
+      // Don't send if we already sent to authenticated user above
+      if ((senderType === 'guide' || senderType === 'admin') && !recipientId) {
         let recipientEmail = conversation.anonymous_email;
         let recipientName = conversation.anonymous_name || 'Guest';
         
