@@ -45,7 +45,6 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
   const [timingValue, setTimingValue] = useState(48)
   const [timingUnit, setTimingUnit] = useState<'minutes' | 'hours' | 'days'>('hours')
   const [timingDirection, setTimingDirection] = useState<'before' | 'after'>('before')
-  const [isActive, setIsActive] = useState(true)
   const [lastFocusedField, setLastFocusedField] = useState<'subject' | 'content'>('content')
 
   const subjectInputRef = useRef<HTMLInputElement>(null)
@@ -62,7 +61,6 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
       setTimingValue(template.timing_value || 48)
       setTimingUnit(template.timing_unit || 'hours')
       setTimingDirection(template.timing_direction || 'before')
-      setIsActive(template.is_active ?? true)
     } else {
       setName('')
       setDescription('')
@@ -72,7 +70,6 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
       setTimingValue(48)
       setTimingUnit('hours')
       setTimingDirection('before')
-      setIsActive(true)
     }
   }, [template, open])
 
@@ -139,7 +136,7 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
       timing_unit: timingUnit,
       timing_direction: timingDirection,
       send_as_email: true,
-      is_active: isActive
+      is_active: template?.is_active ?? true
     })
     onOpenChange(false)
   }
@@ -286,15 +283,6 @@ export const EmailTemplateEditorDialog = ({ template, open, onOpenChange, onSave
                 rows={8}
               />
             </div>
-          </div>
-
-          {/* Active Status */}
-          <div className="flex items-center justify-between border-t pt-4">
-            <div>
-              <Label>Template Status</Label>
-              <p className="text-sm text-muted-foreground">Enable to start sending automated emails</p>
-            </div>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
           </div>
         </div>
 
