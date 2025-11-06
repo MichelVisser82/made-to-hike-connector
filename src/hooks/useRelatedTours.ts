@@ -37,11 +37,14 @@ export function useRelatedTours(currentTourId: string, region?: string) {
 
       // If we have fewer than 3 tours, fill with popular tours from other regions
       if (relatedTours.length < 3) {
+        // Get IDs of tours we already have to prevent duplicates
+        const existingTourIds = [currentTourId, ...relatedTours.map(t => t.id)];
+        
         const { data: popularTours, error: popularError } = await supabase
           .from('tours')
           .select('*')
           .eq('is_active', true)
-          .neq('id', currentTourId)
+          .not('id', 'in', `(${existingTourIds.join(',')})`)
           .order('reviews_count', { ascending: false })
           .order('rating', { ascending: false })
           .limit(3 - relatedTours.length);
