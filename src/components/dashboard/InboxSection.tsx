@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { Trash2, Plus, Settings } from 'lucide-react';
+import { Trash2, Plus, Settings, Wand2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
@@ -233,20 +233,138 @@ export function InboxSection({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {
-                  setEditingEmailTemplate(null)
-                  setEmailTemplateDialogOpen(true)
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Email Template
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setEditingEmailTemplate(null)
+                    setEmailTemplateDialogOpen(true)
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Email Template
+                </Button>
+                
+                {emailTemplates.length === 0 && (
+                  <Button 
+                    variant="default"
+                    className="flex-1"
+                    onClick={async () => {
+                      if (!user?.id) return;
+                      
+                      const defaultTemplates: Omit<EmailTemplate, 'id' | 'created_at' | 'updated_at'>[] = [
+                        {
+                          guide_id: user.id,
+                          name: 'Booking Confirmation',
+                          description: 'Sent immediately after booking is confirmed',
+                          subject: 'Your {tour-name} Booking is Confirmed! 🎉',
+                          content: `Hi {guest-firstname},
+
+Welcome aboard! Your booking for {tour-name} is confirmed.
+
+📅 Date: {tour-date}
+📍 Meeting Point: {meeting-point}
+⏰ Start Time: {start-time}
+👥 Participants: {guest-count}
+
+What to bring:
+• Hiking boots
+• Layered clothing
+• Water and snacks
+• Camera (optional)
+
+If you have any questions, feel free to reach out!
+
+Best regards,
+{guide-name}`,
+                          trigger_type: 'booking_confirmed' as const,
+                          timing_value: 0,
+                          timing_unit: 'hours' as const,
+                          timing_direction: 'after' as const,
+                          is_active: true,
+                          send_as_email: true
+                        },
+                        {
+                          guide_id: user.id,
+                          name: 'Pre-Trip Reminder',
+                          description: 'Sent 2 days before tour date',
+                          subject: 'Your {tour-name} Adventure is Coming Up! ⛰️',
+                          content: `Hi {guest-firstname},
+
+Your trek is coming up in 2 days! Here's what you need to know:
+
+📅 Date: {tour-date}
+📍 Meeting Point: {meeting-point}
+⏰ Please arrive by: {start-time}
+
+Don't forget to bring:
+✓ Proper hiking boots
+✓ Rain gear (just in case)
+✓ Water bottle
+✓ Sun protection
+✓ Layers for changing weather
+
+Looking forward to an amazing adventure together!
+
+See you soon,
+{guide-name}`,
+                          trigger_type: 'booking_reminder' as const,
+                          timing_value: 2,
+                          timing_unit: 'days' as const,
+                          timing_direction: 'before' as const,
+                          is_active: true,
+                          send_as_email: true
+                        },
+                        {
+                          guide_id: user.id,
+                          name: 'Thank You & Review Request',
+                          description: 'Sent after tour completes',
+                          subject: 'Thank You for Hiking with Us! 🏔️',
+                          content: `Hi {guest-firstname},
+
+Thank you for joining me on {tour-name}! It was a pleasure having you on the trail.
+
+I hope you enjoyed the experience and created some lasting memories. If you have a moment, I'd really appreciate it if you could share your feedback by leaving a review.
+
+Your review helps other hikers discover the tours and helps me improve the experience for future guests.
+
+Until our next adventure!
+
+Best regards,
+{guide-name}`,
+                          trigger_type: 'tour_completed' as const,
+                          timing_value: 1,
+                          timing_unit: 'days' as const,
+                          timing_direction: 'after' as const,
+                          is_active: true,
+                          send_as_email: true
+                        }
+                      ];
+                      
+                      for (const template of defaultTemplates) {
+                        await createTemplate.mutateAsync(template);
+                      }
+                    }}
+                    disabled={createTemplate.isPending}
+                  >
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    {createTemplate.isPending ? 'Adding...' : 'Add Default Templates'}
+                  </Button>
+                )}
+              </div>
 
               <div className="space-y-2">
-                {emailTemplates.map((template) => (
+                {emailTemplates.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Mail className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="mb-2">No email templates yet</p>
+                    <p className="text-sm">
+                      Create custom templates or add our pre-made ones to get started
+                    </p>
+                  </div>
+                ) : (
+                  emailTemplates.map((template) => (
                   <div
                     key={template.id}
                     className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
@@ -296,9 +414,10 @@ export function InboxSection({
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
-                    </div>
-                  </div>
-                ))}
+                     </div>
+                   </div>
+                 ))
+                )}
               </div>
             </CardContent>
           </Card>
