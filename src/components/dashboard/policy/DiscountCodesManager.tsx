@@ -147,8 +147,8 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
       code: code.toUpperCase(),
       discount_type: discountType,
       discount_value: value,
-      scope: scope,
-      guide_id: scope === 'guide' ? guideId : null,
+      scope: isAdmin ? 'platform' : 'guide',
+      guide_id: isAdmin ? null : guideId,
       valid_from: validFrom || new Date().toISOString(),
       valid_until: validUntil || null,
       max_uses: maxUses ? parseInt(maxUses) : null,
@@ -183,7 +183,7 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
           </CardTitle>
           <CardDescription className="text-charcoal/60">
             {isAdmin 
-              ? 'Create platform-wide or guide-specific discount codes'
+              ? 'Create platform-wide discount codes'
               : 'Create discount codes for your tours'}
           </CardDescription>
         </CardHeader>
@@ -199,21 +199,6 @@ export function DiscountCodesManager({ guideId, isAdmin = false }: DiscountCodes
                 maxLength={20}
               />
             </div>
-
-            {isAdmin && (
-              <div className="space-y-2">
-                <Label htmlFor="scope">Scope *</Label>
-                <Select value={scope} onValueChange={(v) => setScope(v as 'platform' | 'guide')}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="platform">Platform-wide</SelectItem>
-                    <SelectItem value="guide">Guide-specific</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="space-y-2">
               <Label htmlFor="discountType">Discount Type *</Label>
