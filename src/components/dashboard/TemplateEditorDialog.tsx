@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -39,19 +39,23 @@ export const TemplateEditorDialog = ({
   onOpenChange,
   onSave,
 }: TemplateEditorDialogProps) => {
-  const [name, setName] = useState(template?.name || '');
-  const [description, setDescription] = useState(template?.description || '');
-  const [content, setContent] = useState(template?.content || '');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [content, setContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Update local state when template changes
-  useState(() => {
+  useEffect(() => {
     if (template) {
       setName(template.name);
       setDescription(template.description);
       setContent(template.content);
+    } else {
+      setName('');
+      setDescription('');
+      setContent('');
     }
-  });
+  }, [template]);
 
   const handleInsertVariable = (variable: string) => {
     const textarea = textareaRef.current;
