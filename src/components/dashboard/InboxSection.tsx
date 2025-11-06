@@ -17,7 +17,9 @@ import { useConversations } from '@/hooks/useConversations';
 import { ChatWindow } from '../chat/ChatWindow';
 import { AutomatedResponsesSettings } from '../guide/AutomatedResponsesSettings';
 import { EmailTemplateEditorDialog } from './EmailTemplateEditorDialog';
+import { ChatMessageTemplateDialog } from './ChatMessageTemplateDialog';
 import { useEmailTemplates, type EmailTemplate } from '@/hooks/useEmailTemplates';
+import { useChatMessageTemplates, type ChatMessageTemplate } from '@/hooks/useChatMessageTemplates';
 import type { Conversation as ChatConversation, Review, ReviewStats, NotificationPreference } from '@/types';
 import type { Conversation } from '@/types/chat';
 import { LoadingSpinner, ConversationsSkeleton, StatsCardsSkeleton, ListSkeleton } from './LoadingStates';
@@ -42,6 +44,8 @@ export function InboxSection({
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [editingEmailTemplate, setEditingEmailTemplate] = useState<Partial<EmailTemplate> | null>(null);
   const [emailTemplateDialogOpen, setEmailTemplateDialogOpen] = useState(false);
+  const [editingChatTemplate, setEditingChatTemplate] = useState<Partial<ChatMessageTemplate> | null>(null);
+  const [chatTemplateDialogOpen, setChatTemplateDialogOpen] = useState(false);
   const {
     user
   } = useAuth();
@@ -56,6 +60,14 @@ export function InboxSection({
     toggleTemplate,
     deleteTemplate
   } = useEmailTemplates(user?.id);
+  
+  const {
+    templates: chatTemplates,
+    createTemplate: createChatTemplate,
+    updateTemplate: updateChatTemplate,
+    toggleTemplate: toggleChatTemplate,
+    deleteTemplate: deleteChatTemplate
+  } = useChatMessageTemplates(user?.id);
   const isAdmin = profile?.role === 'admin';
   const isGuide = profile?.role === 'guide';
   const {
@@ -388,14 +400,95 @@ Best regards,
             </CardContent>
           </Card>
 
-          {/* Automated Responses Section */}
+          {/* Standardized Chat Messages Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Recurring (Group) Chat Messages</CardTitle>
-              <CardDescription>Set up recurring messages to your guest for (group) chat</CardDescription>
+              <CardTitle>Standardized Chat Messages</CardTitle>
+              <CardDescription>
+                Create quick reply templates that you can use in any chat conversation
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <AutomatedResponsesSettings />
+            <CardContent className="space-y-4">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setEditingChatTemplate(null);
+                  setChatTemplateDialogOpen(true);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Chat Message Template
+              </Button>
+
+              <div className="space-y-2">
+                {chatTemplates.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No chat templates yet</p>
+                    <p className="text-sm">Create templates for messages you use frequently</p>
+                  </div>
+                ) : (
+                  [...chatTemplates]
+                    .sort((a, b) => a.sort_order - b.sort_order)
+                    .map((template) => (
+                      <div
+                        key={template.id}
+                        className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium truncate">{template.name}</h4>
+                            <Switch
+                              checked={template.is_active}
+                              onCheckedChange={(checked) =>
+                                toggleChatTemplate.mutate({
+                                  id: template.id,
+                                  isActive: checked,
+                                })
+                              }
+                            />
+                          </div>
+                          {template.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-1">
+                              {template.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {template.category}
+                            </Badge>
+                            {!template.is_active && (
+                              <Badge variant="secondary">Disabled</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+                            {template.message_content}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingChatTemplate(template);
+                              setChatTemplateDialogOpen(true);
+                            }}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteChatTemplate.mutate(template.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -434,18 +527,44 @@ Best regards,
       </Tabs>
 
       {/* Email Template Editor Dialog */}
-      <EmailTemplateEditorDialog template={editingEmailTemplate} existingTemplates={emailTemplates} open={emailTemplateDialogOpen} onOpenChange={setEmailTemplateDialogOpen} onSave={templateData => {
-      if (templateData.id) {
-        updateTemplate.mutate({
-          id: templateData.id,
-          updates: templateData
-        });
-      } else {
-        createTemplate.mutate({
-          ...templateData,
-          guide_id: user!.id
-        } as any);
-      }
-    }} />
+      <EmailTemplateEditorDialog 
+        template={editingEmailTemplate} 
+        existingTemplates={emailTemplates} 
+        open={emailTemplateDialogOpen} 
+        onOpenChange={setEmailTemplateDialogOpen} 
+        onSave={templateData => {
+          if (templateData.id) {
+            updateTemplate.mutate({
+              id: templateData.id,
+              updates: templateData
+            });
+          } else {
+            createTemplate.mutate({
+              ...templateData,
+              guide_id: user!.id
+            } as any);
+          }
+        }} 
+      />
+
+      {/* Chat Message Template Dialog */}
+      <ChatMessageTemplateDialog
+        template={editingChatTemplate}
+        open={chatTemplateDialogOpen}
+        onOpenChange={setChatTemplateDialogOpen}
+        onSave={(templateData) => {
+          if (templateData.id) {
+            updateChatTemplate.mutate({
+              id: templateData.id,
+              updates: templateData,
+            });
+          } else {
+            createChatTemplate.mutate({
+              ...templateData,
+              guide_id: user!.id,
+            } as any);
+          }
+        }}
+      />
     </div>;
 }

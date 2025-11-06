@@ -254,6 +254,45 @@ export type Database = {
           },
         ]
       }
+      chat_message_templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          guide_id: string
+          id: string
+          is_active: boolean | null
+          message_content: string
+          name: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          guide_id: string
+          id?: string
+          is_active?: boolean | null
+          message_content: string
+          name: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          guide_id?: string
+          id?: string
+          is_active?: boolean | null
+          message_content?: string
+          name?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           anonymous_email: string | null
