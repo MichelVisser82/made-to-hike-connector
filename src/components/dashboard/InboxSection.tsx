@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { Trash2, Plus, Settings, Wand2 } from 'lucide-react';
+import { Trash2, Plus, Wand2, Edit2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
@@ -359,7 +359,12 @@ Best regards,
                     <p className="mb-2">Loading templates...</p>
                   </div>
                 ) : (
-                  emailTemplates.map((template) => (
+                  [...emailTemplates]
+                    .sort((a, b) => {
+                      const order = ['booking_confirmed', 'booking_reminder', 'tour_completed'];
+                      return order.indexOf(a.trigger_type) - order.indexOf(b.trigger_type);
+                    })
+                    .map((template) => (
                   <div
                     key={template.id}
                     className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
@@ -400,7 +405,7 @@ Best regards,
                           setEmailTemplateDialogOpen(true)
                         }}
                       >
-                        <Settings className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -409,9 +414,9 @@ Best regards,
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
-                     </div>
-                   </div>
-                 ))
+                    </div>
+                  </div>
+                ))
                 )}
               </div>
             </CardContent>
