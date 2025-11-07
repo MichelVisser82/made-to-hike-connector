@@ -108,12 +108,32 @@ export const PaymentStep = ({
       return;
     }
 
+    console.log('[PaymentStep] Starting payment process with:', {
+      tourId,
+      guideId,
+      pricing
+    });
+
+    if (!guideId) {
+      console.error('[PaymentStep] Missing guideId');
+      toast.error('Guide information is missing. Please refresh the page and try again.');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
       // Get the full booking data from form
       const fullBookingData = form.getValues();
       
+      console.log('[PaymentStep] Creating payment intent with full data:', {
+        amount: pricing.total,
+        currency: pricing.currency,
+        tourId,
+        guideId,
+        dateSlotId: fullBookingData.selectedDateSlotId
+      });
+
       // Create Stripe Checkout Session
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {

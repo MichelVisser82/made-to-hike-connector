@@ -140,6 +140,12 @@ export const BookingFlowNew = () => {
 
         if (tourError) throw tourError;
         
+        console.log('[BookingFlow] Tour data loaded:', { 
+          tourId: tour?.id, 
+          guideId: tour?.guide_id,
+          hasGuideProfile: !!tour?.guide_profiles 
+        });
+        
         setTourData(tour);
         setGuideData(tour.guide_profiles);
       } catch (error) {
