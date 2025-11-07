@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
 import { render } from 'npm:@react-email/render@1.0.1'
+import React from 'npm:react@18.3.1'
 import { BookingConfirmationEmail } from './_templates/booking-confirmation-email.tsx'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
@@ -717,7 +718,7 @@ serve(async (req) => {
     // Handle booking-confirmation email with React Email template
     if (emailRequest.type === 'booking-confirmation') {
       const html = render(
-        BookingConfirmationEmail({
+        React.createElement(BookingConfirmationEmail, {
           booking_id: emailRequest.bookingReference || 'N/A',
           tour_title: emailRequest.tourTitle || 'Hiking Tour',
           booking_date: emailRequest.bookingDate || new Date().toISOString(),
