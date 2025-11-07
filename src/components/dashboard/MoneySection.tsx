@@ -241,7 +241,7 @@ export function MoneySection({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-playfair text-charcoal mb-1">
-                  €{(balances.pending / 100).toLocaleString('en-EU', { minimumFractionDigits: 2 })}
+                  €{balances.pending.toLocaleString('en-EU', { minimumFractionDigits: 2 })}
                 </p>
                 <p className="text-xs text-charcoal/50">Processing...</p>
               </CardContent>
@@ -253,7 +253,7 @@ export function MoneySection({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-playfair text-charcoal mb-1">
-                  €{(balances.available / 100).toLocaleString('en-EU', { minimumFractionDigits: 2 })}
+                  €{balances.available.toLocaleString('en-EU', { minimumFractionDigits: 2 })}
                 </p>
                 <p className="text-xs text-charcoal/50">Ready to transfer</p>
               </CardContent>
@@ -265,7 +265,7 @@ export function MoneySection({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-playfair text-charcoal mb-1">
-                  €{(balances.lifetime / 100).toLocaleString('en-EU', { minimumFractionDigits: 2 })}
+                  €{balances.lifetime.toLocaleString('en-EU', { minimumFractionDigits: 2 })}
                 </p>
                 <p className="text-xs text-charcoal/50">Total income</p>
               </CardContent>
@@ -286,7 +286,7 @@ export function MoneySection({
                     <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
                     <YAxis stroke="hsl(var(--muted-foreground))" />
                     <Tooltip 
-                      formatter={(value: number) => `€${(value / 100).toFixed(2)}`}
+                      formatter={(value: number) => `€${value.toFixed(2)}`}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--popover))', 
                         border: '1px solid hsl(var(--border))' 
@@ -320,7 +320,7 @@ export function MoneySection({
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number) => `€${(value / 100).toFixed(2)}`}
+                      formatter={(value: number) => `€${value.toFixed(2)}`}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--popover))', 
                         border: '1px solid hsl(var(--border))' 
@@ -347,7 +347,7 @@ export function MoneySection({
                     <div className="flex justify-between items-baseline">
                       <span className="text-sm text-charcoal/80">{tour.tour_title}</span>
                       <span className="font-medium text-charcoal">
-                        €{(tour.total_earnings / 100).toLocaleString('en-EU')}
+                        €{tour.total_earnings.toLocaleString('en-EU', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
                     <div className="bg-cream h-2 rounded-full overflow-hidden">
@@ -459,13 +459,13 @@ export function MoneySection({
                     <TableCell className="px-6 py-4">{transaction.tour_title}</TableCell>
                     <TableCell className="px-6 py-4">{transaction.guest_name}</TableCell>
                     <TableCell className="px-6 py-4 font-medium text-charcoal">
-                      €{(transaction.gross_amount / 100).toFixed(2)}
+                      €{transaction.gross_amount.toFixed(2)}
                     </TableCell>
                     <TableCell className="px-6 py-4 text-destructive">
-                      -€{(transaction.platform_fee / 100).toFixed(2)}
+                      -€{transaction.platform_fee.toFixed(2)}
                     </TableCell>
                     <TableCell className="px-6 py-4 font-medium text-sage">
-                      €{(transaction.net_amount / 100).toFixed(2)}
+                      €{transaction.net_amount.toFixed(2)}
                     </TableCell>
                     <TableCell className="px-6 py-4">
                       <Badge variant={
@@ -507,7 +507,7 @@ export function MoneySection({
                   payouts.map((payout) => (
                     <div key={payout.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
-                        <p className="font-medium">€{(payout.amount / 100).toFixed(2)}</p>
+                        <p className="font-medium">€{payout.amount.toFixed(2)}</p>
                         <p className="text-sm text-muted-foreground">
                           {format(new Date(payout.date), 'MMM dd, yyyy')}
                           {payout.arrival_date && ` • Arrives ${format(new Date(payout.arrival_date), 'MMM dd')}`}
@@ -528,9 +528,9 @@ export function MoneySection({
                 )}
               </div>
 
-              {balances.available >= 10000 && (
+              {balances.available >= 100 && (
                 <Button className="w-full mt-4" onClick={onRequestPayout}>
-                  Request Instant Payout (€{(balances.available / 100).toFixed(2)})
+                  Request Instant Payout (€{balances.available.toFixed(2)})
                 </Button>
               )}
             </CardContent>
@@ -612,7 +612,7 @@ export function MoneySection({
                   <h4 className="font-medium">Average Transaction Value</h4>
                   <p className="text-3xl font-playfair">
                     €{transactions.length > 0 
-                      ? ((transactions.reduce((sum, t) => sum + t.gross_amount, 0) / transactions.length) / 100).toFixed(2)
+                      ? (transactions.reduce((sum, t) => sum + t.gross_amount, 0) / transactions.length).toFixed(2)
                       : '0.00'}
                   </p>
                 </div>
