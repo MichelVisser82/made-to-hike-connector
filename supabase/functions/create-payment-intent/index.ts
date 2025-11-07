@@ -23,6 +23,7 @@ serve(async (req) => {
     console.log('Creating Stripe Checkout Session:', { amount, currency, tourId, bookingData });
 
     if (!amount || !currency || !tourId || !guideId) {
+      console.error('Missing required parameters:', { amount, currency, tourId, guideId });
       return new Response(
         JSON.stringify({ error: 'Missing required parameters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -30,18 +31,30 @@ serve(async (req) => {
     }
 
     // Fetch guide's Stripe account and fee structure
+    console.log('Fetching guide profile for guideId:', guideId);
     const { data: guideProfile, error: guideError } = await supabaseClient
       .from('guide_profiles')
       .select('stripe_account_id, uses_custom_fees, custom_guide_fee_percentage, custom_hiker_fee_percentage')
       .eq('id', guideId)
       .single();
 
-    if (guideError || !guideProfile?.stripe_account_id) {
+    if (guideError) {
+      console.error('Error fetching guide profile:', guideError);
       return new Response(
-        JSON.stringify({ error: 'Guide Stripe account not found or not connected' }),
+        JSON.stringify({ error: `Guide profile error: ${guideError.message}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    if (!guideProfile?.stripe_account_id) {
+      console.error('Guide Stripe account not found:', { guideProfile });
+      return new Response(
+        JSON.stringify({ error: 'Guide has not connected their Stripe account yet. Please contact the guide.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Guide Stripe account found:', guideProfile.stripe_account_id);
 
     // Fetch platform fee settings
     const { data: platformSettings } = await supabaseClient
@@ -83,59 +96,81 @@ serve(async (req) => {
       : JSON.stringify(bookingData?.participants || []);
 
     // Create Stripe Checkout Session with split payment
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: currency.toLowerCase(),
-            product_data: {
-              name: tourTitle || 'Hiking Tour',
-              description: `${bookingData?.participantCount || 1} participant(s)`,
+    console.log('Creating Stripe Checkout session with split payment...');
+    try {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: currency.toLowerCase(),
+              product_data: {
+                name: tourTitle || 'Hiking Tour',
+                description: `${bookingData?.participantCount || 1} participant(s)`,
+              },
+              unit_amount: totalAmountCents + hikerFeeAmount, // Total charged to hiker
             },
-            unit_amount: totalAmountCents + hikerFeeAmount, // Total charged to hiker
+            quantity: 1,
           },
-          quantity: 1,
+        ],
+        mode: 'payment',
+        payment_intent_data: {
+          application_fee_amount: totalPlatformFee,
+          transfer_data: {
+            destination: guideProfile.stripe_account_id,
+          },
         },
-      ],
-      mode: 'payment',
-      payment_intent_data: {
-        application_fee_amount: totalPlatformFee,
-        transfer_data: {
-          destination: guideProfile.stripe_account_id,
+        success_url: `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/tours/${tourId}/book`,
+        metadata: {
+          tour_id: tourId,
+          guide_id: guideId,
+          date_slot_id: dateSlotId || '',
+          tour_title: tourTitle || '',
+          participants: participantsString,
+          participant_count: String(bookingData?.participantCount || 1),
+          booking_data: JSON.stringify(bookingData),
+          guide_fee_percentage: String(guideFeePercentage),
+          hiker_fee_percentage: String(hikerFeePercentage),
+          guide_fee_amount: String(guideFeeAmount),
+          hiker_fee_amount: String(hikerFeeAmount),
+          total_platform_fee: String(totalPlatformFee),
+          amount_to_guide: String(guideReceives),
         },
-      },
-      success_url: `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/tours/${tourId}/book`,
-      metadata: {
-        tour_id: tourId,
-        guide_id: guideId,
-        date_slot_id: dateSlotId || '',
-        tour_title: tourTitle || '',
-        participants: participantsString,
-        participant_count: String(bookingData?.participantCount || 1),
-        booking_data: JSON.stringify(bookingData),
-        guide_fee_percentage: String(guideFeePercentage),
-        hiker_fee_percentage: String(hikerFeePercentage),
-        guide_fee_amount: String(guideFeeAmount),
-        hiker_fee_amount: String(hikerFeeAmount),
-        total_platform_fee: String(totalPlatformFee),
-        amount_to_guide: String(guideReceives),
-      },
+      });
+
+      console.log('Checkout session created successfully:', { sessionId: session.id, url: session.url });
+
+      return new Response(
+        JSON.stringify({
+          sessionId: session.id,
+          url: session.url,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (stripeError: any) {
+      console.error('Stripe API error:', {
+        message: stripeError.message,
+        type: stripeError.type,
+        code: stripeError.code,
+        statusCode: stripeError.statusCode,
+        raw: stripeError.raw
+      });
+      return new Response(
+        JSON.stringify({ 
+          error: `Stripe error: ${stripeError.message}`,
+          details: stripeError.type 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+  } catch (error: any) {
+    console.error('Error creating payment intent:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
     });
-
-    console.log('Checkout session created:', session.id);
-
-    return new Response(
-      JSON.stringify({
-        sessionId: session.id,
-        url: session.url,
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('Error creating payment intent:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Failed to create payment intent' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
