@@ -9,6 +9,7 @@ import {
   Section,
   Text,
   Button,
+  Hr,
 } from 'npm:@react-email/components@0.0.22'
 import * as React from 'npm:react@18.3.1'
 
@@ -40,9 +41,7 @@ export const BookingConfirmationEmail = ({
       <Container style={container}>
         {/* Header */}
         <Section style={header}>
-          <Section style={logoContainer}>
-            <Text style={logoText}>🏔️ MadeToHike</Text>
-          </Section>
+          <Text style={logoText}>🏔️ MadeToHike</Text>
           <Text style={headerSubtitle}>Booking Confirmed!</Text>
         </Section>
 
@@ -59,84 +58,66 @@ export const BookingConfirmationEmail = ({
         <Section style={bookingDetails}>
           <Heading style={sectionTitle}>Booking Details</Heading>
           
-          <Section style={detailsGrid}>
-            <Section style={detailRow}>
-              <Text style={detailLabel}>Booking ID:</Text>
-              <Text style={detailValue}>#{booking_id.slice(0, 8).toUpperCase()}</Text>
-            </Section>
-            
-            <Section style={detailRow}>
-              <Text style={detailLabel}>Tour:</Text>
-              <Text style={detailValue}>{tour_title}</Text>
-            </Section>
-            
-            <Section style={detailRow}>
-              <Text style={detailLabel}>Guide:</Text>
-              <Text style={detailValue}>{guide_name}</Text>
-            </Section>
-            
-            <Section style={detailRow}>
-              <Text style={detailLabel}>Date:</Text>
-              <Text style={detailValue}>{new Date(booking_date).toLocaleDateString('en-US', { 
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}</Text>
-            </Section>
-            
-            <Section style={detailRow}>
-              <Text style={detailLabel}>Participants:</Text>
-              <Text style={detailValue}>{participants} {participants === 1 ? 'person' : 'people'}</Text>
-            </Section>
-            
-            <Section style={detailRow}>
-              <Text style={detailLabel}>Meeting Point:</Text>
-              <Text style={detailValue}>{meeting_point}</Text>
-            </Section>
-            
-            <Section style={totalRow}>
-              <Text style={totalLabel}>Total Amount:</Text>
-              <Text style={totalValue}>{currency} {total_price.toFixed(2)}</Text>
-            </Section>
-          </Section>
+          <Text style={detailRow}>
+            <span style={detailLabel}>Booking ID:</span>
+            <br />
+            <span style={detailValue}>#{booking_id.slice(0, 8).toUpperCase()}</span>
+          </Text>
+          
+          <Text style={detailRow}>
+            <span style={detailLabel}>Tour:</span>
+            <br />
+            <span style={detailValue}>{tour_title}</span>
+          </Text>
+          
+          <Text style={detailRow}>
+            <span style={detailLabel}>Guide:</span>
+            <br />
+            <span style={detailValue}>{guide_name}</span>
+          </Text>
+          
+          <Text style={detailRow}>
+            <span style={detailLabel}>Date:</span>
+            <br />
+            <span style={detailValue}>{new Date(booking_date).toLocaleDateString('en-US', { 
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}</span>
+          </Text>
+          
+          <Text style={detailRow}>
+            <span style={detailLabel}>Participants:</span>
+            <br />
+            <span style={detailValue}>{participants} {participants === 1 ? 'person' : 'people'}</span>
+          </Text>
+          
+          <Text style={detailRow}>
+            <span style={detailLabel}>Meeting Point:</span>
+            <br />
+            <span style={detailValue}>{meeting_point}</span>
+          </Text>
+          
+          <Hr style={divider} />
+          
+          <Text style={totalRow}>
+            <span style={totalLabel}>Total Amount:</span>
+            <br />
+            <span style={totalValue}>{currency} {total_price.toFixed(2)}</span>
+          </Text>
         </Section>
 
         {/* What to Bring */}
         <Section style={preparationSection}>
           <Heading style={sectionTitle}>What to Bring</Heading>
           
-          <Section style={checklistGrid}>
-            <Section style={checklistItem}>
-              <Text style={checkIcon}>🥾</Text>
-              <Text style={checklistText}>Comfortable hiking boots</Text>
-            </Section>
-            
-            <Section style={checklistItem}>
-              <Text style={checkIcon}>💧</Text>
-              <Text style={checklistText}>Water bottle (at least 1L)</Text>
-            </Section>
-            
-            <Section style={checklistItem}>
-              <Text style={checkIcon}>🧢</Text>
-              <Text style={checklistText}>Sun hat and sunscreen</Text>
-            </Section>
-            
-            <Section style={checklistItem}>
-              <Text style={checkIcon}>🎒</Text>
-              <Text style={checklistText}>Small backpack</Text>
-            </Section>
-            
-            <Section style={checklistItem}>
-              <Text style={checkIcon}>📱</Text>
-              <Text style={checklistText}>Fully charged phone</Text>
-            </Section>
-            
-            <Section style={checklistItem}>
-              <Text style={checkIcon}>🧥</Text>
-              <Text style={checklistText}>Weather-appropriate clothing</Text>
-            </Section>
-          </Section>
+          <Text style={checklistText}>🥾 Comfortable hiking boots</Text>
+          <Text style={checklistText}>💧 Water bottle (at least 1L)</Text>
+          <Text style={checklistText}>🧢 Sun hat and sunscreen</Text>
+          <Text style={checklistText}>🎒 Small backpack</Text>
+          <Text style={checklistText}>📱 Fully charged phone</Text>
+          <Text style={checklistText}>🧥 Weather-appropriate clothing</Text>
         </Section>
 
         {/* Important Notes */}
@@ -162,15 +143,15 @@ export const BookingConfirmationEmail = ({
 
         {/* Action Buttons */}
         <Section style={actionSection}>
-          <Section style={buttonGroup}>
-            <Button href="https://madetohike.com/bookings" style={primaryButton}>
-              View Full Details
-            </Button>
-            
-            <Button href="mailto:support@madetohike.com" style={secondaryButton}>
-              Contact Support
-            </Button>
-          </Section>
+          <Button href="https://madetohike.com/dashboard" style={primaryButton}>
+            View Full Details
+          </Button>
+          
+          <Text style={spacer}> </Text>
+          
+          <Button href="mailto:support@madetohike.com" style={secondaryButton}>
+            Contact Support
+          </Button>
         </Section>
 
         {/* Footer */}
@@ -209,12 +190,6 @@ const header = {
   background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f97316 100%)',
   padding: '32px 40px 24px',
   textAlign: 'center' as const,
-}
-
-const logoContainer = {
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
 }
 
 const logoText = {
@@ -269,17 +244,9 @@ const sectionTitle = {
   margin: '0 0 24px 0',
 }
 
-const detailsGrid = {
-  display: 'flex',
-  flexDirection: 'column' as const,
-  gap: '12px',
-}
-
 const detailRow = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  padding: '8px 0',
+  margin: '0 0 16px 0',
+  paddingBottom: '12px',
   borderBottom: '1px solid #e2e8f0',
 }
 
@@ -287,67 +254,46 @@ const detailLabel = {
   fontSize: '14px',
   color: '#64748b',
   fontWeight: '500',
-  margin: '0',
-  flex: '1',
 }
 
 const detailValue = {
   fontSize: '14px',
   color: '#1e293b',
   fontWeight: '600',
-  margin: '0',
-  textAlign: 'right' as const,
-  flex: '2',
+}
+
+const divider = {
+  borderColor: '#ef4444',
+  borderWidth: '2px',
+  margin: '16px 0',
 }
 
 const totalRow = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  padding: '16px 0',
-  borderTop: '2px solid #ef4444',
-  marginTop: '8px',
+  margin: '16px 0 0 0',
+  padding: '16px 0 0 0',
 }
 
 const totalLabel = {
   fontSize: '16px',
   color: '#1e293b',
   fontWeight: 'bold',
-  margin: '0',
 }
 
 const totalValue = {
   fontSize: '18px',
   color: '#ef4444',
   fontWeight: 'bold',
-  margin: '0',
 }
 
 const preparationSection = {
   padding: '32px 40px',
 }
 
-const checklistGrid = {
-  display: 'flex',
-  flexDirection: 'column' as const,
-  gap: '12px',
-}
-
-const checklistItem = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-}
-
-const checkIcon = {
-  fontSize: '20px',
-  margin: '0',
-}
-
 const checklistText = {
   fontSize: '14px',
   color: '#374151',
-  margin: '0',
+  margin: '8px 0',
+  lineHeight: '1.5',
 }
 
 const notesSection = {
@@ -365,13 +311,6 @@ const noteText = {
 const actionSection = {
   padding: '32px 40px',
   textAlign: 'center' as const,
-}
-
-const buttonGroup = {
-  display: 'flex',
-  flexDirection: 'column' as const,
-  gap: '12px',
-  alignItems: 'center',
 }
 
 const primaryButton = {
@@ -396,6 +335,11 @@ const secondaryButton = {
   borderRadius: '8px',
   display: 'inline-block',
   border: '2px solid #ef4444',
+}
+
+const spacer = {
+  height: '12px',
+  margin: '12px 0',
 }
 
 const footer = {
