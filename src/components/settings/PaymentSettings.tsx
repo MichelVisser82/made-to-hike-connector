@@ -39,6 +39,18 @@ export function PaymentSettings() {
     }
   }, [syncAccountStatus, refetch, refreshProfile]);
 
+  // Auto-sync when component mounts if verification incomplete
+  useEffect(() => {
+    if (data?.stripe_account_id && data.stripe_kyc_status !== 'verified') {
+      console.log('[PaymentSettings] Component mounted with incomplete verification, syncing...');
+      // Small delay to ensure component is fully loaded
+      const timer = setTimeout(() => {
+        handleSyncStatus();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, []); // Only run on mount
+
   // Auto-sync when user returns from Stripe (window gains focus)
   useEffect(() => {
     const handleFocus = async () => {
