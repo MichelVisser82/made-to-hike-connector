@@ -19,42 +19,34 @@ serve(async (req) => {
 
   try {
     const { amount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId } = await req.json();
-    
-    console.log('Creating Stripe Checkout Session:', { amount, currency, tourId, bookingData });
 
     if (!amount || !currency || !tourId || !guideId) {
-      console.error('Missing required parameters:', { amount, currency, tourId, guideId });
       return new Response(
-        JSON.stringify({ error: 'Missing required parameters' }),
+        JSON.stringify({ error: 'Missing required payment information' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Fetch guide's Stripe account and fee structure
-    console.log('Fetching guide profile for guideId:', guideId);
+    // Fetch guide's Stripe account
     const { data: guideProfile, error: guideError } = await supabaseClient
       .from('guide_profiles')
       .select('stripe_account_id, uses_custom_fees, custom_guide_fee_percentage, custom_hiker_fee_percentage')
       .eq('id', guideId)
       .single();
 
-    if (guideError) {
-      console.error('Error fetching guide profile:', guideError);
+    if (guideError || !guideProfile) {
       return new Response(
-        JSON.stringify({ error: `Guide profile error: ${guideError.message}` }),
+        JSON.stringify({ error: 'Unable to process payment - guide profile not found' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!guideProfile?.stripe_account_id) {
-      console.error('Guide Stripe account not found:', { guideProfile });
+    if (!guideProfile.stripe_account_id) {
       return new Response(
-        JSON.stringify({ error: 'Guide has not connected their Stripe account yet. Please contact the guide.' }),
+        JSON.stringify({ error: 'This guide has not set up payment processing yet. Please contact them directly or try another tour.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log('Guide Stripe account found:', guideProfile.stripe_account_id);
 
     // Fetch platform fee settings
     const { data: platformSettings } = await supabaseClient
@@ -78,16 +70,6 @@ serve(async (req) => {
     const totalPlatformFee = hikerFeeAmount + guideFeeAmount;
     const guideReceives = totalAmountCents - guideFeeAmount;
 
-    console.log('Fee calculation:', {
-      totalAmountCents,
-      guideFeePercentage,
-      hikerFeePercentage,
-      guideFeeAmount,
-      hikerFeeAmount,
-      totalPlatformFee,
-      guideReceives,
-    });
-
     const origin = req.headers.get('origin') || 'http://localhost:8080';
     
     // Prepare metadata
@@ -96,7 +78,6 @@ serve(async (req) => {
       : JSON.stringify(bookingData?.participants || []);
 
     // Create Stripe Checkout Session with split payment
-    console.log('Creating Stripe Checkout session with split payment...');
     try {
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -139,8 +120,6 @@ serve(async (req) => {
         },
       });
 
-      console.log('Checkout session created successfully:', { sessionId: session.id, url: session.url });
-
       return new Response(
         JSON.stringify({
           sessionId: session.id,
@@ -149,30 +128,17 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (stripeError: any) {
-      console.error('Stripe API error:', {
-        message: stripeError.message,
-        type: stripeError.type,
-        code: stripeError.code,
-        statusCode: stripeError.statusCode,
-        raw: stripeError.raw
-      });
       return new Response(
         JSON.stringify({ 
-          error: `Stripe error: ${stripeError.message}`,
-          details: stripeError.type 
+          error: `Payment processing error: ${stripeError.message || 'Please try again'}`,
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
   } catch (error: any) {
-    console.error('Error creating payment intent:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
     return new Response(
-      JSON.stringify({ error: error.message || 'Failed to create payment intent' }),
+      JSON.stringify({ error: error.message || 'Failed to process payment' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
