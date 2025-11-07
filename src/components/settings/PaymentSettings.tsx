@@ -30,9 +30,19 @@ export function PaymentSettings() {
   };
 
   const handleCompleteVerification = async () => {
+    toast.info('Generating verification link...');
     const url = await createAccountLink();
     if (url) {
-      window.location.href = url;
+      console.log('[PaymentSettings] Opening Stripe verification link:', url);
+      // Open in new tab to avoid losing the current page
+      const newWindow = window.open(url, '_blank');
+      if (!newWindow) {
+        toast.error('Pop-up blocked. Please allow pop-ups and try again.');
+      } else {
+        toast.success('Stripe verification opened in new tab');
+      }
+    } else {
+      toast.error('Failed to create verification link. Please try again.');
     }
   };
 
