@@ -190,6 +190,7 @@ export const PaymentStep = ({
           total_price: pricing.total,
           deposit_amount: depositAmount,
           final_payment_amount: finalPaymentAmount,
+          final_payment_days: defaults?.final_payment_days || 0,
           tour_id: tourId,
           date_slot_id: fullBookingData.selectedDateSlotId,
           currency: pricing.currency,

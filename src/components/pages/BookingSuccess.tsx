@@ -144,6 +144,25 @@ export const BookingSuccess = () => {
         }
 
         // Map the data to what create-booking expects
+        const tourDate = new Date(sessionData.bookingData.date_slot_id); // Will get actual date from slot below
+        
+        // Calculate final payment due date if deposit
+        let finalPaymentDueDate = null;
+        if (sessionData.bookingData.deposit_amount > 0 && sessionData.bookingData.final_payment_days) {
+          // First get the actual tour date from the date slot
+          const { data: dateSlot } = await supabase
+            .from('tour_date_slots')
+            .select('slot_date')
+            .eq('id', sessionData.bookingData.date_slot_id)
+            .single();
+          
+          if (dateSlot?.slot_date) {
+            const tourDate = new Date(dateSlot.slot_date);
+            finalPaymentDueDate = new Date(tourDate);
+            finalPaymentDueDate.setDate(finalPaymentDueDate.getDate() - sessionData.bookingData.final_payment_days);
+          }
+        }
+        
         const createBookingData = {
           tour_id: sessionData.bookingData.tour_id,
           date_slot_id: sessionData.bookingData.date_slot_id,
@@ -158,6 +177,11 @@ export const BookingSuccess = () => {
           currency: sessionData.bookingData.currency || sessionData.currency,
           special_requests: sessionData.bookingData.specialRequests,
           stripe_payment_intent_id: sessionData.paymentIntentId,
+          payment_type: sessionData.bookingData.deposit_amount > 0 ? 'deposit' : 'full',
+          deposit_amount: sessionData.bookingData.deposit_amount || null,
+          final_payment_amount: sessionData.bookingData.final_payment_amount || null,
+          final_payment_due_date: finalPaymentDueDate?.toISOString().split('T')[0] || null,
+          final_payment_status: sessionData.bookingData.deposit_amount > 0 ? 'pending' : null,
           primary_contact_id: null,
         };
 

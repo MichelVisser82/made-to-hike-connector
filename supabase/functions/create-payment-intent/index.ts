@@ -112,6 +112,7 @@ serve(async (req) => {
           transfer_data: {
             destination: guide.stripe_account_id, // Guide receives amount - guide fee
           },
+          setup_future_usage: isDeposit ? 'off_session' : undefined, // Save payment method for final payment if deposit
         },
         success_url: `${req.headers.get('origin')}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${req.headers.get('origin')}/tours/${tourId}/book`,
@@ -128,8 +129,9 @@ serve(async (req) => {
           amount_to_guide: String(amountCents - guideFeeCents),
           tour_price_after_discount: String(amountCents),
           is_deposit: String(isDeposit || false),
-          deposit_amount: String(depositAmount || 0),
-          final_payment_amount: String(finalPaymentAmount || 0),
+          deposit_amount: String(isDeposit ? Math.round((depositAmount || 0) * 100) : 0),
+          final_payment_amount: String(isDeposit ? Math.round((finalPaymentAmount || 0) * 100) : 0),
+          final_payment_days: String(bookingData?.finalPaymentDays || 0),
         },
       });
     } catch (stripeError: any) {

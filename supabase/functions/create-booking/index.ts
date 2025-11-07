@@ -26,6 +26,11 @@ serve(async (req) => {
       special_requests,
       stripe_payment_intent_id,
       primary_contact_id,
+      payment_type,
+      deposit_amount,
+      final_payment_amount,
+      final_payment_due_date,
+      final_payment_status,
     } = bookingData;
 
     console.log('Validating required fields...');
@@ -134,7 +139,11 @@ serve(async (req) => {
       booking_date: dateSlot.slot_date,
       participants,
       status: bookingStatus,
-      payment_status: 'succeeded'
+      payment_status: 'succeeded',
+      payment_type,
+      deposit_amount,
+      final_payment_amount,
+      final_payment_status
     });
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
@@ -156,6 +165,11 @@ serve(async (req) => {
         special_requests,
         stripe_payment_intent_id,
         primary_contact_id,
+        payment_type: payment_type || 'full',
+        deposit_amount: deposit_amount || null,
+        final_payment_amount: final_payment_amount || null,
+        final_payment_due_date: final_payment_due_date || null,
+        final_payment_status: final_payment_status || null,
       })
       .select()
       .single();
