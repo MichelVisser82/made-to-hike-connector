@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { BookingFormData, PricingDetails } from '@/types/booking';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Check, X, CreditCard, Smartphone } from 'lucide-react';
+import { Loader2, Check, X, CreditCard, Smartphone, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { useGuidePolicyDefaults } from '@/hooks/useGuidePolicyDefaults';
 
 interface PaymentStepProps {
   form: UseFormReturn<BookingFormData>;
@@ -36,8 +37,33 @@ export const PaymentStep = ({
   const [codeError, setCodeError] = useState('');
   const [codeApplied, setCodeApplied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [depositAmount, setDepositAmount] = useState(0);
+  const [finalPaymentAmount, setFinalPaymentAmount] = useState(0);
+  const [depositInfo, setDepositInfo] = useState<string>('');
 
   const agreedToTerms = form.watch('agreedToTerms');
+  const { defaults, isLoading: isPolicyLoading } = useGuidePolicyDefaults(guideId);
+
+  // Calculate deposit amount based on guide's policy defaults
+  useEffect(() => {
+    if (!defaults || isPolicyLoading) return;
+
+    const finalPrice = pricing.subtotal - pricing.discount;
+
+    if (defaults.deposit_type === 'none') {
+      // Full payment required
+      setDepositAmount(0);
+      setFinalPaymentAmount(0);
+      setDepositInfo('Full payment required at booking');
+    } else if (defaults.deposit_type === 'percentage') {
+      // Calculate deposit as percentage
+      const depositPercent = defaults.deposit_amount || 30;
+      const deposit = Math.round((finalPrice * depositPercent) / 100);
+      setDepositAmount(deposit);
+      setFinalPaymentAmount(finalPrice - deposit);
+      setDepositInfo(`${depositPercent}% deposit (${pricing.currency}${deposit}) + ${pricing.currency}${pricing.serviceFee.toFixed(2)} service fee due now. Remaining ${pricing.currency}${finalPrice - deposit} due ${defaults.final_payment_days || 14} days before tour.`);
+    }
+  }, [defaults, isPolicyLoading, pricing, guideId]);
 
   const validateDiscountCode = async () => {
     if (!discountCode.trim()) {
@@ -130,15 +156,22 @@ export const PaymentStep = ({
         throw new Error('Please select a date for your tour');
       }
 
+      const finalPrice = pricing.subtotal - pricing.discount;
+      const amountToCharge = depositAmount > 0 ? depositAmount : finalPrice;
+      const totalToCharge = amountToCharge + pricing.serviceFee;
+
       const paymentPayload = {
-        amount: pricing.subtotal - pricing.discount, // Send tour price after discount (before service fee)
-        serviceFee: pricing.serviceFee, // Send pre-calculated service fee
-        totalAmount: pricing.total, // Send total for verification
+        amount: amountToCharge, // Deposit or full price (after discount, before service fee)
+        serviceFee: pricing.serviceFee, // Pre-calculated service fee
+        totalAmount: totalToCharge, // Total to charge (deposit/full price + service fee)
         currency: pricing.currency,
         tourId: tourId,
         guideId: guideId,
         dateSlotId: fullBookingData.selectedDateSlotId,
         tourTitle: `Hiking Tour Booking`,
+        isDeposit: depositAmount > 0,
+        depositAmount: depositAmount,
+        finalPaymentAmount: finalPaymentAmount,
         bookingData: {
           participants: fullBookingData.participants,
           participantCount: fullBookingData.participants.length,
@@ -155,6 +188,8 @@ export const PaymentStep = ({
           discount_amount: pricing.discount,
           service_fee_amount: pricing.serviceFee,
           total_price: pricing.total,
+          deposit_amount: depositAmount,
+          final_payment_amount: finalPaymentAmount,
           tour_id: tourId,
           date_slot_id: fullBookingData.selectedDateSlotId,
           currency: pricing.currency,
@@ -338,28 +373,73 @@ export const PaymentStep = ({
                 </div>
               )}
 
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Made To Hike Service Fee</span>
-                <span className="font-medium">
-                  {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
-                  {pricing.serviceFee.toFixed(2)}
-                </span>
-              </div>
-
               <Separator />
 
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total</span>
-                <span className="text-primary">
-                  {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
-                  {pricing.total.toFixed(2)}
-                </span>
-              </div>
+              {depositAmount > 0 ? (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Deposit Due Now</span>
+                    <span className="font-medium">
+                      {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
+                      {depositAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Service Fee</span>
+                    <span className="font-medium">
+                      {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
+                      {pricing.serviceFee.toFixed(2)}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Due Now</span>
+                    <span className="text-primary">
+                      {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
+                      {(depositAmount + pricing.serviceFee).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Due Later</span>
+                    <span>
+                      {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
+                      {finalPaymentAmount.toFixed(2)}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Service Fee</span>
+                    <span className="font-medium">
+                      {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
+                      {pricing.serviceFee.toFixed(2)}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total Due Now</span>
+                    <span className="text-primary">
+                      {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
+                      {pricing.total.toFixed(2)}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
+
+            {depositInfo && (
+              <div className="mt-4 p-3 bg-muted rounded-lg">
+                <div className="flex gap-2">
+                  <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">{depositInfo}</p>
+                </div>
+              </div>
+            )}
 
             <Button
               onClick={handleCompleteBooking}
-              disabled={!agreedToTerms || isProcessing}
+              disabled={!agreedToTerms || isProcessing || isPolicyLoading}
               className="w-full mt-6"
               size="lg"
             >
@@ -368,8 +448,10 @@ export const PaymentStep = ({
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
                 </>
+              ) : isPolicyLoading ? (
+                'Loading payment info...'
               ) : (
-                `Complete Booking`
+                `Pay ${pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}${depositAmount > 0 ? (depositAmount + pricing.serviceFee).toFixed(2) : pricing.total.toFixed(2)}`
               )}
             </Button>
           </Card>

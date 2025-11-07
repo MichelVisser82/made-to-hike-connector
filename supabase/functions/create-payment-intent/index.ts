@@ -13,9 +13,20 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId } = await req.json();
+    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId, isDeposit, depositAmount, finalPaymentAmount } = await req.json();
     
-    console.log('[create-payment-intent] Request received:', { amount, serviceFee, totalAmount, currency, tourId, guideId, dateSlotId });
+    console.log('[create-payment-intent] Request received:', { 
+      amount, 
+      serviceFee, 
+      totalAmount, 
+      currency, 
+      tourId, 
+      guideId, 
+      dateSlotId, 
+      isDeposit, 
+      depositAmount, 
+      finalPaymentAmount 
+    });
 
     if (!amount || !serviceFee || !totalAmount || !currency || !tourId || !guideId) {
       console.error('[create-payment-intent] Missing required fields');
@@ -87,9 +98,11 @@ serve(async (req) => {
             currency: currency.toLowerCase(),
             product_data: {
               name: tourTitle || 'Hiking Tour',
-              description: `${bookingData?.participantCount || 1} participant(s)`,
+              description: isDeposit 
+                ? `Deposit payment - ${bookingData?.participantCount || 1} participant(s)` 
+                : `Full payment - ${bookingData?.participantCount || 1} participant(s)`,
             },
-            unit_amount: totalAmountCents, // Charge the total amount (tour + service fee)
+            unit_amount: totalAmountCents, // Charge the total amount (deposit/full + service fee)
           },
           quantity: 1,
         }],
@@ -114,6 +127,9 @@ serve(async (req) => {
           total_platform_fee: String(totalFee),
           amount_to_guide: String(amountCents - guideFeeCents),
           tour_price_after_discount: String(amountCents),
+          is_deposit: String(isDeposit || false),
+          deposit_amount: String(depositAmount || 0),
+          final_payment_amount: String(finalPaymentAmount || 0),
         },
       });
     } catch (stripeError: any) {
