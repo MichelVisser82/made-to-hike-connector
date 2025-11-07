@@ -64,6 +64,13 @@ export interface GuideProfile {
   onboarding_step: number;
   created_at: string;
   updated_at: string;
+  // Stripe Connect address fields
+  address_line1?: string;
+  address_line2?: string;
+  address_city?: string;
+  address_state?: string;
+  address_postal_code?: string;
+  date_of_birth?: string;
 }
 
 export interface GuideSignupData {

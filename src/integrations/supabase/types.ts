@@ -538,6 +538,11 @@ export type Database = {
       guide_profiles: {
         Row: {
           active_since: string | null
+          address_city: string | null
+          address_line1: string | null
+          address_line2: string | null
+          address_postal_code: string | null
+          address_state: string | null
           bank_account_last4: string | null
           bio: string | null
           cancellation_approach: string | null
@@ -549,6 +554,7 @@ export type Database = {
           custom_hiker_fee_percentage: number | null
           daily_rate: number | null
           daily_rate_currency: Database["public"]["Enums"]["currency"] | null
+          date_of_birth: string | null
           deposit_amount: number | null
           deposit_type: string | null
           difficulty_levels: string[] | null
@@ -599,6 +605,11 @@ export type Database = {
         }
         Insert: {
           active_since?: string | null
+          address_city?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          address_postal_code?: string | null
+          address_state?: string | null
           bank_account_last4?: string | null
           bio?: string | null
           cancellation_approach?: string | null
@@ -610,6 +621,7 @@ export type Database = {
           custom_hiker_fee_percentage?: number | null
           daily_rate?: number | null
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
+          date_of_birth?: string | null
           deposit_amount?: number | null
           deposit_type?: string | null
           difficulty_levels?: string[] | null
@@ -660,6 +672,11 @@ export type Database = {
         }
         Update: {
           active_since?: string | null
+          address_city?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          address_postal_code?: string | null
+          address_state?: string | null
           bank_account_last4?: string | null
           bio?: string | null
           cancellation_approach?: string | null
@@ -671,6 +688,7 @@ export type Database = {
           custom_hiker_fee_percentage?: number | null
           daily_rate?: number | null
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
+          date_of_birth?: string | null
           deposit_amount?: number | null
           deposit_type?: string | null
           difficulty_levels?: string[] | null

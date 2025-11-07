@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,19 +7,60 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { Loader2, AlertCircle, CheckCircle, Mail } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Mail, MapPin } from 'lucide-react';
+import { useMyGuideProfile } from '@/hooks/useGuideProfile';
+
+// Stripe-supported countries
+const STRIPE_COUNTRIES = [
+  { code: 'AT', name: 'Austria' }, { code: 'BE', name: 'Belgium' }, { code: 'BG', name: 'Bulgaria' },
+  { code: 'HR', name: 'Croatia' }, { code: 'CY', name: 'Cyprus' }, { code: 'CZ', name: 'Czech Republic' },
+  { code: 'DK', name: 'Denmark' }, { code: 'EE', name: 'Estonia' }, { code: 'FI', name: 'Finland' },
+  { code: 'FR', name: 'France' }, { code: 'DE', name: 'Germany' }, { code: 'GR', name: 'Greece' },
+  { code: 'HU', name: 'Hungary' }, { code: 'IE', name: 'Ireland' }, { code: 'IT', name: 'Italy' },
+  { code: 'LV', name: 'Latvia' }, { code: 'LT', name: 'Lithuania' }, { code: 'LU', name: 'Luxembourg' },
+  { code: 'MT', name: 'Malta' }, { code: 'NL', name: 'Netherlands' }, { code: 'NO', name: 'Norway' },
+  { code: 'PL', name: 'Poland' }, { code: 'PT', name: 'Portugal' }, { code: 'RO', name: 'Romania' },
+  { code: 'SK', name: 'Slovakia' }, { code: 'SI', name: 'Slovenia' }, { code: 'ES', name: 'Spain' },
+  { code: 'SE', name: 'Sweden' }, { code: 'CH', name: 'Switzerland' }, { code: 'GB', name: 'United Kingdom' },
+  { code: 'US', name: 'United States' },
+];
 
 export function AccountSettings() {
   const { user } = useAuth();
+  const { data: guideProfile, isLoading: guideLoading } = useMyGuideProfile();
   const [newEmail, setNewEmail] = useState('');
   const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+  
+  // Contact information state
+  const [addressLine1, setAddressLine1] = useState('');
+  const [addressLine2, setAddressLine2] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [addressCountry, setAddressCountry] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+
+  // Load existing address data
+  useEffect(() => {
+    if (guideProfile) {
+      setAddressLine1(guideProfile.address_line1 || '');
+      setAddressLine2(guideProfile.address_line2 || '');
+      setCity(guideProfile.address_city || '');
+      setState(guideProfile.address_state || '');
+      setPostalCode(guideProfile.address_postal_code || '');
+      setAddressCountry(guideProfile.country || '');
+      setDateOfBirth(guideProfile.date_of_birth || '');
+    }
+  }, [guideProfile]);
 
   const handleEmailChange = async () => {
     if (!newEmail || !newEmail.includes('@')) {
@@ -84,6 +125,45 @@ export function AccountSettings() {
     toast.info('Two-factor authentication coming soon');
     setIs2FAEnabled(checked);
   };
+
+  const handleSaveContactInfo = async () => {
+    if (!user) return;
+
+    try {
+      setIsSavingAddress(true);
+
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({
+          address_line1: addressLine1.trim() || null,
+          address_line2: addressLine2.trim() || null,
+          address_city: city.trim() || null,
+          address_state: state.trim() || null,
+          address_postal_code: postalCode.trim() || null,
+          country: addressCountry || null,
+          date_of_birth: dateOfBirth || null,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Contact information saved successfully');
+    } catch (error: any) {
+      console.error('Error saving contact info:', error);
+      toast.error(error.message || 'Failed to save contact information');
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
+
+  // Show loading state
+  if (guideLoading && !guideProfile) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-burgundy" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -181,6 +261,139 @@ export function AccountSettings() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Contact Information Section - For Guides Only */}
+      {guideProfile && (
+        <Card className="border-burgundy/10 shadow-md">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-burgundy" />
+              <CardTitle className="text-lg font-playfair text-charcoal">Contact Information</CardTitle>
+            </div>
+            <CardDescription>
+              Required for Stripe payment account verification
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Date of Birth */}
+              <div className="space-y-2">
+                <Label htmlFor="dob">Date of Birth *</Label>
+                <Input
+                  id="dob"
+                  type="date"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                  className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                />
+                <p className="text-xs text-muted-foreground">Required by Stripe (18+ only)</p>
+              </div>
+
+              {/* Country */}
+              <div className="space-y-2">
+                <Label htmlFor="address-country">Country *</Label>
+                <Select value={addressCountry} onValueChange={setAddressCountry}>
+                  <SelectTrigger className="border-burgundy/20">
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STRIPE_COUNTRIES.map((country) => (
+                      <SelectItem key={country.code} value={country.code}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Street Address */}
+            <div className="space-y-2">
+              <Label htmlFor="address-line1">Street Address *</Label>
+              <Input
+                id="address-line1"
+                value={addressLine1}
+                onChange={(e) => setAddressLine1(e.target.value)}
+                placeholder="123 Main Street"
+                className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                maxLength={200}
+              />
+            </div>
+
+            {/* Address Line 2 */}
+            <div className="space-y-2">
+              <Label htmlFor="address-line2">Apartment, Suite, etc. (Optional)</Label>
+              <Input
+                id="address-line2"
+                value={addressLine2}
+                onChange={(e) => setAddressLine2(e.target.value)}
+                placeholder="Apt 4B"
+                className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                maxLength={200}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              {/* City */}
+              <div className="space-y-2">
+                <Label htmlFor="city">City *</Label>
+                <Input
+                  id="city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Munich"
+                  className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                  maxLength={100}
+                />
+              </div>
+
+              {/* State/Province */}
+              <div className="space-y-2">
+                <Label htmlFor="state">State/Province</Label>
+                <Input
+                  id="state"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  placeholder="Bavaria"
+                  className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                  maxLength={100}
+                />
+              </div>
+
+              {/* Postal Code */}
+              <div className="space-y-2">
+                <Label htmlFor="postal-code">Postal Code *</Label>
+                <Input
+                  id="postal-code"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  placeholder="80331"
+                  className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                  maxLength={20}
+                />
+              </div>
+            </div>
+
+            <Alert className="border-burgundy/20 bg-burgundy/5">
+              <AlertCircle className="h-4 w-4 text-burgundy" />
+              <AlertDescription className="text-sm">
+                This information is required by Stripe for identity verification and tax compliance.
+                It will be securely stored and only shared with Stripe.
+              </AlertDescription>
+            </Alert>
+
+            <Button
+              onClick={handleSaveContactInfo}
+              disabled={isSavingAddress || !addressLine1 || !city || !postalCode || !addressCountry || !dateOfBirth}
+              className="bg-burgundy hover:bg-burgundy-dark text-white"
+            >
+              {isSavingAddress && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {isSavingAddress ? 'Saving...' : 'Save Contact Information'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 2FA Section */}
       <Card className="border-burgundy/10 shadow-md">

@@ -37,7 +37,7 @@ serve(async (req) => {
     // Fetch guide profile
     const { data: guideProfile, error: profileError } = await supabaseClient
       .from('guide_profiles')
-      .select('id, display_name, stripe_account_id, country')
+      .select('id, display_name, stripe_account_id, country, address_line1, address_line2, address_city, address_state, address_postal_code, date_of_birth')
       .eq('user_id', user.id)
       .single();
 
@@ -66,7 +66,7 @@ serve(async (req) => {
     }
 
     // Create Stripe Express Connected Account
-    const account = await stripe.accounts.create({
+    const accountData: any = {
       type: 'express',
       country: guideProfile.country,
       email: user.email, // Use email from auth.users
@@ -84,7 +84,38 @@ serve(async (req) => {
         user_id: user.id,
         country: guideProfile.country,
       },
-    });
+    };
+
+    // Add address information if available
+    if (guideProfile.address_line1 && guideProfile.address_city && guideProfile.address_postal_code) {
+      accountData.individual = {
+        address: {
+          line1: guideProfile.address_line1,
+          line2: guideProfile.address_line2 || undefined,
+          city: guideProfile.address_city,
+          state: guideProfile.address_state || undefined,
+          postal_code: guideProfile.address_postal_code,
+          country: guideProfile.country,
+        },
+      };
+
+      // Add date of birth if available
+      if (guideProfile.date_of_birth) {
+        const dob = new Date(guideProfile.date_of_birth);
+        accountData.individual.dob = {
+          day: dob.getDate(),
+          month: dob.getMonth() + 1,
+          year: dob.getFullYear(),
+        };
+      }
+
+      logStep('Including address and DOB in account creation', {
+        hasAddress: true,
+        hasDOB: !!guideProfile.date_of_birth,
+      });
+    }
+
+    const account = await stripe.accounts.create(accountData);
 
     logStep('Stripe account created', { accountId: account.id });
 
