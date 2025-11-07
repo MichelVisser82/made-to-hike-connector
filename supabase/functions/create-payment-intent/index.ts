@@ -64,7 +64,7 @@ serve(async (req) => {
     let session;
     try {
       session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
+        payment_method_types: ['card', 'sepa_debit', 'ideal', 'bancontact', 'giropay', 'sofort', 'eps', 'p24'],
         line_items: [{
           price_data: {
             currency: currency.toLowerCase(),
@@ -107,7 +107,16 @@ serve(async (req) => {
       if (stripeError.code === 'transfers_not_allowed') {
         return new Response(
           JSON.stringify({ 
-            error: 'Payment region mismatch. This is a Stripe test mode limitation - platform and guide accounts must be in the same region. Please contact support or try a different guide.',
+            error: 'Payment region mismatch. In test mode, the platform and guide must be in the same Stripe region. In production, cross-border payments work automatically. Contact support if this persists.',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (stripeError.code === 'account_invalid') {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Guide payment setup incomplete. The guide needs to complete their Stripe onboarding to accept payments.',
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );

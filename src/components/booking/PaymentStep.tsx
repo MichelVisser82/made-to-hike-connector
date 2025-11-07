@@ -269,15 +269,15 @@ export const PaymentStep = ({
               <div className="flex items-center gap-3 p-3 border rounded-lg">
                 <Smartphone className="h-6 w-6 text-primary" />
                 <div>
-                  <p className="font-medium">Digital Wallets</p>
-                  <p className="text-sm text-muted-foreground">Apple Pay, Google Pay</p>
+                  <p className="font-medium">Digital Wallets & Local Methods</p>
+                  <p className="text-sm text-muted-foreground">Apple Pay, Google Pay, SEPA, iDEAL, Bancontact, Giropay</p>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">
-                🔒 Your payment information is secure and encrypted. We use Stripe to process payments safely.
+                🔒 Your payment information is secure and encrypted. We use Stripe to process payments safely. Available payment methods will be shown based on your location at checkout.
               </p>
             </div>
           </Card>
