@@ -126,6 +126,7 @@ export function useGuideSignup() {
             display_name: formData.display_name,
             bio: formData.bio,
             location: formData.location,
+            country: formData.country,
             experience_years: formData.experience_years,
             certifications: certificationsWithBase64,
             specialties: formData.specialties || [],

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, AlertCircle, CheckCircle, FileText, ExternalLink, RefreshCw, Bug } from 'lucide-react';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
@@ -12,6 +13,42 @@ import { useMyGuideProfile, useRefreshMyGuideProfile, type ProfileError } from '
 import { ProfileDebugPanel } from '@/components/debug/ProfileDebugPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+// Stripe-supported countries
+const STRIPE_COUNTRIES = [
+  { code: 'AT', name: 'Austria' },
+  { code: 'BE', name: 'Belgium' },
+  { code: 'BG', name: 'Bulgaria' },
+  { code: 'HR', name: 'Croatia' },
+  { code: 'CY', name: 'Cyprus' },
+  { code: 'CZ', name: 'Czech Republic' },
+  { code: 'DK', name: 'Denmark' },
+  { code: 'EE', name: 'Estonia' },
+  { code: 'FI', name: 'Finland' },
+  { code: 'FR', name: 'France' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'GR', name: 'Greece' },
+  { code: 'HU', name: 'Hungary' },
+  { code: 'IE', name: 'Ireland' },
+  { code: 'IT', name: 'Italy' },
+  { code: 'LV', name: 'Latvia' },
+  { code: 'LT', name: 'Lithuania' },
+  { code: 'LU', name: 'Luxembourg' },
+  { code: 'MT', name: 'Malta' },
+  { code: 'NL', name: 'Netherlands' },
+  { code: 'NO', name: 'Norway' },
+  { code: 'PL', name: 'Poland' },
+  { code: 'PT', name: 'Portugal' },
+  { code: 'RO', name: 'Romania' },
+  { code: 'SK', name: 'Slovakia' },
+  { code: 'SI', name: 'Slovenia' },
+  { code: 'ES', name: 'Spain' },
+  { code: 'SE', name: 'Sweden' },
+  { code: 'CH', name: 'Switzerland' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'US', name: 'United States' },
+];
 
 export function PaymentSettings() {
   const { user } = useAuth();
@@ -20,8 +57,16 @@ export function PaymentSettings() {
   const refreshProfile = useRefreshMyGuideProfile();
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [editingCountry, setEditingCountry] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState('');
 
   const profileError = guideError as ProfileError | null;
+
+  useEffect(() => {
+    if (guideProfile?.country) {
+      setSelectedCountry(guideProfile.country);
+    }
+  }, [guideProfile?.country]);
 
   const handleSyncStatus = useCallback(async () => {
     setSyncing(true);
@@ -100,6 +145,26 @@ export function PaymentSettings() {
     console.log('[PaymentSettings] Manual refresh triggered');
     refreshProfile();
     toast.info('Refreshing profile data...');
+  };
+
+  const handleCountryUpdate = async () => {
+    if (!selectedCountry || !user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({ country: selectedCountry })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      toast.success('Country updated successfully');
+      setEditingCountry(false);
+      refreshProfile();
+    } catch (error) {
+      console.error('Error updating country:', error);
+      toast.error('Failed to update country');
+    }
   };
 
   // Loading state
@@ -260,6 +325,54 @@ export function PaymentSettings() {
                 </Alert>
               )}
 
+              {/* Country Selection - Required before Stripe */}
+              {!data?.stripe_account_id && (
+                <div className="space-y-2">
+                  <Label>Payment Account Country *</Label>
+                  {editingCountry || !guideProfile?.country ? (
+                    <div className="space-y-2">
+                      <Select
+                        value={selectedCountry}
+                        onValueChange={setSelectedCountry}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STRIPE_COUNTRIES.map((country) => (
+                            <SelectItem key={country.code} value={country.code}>
+                              {country.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        This determines which Stripe region your account will be created in. Cannot be changed once Stripe account is connected.
+                      </p>
+                      <div className="flex gap-2">
+                        <Button onClick={handleCountryUpdate} disabled={!selectedCountry} size="sm">
+                          Save Country
+                        </Button>
+                        {guideProfile?.country && (
+                          <Button onClick={() => { setEditingCountry(false); setSelectedCountry(guideProfile.country!); }} variant="outline" size="sm">
+                            Cancel
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">
+                        {STRIPE_COUNTRIES.find(c => c.code === guideProfile.country)?.name || guideProfile.country}
+                      </span>
+                      <Button onClick={() => setEditingCountry(true)} variant="outline" size="sm">
+                        Change
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Stripe Not Connected */}
               {!data?.stripe_account_id && (
                 <>
@@ -270,9 +383,18 @@ export function PaymentSettings() {
                       This is a one-time setup that takes about 5 minutes.
                     </AlertDescription>
                   </Alert>
-                  <Button onClick={handleConnectStripe} className="w-full">
+                  <Button 
+                    onClick={handleConnectStripe} 
+                    className="w-full"
+                    disabled={!guideProfile?.country}
+                  >
                     Connect Stripe Account
                   </Button>
+                  {!guideProfile?.country && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Please select your country first
+                    </p>
+                  )}
                 </>
               )}
 

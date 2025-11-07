@@ -543,6 +543,7 @@ export type Database = {
           cancellation_approach: string | null
           cancellation_policy_type: string | null
           certifications: Json | null
+          country: string | null
           created_at: string
           custom_guide_fee_percentage: number | null
           custom_hiker_fee_percentage: number | null
@@ -603,6 +604,7 @@ export type Database = {
           cancellation_approach?: string | null
           cancellation_policy_type?: string | null
           certifications?: Json | null
+          country?: string | null
           created_at?: string
           custom_guide_fee_percentage?: number | null
           custom_hiker_fee_percentage?: number | null
@@ -663,6 +665,7 @@ export type Database = {
           cancellation_approach?: string | null
           cancellation_policy_type?: string | null
           certifications?: Json | null
+          country?: string | null
           created_at?: string
           custom_guide_fee_percentage?: number | null
           custom_hiker_fee_percentage?: number | null

@@ -36,6 +36,7 @@ export interface GuideProfile {
   hero_background_url?: string;
   bio?: string;
   location?: string;
+  country?: string;
   active_since?: string;
   experience_years?: number;
   verified: boolean;
@@ -76,6 +77,7 @@ export interface GuideSignupData {
   
   // Step 3: Location
   location: string;
+  country?: string;
   location_lat?: number;
   location_lng?: number;
   location_formatted?: string;

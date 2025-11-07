@@ -206,6 +206,7 @@ serve(async (req) => {
         display_name: guideData.display_name,
         bio: guideData.bio,
         location: guideData.location,
+        country: guideData.country,
         profile_image_url: profileImageUrl,
         experience_years: guideData.experience_years,
         certifications: certificationsWithUrls,

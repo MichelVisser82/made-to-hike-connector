@@ -37,7 +37,7 @@ serve(async (req) => {
     // Fetch guide profile
     const { data: guideProfile, error: profileError } = await supabaseClient
       .from('guide_profiles')
-      .select('id, display_name, stripe_account_id')
+      .select('id, display_name, stripe_account_id, country')
       .eq('user_id', user.id)
       .single();
 
@@ -46,7 +46,12 @@ serve(async (req) => {
       throw new Error('Guide profile not found. Please complete your guide profile setup first.');
     }
 
-    logStep('Guide profile found', { guideId: guideProfile.id });
+    if (!guideProfile.country) {
+      logStep('Country not set', { guideId: guideProfile.id });
+      throw new Error('Please set your country in Payment Settings before connecting Stripe.');
+    }
+
+    logStep('Guide profile found', { guideId: guideProfile.id, country: guideProfile.country });
 
     // Check if account already exists
     if (guideProfile.stripe_account_id) {
@@ -63,7 +68,7 @@ serve(async (req) => {
     // Create Stripe Express Connected Account
     const account = await stripe.accounts.create({
       type: 'express',
-      country: 'US', // Default, can be updated during onboarding
+      country: guideProfile.country,
       email: user.email, // Use email from auth.users
       capabilities: {
         card_payments: { requested: true },
@@ -77,6 +82,7 @@ serve(async (req) => {
       metadata: {
         guide_id: guideProfile.id,
         user_id: user.id,
+        country: guideProfile.country,
       },
     });
 
