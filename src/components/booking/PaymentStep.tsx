@@ -131,7 +131,9 @@ export const PaymentStep = ({
       }
 
       const paymentPayload = {
-        amount: pricing.total,
+        amount: pricing.subtotal - pricing.discount, // Send tour price after discount (before service fee)
+        serviceFee: pricing.serviceFee, // Send pre-calculated service fee
+        totalAmount: pricing.total, // Send total for verification
         currency: pricing.currency,
         tourId: tourId,
         guideId: guideId,
@@ -153,6 +155,9 @@ export const PaymentStep = ({
           discount_amount: pricing.discount,
           service_fee_amount: pricing.serviceFee,
           total_price: pricing.total,
+          tour_id: tourId,
+          date_slot_id: fullBookingData.selectedDateSlotId,
+          currency: pricing.currency,
         }
       };
 

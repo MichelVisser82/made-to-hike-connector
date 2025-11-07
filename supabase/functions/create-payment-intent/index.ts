@@ -13,11 +13,11 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId } = await req.json();
+    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId } = await req.json();
     
-    console.log('[create-payment-intent] Request received:', { amount, currency, tourId, guideId, dateSlotId });
+    console.log('[create-payment-intent] Request received:', { amount, serviceFee, totalAmount, currency, tourId, guideId, dateSlotId });
 
-    if (!amount || !currency || !tourId || !guideId) {
+    if (!amount || !serviceFee || !totalAmount || !currency || !tourId || !guideId) {
       console.error('[create-payment-intent] Missing required fields');
       return new Response(
         JSON.stringify({ error: 'Missing required payment information' }),
@@ -50,12 +50,17 @@ serve(async (req) => {
       .single();
 
     const guideFee = guide.uses_custom_fees ? (guide.custom_guide_fee_percentage || 5) : (settings?.default_guide_fee_percentage || 5);
-    const hikerFee = guide.uses_custom_fees ? (guide.custom_hiker_fee_percentage || 10) : (settings?.default_hiker_fee_percentage || 10);
-
-    const amountCents = Math.round(amount * 100);
-    const hikerFeeCents = Math.round(amountCents * (hikerFee / 100));
+    
+    // Use the pre-calculated service fee from frontend (which was calculated on original price before discount)
+    const amountCents = Math.round(amount * 100); // Tour price after discount
+    const serviceFeeCents = Math.round(serviceFee * 100); // Pre-calculated service fee
+    const totalAmountCents = Math.round(totalAmount * 100); // Total to charge customer
+    
+    // Calculate guide's portion of the service fee
     const guideFeeCents = Math.round(amountCents * (guideFee / 100));
-    const totalFee = hikerFeeCents + guideFeeCents;
+    
+    // Platform takes service fee + guide fee, guide receives amount - guide fee
+    const totalFee = serviceFeeCents + guideFeeCents;
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2025-08-27.basil',
@@ -72,15 +77,15 @@ serve(async (req) => {
               name: tourTitle || 'Hiking Tour',
               description: `${bookingData?.participantCount || 1} participant(s)`,
             },
-            unit_amount: amountCents + hikerFeeCents,
+            unit_amount: totalAmountCents, // Charge the total amount (tour + service fee)
           },
           quantity: 1,
         }],
         mode: 'payment',
         payment_intent_data: {
-          application_fee_amount: totalFee,
+          application_fee_amount: totalFee, // Platform takes service fee + guide fee
           transfer_data: {
-            destination: guide.stripe_account_id,
+            destination: guide.stripe_account_id, // Guide receives amount - guide fee
           },
         },
         success_url: `${req.headers.get('origin')}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
@@ -94,11 +99,11 @@ serve(async (req) => {
           participant_count: String(bookingData?.participantCount || 1),
           booking_data: JSON.stringify(bookingData),
           guide_fee_percentage: String(guideFee),
-          hiker_fee_percentage: String(hikerFee),
+          service_fee_amount: String(serviceFeeCents),
           guide_fee_amount: String(guideFeeCents),
-          hiker_fee_amount: String(hikerFeeCents),
           total_platform_fee: String(totalFee),
           amount_to_guide: String(amountCents - guideFeeCents),
+          tour_price_after_discount: String(amountCents),
         },
       });
     } catch (stripeError: any) {
