@@ -37,6 +37,7 @@ import {
 } from '../ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useConversations } from '@/hooks/useConversations';
+import { useStripeConnect } from '@/hooks/useStripeConnect';
 
 interface GuideDashboardProps {
   user: User;
@@ -100,6 +101,9 @@ export function GuideDashboard({
   
   // Fetch conversations for unread message count
   const { conversations: liveConversations } = useConversations(user.id);
+
+  // Check Stripe connection status
+  const { data: stripeData } = useStripeConnect();
 
   useEffect(() => {
     fetchGuideTours();
@@ -774,6 +778,7 @@ export function GuideDashboard({
               }}
               onViewEarnings={() => setActiveSection('money')}
               onSectionNavigate={(section) => setActiveSection(section as DashboardSection)}
+              stripeConnected={!!stripeData?.stripe_account_id && stripeData?.stripe_kyc_status === 'verified'}
             />
           )}
 

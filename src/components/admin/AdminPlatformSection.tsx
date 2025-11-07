@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { GuideVerificationManager } from './GuideVerificationManager';
 import { DiscountCodesManager } from '../dashboard/policy/DiscountCodesManager';
+import { PlatformFeeSettings } from './PlatformFeeSettings';
 
 export function AdminPlatformSection() {
   const [searchParams] = useSearchParams();
@@ -37,6 +38,12 @@ export function AdminPlatformSection() {
           >
             Discount Codes
           </TabsTrigger>
+          <TabsTrigger 
+            value="platform-fees"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
+          >
+            Platform Fees
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="verifications">
@@ -45,6 +52,10 @@ export function AdminPlatformSection() {
 
         <TabsContent value="discount-codes">
           <DiscountCodesManager isAdmin={true} />
+        </TabsContent>
+
+        <TabsContent value="platform-fees">
+          <PlatformFeeSettings />
         </TabsContent>
       </Tabs>
     </div>

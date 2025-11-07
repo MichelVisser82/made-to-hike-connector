@@ -544,6 +544,8 @@ export type Database = {
           cancellation_policy_type: string | null
           certifications: Json | null
           created_at: string
+          custom_guide_fee_percentage: number | null
+          custom_hiker_fee_percentage: number | null
           daily_rate: number | null
           daily_rate_currency: Database["public"]["Enums"]["currency"] | null
           deposit_amount: number | null
@@ -589,6 +591,7 @@ export type Database = {
           upcoming_availability_start: string | null
           updated_at: string
           user_id: string
+          uses_custom_fees: boolean | null
           verified: boolean | null
           video_type: string | null
           website_url: string | null
@@ -601,6 +604,8 @@ export type Database = {
           cancellation_policy_type?: string | null
           certifications?: Json | null
           created_at?: string
+          custom_guide_fee_percentage?: number | null
+          custom_hiker_fee_percentage?: number | null
           daily_rate?: number | null
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
           deposit_amount?: number | null
@@ -646,6 +651,7 @@ export type Database = {
           upcoming_availability_start?: string | null
           updated_at?: string
           user_id: string
+          uses_custom_fees?: boolean | null
           verified?: boolean | null
           video_type?: string | null
           website_url?: string | null
@@ -658,6 +664,8 @@ export type Database = {
           cancellation_policy_type?: string | null
           certifications?: Json | null
           created_at?: string
+          custom_guide_fee_percentage?: number | null
+          custom_hiker_fee_percentage?: number | null
           daily_rate?: number | null
           daily_rate_currency?: Database["public"]["Enums"]["currency"] | null
           deposit_amount?: number | null
@@ -703,6 +711,7 @@ export type Database = {
           upcoming_availability_start?: string | null
           updated_at?: string
           user_id?: string
+          uses_custom_fees?: boolean | null
           verified?: boolean | null
           video_type?: string | null
           website_url?: string | null
@@ -1054,6 +1063,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

@@ -29,6 +29,7 @@ interface TodaySectionProps {
   onManageAvailability: () => void;
   onViewEarnings: () => void;
   onSectionNavigate: (section: string) => void;
+  stripeConnected?: boolean;
 }
 
 export function TodaySection({
@@ -42,6 +43,7 @@ export function TodaySection({
   onManageAvailability,
   onViewEarnings,
   onSectionNavigate,
+  stripeConnected = false,
 }: TodaySectionProps) {
   const getGreeting = () => {
     const hour = currentDate.getHours();
@@ -287,7 +289,29 @@ export function TodaySection({
           <Card className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md">
             <h3 className="text-lg font-playfair text-charcoal mb-4">Notifications</h3>
             <div className="space-y-3">
-              {notifications.slice(0, 3).map((notification) => {
+              {/* Stripe Connection Notification */}
+              {!stripeConnected && (
+                <div className="flex items-start gap-3 p-3 bg-gold/10 rounded-lg border border-gold/30">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gold/20 text-gold">
+                    <Euro className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-charcoal font-medium">Connect Stripe to Receive Payments</p>
+                    <p className="text-xs text-charcoal/70 mt-1">
+                      Set up your payout account to start earning from bookings
+                    </p>
+                    <Button
+                      onClick={() => onSectionNavigate('money')}
+                      variant="link"
+                      className="text-burgundy p-0 h-auto mt-1 text-xs"
+                    >
+                      Connect Now →
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {notifications.slice(0, stripeConnected ? 3 : 2).map((notification) => {
                 const Icon = notification.type === 'booking' 
                   ? Users 
                   : notification.type === 'review' 
