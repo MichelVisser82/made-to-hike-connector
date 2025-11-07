@@ -118,6 +118,29 @@ export function useStripeConnect() {
     }
   };
 
+  const disconnectStripe = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update({ 
+          stripe_account_id: null,
+          stripe_kyc_status: 'not_started',
+          bank_account_last4: null
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await fetchStripeData();
+      toast.success('Stripe account disconnected. You can now change your country and reconnect.');
+    } catch (error: any) {
+      console.error('Error disconnecting Stripe:', error);
+      toast.error(error.message || 'Failed to disconnect Stripe');
+    }
+  };
+
   return {
     data,
     loading,
@@ -125,6 +148,7 @@ export function useStripeConnect() {
     createAccountLink,
     syncAccountStatus,
     updatePayoutSchedule,
+    disconnectStripe,
     refetch: fetchStripeData,
   };
 }

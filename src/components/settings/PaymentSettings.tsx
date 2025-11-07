@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Loader2, AlertCircle, CheckCircle, FileText, ExternalLink, RefreshCw, Bug } from 'lucide-react';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useMyGuideProfile, useRefreshMyGuideProfile, type ProfileError } from '@/hooks/useGuideProfile';
@@ -52,13 +53,14 @@ const STRIPE_COUNTRIES = [
 
 export function PaymentSettings() {
   const { user } = useAuth();
-  const { data, loading, createConnectedAccount, createAccountLink, updatePayoutSchedule, syncAccountStatus, refetch } = useStripeConnect();
+  const { data, loading, createConnectedAccount, createAccountLink, updatePayoutSchedule, syncAccountStatus, disconnectStripe, refetch } = useStripeConnect();
   const { data: guideProfile, isLoading: guideLoading, error: guideError } = useMyGuideProfile();
   const refreshProfile = useRefreshMyGuideProfile();
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [editingCountry, setEditingCountry] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
 
   const profileError = guideError as ProfileError | null;
 
@@ -165,6 +167,12 @@ export function PaymentSettings() {
       console.error('Error updating country:', error);
       toast.error('Failed to update country');
     }
+  };
+
+  const handleDisconnectStripe = async () => {
+    await disconnectStripe();
+    setShowDisconnectDialog(false);
+    refreshProfile();
   };
 
   // Loading state
@@ -515,11 +523,25 @@ export function PaymentSettings() {
                     </div>
                   )}
 
-                  {/* Manage Dashboard Button */}
+                  {/* Stripe Dashboard Link */}
                   <Button onClick={handleManageDashboard} variant="outline" className="w-full">
-                    Manage Stripe Dashboard
+                    Manage in Stripe Dashboard
                     <ExternalLink className="ml-2 w-4 h-4" />
                   </Button>
+
+                  {/* Disconnect Stripe */}
+                  <div className="pt-4 border-t">
+                    <Button 
+                      onClick={() => setShowDisconnectDialog(true)} 
+                      variant="destructive" 
+                      className="w-full"
+                    >
+                      Disconnect Stripe Account
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center mt-2">
+                      This will allow you to change your country and reconnect
+                    </p>
+                  </div>
                 </>
               )}
             </>
@@ -544,6 +566,26 @@ export function PaymentSettings() {
           </Link>
         </CardContent>
       </Card>
+
+      {/* Disconnect Confirmation Dialog */}
+      <AlertDialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect Stripe Account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove your current Stripe connection and allow you to change your country and reconnect.
+              <br /><br />
+              <strong>Note:</strong> This will not delete your Stripe account or affect past transactions. You can reconnect at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDisconnectStripe} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Disconnect
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
