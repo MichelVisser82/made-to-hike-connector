@@ -35,19 +35,19 @@ export function AdminSupportSection() {
         <TabsList className="bg-cream p-1 rounded-lg">
           <TabsTrigger 
             value="tickets"
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
             Support Tickets
           </TabsTrigger>
           <TabsTrigger 
             value="flagged"
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
             Flagged Messages
           </TabsTrigger>
           <TabsTrigger 
             value="conversations"
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
             All Conversations
           </TabsTrigger>

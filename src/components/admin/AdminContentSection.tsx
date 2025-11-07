@@ -29,19 +29,19 @@ export function AdminContentSection() {
         <TabsList className="bg-cream p-1 rounded-lg">
           <TabsTrigger 
             value="images"
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
             Images
           </TabsTrigger>
           <TabsTrigger 
             value="templates"
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
             Tour Templates
           </TabsTrigger>
           <TabsTrigger 
             value="regions"
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
             Region Requests
           </TabsTrigger>

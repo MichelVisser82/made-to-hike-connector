@@ -27,13 +27,13 @@ export function AdminPlatformSection() {
         <TabsList className="bg-cream p-1 rounded-lg">
           <TabsTrigger 
             value="verifications"
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
             Guide Verifications
           </TabsTrigger>
           <TabsTrigger 
             value="discount-codes"
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
             Discount Codes
           </TabsTrigger>
