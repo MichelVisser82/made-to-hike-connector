@@ -9,6 +9,10 @@ export interface BookingConfirmationData {
   totalPrice: number
   currency: string
   participants: number
+  isDeposit?: boolean
+  depositAmount?: number
+  finalPaymentAmount?: number
+  finalPaymentDueDate?: string
 }
 
 export const generateBookingConfirmationEmail = (data: BookingConfirmationData): string => {
@@ -75,8 +79,27 @@ export const generateBookingConfirmationEmail = (data: BookingConfirmationData):
       </div>
       
       <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #ef4444;">
-        <p style="margin: 0 0 4px 0; font-size: 16px; color: #1e293b; font-weight: bold;">Total Amount:</p>
-        <p style="margin: 0; font-size: 18px; color: #ef4444; font-weight: bold;">${data.currency} ${data.totalPrice.toFixed(2)}</p>
+        ${data.isDeposit ? `
+          <div style="margin-bottom: 12px;">
+            <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Deposit Paid:</p>
+            <p style="margin: 0; font-size: 16px; color: #059669; font-weight: bold;">✓ ${data.currency} ${data.depositAmount?.toFixed(2)}</p>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Remaining Balance:</p>
+            <p style="margin: 0; font-size: 16px; color: #1e293b; font-weight: 600;">${data.currency} ${data.finalPaymentAmount?.toFixed(2)}</p>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Auto-Collection Date:</p>
+            <p style="margin: 0; font-size: 14px; color: #1e293b; font-weight: 600;">${data.finalPaymentDueDate ? new Date(data.finalPaymentDueDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Will be notified'}</p>
+          </div>
+        ` : `
+          <p style="margin: 0 0 4px 0; font-size: 16px; color: #1e293b; font-weight: bold;">Total Amount Paid:</p>
+          <p style="margin: 0; font-size: 18px; color: #059669; font-weight: bold;">✓ ${data.currency} ${data.totalPrice.toFixed(2)}</p>
+        `}
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0 0 4px 0; font-size: 16px; color: #1e293b; font-weight: bold;">Total Tour Price:</p>
+          <p style="margin: 0; font-size: 18px; color: #ef4444; font-weight: bold;">${data.currency} ${data.totalPrice.toFixed(2)}</p>
+        </div>
       </div>
     </div>
 
@@ -89,6 +112,26 @@ export const generateBookingConfirmationEmail = (data: BookingConfirmationData):
       <p style="margin: 8px 0; font-size: 14px; color: #374151; line-height: 1.5;">📱 Fully charged phone</p>
       <p style="margin: 8px 0; font-size: 14px; color: #374151; line-height: 1.5;">🧥 Weather-appropriate clothing</p>
     </div>
+
+    ${data.isDeposit ? `
+    <div style="padding: 32px 40px; background-color: #dcfce7; border-left: 4px solid #059669;">
+      <h3 style="margin: 0 0 16px 0; font-size: 20px; font-weight: bold; color: #1e293b;">💳 Automatic Payment Collection</h3>
+      <p style="margin: 0 0 16px 0; font-size: 14px; color: #166534; line-height: 1.6;">
+        <strong>Your deposit of ${data.currency} ${data.depositAmount?.toFixed(2)} has been successfully processed.</strong>
+      </p>
+      <p style="margin: 0 0 12px 0; font-size: 14px; color: #166534; line-height: 1.6;">
+        The remaining balance of <strong>${data.currency} ${data.finalPaymentAmount?.toFixed(2)}</strong> will be automatically collected from your payment method on <strong>${data.finalPaymentDueDate ? new Date(data.finalPaymentDueDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'the scheduled date'}</strong>.
+      </p>
+      <p style="margin: 0 0 12px 0; font-size: 14px; color: #166534; line-height: 1.6;">
+        ✓ <strong>No action required</strong> - The payment will be processed automatically<br>
+        ✓ <strong>Secure</strong> - We use Stripe's secure payment system<br>
+        ✓ <strong>Receipt</strong> - You'll receive a confirmation email after the payment is collected
+      </p>
+      <p style="margin: 0; font-size: 13px; color: #15803d; line-height: 1.5;">
+        If your payment fails, we'll notify you immediately so you can update your payment method and avoid any booking issues.
+      </p>
+    </div>
+    ` : ''}
 
     <div style="padding: 32px 40px; background-color: #fef3cd;">
       <h3 style="margin: 0 0 24px 0; font-size: 20px; font-weight: bold; color: #1e293b;">Important Information</h3>

@@ -23,6 +23,10 @@ interface EmailRequest {
   totalPrice?: number
   currency?: string
   participants?: number
+  isDeposit?: boolean
+  depositAmount?: number
+  finalPaymentAmount?: number
+  finalPaymentDueDate?: string
 }
 
 interface EmailTemplate {
@@ -724,6 +728,10 @@ serve(async (req) => {
         totalPrice: emailRequest.totalPrice || 0,
         currency: emailRequest.currency || 'EUR',
         participants: emailRequest.participants || 1,
+        isDeposit: emailRequest.isDeposit,
+        depositAmount: emailRequest.depositAmount,
+        finalPaymentAmount: emailRequest.finalPaymentAmount,
+        finalPaymentDueDate: emailRequest.finalPaymentDueDate,
       })
 
 

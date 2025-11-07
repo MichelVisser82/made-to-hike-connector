@@ -70,7 +70,7 @@ serve(async (req) => {
     console.log('Fetching tour info for tour_id:', tour_id);
     const { data: tour, error: tourError } = await supabase
       .from('tours')
-      .select('title, guide_id, auto_confirm, region')
+      .select('title, guide_id, auto_confirm, region, meeting_point')
       .eq('id', tour_id)
       .maybeSingle();
 
@@ -256,6 +256,10 @@ serve(async (req) => {
             totalPrice: total_price,
             currency: currency,
             participants: participants,
+            isDeposit: payment_type === 'deposit',
+            depositAmount: deposit_amount || undefined,
+            finalPaymentAmount: final_payment_amount || undefined,
+            finalPaymentDueDate: final_payment_due_date || undefined,
           }
         });
         console.log('Confirmation email sent successfully');
