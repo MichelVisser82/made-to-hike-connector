@@ -7,6 +7,13 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   apiVersion: '2023-10-16',
 });
 
+// Supported Stripe countries - these are automatically routed to correct regional infrastructure
+const SUPPORTED_STRIPE_COUNTRIES = [
+  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 
+  'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 
+  'SK', 'SI', 'ES', 'SE', 'CH', 'GB', 'US'
+];
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CONNECTED-ACCOUNT] ${step}${detailsStr}`);
@@ -48,7 +55,13 @@ serve(async (req) => {
 
     if (!guideProfile.country) {
       logStep('Country not set', { guideId: guideProfile.id });
-      throw new Error('Please set your country in Payment Settings before connecting Stripe.');
+      throw new Error('Please set your country in Account Settings before connecting Stripe.');
+    }
+
+    // Validate country is supported by Stripe Connect
+    if (!SUPPORTED_STRIPE_COUNTRIES.includes(guideProfile.country)) {
+      logStep('Unsupported country', { country: guideProfile.country });
+      throw new Error(`Country ${guideProfile.country} is not currently supported for Stripe payments. Please contact support.`);
     }
 
     logStep('Guide profile found', { guideId: guideProfile.id, country: guideProfile.country });
@@ -66,6 +79,8 @@ serve(async (req) => {
     }
 
     // Create Stripe Express Connected Account
+    // Note: Stripe automatically routes accounts to the correct regional infrastructure
+    // based on the country code. EU countries use EU Stripe infrastructure, US uses US infrastructure.
     const accountData: any = {
       type: 'express',
       country: guideProfile.country,
@@ -83,6 +98,8 @@ serve(async (req) => {
         guide_id: guideProfile.id,
         user_id: user.id,
         country: guideProfile.country,
+        region: ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','NO','PL','PT','RO','SK','SI','ES','SE','CH'].includes(guideProfile.country) ? 'EU' : 
+                (guideProfile.country === 'GB' ? 'UK' : 'US'),
       },
     };
 
