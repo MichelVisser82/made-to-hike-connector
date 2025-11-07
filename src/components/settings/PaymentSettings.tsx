@@ -42,7 +42,7 @@ export function PaymentSettings() {
   // Auto-sync when user returns from Stripe (window gains focus)
   useEffect(() => {
     const handleFocus = async () => {
-      if (data?.stripe_account_id && data.stripe_kyc_status !== 'approved') {
+      if (data?.stripe_account_id && data.stripe_kyc_status !== 'verified') {
         console.log('[PaymentSettings] Window focused, syncing Stripe status...');
         await handleSyncStatus();
       }
@@ -264,38 +264,76 @@ export function PaymentSettings() {
                 </>
               )}
 
-              {/* Stripe Connected but KYC Incomplete */}
-              {data?.stripe_account_id && data.stripe_kyc_status !== 'approved' && (
+              {/* Stripe Connected but KYC Incomplete or Pending */}
+              {data?.stripe_account_id && data.stripe_kyc_status !== 'verified' && (
                 <>
-                  <Alert className="border-orange-500/20 bg-orange-50">
-                    <AlertCircle className="h-4 w-4 text-orange-600" />
+                  <Alert className={
+                    data.stripe_kyc_status === 'incomplete' 
+                      ? "border-orange-500/20 bg-orange-50"
+                      : data.stripe_kyc_status === 'pending'
+                      ? "border-blue-500/20 bg-blue-50"
+                      : "border-red-500/20 bg-red-50"
+                  }>
+                    <AlertCircle className={
+                      data.stripe_kyc_status === 'incomplete' 
+                        ? "h-4 w-4 text-orange-600"
+                        : data.stripe_kyc_status === 'pending'
+                        ? "h-4 w-4 text-blue-600"
+                        : "h-4 w-4 text-red-600"
+                    } />
                     <AlertDescription className="text-charcoal">
-                      Your Stripe account is connected but verification is incomplete.
-                      Complete your verification to start receiving payments.
+                      {data.stripe_kyc_status === 'incomplete' && (
+                        <>
+                          <strong>Additional Information Required</strong>
+                          <p className="mt-1">Your Stripe account needs more information. Click "Complete Verification" to provide the required details.</p>
+                        </>
+                      )}
+                      {data.stripe_kyc_status === 'pending' && (
+                        <>
+                          <strong>Verification In Progress</strong>
+                          <p className="mt-1">Stripe is reviewing your account. This usually takes a few minutes to a few hours. You'll receive an email when it's ready.</p>
+                        </>
+                      )}
+                      {data.stripe_kyc_status === 'failed' && (
+                        <>
+                          <strong>Verification Failed</strong>
+                          <p className="mt-1">There was an issue with your verification. Please review your Stripe dashboard for more details.</p>
+                        </>
+                      )}
                     </AlertDescription>
                   </Alert>
                   <div className="flex gap-2">
-                    <Button onClick={handleCompleteVerification} className="flex-1">
-                      Complete Verification
-                      <ExternalLink className="ml-2 w-4 h-4" />
-                    </Button>
+                    {data.stripe_kyc_status === 'incomplete' && (
+                      <Button onClick={handleCompleteVerification} className="flex-1">
+                        Complete Verification
+                        <ExternalLink className="ml-2 w-4 h-4" />
+                      </Button>
+                    )}
+                    {(data.stripe_kyc_status === 'pending' || data.stripe_kyc_status === 'failed') && (
+                      <Button onClick={handleManageDashboard} variant="outline" className="flex-1">
+                        View Stripe Dashboard
+                        <ExternalLink className="ml-2 w-4 h-4" />
+                      </Button>
+                    )}
                     <Button 
                       onClick={handleSyncStatus} 
                       variant="outline"
                       disabled={syncing}
+                      className={data.stripe_kyc_status === 'incomplete' ? '' : 'flex-1'}
                     >
                       {syncing ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <RefreshCw className="w-4 h-4" />
                       )}
+                      {data.stripe_kyc_status === 'pending' && <span className="ml-2">Check Status</span>}
                     </Button>
                   </div>
                 </>
               )}
 
               {/* Stripe Fully Connected */}
-              {data?.stripe_account_id && data.stripe_kyc_status === 'approved' && (
+              {data?.stripe_account_id && data.stripe_kyc_status === 'verified' && (
                 <>
                   <Alert className="border-green-500/20 bg-green-50">
                     <CheckCircle className="h-4 w-4 text-green-600" />
