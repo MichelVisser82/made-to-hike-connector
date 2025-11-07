@@ -31,7 +31,7 @@ serve(async (req) => {
     const { data: guideProfile, error: guideError } = await supabaseClient
       .from('guide_profiles')
       .select('stripe_account_id, uses_custom_fees, custom_guide_fee_percentage, custom_hiker_fee_percentage')
-      .eq('id', guideId)
+      .eq('user_id', guideId)
       .single();
 
     if (guideError || !guideProfile) {
