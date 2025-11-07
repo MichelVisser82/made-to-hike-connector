@@ -45,29 +45,32 @@ serve(async (req) => {
       paymentIntentId: session.payment_intent 
     });
 
-    // Find and update the booking
-    const { data: booking, error: updateError } = await supabaseClient
-      .from('bookings')
-      .update({
-        payment_status: 'succeeded',
-        status: 'confirmed',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_payment_intent_id', session.payment_intent)
-      .select('*, tours(title, duration), profiles!bookings_hiker_id_fkey(name, email)')
-      .single();
-
-    if (updateError) {
-      logStep('Error updating booking', { error: updateError });
-      throw updateError;
+    // Extract booking data from session metadata
+    let bookingData = null;
+    if (session.metadata?.booking_data) {
+      try {
+        bookingData = JSON.parse(session.metadata.booking_data);
+        // Add metadata fields to booking data
+        bookingData.tour_id = session.metadata.tour_id;
+        bookingData.date_slot_id = session.metadata.date_slot_id;
+        logStep('Booking data extracted from metadata', { 
+          tourId: bookingData.tour_id,
+          dateSlotId: bookingData.date_slot_id 
+        });
+      } catch (parseError) {
+        logStep('Error parsing booking data from metadata', { error: parseError });
+      }
     }
 
-    logStep('Booking confirmed', { bookingId: booking.id });
-
+    // Return payment verification success with booking data
     return new Response(
       JSON.stringify({ 
         success: true,
-        booking: booking
+        paymentIntentId: session.payment_intent,
+        sessionId: session_id,
+        amountPaid: session.amount_total / 100,
+        currency: session.currency,
+        bookingData: bookingData
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
