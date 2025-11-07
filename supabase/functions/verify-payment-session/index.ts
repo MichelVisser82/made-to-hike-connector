@@ -45,20 +45,34 @@ serve(async (req) => {
       paymentIntentId: session.payment_intent 
     });
 
-    // Extract booking data from session metadata
+    // Retrieve booking data from KV store using the key from metadata
     let bookingData = null;
-    if (session.metadata?.booking_data) {
+    if (session.metadata?.booking_data_key) {
       try {
-        bookingData = JSON.parse(session.metadata.booking_data);
-        // Add metadata fields to booking data
-        bookingData.tour_id = session.metadata.tour_id;
-        bookingData.date_slot_id = session.metadata.date_slot_id;
-        logStep('Booking data extracted from metadata', { 
-          tourId: bookingData.tour_id,
-          dateSlotId: bookingData.date_slot_id 
-        });
-      } catch (parseError) {
-        logStep('Error parsing booking data from metadata', { error: parseError });
+        const { data: kvData } = await supabaseClient
+          .from('kv_store')
+          .select('value')
+          .eq('key', session.metadata.booking_data_key)
+          .single();
+        
+        if (kvData?.value) {
+          bookingData = kvData.value;
+          // Add metadata fields to booking data
+          bookingData.tour_id = session.metadata.tour_id;
+          bookingData.date_slot_id = session.metadata.date_slot_id;
+          logStep('Booking data retrieved from KV store', { 
+            tourId: bookingData.tour_id,
+            dateSlotId: bookingData.date_slot_id 
+          });
+          
+          // Clean up the KV store entry
+          await supabaseClient
+            .from('kv_store')
+            .delete()
+            .eq('key', session.metadata.booking_data_key);
+        }
+      } catch (kvError) {
+        logStep('Error retrieving booking data from KV store', { error: kvError });
       }
     }
 

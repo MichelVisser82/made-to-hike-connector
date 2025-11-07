@@ -68,6 +68,18 @@ serve(async (req) => {
 
     let session;
     try {
+      // Store booking data in KV store temporarily (expires in 1 hour)
+      const sessionKey = `booking_data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+      
+      await supabase
+        .from('kv_store')
+        .insert({
+          key: sessionKey,
+          value: bookingData,
+          expires_at: expiresAt.toISOString()
+        });
+
       session = await stripe.checkout.sessions.create({
         payment_method_types: ['card', 'sepa_debit', 'ideal', 'bancontact', 'giropay', 'sofort', 'eps', 'p24'],
         line_items: [{
@@ -94,10 +106,8 @@ serve(async (req) => {
           tour_id: tourId,
           guide_id: guideId,
           date_slot_id: dateSlotId || '',
-          tour_title: tourTitle || '',
-          participants: JSON.stringify(bookingData?.participants || []),
+          booking_data_key: sessionKey, // Store reference to booking data
           participant_count: String(bookingData?.participantCount || 1),
-          booking_data: JSON.stringify(bookingData),
           guide_fee_percentage: String(guideFee),
           service_fee_amount: String(serviceFeeCents),
           guide_fee_amount: String(guideFeeCents),
