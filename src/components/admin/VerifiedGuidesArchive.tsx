@@ -386,9 +386,9 @@ export function VerifiedGuidesArchive() {
                               )}
                               
                               {/* Hover overlay */}
-                              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
-                                <Eye className="h-6 w-6 text-white mb-1" />
-                                <p className="text-white text-[9px] font-semibold">View</p>
+                              <div className="absolute inset-0 bg-charcoal/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
+                                <Eye className="h-6 w-6 text-cream-light mb-1" />
+                                <p className="text-cream-light text-[9px] font-semibold">View</p>
                               </div>
                             </div>
                           )}

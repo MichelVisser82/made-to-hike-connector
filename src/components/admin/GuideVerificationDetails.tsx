@@ -469,16 +469,16 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                       )}
                       
                       {/* Hover overlay */}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="text-white flex flex-col items-center gap-2">
+                      <div className="absolute inset-0 bg-charcoal/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="text-cream-light flex flex-col items-center gap-2">
                           <Eye className="h-8 w-8" />
                           <span className="text-sm font-medium">View Certificate</span>
                         </div>
                       </div>
                       
                       {/* Certificate title overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                        <p className="text-white text-xs font-medium line-clamp-2">{cert.title}</p>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-charcoal/80 to-transparent p-3">
+                        <p className="text-cream-light text-xs font-medium line-clamp-2">{cert.title}</p>
                       </div>
                     </div>
                   );

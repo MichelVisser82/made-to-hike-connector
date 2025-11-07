@@ -474,7 +474,7 @@ export function ImageManager() {
                       alt={`Preview ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1 rounded">
+                    <div className="absolute bottom-1 left-1 bg-charcoal/70 text-cream-light text-xs px-1 rounded">
                       {selectedFiles[index]?.name}
                     </div>
                   </div>

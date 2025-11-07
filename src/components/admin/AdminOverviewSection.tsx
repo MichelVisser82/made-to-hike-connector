@@ -126,15 +126,15 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
   return (
     <div className="space-y-6">
       {/* Welcome Header Card */}
-      <Card className="bg-gradient-to-br from-burgundy via-burgundy-dark to-burgundy text-white p-8 rounded-xl shadow-lg border-0">
+      <Card className="bg-gradient-to-br from-burgundy via-burgundy-dark to-burgundy text-cream-light p-8 rounded-xl shadow-lg border-0">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-playfair mb-2">
               {getGreeting()}, {adminName}
             </h1>
-            <p className="text-white/80">{formatDate(currentDate)}</p>
+            <p className="text-cream-light/80">{formatDate(currentDate)}</p>
           </div>
-          <Badge className="bg-white/20 text-white border-0 px-4 py-2">
+          <Badge className="bg-cream-light/20 text-cream-light border-0 px-4 py-2">
             Admin Dashboard
           </Badge>
         </div>
@@ -144,11 +144,11 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
       <div className="grid md:grid-cols-4 gap-4">
         {/* Pending Verifications Card */}
         <Card 
-          className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+          className="p-6 bg-card border border-burgundy/10 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
           onClick={() => navigate('/dashboard?section=platform&tab=verifications')}
         >
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-burgundy to-burgundy-dark flex items-center justify-center shadow-md mb-3">
-            <ShieldCheck className="w-6 h-6 text-white" />
+            <ShieldCheck className="w-6 h-6 text-cream-light" />
           </div>
           <div className="text-3xl font-playfair text-charcoal mb-1">
             {stats.pendingVerifications}
@@ -161,11 +161,11 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
 
         {/* Support Tickets Card */}
         <Card 
-          className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+          className="p-6 bg-card border border-burgundy/10 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
           onClick={() => navigate('/dashboard?section=support&tab=tickets')}
         >
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gold to-amber-600 flex items-center justify-center shadow-md mb-3">
-            <Headphones className="w-6 h-6 text-white" />
+            <Headphones className="w-6 h-6 text-cream-light" />
           </div>
           <div className="text-3xl font-playfair text-charcoal mb-1">
             {stats.openTickets}
@@ -178,11 +178,11 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
 
         {/* Monthly Revenue Card */}
         <Card 
-          className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+          className="p-6 bg-card border border-burgundy/10 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
           onClick={() => navigate('/dashboard?section=analytics')}
         >
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-sage to-emerald-600 flex items-center justify-center shadow-md mb-3">
-            <TrendingUp className="w-6 h-6 text-white" />
+            <TrendingUp className="w-6 h-6 text-cream-light" />
           </div>
           <div className="text-3xl font-playfair text-charcoal mb-1">
             €{stats.monthlyRevenue.toLocaleString()}
@@ -193,10 +193,10 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
 
         {/* Active Users Card */}
         <Card 
-          className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+          className="p-6 bg-card border border-burgundy/10 rounded-lg shadow-md hover:shadow-lg transition-shadow"
         >
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-burgundy to-burgundy-dark flex items-center justify-center shadow-md mb-3">
-            <Users className="w-6 h-6 text-white" />
+            <Users className="w-6 h-6 text-cream-light" />
           </div>
           <div className="text-3xl font-playfair text-charcoal mb-1">
             {stats.activeUsers}
@@ -210,7 +210,7 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
       <div className="grid md:grid-cols-3 gap-6">
         {/* Left Column - Recent Activity */}
         <div className="md:col-span-2">
-          <Card className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md">
+          <Card className="p-6 bg-card border border-burgundy/10 rounded-lg shadow-md">
             <h2 className="text-xl font-playfair text-charcoal mb-4">Recent Activity</h2>
 
             {loading ? (
@@ -269,12 +269,12 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
 
         {/* Right Column - Quick Actions */}
         <div className="space-y-6">
-          <Card className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md">
+          <Card className="p-6 bg-card border border-burgundy/10 rounded-lg shadow-md">
             <h3 className="text-lg font-playfair text-charcoal mb-4">Quick Actions</h3>
             <div className="space-y-3">
               <Button 
                 onClick={() => navigate('/dashboard?section=platform&tab=verifications')}
-                className="w-full bg-burgundy hover:bg-burgundy-dark text-white justify-start"
+                className="w-full bg-burgundy hover:bg-burgundy-dark text-cream-light justify-start"
               >
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Review Verifications
@@ -307,7 +307,7 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
           </Card>
 
           {/* Platform Status Card */}
-          <Card className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md">
+          <Card className="p-6 bg-card border border-burgundy/10 rounded-lg shadow-md">
             <h3 className="text-lg font-playfair text-charcoal mb-4">Platform Status</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">

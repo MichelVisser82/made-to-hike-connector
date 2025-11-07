@@ -581,7 +581,7 @@ export const ImageOverview = () => {
                   <Checkbox
                     checked={selectedImages.has(image.id)}
                     onCheckedChange={() => toggleImageSelection(image.id)}
-                    className="bg-white/80 backdrop-blur-sm"
+                    className="bg-background/80 backdrop-blur-sm"
                   />
                 </div>
                 
@@ -596,11 +596,11 @@ export const ImageOverview = () => {
                       alt={image.alt_text || image.file_name}
                       className="w-full h-32 object-cover group-hover:scale-105 transition-transform"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                      <Eye className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/30 transition-colors flex items-center justify-center">
+                      <Eye className="h-6 w-6 text-cream-light opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                      <p className="text-white text-xs truncate">{image.file_name}</p>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-charcoal/80 to-transparent p-2">
+                      <p className="text-cream-light text-xs truncate">{image.file_name}</p>
                       <div className="flex items-center gap-1 mt-1">
                         <Badge variant="secondary" className="text-xs px-1 py-0">
                           {image.category}
