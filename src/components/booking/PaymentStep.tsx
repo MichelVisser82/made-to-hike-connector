@@ -108,15 +108,15 @@ export const PaymentStep = ({
       return;
     }
 
-    console.log('[PaymentStep] Starting payment process with:', {
-      tourId,
-      guideId,
-      pricing
-    });
-
     if (!guideId) {
-      console.error('[PaymentStep] Missing guideId');
-      toast.error('Guide information is missing. Please refresh the page and try again.');
+      console.error('[PaymentStep] ERROR: Missing guideId', { tourId, guideId });
+      toast.error('Guide information is missing. Please go back and try again, or contact support if the issue persists.');
+      return;
+    }
+
+    if (!tourId) {
+      console.error('[PaymentStep] ERROR: Missing tourId');
+      toast.error('Tour information is missing. Please refresh the page.');
       return;
     }
 
@@ -126,47 +126,48 @@ export const PaymentStep = ({
       // Get the full booking data from form
       const fullBookingData = form.getValues();
       
-      console.log('[PaymentStep] Creating payment intent with full data:', {
+      if (!fullBookingData.selectedDateSlotId) {
+        throw new Error('Please select a date for your tour');
+      }
+
+      const paymentPayload = {
         amount: pricing.total,
         currency: pricing.currency,
-        tourId,
-        guideId,
-        dateSlotId: fullBookingData.selectedDateSlotId
-      });
+        tourId: tourId,
+        guideId: guideId,
+        dateSlotId: fullBookingData.selectedDateSlotId,
+        tourTitle: `Hiking Tour Booking`,
+        bookingData: {
+          participants: fullBookingData.participants,
+          participantCount: fullBookingData.participants.length,
+          phone: fullBookingData.phone,
+          country: fullBookingData.country,
+          emergencyContactName: fullBookingData.emergencyContactName,
+          emergencyContactPhone: fullBookingData.emergencyContactPhone,
+          emergencyContactRelationship: fullBookingData.emergencyContactRelationship,
+          dietaryPreferences: fullBookingData.dietaryPreferences,
+          accessibilityNeeds: fullBookingData.accessibilityNeeds,
+          specialRequests: fullBookingData.specialRequests,
+          subtotal: pricing.subtotal,
+          discount_code: fullBookingData.discountCode,
+          discount_amount: pricing.discount,
+          service_fee_amount: pricing.serviceFee,
+          total_price: pricing.total,
+        }
+      };
+
+      console.log('[PaymentStep] Sending payment request:', paymentPayload);
 
       // Create Stripe Checkout Session
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
-        body: {
-          amount: pricing.total,
-          currency: pricing.currency,
-          tourId: tourId,
-          guideId: guideId,
-          dateSlotId: fullBookingData.selectedDateSlotId,
-          tourTitle: `Hiking Tour Booking`,
-          bookingData: {
-            participants: fullBookingData.participants,
-            participantCount: fullBookingData.participants.length,
-            phone: fullBookingData.phone,
-            country: fullBookingData.country,
-            emergencyContactName: fullBookingData.emergencyContactName,
-            emergencyContactPhone: fullBookingData.emergencyContactPhone,
-            emergencyContactRelationship: fullBookingData.emergencyContactRelationship,
-            dietaryPreferences: fullBookingData.dietaryPreferences,
-            accessibilityNeeds: fullBookingData.accessibilityNeeds,
-            specialRequests: fullBookingData.specialRequests,
-            // Add pricing details
-            subtotal: pricing.subtotal,
-            discount_code: fullBookingData.discountCode,
-            discount_amount: pricing.discount,
-            service_fee_amount: pricing.serviceFee,
-            total_price: pricing.total,
-          }
-        }
+        body: paymentPayload
       });
 
+      console.log('[PaymentStep] Payment response:', { data, error });
+
       if (error) {
-        console.error('Error creating checkout session:', error);
-        toast.error('Failed to initiate payment. Please try again.');
+        console.error('[PaymentStep] Stripe error:', error);
+        toast.error(`Payment error: ${error.message || 'Please try again'}`);
         return;
       }
 

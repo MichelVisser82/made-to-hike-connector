@@ -131,19 +131,27 @@ export const BookingFlowNew = () => {
           }
         }
 
-        // Load tour data
+        // Load tour data with explicit guide_id selection
       const { data: tour, error: tourError } = await supabase
         .from('tours')
-        .select('*, guide_profiles!tours_guide_id_fkey(*)')
+        .select('id, title, slug, guide_id, price, currency, duration, difficulty, description, region, hero_image, guide_profiles!tours_guide_id_fkey(*)')
         .eq('slug', tourSlug)
         .maybeSingle();
 
         if (tourError) throw tourError;
         
+        if (!tour) {
+          throw new Error('Tour not found');
+        }
+
+        if (!tour.guide_id) {
+          throw new Error('This tour is missing guide information. Please contact support.');
+        }
+        
         console.log('[BookingFlow] Tour data loaded:', { 
-          tourId: tour?.id, 
-          guideId: tour?.guide_id,
-          hasGuideProfile: !!tour?.guide_profiles 
+          tourId: tour.id, 
+          guideId: tour.guide_id,
+          hasGuideProfile: !!tour.guide_profiles 
         });
         
         setTourData(tour);
