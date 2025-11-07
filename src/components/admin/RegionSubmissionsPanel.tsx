@@ -321,11 +321,11 @@ Switzerland,,Jungfrau Region,UNESCO World Heritage alpine wonderland,Eiger North
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+        return <Badge variant="outline" className="bg-accent/10 text-accent"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
       case 'approved':
-        return <Badge variant="outline" className="bg-green-50 text-green-700"><Check className="w-3 h-3 mr-1" />Approved</Badge>;
+        return <Badge variant="outline" className="bg-sage/10 text-sage"><Check className="w-3 h-3 mr-1" />Approved</Badge>;
       case 'declined':
-        return <Badge variant="outline" className="bg-red-50 text-red-700"><X className="w-3 h-3 mr-1" />Declined</Badge>;
+        return <Badge variant="outline" className="bg-destructive/10 text-destructive"><X className="w-3 h-3 mr-1" />Declined</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -417,7 +417,7 @@ Switzerland,,Jungfrau Region,UNESCO World Heritage alpine wonderland,Eiger North
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-green-600 hover:text-green-700"
+                          className="text-sage hover:text-sage border-sage/30"
                           onClick={() => handleApprove(submission)}
                           disabled={reviewMutation.isPending}
                         >
@@ -427,7 +427,7 @@ Switzerland,,Jungfrau Region,UNESCO World Heritage alpine wonderland,Eiger North
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-red-600 hover:text-red-700"
+                          className="text-destructive hover:text-destructive border-destructive/30"
                           onClick={() => handleDecline(submission)}
                           disabled={reviewMutation.isPending}
                         >
@@ -461,7 +461,7 @@ Switzerland,,Jungfrau Region,UNESCO World Heritage alpine wonderland,Eiger North
                       </div>
                       
                       {submission.declined_reason && (
-                        <div className="bg-red-50 border border-red-200 rounded p-3 text-sm">
+                        <div className="bg-destructive/10 border border-destructive/20 rounded p-3 text-sm">
                           <strong>Decline Reason:</strong> {submission.declined_reason}
                         </div>
                       )}
@@ -677,11 +677,11 @@ Switzerland,,Jungfrau Region,UNESCO World Heritage alpine wonderland,Eiger North
 
             {/* Import Results */}
             {importResults && (
-              <Alert className={importResults.errorCount > 0 ? "border-yellow-500" : "border-green-500"}>
+              <Alert className={importResults.errorCount > 0 ? "border-destructive/20" : "border-sage/20"}>
                 {importResults.errorCount > 0 ? (
-                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                  <AlertCircle className="h-4 w-4 text-destructive" />
                 ) : (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <CheckCircle2 className="h-4 w-4 text-sage" />
                 )}
                 <AlertDescription>
                   <div className="space-y-2">
@@ -690,7 +690,7 @@ Switzerland,,Jungfrau Region,UNESCO World Heritage alpine wonderland,Eiger North
                     </p>
                     {importResults.errorCount > 0 && (
                       <div className="text-xs space-y-1">
-                        <p className="font-medium text-red-600">
+                        <p className="font-medium text-destructive">
                           {importResults.errorCount} errors occurred:
                         </p>
                         <ul className="list-disc list-inside space-y-0.5 max-h-32 overflow-y-auto">

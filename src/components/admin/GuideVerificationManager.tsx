@@ -55,7 +55,7 @@ export function GuideVerificationManager() {
       case 'pending':
         return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />Pending</Badge>;
       case 'approved':
-        return <Badge variant="default" className="gap-1 bg-green-500"><CheckCircle2 className="h-3 w-3" />Approved</Badge>;
+        return <Badge variant="default" className="gap-1 bg-sage"><CheckCircle2 className="h-3 w-3" />Approved</Badge>;
       case 'rejected':
         return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Rejected</Badge>;
       default:
@@ -72,9 +72,9 @@ export function GuideVerificationManager() {
   const getPriorityBadge = (priority: number) => {
     switch (priority) {
       case 1:
-        return <Badge className="bg-purple-500">Priority 1 - 2h</Badge>;
+        return <Badge className="bg-destructive">Priority 1 - 2h</Badge>;
       case 2:
-        return <Badge className="bg-blue-500">Priority 2 - 24h</Badge>;
+        return <Badge className="bg-primary">Priority 2 - 24h</Badge>;
       default:
         return <Badge variant="secondary">Priority 3 - 3-5 days</Badge>;
     }

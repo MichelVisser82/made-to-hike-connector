@@ -355,8 +355,8 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                         key={index}
                         className={`p-4 border rounded-lg ${
                           isPendingReview 
-                            ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' 
-                            : 'border-green-500 bg-green-50 dark:bg-green-950/20'
+                            ? 'border-gold bg-gold/10' 
+                            : 'border-sage bg-sage/10'
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -378,11 +378,11 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                               {cert.addedDate && (
                                 <p className="font-medium">
                                   Added: {formatDistanceToNow(new Date(cert.addedDate))} ago
-                                  {isNewCert && isPendingReview && <span className="ml-2 text-orange-600 font-semibold">NEW</span>}
+                                  {isNewCert && isPendingReview && <span className="ml-2 text-gold font-semibold">NEW</span>}
                                 </p>
                               )}
                               {cert.verifiedDate && (
-                                <p className="text-green-600 dark:text-green-400 font-medium">
+                                <p className="text-sage font-medium">
                                   ✓ Verified: {formatDistanceToNow(new Date(cert.verifiedDate))} ago
                                 </p>
                               )}
@@ -405,7 +405,7 @@ export function GuideVerificationDetails({ verificationId, onBack }: GuideVerifi
                                 </Button>
                               </>
                             ) : (
-                              <Badge variant="default" className="text-xs bg-green-600 whitespace-nowrap">
+                              <Badge variant="default" className="text-xs bg-sage whitespace-nowrap">
                                 ✓ Verified
                               </Badge>
                             )}

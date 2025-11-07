@@ -241,7 +241,7 @@ export function AdminOverviewSection({ adminName, onSectionNavigate }: AdminOver
                     : activity.type === 'ticket'
                       ? 'bg-gold/10 text-gold'
                       : activity.type === 'flagged'
-                        ? 'bg-red-100 text-red-600'
+                        ? 'bg-destructive/10 text-destructive'
                         : 'bg-sage/10 text-sage';
 
                   return (

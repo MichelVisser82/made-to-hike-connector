@@ -166,7 +166,7 @@ export function FlaggedMessagesPanel() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <AlertTriangle className="w-4 h-4 text-orange-500" />
+                          <AlertTriangle className="w-4 h-4 text-destructive" />
                           {message.moderation_flags?.map((flag: string) => (
                             <Badge key={flag} variant="destructive">
                               {flag.replace(/_/g, ' ')}

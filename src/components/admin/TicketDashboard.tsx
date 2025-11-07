@@ -197,7 +197,7 @@ export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {})
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TicketIcon className="w-4 h-4 text-blue-500" />
+              <TicketIcon className="w-4 h-4 text-primary" />
               Open Tickets
             </CardTitle>
           </CardHeader>
@@ -209,7 +209,7 @@ export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {})
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Clock className="w-4 h-4 text-yellow-500" />
+              <Clock className="w-4 h-4 text-gold" />
               Assigned
             </CardTitle>
           </CardHeader>
@@ -221,7 +221,7 @@ export function TicketDashboard({ selectedTicketId }: TicketDashboardProps = {})
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-green-500" />
+              <AlertCircle className="w-4 h-4 text-sage" />
               Resolved
             </CardTitle>
           </CardHeader>
