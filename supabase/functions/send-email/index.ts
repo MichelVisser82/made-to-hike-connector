@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
+import { generateBookingConfirmationEmail, type BookingConfirmationData } from './templates.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
@@ -712,115 +713,19 @@ serve(async (req) => {
     const emailRequest = validateEmailRequest(await req.json())
     console.log('Processing email request:', { type: emailRequest.type, to: emailRequest.to })
 
-    // Handle booking-confirmation email with plain HTML template
+    // Handle booking-confirmation email
     if (emailRequest.type === 'booking-confirmation') {
-      const bookingDate = new Date(emailRequest.bookingDate || new Date()).toLocaleDateString('en-US', { 
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      const html = generateBookingConfirmationEmail({
+        bookingReference: emailRequest.bookingReference || 'N/A',
+        tourTitle: emailRequest.tourTitle || 'Hiking Tour',
+        bookingDate: emailRequest.bookingDate || new Date().toISOString(),
+        guideName: emailRequest.guideName || 'Your Guide',
+        meetingPoint: emailRequest.meetingPoint || 'Details will be shared',
+        totalPrice: emailRequest.totalPrice || 0,
+        currency: emailRequest.currency || 'EUR',
+        participants: emailRequest.participants || 1,
       })
-      
-      const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking Confirmed - MadeToHike</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc;">
-  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
-    
-    <!-- Header -->
-    <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f97316 100%); padding: 32px 40px 24px; text-align: center;">
-      <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: bold; color: #ffffff; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">🏔️ MadeToHike</h1>
-      <p style="margin: 0; font-size: 16px; color: #fecaca; font-weight: 500;">Booking Confirmed!</p>
-    </div>
 
-    <!-- Hero -->
-    <div style="padding: 48px 40px 32px; text-align: center;">
-      <div style="font-size: 48px; margin: 0 0 16px 0;">✅</div>
-      <h2 style="margin: 0 0 16px 0; font-size: 28px; font-weight: bold; color: #1e293b; line-height: 1.2;">Adventure Booked Successfully!</h2>
-      <p style="margin: 0; font-size: 16px; color: #64748b; line-height: 1.5;">Get ready for an amazing hiking experience with ${emailRequest.guideName || 'your guide'}</p>
-    </div>
-
-    <!-- Booking Details -->
-    <div style="padding: 32px 40px; background-color: #f8fafc;">
-      <h3 style="margin: 0 0 24px 0; font-size: 20px; font-weight: bold; color: #1e293b;">Booking Details</h3>
-      
-      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
-        <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Booking ID:</p>
-        <p style="margin: 0; font-size: 14px; color: #1e293b; font-weight: 600;">#${(emailRequest.bookingReference || 'N/A').slice(0, 8).toUpperCase()}</p>
-      </div>
-      
-      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
-        <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Tour:</p>
-        <p style="margin: 0; font-size: 14px; color: #1e293b; font-weight: 600;">${emailRequest.tourTitle || 'Hiking Tour'}</p>
-      </div>
-      
-      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
-        <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Guide:</p>
-        <p style="margin: 0; font-size: 14px; color: #1e293b; font-weight: 600;">${emailRequest.guideName || 'Your Guide'}</p>
-      </div>
-      
-      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
-        <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Date:</p>
-        <p style="margin: 0; font-size: 14px; color: #1e293b; font-weight: 600;">${bookingDate}</p>
-      </div>
-      
-      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
-        <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Participants:</p>
-        <p style="margin: 0; font-size: 14px; color: #1e293b; font-weight: 600;">${emailRequest.participants || 1} ${(emailRequest.participants || 1) === 1 ? 'person' : 'people'}</p>
-      </div>
-      
-      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
-        <p style="margin: 0 0 4px 0; font-size: 14px; color: #64748b; font-weight: 500;">Meeting Point:</p>
-        <p style="margin: 0; font-size: 14px; color: #1e293b; font-weight: 600;">${emailRequest.meetingPoint || 'Details will be shared'}</p>
-      </div>
-      
-      <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #ef4444;">
-        <p style="margin: 0 0 4px 0; font-size: 16px; color: #1e293b; font-weight: bold;">Total Amount:</p>
-        <p style="margin: 0; font-size: 18px; color: #ef4444; font-weight: bold;">${emailRequest.currency || 'EUR'} ${(emailRequest.totalPrice || 0).toFixed(2)}</p>
-      </div>
-    </div>
-
-    <!-- What to Bring -->
-    <div style="padding: 32px 40px;">
-      <h3 style="margin: 0 0 24px 0; font-size: 20px; font-weight: bold; color: #1e293b;">What to Bring</h3>
-      <p style="margin: 8px 0; font-size: 14px; color: #374151; line-height: 1.5;">🥾 Comfortable hiking boots</p>
-      <p style="margin: 8px 0; font-size: 14px; color: #374151; line-height: 1.5;">💧 Water bottle (at least 1L)</p>
-      <p style="margin: 8px 0; font-size: 14px; color: #374151; line-height: 1.5;">🧢 Sun hat and sunscreen</p>
-      <p style="margin: 8px 0; font-size: 14px; color: #374151; line-height: 1.5;">🎒 Small backpack</p>
-      <p style="margin: 8px 0; font-size: 14px; color: #374151; line-height: 1.5;">📱 Fully charged phone</p>
-      <p style="margin: 8px 0; font-size: 14px; color: #374151; line-height: 1.5;">🧥 Weather-appropriate clothing</p>
-    </div>
-
-    <!-- Important Info -->
-    <div style="padding: 32px 40px; background-color: #fef3cd;">
-      <h3 style="margin: 0 0 24px 0; font-size: 20px; font-weight: bold; color: #1e293b;">Important Information</h3>
-      <p style="margin: 0 0 12px 0; font-size: 14px; color: #92400e; line-height: 1.5;">📍 <strong>Meeting Point:</strong> Please arrive 15 minutes early at ${emailRequest.meetingPoint || 'the meeting point'}</p>
-      <p style="margin: 0 0 12px 0; font-size: 14px; color: #92400e; line-height: 1.5;">📞 <strong>Contact:</strong> Your guide will contact you 24 hours before the tour with final details</p>
-      <p style="margin: 0 0 12px 0; font-size: 14px; color: #92400e; line-height: 1.5;">🌦️ <strong>Weather:</strong> Tours run rain or shine. Check the weather forecast and dress appropriately</p>
-      <p style="margin: 0; font-size: 14px; color: #92400e; line-height: 1.5;">❌ <strong>Cancellation:</strong> Free cancellation up to 24 hours before the tour</p>
-    </div>
-
-    <!-- Action Buttons -->
-    <div style="padding: 32px 40px; text-align: center;">
-      <a href="https://madetohike.com/dashboard" style="display: inline-block; background-color: #ef4444; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); margin-bottom: 12px;">View Full Details</a>
-      <br>
-      <a href="mailto:support@madetohike.com" style="display: inline-block; background-color: transparent; color: #ef4444; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; border: 2px solid #ef4444;">Contact Support</a>
-    </div>
-
-    <!-- Footer -->
-    <div style="padding: 32px 40px; text-align: center; background-color: #1e293b;">
-      <p style="margin: 0 0 8px 0; font-size: 12px; color: #94a3b8;">Questions about your booking? <a href="mailto:support@madetohike.com" style="color: #f97316; text-decoration: none;">Contact our support team</a></p>
-      <p style="margin: 0; font-size: 12px; color: #94a3b8;">© 2024 MadeToHike. Safe travels and happy hiking!</p>
-    </div>
-
-  </div>
-</body>
-</html>`
 
       const emailPayload = {
         from: 'MadeToHike <bookings@madetohike.com>',
