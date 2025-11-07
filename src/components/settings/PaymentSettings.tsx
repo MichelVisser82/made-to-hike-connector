@@ -325,53 +325,61 @@ export function PaymentSettings() {
                 </Alert>
               )}
 
-              {/* Country Selection - Required before Stripe */}
-              {!data?.stripe_account_id && (
-                <div className="space-y-2">
-                  <Label>Payment Account Country *</Label>
-                  {editingCountry || !guideProfile?.country ? (
-                    <div className="space-y-2">
-                      <Select
-                        value={selectedCountry}
-                        onValueChange={setSelectedCountry}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your country" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STRIPE_COUNTRIES.map((country) => (
-                            <SelectItem key={country.code} value={country.code}>
-                              {country.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        This determines which Stripe region your account will be created in. Cannot be changed once Stripe account is connected.
-                      </p>
-                      <div className="flex gap-2">
-                        <Button onClick={handleCountryUpdate} disabled={!selectedCountry} size="sm">
-                          Save Country
+              {/* Country Selection */}
+              <div className="space-y-2">
+                <Label>Payment Account Country *</Label>
+                {!data?.stripe_account_id && (editingCountry || !guideProfile?.country) ? (
+                  <div className="space-y-2">
+                    <Select
+                      value={selectedCountry}
+                      onValueChange={setSelectedCountry}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STRIPE_COUNTRIES.map((country) => (
+                          <SelectItem key={country.code} value={country.code}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      This determines which Stripe region your account will be created in. Cannot be changed once Stripe account is connected.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button onClick={handleCountryUpdate} disabled={!selectedCountry} size="sm">
+                        Save Country
+                      </Button>
+                      {guideProfile?.country && (
+                        <Button onClick={() => { setEditingCountry(false); setSelectedCountry(guideProfile.country!); }} variant="outline" size="sm">
+                          Cancel
                         </Button>
-                        {guideProfile?.country && (
-                          <Button onClick={() => { setEditingCountry(false); setSelectedCountry(guideProfile.country!); }} variant="outline" size="sm">
-                            Cancel
-                          </Button>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">
-                        {STRIPE_COUNTRIES.find(c => c.code === guideProfile.country)?.name || guideProfile.country}
-                      </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-muted">
+                    <span className="text-sm font-medium">
+                      {STRIPE_COUNTRIES.find(c => c.code === guideProfile?.country)?.name || guideProfile?.country || 'Not set'}
+                    </span>
+                    {!data?.stripe_account_id && guideProfile?.country && (
                       <Button onClick={() => setEditingCountry(true)} variant="outline" size="sm">
                         Change
                       </Button>
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
+                    {data?.stripe_account_id && (
+                      <Badge variant="secondary">Locked</Badge>
+                    )}
+                  </div>
+                )}
+                {data?.stripe_account_id && (
+                  <p className="text-xs text-muted-foreground">
+                    Country cannot be changed after Stripe account is connected
+                  </p>
+                )}
+              </div>
 
               {/* Stripe Not Connected */}
               {!data?.stripe_account_id && (
