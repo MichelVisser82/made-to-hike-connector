@@ -166,22 +166,40 @@ export const PaymentStep = ({
       console.log('[PaymentStep] Payment response:', { data, error });
 
       if (error) {
-        console.error('[PaymentStep] Stripe error:', error);
-        toast.error(`Payment error: ${error.message || 'Please try again'}`);
+        console.error('[PaymentStep] Edge function error:', error);
+        
+        // Extract the actual error message from the response
+        let errorMsg = 'Failed to initiate payment. Please try again.';
+        
+        if (data?.error) {
+          errorMsg = data.error;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        
+        toast.error(errorMsg);
         return;
       }
 
       if (!data?.url) {
-        toast.error('Failed to initialize payment');
+        console.error('[PaymentStep] No checkout URL returned:', data);
+        
+        // Check if there's an error in the data object
+        if (data?.error) {
+          toast.error(data.error);
+        } else {
+          toast.error('Failed to initialize payment session. Please try again.');
+        }
         return;
       }
 
       // Redirect to Stripe Checkout
       window.location.href = data.url;
 
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast.error('An error occurred during payment processing');
+    } catch (error: any) {
+      console.error('[PaymentStep] Payment error:', error);
+      const errorMsg = error?.message || 'An error occurred during payment processing';
+      toast.error(errorMsg);
     } finally {
       setIsProcessing(false);
     }
