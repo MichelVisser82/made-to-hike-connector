@@ -40,9 +40,9 @@ export const BookingConfirmationEmail = ({
       <Container style={container}>
         {/* Header */}
         <Section style={header}>
-          <div style={logoContainer}>
+          <Section style={logoContainer}>
             <Text style={logoText}>🏔️ MadeToHike</Text>
-          </div>
+          </Section>
           <Text style={headerSubtitle}>Booking Confirmed!</Text>
         </Section>
 
@@ -59,23 +59,23 @@ export const BookingConfirmationEmail = ({
         <Section style={bookingDetails}>
           <Heading style={sectionTitle}>Booking Details</Heading>
           
-          <div style={detailsGrid}>
-            <div style={detailRow}>
+          <Section style={detailsGrid}>
+            <Section style={detailRow}>
               <Text style={detailLabel}>Booking ID:</Text>
               <Text style={detailValue}>#{booking_id.slice(0, 8).toUpperCase()}</Text>
-            </div>
+            </Section>
             
-            <div style={detailRow}>
+            <Section style={detailRow}>
               <Text style={detailLabel}>Tour:</Text>
               <Text style={detailValue}>{tour_title}</Text>
-            </div>
+            </Section>
             
-            <div style={detailRow}>
+            <Section style={detailRow}>
               <Text style={detailLabel}>Guide:</Text>
               <Text style={detailValue}>{guide_name}</Text>
-            </div>
+            </Section>
             
-            <div style={detailRow}>
+            <Section style={detailRow}>
               <Text style={detailLabel}>Date:</Text>
               <Text style={detailValue}>{new Date(booking_date).toLocaleDateString('en-US', { 
                 weekday: 'long',
@@ -83,60 +83,60 @@ export const BookingConfirmationEmail = ({
                 month: 'long',
                 day: 'numeric'
               })}</Text>
-            </div>
+            </Section>
             
-            <div style={detailRow}>
+            <Section style={detailRow}>
               <Text style={detailLabel}>Participants:</Text>
               <Text style={detailValue}>{participants} {participants === 1 ? 'person' : 'people'}</Text>
-            </div>
+            </Section>
             
-            <div style={detailRow}>
+            <Section style={detailRow}>
               <Text style={detailLabel}>Meeting Point:</Text>
               <Text style={detailValue}>{meeting_point}</Text>
-            </div>
+            </Section>
             
-            <div style={totalRow}>
+            <Section style={totalRow}>
               <Text style={totalLabel}>Total Amount:</Text>
               <Text style={totalValue}>{currency} {total_price.toFixed(2)}</Text>
-            </div>
-          </div>
+            </Section>
+          </Section>
         </Section>
 
         {/* What to Bring */}
         <Section style={preparationSection}>
           <Heading style={sectionTitle}>What to Bring</Heading>
           
-          <div style={checklistGrid}>
-            <div style={checklistItem}>
+          <Section style={checklistGrid}>
+            <Section style={checklistItem}>
               <Text style={checkIcon}>🥾</Text>
               <Text style={checklistText}>Comfortable hiking boots</Text>
-            </div>
+            </Section>
             
-            <div style={checklistItem}>
+            <Section style={checklistItem}>
               <Text style={checkIcon}>💧</Text>
               <Text style={checklistText}>Water bottle (at least 1L)</Text>
-            </div>
+            </Section>
             
-            <div style={checklistItem}>
+            <Section style={checklistItem}>
               <Text style={checkIcon}>🧢</Text>
               <Text style={checklistText}>Sun hat and sunscreen</Text>
-            </div>
+            </Section>
             
-            <div style={checklistItem}>
+            <Section style={checklistItem}>
               <Text style={checkIcon}>🎒</Text>
               <Text style={checklistText}>Small backpack</Text>
-            </div>
+            </Section>
             
-            <div style={checklistItem}>
+            <Section style={checklistItem}>
               <Text style={checkIcon}>📱</Text>
               <Text style={checklistText}>Fully charged phone</Text>
-            </div>
+            </Section>
             
-            <div style={checklistItem}>
+            <Section style={checklistItem}>
               <Text style={checkIcon}>🧥</Text>
               <Text style={checklistText}>Weather-appropriate clothing</Text>
-            </div>
-          </div>
+            </Section>
+          </Section>
         </Section>
 
         {/* Important Notes */}
@@ -162,7 +162,7 @@ export const BookingConfirmationEmail = ({
 
         {/* Action Buttons */}
         <Section style={actionSection}>
-          <div style={buttonGroup}>
+          <Section style={buttonGroup}>
             <Button href="https://madetohike.com/bookings" style={primaryButton}>
               View Full Details
             </Button>
@@ -170,7 +170,7 @@ export const BookingConfirmationEmail = ({
             <Button href="mailto:support@madetohike.com" style={secondaryButton}>
               Contact Support
             </Button>
-          </div>
+          </Section>
         </Section>
 
         {/* Footer */}
