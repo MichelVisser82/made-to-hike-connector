@@ -61,44 +61,65 @@ serve(async (req) => {
       apiVersion: '2025-08-27.basil',
     });
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: currency.toLowerCase(),
-          product_data: {
-            name: tourTitle || 'Hiking Tour',
-            description: `${bookingData?.participantCount || 1} participant(s)`,
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [{
+          price_data: {
+            currency: currency.toLowerCase(),
+            product_data: {
+              name: tourTitle || 'Hiking Tour',
+              description: `${bookingData?.participantCount || 1} participant(s)`,
+            },
+            unit_amount: amountCents + hikerFeeCents,
           },
-          unit_amount: amountCents + hikerFeeCents,
+          quantity: 1,
+        }],
+        mode: 'payment',
+        payment_intent_data: {
+          application_fee_amount: totalFee,
+          transfer_data: {
+            destination: guide.stripe_account_id,
+          },
         },
-        quantity: 1,
-      }],
-      mode: 'payment',
-      payment_intent_data: {
-        application_fee_amount: totalFee,
-        transfer_data: {
-          destination: guide.stripe_account_id,
+        success_url: `${req.headers.get('origin')}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.get('origin')}/tours/${tourId}/book`,
+        metadata: {
+          tour_id: tourId,
+          guide_id: guideId,
+          date_slot_id: dateSlotId || '',
+          tour_title: tourTitle || '',
+          participants: JSON.stringify(bookingData?.participants || []),
+          participant_count: String(bookingData?.participantCount || 1),
+          booking_data: JSON.stringify(bookingData),
+          guide_fee_percentage: String(guideFee),
+          hiker_fee_percentage: String(hikerFee),
+          guide_fee_amount: String(guideFeeCents),
+          hiker_fee_amount: String(hikerFeeCents),
+          total_platform_fee: String(totalFee),
+          amount_to_guide: String(amountCents - guideFeeCents),
         },
-      },
-      success_url: `${req.headers.get('origin')}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/tours/${tourId}/book`,
-      metadata: {
-        tour_id: tourId,
-        guide_id: guideId,
-        date_slot_id: dateSlotId || '',
-        tour_title: tourTitle || '',
-        participants: JSON.stringify(bookingData?.participants || []),
-        participant_count: String(bookingData?.participantCount || 1),
-        booking_data: JSON.stringify(bookingData),
-        guide_fee_percentage: String(guideFee),
-        hiker_fee_percentage: String(hikerFee),
-        guide_fee_amount: String(guideFeeCents),
-        hiker_fee_amount: String(hikerFeeCents),
-        total_platform_fee: String(totalFee),
-        amount_to_guide: String(amountCents - guideFeeCents),
-      },
-    });
+      });
+    } catch (stripeError: any) {
+      console.error('[create-payment-intent] Stripe error:', stripeError);
+      
+      if (stripeError.code === 'transfers_not_allowed') {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Payment region mismatch. This is a Stripe test mode limitation - platform and guide accounts must be in the same region. Please contact support or try a different guide.',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          error: stripeError.message || 'Payment processing failed',
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     console.log('[create-payment-intent] Session created:', session.id);
 
