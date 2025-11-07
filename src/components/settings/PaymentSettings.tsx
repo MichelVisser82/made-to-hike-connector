@@ -7,10 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Loader2, AlertCircle, CheckCircle, FileText, ExternalLink } from 'lucide-react';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
+import { useMyGuideProfile } from '@/hooks/useGuideProfile';
 import { toast } from 'sonner';
 
 export function PaymentSettings() {
   const { data, loading, createConnectedAccount, createAccountLink, updatePayoutSchedule } = useStripeConnect();
+  const { data: guideProfile, isLoading: guideLoading } = useMyGuideProfile();
 
   const handleConnectStripe = async () => {
     const result = await createConnectedAccount();
@@ -36,7 +38,7 @@ export function PaymentSettings() {
     window.open('https://connect.stripe.com/express_login', '_blank');
   };
 
-  if (loading) {
+  if (loading || guideLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-burgundy" />
@@ -54,7 +56,17 @@ export function PaymentSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!data?.stripe_account_id ? (
+          {!guideProfile ? (
+            <Alert className="border-burgundy/20 bg-burgundy/5">
+              <AlertCircle className="h-4 w-4 text-burgundy" />
+              <AlertDescription className="text-charcoal">
+                Please complete your guide profile before connecting a payment account.{' '}
+                <Link to="/profile" className="underline text-burgundy font-medium">
+                  Complete Profile
+                </Link>
+              </AlertDescription>
+            </Alert>
+          ) : !data?.stripe_account_id ? (
             <>
               <Alert className="border-burgundy/20 bg-burgundy/5">
                 <AlertCircle className="h-4 w-4 text-burgundy" />
