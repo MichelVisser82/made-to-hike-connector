@@ -141,6 +141,12 @@ export function useGuideSignup() {
             min_group_size: formData.min_group_size,
             languages_spoken: formData.languages_spoken || ['English'],
             profile_image_base64: profileImageBase64,
+            address_line1: formData.address_line1,
+            address_line2: formData.address_line2,
+            address_city: formData.address_city,
+            address_state: formData.address_state,
+            address_postal_code: formData.address_postal_code,
+            date_of_birth: formData.date_of_birth,
           },
         },
       });

@@ -222,6 +222,12 @@ serve(async (req) => {
         max_group_size: guideData.max_group_size,
         min_group_size: guideData.min_group_size,
         languages_spoken: guideData.languages_spoken || ['English'],
+        address_line1: guideData.address_line1 || null,
+        address_line2: guideData.address_line2 || null,
+        address_city: guideData.address_city || null,
+        address_state: guideData.address_state || null,
+        address_postal_code: guideData.address_postal_code || null,
+        date_of_birth: guideData.date_of_birth || null,
         profile_completed: true,
         verified: false,
       }, {

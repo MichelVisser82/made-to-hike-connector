@@ -82,12 +82,18 @@ export interface GuideSignupData {
   profile_image?: File;
   experience_years: number;
   
-  // Step 3: Location
+  // Step 3: Location & Contact Info
   location: string;
   country?: string;
   location_lat?: number;
   location_lng?: number;
   location_formatted?: string;
+  address_line1?: string;
+  address_line2?: string;
+  address_city?: string;
+  address_state?: string;
+  address_postal_code?: string;
+  date_of_birth?: string;
   
   // Step 4: Specialties
   specialties: string[];

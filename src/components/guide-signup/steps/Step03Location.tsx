@@ -1,8 +1,10 @@
-import { MapPin } from 'lucide-react';
+import { MapPin, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { GuideSignupData } from '@/types/guide';
 import { LocationAutocomplete } from '@/components/tour-creation/LocationAutocomplete';
 
@@ -50,7 +52,10 @@ interface Step03LocationProps {
 
 export function Step03Location({ data, updateData, onNext, onBack }: Step03LocationProps) {
   const handleNext = () => {
-    if (data.location?.trim() && data.country) onNext();
+    if (data.location?.trim() && data.country && data.address_line1?.trim() && 
+        data.address_city?.trim() && data.address_postal_code?.trim() && data.date_of_birth) {
+      onNext();
+    }
   };
 
   return (
@@ -59,18 +64,33 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
         <CardHeader>
           <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
             <MapPin className="w-5 h-5 text-burgundy" />
-            Your Location
+            Contact Information
           </CardTitle>
-          <p className="text-muted-foreground">Where are you based?</p>
+          <p className="text-muted-foreground">Required for payment account setup and identity verification</p>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Date of Birth */}
           <div>
-            <Label htmlFor="country">Country for Payment Account *</Label>
+            <Label htmlFor="dob">Date of Birth *</Label>
+            <Input
+              id="dob"
+              type="date"
+              value={data.date_of_birth || ''}
+              onChange={(e) => updateData({ date_of_birth: e.target.value })}
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+              className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Required by Stripe (must be 18+)</p>
+          </div>
+
+          {/* Country Selection */}
+          <div>
+            <Label htmlFor="country">Country *</Label>
             <Select
               value={data.country || ''}
               onValueChange={(value) => updateData({ country: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border-burgundy/20">
                 <SelectValue placeholder="Select your country" />
               </SelectTrigger>
               <SelectContent>
@@ -82,12 +102,13 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
-              This is used for your Stripe payment account and cannot be changed later
+              This is used for your Stripe payment account
             </p>
           </div>
 
+          {/* Location Input */}
           <div>
-            <Label htmlFor="location">City, Country *</Label>
+            <Label htmlFor="location">City and Country *</Label>
             <LocationAutocomplete
               value={data.location || ''}
               coordinates={{
@@ -104,11 +125,98 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
               }}
               placeholder="Search for your base location..."
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              This helps hikers find guides in their preferred regions
+            </p>
           </div>
 
+          {/* Street Address */}
+          <div>
+            <Label htmlFor="address-line1">Street Address *</Label>
+            <Input
+              id="address-line1"
+              value={data.address_line1 || ''}
+              onChange={(e) => updateData({ address_line1: e.target.value })}
+              placeholder="123 Main Street"
+              className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+              maxLength={200}
+            />
+          </div>
+
+          {/* Address Line 2 */}
+          <div>
+            <Label htmlFor="address-line2">Apartment, Suite, etc. (Optional)</Label>
+            <Input
+              id="address-line2"
+              value={data.address_line2 || ''}
+              onChange={(e) => updateData({ address_line2: e.target.value })}
+              placeholder="Apt 4B"
+              className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+              maxLength={200}
+            />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* City */}
+            <div>
+              <Label htmlFor="city">City *</Label>
+              <Input
+                id="city"
+                value={data.address_city || ''}
+                onChange={(e) => updateData({ address_city: e.target.value })}
+                placeholder="Munich"
+                className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                maxLength={100}
+              />
+            </div>
+
+            {/* State/Province */}
+            <div>
+              <Label htmlFor="state">State/Province</Label>
+              <Input
+                id="state"
+                value={data.address_state || ''}
+                onChange={(e) => updateData({ address_state: e.target.value })}
+                placeholder="Bavaria"
+                className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                maxLength={100}
+              />
+            </div>
+
+            {/* Postal Code */}
+            <div>
+              <Label htmlFor="postal-code">Postal Code *</Label>
+              <Input
+                id="postal-code"
+                value={data.address_postal_code || ''}
+                onChange={(e) => updateData({ address_postal_code: e.target.value })}
+                placeholder="80331"
+                className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                maxLength={20}
+              />
+            </div>
+          </div>
+
+          <Alert className="border-burgundy/20 bg-burgundy/5">
+            <AlertCircle className="h-4 w-4 text-burgundy" />
+            <AlertDescription className="text-sm">
+              This information is required by Stripe for identity verification and tax compliance.
+              It will be securely stored and only shared with Stripe.
+            </AlertDescription>
+          </Alert>
+
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">Back</Button>
-            <Button onClick={handleNext} disabled={!data.location?.trim() || !data.country} className="bg-burgundy hover:bg-burgundy/90 text-white">Continue</Button>
+            <Button variant="outline" onClick={onBack} className="border-burgundy text-burgundy hover:bg-burgundy/10">
+              Back
+            </Button>
+            <Button 
+              onClick={handleNext} 
+              disabled={!data.location?.trim() || !data.country || !data.address_line1?.trim() || 
+                       !data.address_city?.trim() || !data.address_postal_code?.trim() || !data.date_of_birth}
+              className="bg-burgundy hover:bg-burgundy/90 text-white"
+            >
+              Continue
+            </Button>
           </div>
         </CardContent>
       </Card>
