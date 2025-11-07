@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { TicketDashboard } from './TicketDashboard';
 import { FlaggedMessagesPanel } from './FlaggedMessagesPanel';
 import { AllConversationsPanel } from './AllConversationsPanel';
+import { EmailManagementPanel } from './EmailManagementPanel';
 
 export function AdminSupportSection() {
   const [searchParams] = useSearchParams();
@@ -51,6 +52,12 @@ export function AdminSupportSection() {
           >
             All Conversations
           </TabsTrigger>
+          <TabsTrigger 
+            value="emails"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
+          >
+            Email Management
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tickets">
@@ -63,6 +70,10 @@ export function AdminSupportSection() {
 
         <TabsContent value="conversations">
           <AllConversationsPanel initialConversationId={searchParams.get('conversation') || undefined} />
+        </TabsContent>
+
+        <TabsContent value="emails">
+          <EmailManagementPanel />
         </TabsContent>
       </Tabs>
     </div>

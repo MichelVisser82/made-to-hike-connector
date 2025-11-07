@@ -19,6 +19,9 @@ Deno.serve(async (req) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey)
     
+    // Get optional lookback days parameter (default 30 days for retrospective)
+    const { lookbackDays = 30 } = req.method === 'POST' ? await req.json() : {}
+    
     console.log('Starting automated email processing...')
     
     // Fetch all active email templates
@@ -48,7 +51,9 @@ Deno.serve(async (req) => {
       
       // Calculate time window based on timing configuration
       const now = new Date()
-      let targetTime = new Date(now)
+      
+      // For retrospective sending, look back the specified number of days
+      const lookbackStart = new Date(now.getTime() - lookbackDays * 24 * 60 * 60 * 1000)
       
       // Convert timing to hours
       let hoursOffset = template.timing_value
@@ -61,10 +66,6 @@ Deno.serve(async (req) => {
       if (template.timing_direction === 'before') {
         hoursOffset = -hoursOffset
       }
-      
-      // Create time window (1 hour window to catch bookings)
-      const windowStart = new Date(now.getTime() + hoursOffset * 60 * 60 * 1000)
-      const windowEnd = new Date(windowStart.getTime() + 60 * 60 * 1000)
       
       // Find matching bookings based on trigger type
       let bookingsQuery = supabase
@@ -82,23 +83,23 @@ Deno.serve(async (req) => {
         `)
         .eq('status', 'confirmed')
       
-      // Filter based on trigger type
+      // Filter based on trigger type - look back from lookbackStart to now
       if (template.trigger_type === 'booking_confirmed') {
-        // Send immediately after booking is confirmed
+        // Send for bookings created in the lookback period
         bookingsQuery = bookingsQuery
-          .gte('created_at', windowStart.toISOString())
-          .lte('created_at', windowEnd.toISOString())
+          .gte('created_at', lookbackStart.toISOString())
+          .lte('created_at', now.toISOString())
       } else if (template.trigger_type === 'booking_reminder') {
-        // Send based on booking_date timing
+        // Send for upcoming bookings
         bookingsQuery = bookingsQuery
-          .gte('booking_date', windowStart.toISOString().split('T')[0])
-          .lte('booking_date', windowEnd.toISOString().split('T')[0])
+          .gte('booking_date', lookbackStart.toISOString().split('T')[0])
+          .lte('booking_date', now.toISOString().split('T')[0])
       } else if (template.trigger_type === 'tour_completed') {
-        // Send after tour is completed
+        // Send for completed tours in the lookback period
         bookingsQuery = bookingsQuery
           .eq('status', 'completed')
-          .gte('booking_date', windowStart.toISOString().split('T')[0])
-          .lte('booking_date', windowEnd.toISOString().split('T')[0])
+          .gte('booking_date', lookbackStart.toISOString().split('T')[0])
+          .lte('booking_date', now.toISOString().split('T')[0])
       }
       
       const { data: bookings, error: bookingsError } = await bookingsQuery
@@ -198,7 +199,8 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         templates_processed: templates.length,
-        emails_sent: emailsSent 
+        emails_sent: emailsSent,
+        lookback_days: lookbackDays
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
