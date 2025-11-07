@@ -1519,6 +1519,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_documents: {
+        Row: {
+          created_at: string | null
+          file_path: string
+          gross_income: number
+          guide_id: string
+          id: string
+          net_income: number
+          platform_fees: number
+          total_bookings: number
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          file_path: string
+          gross_income?: number
+          guide_id: string
+          id?: string
+          net_income?: number
+          platform_fees?: number
+          total_bookings?: number
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          file_path?: string
+          gross_income?: number
+          guide_id?: string
+          id?: string
+          net_income?: number
+          platform_fees?: number
+          total_bookings?: number
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       ticket_activities: {
         Row: {
           action: string

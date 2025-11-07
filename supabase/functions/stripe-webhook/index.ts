@@ -109,35 +109,100 @@ async function handlePaymentSuccess(event: any, supabase: any) {
 
 async function handlePaymentFailed(event: any, supabase: any) {
   const paymentIntent = event.data.object;
-  logStep('Payment failed', { paymentIntentId: paymentIntent.id });
+  const failureCode = paymentIntent.last_payment_error?.code;
+  const failureMessage = paymentIntent.last_payment_error?.message;
+  
+  logStep('Payment failed', { 
+    paymentIntentId: paymentIntent.id,
+    code: failureCode,
+    message: failureMessage 
+  });
 
+  // Update booking with failure details
   const { error } = await supabase
     .from('bookings')
-    .update({ payment_status: 'failed', status: 'cancelled' })
+    .update({ 
+      payment_status: 'failed',
+      status: 'cancelled',
+      updated_at: new Date().toISOString()
+    })
     .eq('stripe_payment_intent_id', paymentIntent.id);
 
   if (error) {
     logStep('Error updating booking', { error });
+    return;
   }
+
+  // Send email notification to hiker
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('hiker_id, tour_id, profiles!bookings_hiker_id_fkey(email, name)')
+    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .single();
+
+  if (booking) {
+    const errorMessage = getUserFriendlyErrorMessage(failureCode);
+    await supabase.functions.invoke('send-email', {
+      body: {
+        to: booking.profiles.email,
+        subject: 'Payment Failed - Action Required',
+        html: `
+          <h2>Payment Failed</h2>
+          <p>Dear ${booking.profiles.name},</p>
+          <p>Unfortunately, your payment could not be processed.</p>
+          <p><strong>Reason:</strong> ${errorMessage}</p>
+          <p>Please try booking again with a different payment method.</p>
+        `
+      }
+    });
+  }
+}
+
+function getUserFriendlyErrorMessage(code: string): string {
+  const messages: Record<string, string> = {
+    'card_declined': 'Your card was declined. Please try a different payment method.',
+    'insufficient_funds': 'Your card has insufficient funds. Please use a different card.',
+    'expired_card': 'Your card has expired. Please update your payment method.',
+    'incorrect_cvc': 'The card security code is incorrect. Please check and try again.',
+    'processing_error': 'A processing error occurred. Please try again.',
+    'rate_limit': 'Too many attempts. Please wait a few minutes and try again.',
+  };
+  return messages[code] || 'Payment failed. Please try again with a different payment method.';
 }
 
 async function handleTransferCreated(event: any, supabase: any) {
   const transfer = event.data.object;
   logStep('Transfer created', { transferId: transfer.id });
 
-  // Find booking from metadata
-  const paymentIntent = await stripe.paymentIntents.retrieve(transfer.source_transaction);
-  const metadata = paymentIntent.metadata;
+  try {
+    const paymentIntent = await stripe.paymentIntents.retrieve(transfer.source_transaction);
+    const metadata = paymentIntent.metadata;
 
-  if (metadata.guide_id && metadata.tour_id) {
+    if (metadata.guide_id && metadata.tour_id) {
+      await supabase.from('stripe_transfers').insert({
+        stripe_transfer_id: transfer.id,
+        booking_id: metadata.booking_id || null,
+        guide_id: metadata.guide_id,
+        amount: transfer.amount,
+        currency: transfer.currency,
+        destination_account_id: transfer.destination,
+        status: 'pending',
+        retry_count: 0,
+        metadata: transfer,
+      });
+    }
+  } catch (error) {
+    logStep('Transfer creation error', { error: error.message });
+    
+    // Schedule retry in 24 hours
     await supabase.from('stripe_transfers').insert({
       stripe_transfer_id: transfer.id,
-      booking_id: metadata.booking_id || null,
-      guide_id: metadata.guide_id,
       amount: transfer.amount,
       currency: transfer.currency,
       destination_account_id: transfer.destination,
-      status: 'pending',
+      status: 'failed',
+      retry_count: 0,
+      next_retry_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       metadata: transfer,
     });
   }

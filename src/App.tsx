@@ -24,6 +24,8 @@ import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import { BookingFlowNew } from "./components/pages/BookingFlowNew";
 import { BookingSuccess } from "./components/pages/BookingSuccess";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCanceled from "./pages/PaymentCanceled";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +69,8 @@ const App: React.FC = () => {
             <Route path="/guide/signup" element={<GuideSignupPage />} />
             <Route path="/certifications" element={<CertificationsPage />} />
             <Route path="/booking-success" element={<BookingSuccess />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-canceled" element={<PaymentCanceled />} />
             <Route path="/help" element={<HelpPage />} />
                 <Route 
                   path="/dashboard" 

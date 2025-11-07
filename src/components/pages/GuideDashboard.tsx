@@ -442,6 +442,9 @@ export function GuideDashboard({
           year: 2025,
           file_path: '/documents/2025-income.pdf',
           created_at: '2025-01-01T00:00:00Z',
+          gross_income: 45000,
+          net_income: 38250,
+          total_bookings: 45,
         },
         {
           id: 'doc-2',
@@ -450,6 +453,9 @@ export function GuideDashboard({
           year: 2024,
           file_path: '/documents/2024-annual.pdf',
           created_at: '2024-12-31T00:00:00Z',
+          gross_income: 38000,
+          net_income: 32300,
+          total_bookings: 38,
         },
         {
           id: 'doc-3',
@@ -458,6 +464,9 @@ export function GuideDashboard({
           year: 2024,
           file_path: '/documents/2024-tax.pdf',
           created_at: '2024-12-31T00:00:00Z',
+          gross_income: 15000,
+          net_income: 12750,
+          total_bookings: 15,
         },
       ]);
 
@@ -837,14 +846,19 @@ export function GuideDashboard({
             <MoneySection
               balances={balances}
               transactions={transactions}
+              payouts={[]}
               topTours={topTours}
-              nextPayout={nextPayout}
               taxDocuments={taxDocuments}
+              stripeData={null}
+              tours={tours}
+              lastUpdated={new Date()}
               loading={loadingMoney}
-              guideId={user.id}
-              onExport={handleExportReport}
+              onExportReport={handleExportReport}
               onRequestPayout={handleRequestPayout}
               onDownloadDocument={handleDownloadDocument}
+              onGenerateTaxDoc={async () => {}}
+              onRefresh={() => fetchFinancialData()}
+              onUpdatePayoutSchedule={async () => {}}
             />
           )}
 

@@ -187,10 +187,13 @@ export interface Payout {
 export interface TaxDocument {
   id: string;
   name: string;
-  type: 'PDF' | 'CSV';
+  type?: 'PDF' | 'CSV';
   year: number;
   file_path: string;
   created_at: string;
+  gross_income: number;
+  net_income: number;
+  total_bookings: number;
 }
 
 export interface Conversation {
