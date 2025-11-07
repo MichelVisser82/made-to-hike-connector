@@ -328,7 +328,7 @@ export function PaymentSettings() {
               {/* Country Selection */}
               <div className="space-y-2">
                 <Label>Payment Account Country *</Label>
-                {!data?.stripe_account_id && (editingCountry || !guideProfile?.country) ? (
+                {(editingCountry || !guideProfile?.country) ? (
                   <div className="space-y-2">
                     <Select
                       value={selectedCountry}
@@ -345,9 +345,19 @@ export function PaymentSettings() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">
-                      This determines which Stripe region your account will be created in. Cannot be changed once Stripe account is connected.
-                    </p>
+                    {data?.stripe_account_id && (
+                      <Alert className="border-orange-500/20 bg-orange-50">
+                        <AlertCircle className="h-4 w-4 text-orange-600" />
+                        <AlertDescription className="text-xs">
+                          Changing your country will require you to reconnect your Stripe account with the new region.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    {!data?.stripe_account_id && (
+                      <p className="text-xs text-muted-foreground">
+                        This determines which Stripe region your account will be created in.
+                      </p>
+                    )}
                     <div className="flex gap-2">
                       <Button onClick={handleCountryUpdate} disabled={!selectedCountry} size="sm">
                         Save Country
@@ -362,22 +372,12 @@ export function PaymentSettings() {
                 ) : (
                   <div className="flex items-center justify-between p-3 border rounded-lg bg-muted">
                     <span className="text-sm font-medium">
-                      {STRIPE_COUNTRIES.find(c => c.code === guideProfile?.country)?.name || guideProfile?.country || 'Not set'}
+                      {STRIPE_COUNTRIES.find(c => c.code === guideProfile?.country)?.name || guideProfile?.country}
                     </span>
-                    {!data?.stripe_account_id && guideProfile?.country && (
-                      <Button onClick={() => setEditingCountry(true)} variant="outline" size="sm">
-                        Change
-                      </Button>
-                    )}
-                    {data?.stripe_account_id && (
-                      <Badge variant="secondary">Locked</Badge>
-                    )}
+                    <Button onClick={() => setEditingCountry(true)} variant="outline" size="sm">
+                      Change
+                    </Button>
                   </div>
-                )}
-                {data?.stripe_account_id && (
-                  <p className="text-xs text-muted-foreground">
-                    Country cannot be changed after Stripe account is connected
-                  </p>
                 )}
               </div>
 
