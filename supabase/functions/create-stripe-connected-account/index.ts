@@ -37,12 +37,13 @@ serve(async (req) => {
     // Fetch guide profile
     const { data: guideProfile, error: profileError } = await supabaseClient
       .from('guide_profiles')
-      .select('id, email, first_name, last_name, stripe_account_id')
+      .select('id, display_name, stripe_account_id')
       .eq('user_id', user.id)
       .single();
 
     if (profileError || !guideProfile) {
-      throw new Error('Guide profile not found');
+      logStep('Profile fetch error', { error: profileError });
+      throw new Error('Guide profile not found. Please complete your guide profile setup first.');
     }
 
     logStep('Guide profile found', { guideId: guideProfile.id });
@@ -63,7 +64,7 @@ serve(async (req) => {
     const account = await stripe.accounts.create({
       type: 'express',
       country: 'US', // Default, can be updated during onboarding
-      email: guideProfile.email,
+      email: user.email, // Use email from auth.users
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
@@ -71,6 +72,7 @@ serve(async (req) => {
       business_type: 'individual',
       business_profile: {
         product_description: 'Guided hiking tours and outdoor adventures',
+        name: guideProfile.display_name,
       },
       metadata: {
         guide_id: guideProfile.id,
