@@ -184,10 +184,18 @@ serve(async (req) => {
 
     // Increment discount code usage if applicable
     if (discount_code) {
-      await supabase
+      const { data: currentCode } = await supabase
         .from('discount_codes')
-        .update({ times_used: supabase.raw('times_used + 1') })
-        .eq('code', discount_code);
+        .select('times_used')
+        .eq('code', discount_code)
+        .single();
+      
+      if (currentCode) {
+        await supabase
+          .from('discount_codes')
+          .update({ times_used: currentCode.times_used + 1 })
+          .eq('code', discount_code);
+      }
     }
 
     // Create conversation between hiker and guide
