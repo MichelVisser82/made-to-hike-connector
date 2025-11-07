@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,42 @@ import { toast } from 'sonner';
 
 export function PaymentSettings() {
   const { user } = useAuth();
-  const { data, loading, createConnectedAccount, createAccountLink, updatePayoutSchedule } = useStripeConnect();
+  const { data, loading, createConnectedAccount, createAccountLink, updatePayoutSchedule, syncAccountStatus, refetch } = useStripeConnect();
   const { data: guideProfile, isLoading: guideLoading, error: guideError } = useMyGuideProfile();
   const refreshProfile = useRefreshMyGuideProfile();
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const profileError = guideError as ProfileError | null;
+
+  const handleSyncStatus = useCallback(async () => {
+    setSyncing(true);
+    toast.info('Syncing with Stripe...');
+    try {
+      await syncAccountStatus();
+      await refetch();
+      refreshProfile();
+      toast.success('Status updated');
+    } catch (error) {
+      console.error('[PaymentSettings] Sync error:', error);
+      toast.error('Failed to sync status');
+    } finally {
+      setSyncing(false);
+    }
+  }, [syncAccountStatus, refetch, refreshProfile]);
+
+  // Auto-sync when user returns from Stripe (window gains focus)
+  useEffect(() => {
+    const handleFocus = async () => {
+      if (data?.stripe_account_id && data.stripe_kyc_status !== 'approved') {
+        console.log('[PaymentSettings] Window focused, syncing Stripe status...');
+        await handleSyncStatus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [data?.stripe_account_id, data?.stripe_kyc_status, handleSyncStatus]);
 
   const handleConnectStripe = async () => {
     const result = await createConnectedAccount();
@@ -244,10 +274,23 @@ export function PaymentSettings() {
                       Complete your verification to start receiving payments.
                     </AlertDescription>
                   </Alert>
-                  <Button onClick={handleCompleteVerification} className="w-full">
-                    Complete Verification
-                    <ExternalLink className="ml-2 w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button onClick={handleCompleteVerification} className="flex-1">
+                      Complete Verification
+                      <ExternalLink className="ml-2 w-4 h-4" />
+                    </Button>
+                    <Button 
+                      onClick={handleSyncStatus} 
+                      variant="outline"
+                      disabled={syncing}
+                    >
+                      {syncing ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
                 </>
               )}
 
