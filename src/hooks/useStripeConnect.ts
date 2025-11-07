@@ -47,19 +47,33 @@ export function useStripeConnect() {
     if (!user) return;
 
     try {
-      const { data: response, error } = await supabase.functions.invoke('create-stripe-connected-account', {
-        body: { user_id: user.id }
-      });
+      const { data: response, error } = await supabase.functions.invoke('create-stripe-connected-account');
 
       if (error) throw error;
 
-      toast.success('Stripe account created');
+      toast.success('Stripe account created successfully');
       await fetchStripeData();
       
       return response;
     } catch (error: any) {
       console.error('Error creating Stripe account:', error);
-      toast.error('Failed to create Stripe account');
+      toast.error(error.message || 'Failed to create Stripe account');
+      return null;
+    }
+  };
+
+  const syncAccountStatus = async () => {
+    if (!user || !data?.stripe_account_id) return;
+
+    try {
+      const { data: response, error } = await supabase.functions.invoke('get-stripe-account-status');
+
+      if (error) throw error;
+
+      await fetchStripeData();
+      return response;
+    } catch (error: any) {
+      console.error('Error syncing account status:', error);
       return null;
     }
   };
@@ -90,18 +104,17 @@ export function useStripeConnect() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('guide_profiles')
-        .update({ payout_schedule: schedule })
-        .eq('user_id', user.id);
+      const { error } = await supabase.functions.invoke('update-payout-schedule', {
+        body: { schedule },
+      });
 
       if (error) throw error;
 
-      setData(data ? { ...data, payout_schedule: schedule } : null);
+      await fetchStripeData();
       toast.success('Payout schedule updated');
     } catch (error: any) {
       console.error('Error updating payout schedule:', error);
-      toast.error('Failed to update payout schedule');
+      toast.error(error.message || 'Failed to update payout schedule');
     }
   };
 
@@ -110,6 +123,7 @@ export function useStripeConnect() {
     loading,
     createConnectedAccount,
     createAccountLink,
+    syncAccountStatus,
     updatePayoutSchedule,
     refetch: fetchStripeData,
   };

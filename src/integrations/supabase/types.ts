@@ -1362,6 +1362,163 @@ export type Database = {
           },
         ]
       }
+      stripe_payouts: {
+        Row: {
+          amount: number
+          arrival_date: string | null
+          created_at: string | null
+          currency: string
+          destination_bank_last4: string | null
+          guide_id: string | null
+          id: string
+          metadata: Json | null
+          method: string | null
+          paid_at: string | null
+          status: string
+          stripe_payout_id: string
+        }
+        Insert: {
+          amount: number
+          arrival_date?: string | null
+          created_at?: string | null
+          currency?: string
+          destination_bank_last4?: string | null
+          guide_id?: string | null
+          id?: string
+          metadata?: Json | null
+          method?: string | null
+          paid_at?: string | null
+          status?: string
+          stripe_payout_id: string
+        }
+        Update: {
+          amount?: number
+          arrival_date?: string | null
+          created_at?: string | null
+          currency?: string
+          destination_bank_last4?: string | null
+          guide_id?: string | null
+          id?: string
+          metadata?: Json | null
+          method?: string | null
+          paid_at?: string | null
+          status?: string
+          stripe_payout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_payouts_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_payouts_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_transfers: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string | null
+          currency: string
+          destination_account_id: string
+          guide_id: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          stripe_transfer_id: string
+          transferred_at: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string
+          destination_account_id: string
+          guide_id?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          stripe_transfer_id: string
+          transferred_at?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string
+          destination_account_id?: string
+          guide_id?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          stripe_transfer_id?: string
+          transferred_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_transfers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_transfers_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_transfers_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_webhook_events: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean | null
+          processed_at: string | null
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
       ticket_activities: {
         Row: {
           action: string
