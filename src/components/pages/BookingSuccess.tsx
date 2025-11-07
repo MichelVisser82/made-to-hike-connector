@@ -42,7 +42,7 @@ export const BookingSuccess = () => {
         // Verify the session and create booking
         console.log('BookingSuccess: Calling verify-payment-session...');
         const { data: sessionData, error: sessionError } = await supabase.functions.invoke('verify-payment-session', {
-          body: { sessionId }
+          body: { session_id: sessionId }
         });
 
         console.log('BookingSuccess: verify-payment-session response:', sessionData, sessionError);

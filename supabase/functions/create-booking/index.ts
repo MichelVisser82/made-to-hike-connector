@@ -206,8 +206,43 @@ serve(async (req) => {
       console.error('Error creating conversation:', conversationError);
     }
 
-    // TODO: Email notifications will be handled in a future update
-    // For now, bookings are created successfully and visible in dashboards
+    // Send confirmation email to hiker
+    console.log('Sending confirmation email to hiker...');
+    try {
+      const { data: hikerProfile } = await supabase
+        .from('profiles')
+        .select('email, name')
+        .eq('id', hiker_id)
+        .single();
+
+      const { data: guideProfile } = await supabase
+        .from('guide_profiles')
+        .select('display_name')
+        .eq('user_id', tour.guide_id)
+        .single();
+
+      if (hikerProfile?.email) {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'booking-confirmation',
+            to: hikerProfile.email,
+            bookingReference: booking.booking_reference,
+            tourTitle: tour.title,
+            bookingDate: booking.booking_date,
+            guideName: guideProfile?.display_name || 'Your Guide',
+            meetingPoint: tour.meeting_point || 'Details will be shared',
+            totalPrice: total_price,
+            currency: currency,
+            participants: participants,
+          }
+        });
+        console.log('Confirmation email sent successfully');
+      }
+    } catch (emailError) {
+      console.error('Error sending confirmation email:', emailError);
+      // Don't fail the booking if email fails
+    }
+
     console.log('Booking created successfully:', booking.id);
 
     return new Response(

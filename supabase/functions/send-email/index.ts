@@ -1,10 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
+import { render } from 'npm:@react-email/render@1.0.1'
+import { BookingConfirmationEmail } from './_templates/booking-confirmation-email.tsx'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'custom_verification' | 'verification-code' | 'new_message' | 'review_available' | 'review_reminder'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'custom_verification' | 'verification-code' | 'new_message' | 'review_available' | 'review_reminder'
   to: string
   from?: string
   reply_to?: string
@@ -14,6 +16,14 @@ interface EmailRequest {
   message?: string
   data?: Record<string, any>
   template_data?: Record<string, any>
+  bookingReference?: string
+  tourTitle?: string
+  bookingDate?: string
+  guideName?: string
+  meetingPoint?: string
+  totalPrice?: number
+  currency?: string
+  participants?: number
 }
 
 interface EmailTemplate {
@@ -653,7 +663,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'review_available', 'review_reminder'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'review_available', 'review_reminder'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
@@ -704,7 +714,66 @@ serve(async (req) => {
     const emailRequest = validateEmailRequest(await req.json())
     console.log('Processing email request:', { type: emailRequest.type, to: emailRequest.to })
 
-    // Get the appropriate email template
+    // Handle booking-confirmation email with React Email template
+    if (emailRequest.type === 'booking-confirmation') {
+      const html = render(
+        BookingConfirmationEmail({
+          booking_id: emailRequest.bookingReference || 'N/A',
+          tour_title: emailRequest.tourTitle || 'Hiking Tour',
+          booking_date: emailRequest.bookingDate || new Date().toISOString(),
+          guide_name: emailRequest.guideName || 'Your Guide',
+          meeting_point: emailRequest.meetingPoint || 'Details will be shared',
+          total_price: emailRequest.totalPrice || 0,
+          currency: emailRequest.currency || 'EUR',
+          participants: emailRequest.participants || 1,
+        })
+      )
+
+      const emailPayload = {
+        from: 'MadeToHike <bookings@madetohike.com>',
+        to: emailRequest.to,
+        subject: `🎒 Booking Confirmed - ${emailRequest.tourTitle} (${emailRequest.bookingReference})`,
+        html,
+      }
+
+      console.log('Sending booking confirmation email via Resend...')
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailPayload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error('Resend API error:', result)
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to send email', 
+            details: result.message || 'Unknown error',
+            code: result.name || 'EMAIL_SEND_ERROR'
+          }),
+          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('Booking confirmation email sent successfully:', result.id)
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Booking confirmation email sent successfully',
+          id: result.id,
+          type: emailRequest.type
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Get the appropriate email template for other types
     const template = getEmailTemplate(emailRequest.type, {
       ...emailRequest,
       ...emailRequest.data,
