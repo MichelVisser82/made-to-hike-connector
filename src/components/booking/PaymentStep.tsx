@@ -199,10 +199,16 @@ export const PaymentStep = ({
 
       console.log('[PaymentStep] Sending payment request:', paymentPayload);
 
-      // Create Stripe Checkout Session
-      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+      // Create Stripe Checkout Session with timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Payment request timed out')), 30000)
+      );
+
+      const invokePromise = supabase.functions.invoke('create-payment-intent', {
         body: paymentPayload
       });
+
+      const { data, error } = await Promise.race([invokePromise, timeoutPromise]) as any;
 
       console.log('[PaymentStep] Payment response received:', { data, error });
       console.log('[PaymentStep] Response data type:', typeof data);
