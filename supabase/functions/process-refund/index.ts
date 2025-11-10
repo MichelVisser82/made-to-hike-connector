@@ -89,6 +89,19 @@ serve(async (req) => {
       stripe_payment_intent_id: booking.stripe_payment_intent_id 
     });
 
+    // Fetch hiker and guide profiles early (needed for emails)
+    const { data: hikerProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('email, name')
+      .eq('id', booking.hiker_id)
+      .single();
+
+    const { data: guideProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('email, name')
+      .eq('id', booking.tours.guide_id)
+      .single();
+
     // Authorization check: must be guide of the tour or admin
     const { data: userRoles } = await supabaseAdmin
       .from('user_roles')
@@ -115,9 +128,12 @@ serve(async (req) => {
       );
     }
 
-    // Check if payment was successful
-    if (booking.payment_status !== 'succeeded') {
-      logStep('Payment not successful', { payment_status: booking.payment_status });
+    // Handle different payment statuses
+    const isProcessing = booking.payment_status === 'processing';
+    const isSucceeded = booking.payment_status === 'succeeded';
+    
+    if (!isProcessing && !isSucceeded) {
+      logStep('Payment cannot be refunded or cancelled', { payment_status: booking.payment_status });
       return new Response(
         JSON.stringify({ error: `Cannot refund payment with status: ${booking.payment_status}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -139,6 +155,111 @@ serve(async (req) => {
     // Calculate refund amount (default to full amount)
     const amountToRefund = refund_amount || booking.total_price;
     const amountInCents = Math.round(Number(amountToRefund) * 100);
+
+    // For processing payments, cancel the payment intent
+    // For succeeded payments, create a refund
+    if (isProcessing) {
+      logStep('Cancelling payment intent (payment still processing)', { 
+        payment_intent: booking.stripe_payment_intent_id
+      });
+
+      try {
+        // Cancel the payment intent
+        const cancelledPayment = await stripe.paymentIntents.cancel(booking.stripe_payment_intent_id);
+        logStep('Payment intent cancelled', { status: cancelledPayment.status });
+
+        // Update booking status to cancelled
+        await supabaseAdmin
+          .from('bookings')
+          .update({
+            status: 'cancelled',
+            payment_status: 'cancelled',
+            refund_status: 'succeeded', // Cancellation is immediate
+            refund_reason: reason || 'Booking declined by guide',
+            refund_amount: amountToRefund,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', booking_id);
+
+        // Send notifications about cancellation (no refund needed since payment never succeeded)
+        if (hikerProfile?.email) {
+          try {
+            await supabaseAdmin.functions.invoke('send-email', {
+              body: {
+                type: 'booking_refund_hiker',
+                to: hikerProfile.email,
+                data: {
+                  hiker_name: hikerProfile.name,
+                  tour_title: booking.tours.title,
+                  booking_reference: booking.booking_reference,
+                  booking_date: booking.booking_date,
+                  refund_amount: amountToRefund,
+                  currency: booking.currency,
+                  original_amount: booking.total_price,
+                  refund_reason: reason || 'Booking declined by guide',
+                  guide_name: booking.tours.guide_display_name
+                }
+              }
+            });
+          } catch (emailError) {
+            logStep('Failed to send hiker email', { error: emailError });
+          }
+        }
+
+        if (guideProfile?.email) {
+          try {
+            await supabaseAdmin.functions.invoke('send-email', {
+              body: {
+                type: 'booking_cancellation_guide',
+                to: guideProfile.email,
+                data: {
+                  guide_name: guideProfile.name,
+                  tour_title: booking.tours.title,
+                  booking_reference: booking.booking_reference,
+                  booking_date: booking.booking_date,
+                  hiker_name: hikerProfile?.name || 'Guest',
+                  refund_amount: amountToRefund,
+                  currency: booking.currency,
+                  cancelled_at: new Date().toISOString()
+                }
+              }
+            });
+          } catch (emailError) {
+            logStep('Failed to send guide email', { error: emailError });
+          }
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Booking cancelled successfully. No charge was made to the customer.',
+            booking_reference: booking.booking_reference,
+            cancelled_payment: true
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+
+      } catch (cancelError: any) {
+        logStep('Failed to cancel payment intent', { error: cancelError.message });
+        
+        await supabaseAdmin
+          .from('bookings')
+          .update({
+            status: 'cancelled',
+            refund_status: 'failed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', booking_id);
+
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to cancel payment',
+            details: cancelError.message 
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     logStep('Creating Stripe refund', { 
       payment_intent: booking.stripe_payment_intent_id,
@@ -214,20 +335,6 @@ serve(async (req) => {
     if (updateError2) {
       logStep('Failed to update booking with refund info', { error: updateError2 });
     }
-
-    // Fetch hiker profile for email
-    const { data: hikerProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('email, name')
-      .eq('id', booking.hiker_id)
-      .single();
-
-    // Fetch guide profile for email
-    const { data: guideProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('email, name')
-      .eq('id', booking.tours.guide_id)
-      .single();
 
     logStep('Sending email notifications', {
       hiker_email: hikerProfile?.email,
