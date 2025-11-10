@@ -99,7 +99,7 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
               id="address-line1"
               value={data.address_line1 || ''}
               onChange={(e) => updateData({ address_line1: e.target.value })}
-              placeholder="123 Main Street"
+              placeholder="Hauptstraße 45"
               className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
               maxLength={200}
             />
