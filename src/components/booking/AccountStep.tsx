@@ -484,6 +484,22 @@ export function AccountStep({ onVerified }: AccountStepProps) {
                         nextInput?.focus();
                       }
                     }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pastedData = e.clipboardData.getData('text');
+                      // Extract only digits from pasted content
+                      const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+                      
+                      if (digits.length === 6) {
+                        const newCode = digits.split('');
+                        setCode(newCode);
+                        // Focus the last input after pasting
+                        const lastInput = document.querySelector(
+                          `input[maxlength="1"]:nth-child(6)`
+                        ) as HTMLInputElement;
+                        lastInput?.focus();
+                      }
+                    }}
                     onKeyDown={(e) => {
                       // Auto-focus previous input on backspace
                       if (e.key === 'Backspace' && !code[idx] && idx > 0) {
