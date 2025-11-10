@@ -155,12 +155,29 @@ export function useGuideSignup() {
 
       localStorage.removeItem(STORAGE_KEY);
 
+      // Auto-login for new users
+      if (!user && formData.email && formData.password) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          toast({
+            title: "Application Submitted!",
+            description: "Your guide application has been submitted. Please sign in to access your dashboard.",
+          });
+          navigate('/auth?tab=signin');
+          return;
+        }
+      }
+
       toast({
-        title: "Application Submitted!",
-        description: "Your guide application has been submitted for review. You'll receive an email once approved.",
+        title: "Welcome to MadeToHike!",
+        description: "Your guide application has been submitted for review.",
       });
 
-      navigate('/');
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Signup error:', error);
       toast({
