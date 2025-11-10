@@ -169,9 +169,23 @@ serve(async (req) => {
       );
     }
 
-    // Calculate refund amount (default to full amount)
-    const amountToRefund = refund_amount || booking.total_price;
-    const amountInCents = Math.round(Number(amountToRefund) * 100);
+    // Use the actual amount charged from Stripe, not the database amount
+    // This handles cases where deposit + fees were charged, or partial payments
+    const actualAmountCharged = paymentIntent.amount; // Already in cents
+    const actualAmountInDollars = actualAmountCharged / 100;
+    
+    logStep('Amount to refund', {
+      stripe_amount_cents: actualAmountCharged,
+      stripe_amount_dollars: actualAmountInDollars,
+      booking_total_price: booking.total_price,
+      booking_deposit: booking.deposit_amount,
+      payment_type: booking.payment_type
+    });
+
+    // If a specific refund_amount is provided and it's less than what was charged, use it
+    const amountInCents = refund_amount 
+      ? Math.min(Math.round(Number(refund_amount) * 100), actualAmountCharged)
+      : actualAmountCharged;
 
     // For payments that can be cancelled, cancel the payment intent
     // For succeeded payments, create a refund
@@ -193,7 +207,7 @@ serve(async (req) => {
             payment_status: 'cancelled',
             refund_status: 'succeeded', // Cancellation is immediate
             refund_reason: reason || 'Booking declined by guide',
-            refund_amount: amountToRefund,
+            refund_amount: actualAmountInDollars,
             updated_at: new Date().toISOString()
           })
           .eq('id', booking_id);
@@ -210,7 +224,7 @@ serve(async (req) => {
                   tour_title: booking.tours.title,
                   booking_reference: booking.booking_reference,
                   booking_date: booking.booking_date,
-                  refund_amount: amountToRefund,
+                  refund_amount: actualAmountInDollars,
                   currency: booking.currency,
                   original_amount: booking.total_price,
                   refund_reason: reason || 'Booking declined by guide',
@@ -235,7 +249,7 @@ serve(async (req) => {
                   booking_reference: booking.booking_reference,
                   booking_date: booking.booking_date,
                   hiker_name: hikerProfile?.name || 'Guest',
-                  refund_amount: amountToRefund,
+                  refund_amount: actualAmountInDollars,
                   currency: booking.currency,
                   cancelled_at: new Date().toISOString()
                 }
@@ -251,6 +265,7 @@ serve(async (req) => {
             success: true,
             message: 'Booking cancelled successfully. No charge was made to the customer.',
             booking_reference: booking.booking_reference,
+            refund_amount: actualAmountInDollars,
             cancelled_payment: true
           }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -340,7 +355,7 @@ serve(async (req) => {
     const { error: updateError2 } = await supabaseAdmin
       .from('bookings')
       .update({
-        refund_amount: amountToRefund,
+        refund_amount: actualAmountInDollars,
         refund_status: stripeRefund.status, // 'succeeded', 'pending', 'failed'
         refunded_at: new Date().toISOString(),
         stripe_refund_id: stripeRefund.id,
@@ -370,7 +385,7 @@ serve(async (req) => {
               tour_title: booking.tours.title,
               booking_reference: booking.booking_reference,
               booking_date: booking.booking_date,
-              refund_amount: amountToRefund,
+              refund_amount: actualAmountInDollars,
               currency: booking.currency,
               original_amount: booking.total_price,
               refund_reason: reason || 'Booking declined by guide',
@@ -397,7 +412,7 @@ serve(async (req) => {
               booking_reference: booking.booking_reference,
               booking_date: booking.booking_date,
               hiker_name: hikerProfile?.name || 'Guest',
-              refund_amount: amountToRefund,
+              refund_amount: actualAmountInDollars,
               currency: booking.currency,
               cancelled_at: new Date().toISOString()
             }
@@ -411,14 +426,14 @@ serve(async (req) => {
 
     logStep('Refund processed successfully', {
       refund_id: stripeRefund.id,
-      amount: amountToRefund
+      amount: actualAmountInDollars
     });
 
     return new Response(
       JSON.stringify({
         success: true,
         refund_id: stripeRefund.id,
-        refund_amount: amountToRefund,
+        refund_amount: actualAmountInDollars,
         refund_status: stripeRefund.status,
         booking_reference: booking.booking_reference,
         message: 'Refund processed successfully. The customer will receive the refund in 3-10 business days.'
