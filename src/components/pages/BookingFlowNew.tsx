@@ -250,8 +250,13 @@ export const BookingFlowNew = () => {
     
     // If userData is provided (new signup), pre-fill first participant immediately
     if (userData?.firstName || userData?.lastName) {
-      form.setValue('participants.0.firstName', userData.firstName || '');
-      form.setValue('participants.0.surname', userData.lastName || '');
+      form.setValue('participants.0.firstName', userData.firstName || '', { shouldValidate: false, shouldDirty: true });
+      form.setValue('participants.0.surname', userData.lastName || '', { shouldValidate: false, shouldDirty: true });
+      console.log('[BookingFlow] Pre-filled participant from signup:', { 
+        firstName: userData.firstName, 
+        lastName: userData.lastName,
+        formValue: form.getValues('participants.0')
+      });
     }
     
     // Clear old drafts when new user verifies

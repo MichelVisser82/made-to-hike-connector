@@ -28,6 +28,8 @@ export const ParticipantsStep = ({
 }: ParticipantsStepProps) => {
   const participants = form.watch('participants') || [];
   const [participantCount, setParticipantCount] = useState(participants.length || 1);
+  
+  console.log('[ParticipantsStep] Rendered with participants:', participants);
 
   const handleCountChange = (newCount: number) => {
     const current = form.getValues('participants') || [];
