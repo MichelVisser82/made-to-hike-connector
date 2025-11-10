@@ -17,59 +17,131 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 // Stripe-supported countries
-const STRIPE_COUNTRIES = [
-  { code: 'AT', name: 'Austria' },
-  { code: 'BE', name: 'Belgium' },
-  { code: 'BG', name: 'Bulgaria' },
-  { code: 'HR', name: 'Croatia' },
-  { code: 'CY', name: 'Cyprus' },
-  { code: 'CZ', name: 'Czech Republic' },
-  { code: 'DK', name: 'Denmark' },
-  { code: 'EE', name: 'Estonia' },
-  { code: 'FI', name: 'Finland' },
-  { code: 'FR', name: 'France' },
-  { code: 'DE', name: 'Germany' },
-  { code: 'GR', name: 'Greece' },
-  { code: 'HU', name: 'Hungary' },
-  { code: 'IE', name: 'Ireland' },
-  { code: 'IT', name: 'Italy' },
-  { code: 'LV', name: 'Latvia' },
-  { code: 'LT', name: 'Lithuania' },
-  { code: 'LU', name: 'Luxembourg' },
-  { code: 'MT', name: 'Malta' },
-  { code: 'NL', name: 'Netherlands' },
-  { code: 'NO', name: 'Norway' },
-  { code: 'PL', name: 'Poland' },
-  { code: 'PT', name: 'Portugal' },
-  { code: 'RO', name: 'Romania' },
-  { code: 'SK', name: 'Slovakia' },
-  { code: 'SI', name: 'Slovenia' },
-  { code: 'ES', name: 'Spain' },
-  { code: 'SE', name: 'Sweden' },
-  { code: 'CH', name: 'Switzerland' },
-  { code: 'GB', name: 'United Kingdom' },
-  { code: 'US', name: 'United States' },
-];
-
+const STRIPE_COUNTRIES = [{
+  code: 'AT',
+  name: 'Austria'
+}, {
+  code: 'BE',
+  name: 'Belgium'
+}, {
+  code: 'BG',
+  name: 'Bulgaria'
+}, {
+  code: 'HR',
+  name: 'Croatia'
+}, {
+  code: 'CY',
+  name: 'Cyprus'
+}, {
+  code: 'CZ',
+  name: 'Czech Republic'
+}, {
+  code: 'DK',
+  name: 'Denmark'
+}, {
+  code: 'EE',
+  name: 'Estonia'
+}, {
+  code: 'FI',
+  name: 'Finland'
+}, {
+  code: 'FR',
+  name: 'France'
+}, {
+  code: 'DE',
+  name: 'Germany'
+}, {
+  code: 'GR',
+  name: 'Greece'
+}, {
+  code: 'HU',
+  name: 'Hungary'
+}, {
+  code: 'IE',
+  name: 'Ireland'
+}, {
+  code: 'IT',
+  name: 'Italy'
+}, {
+  code: 'LV',
+  name: 'Latvia'
+}, {
+  code: 'LT',
+  name: 'Lithuania'
+}, {
+  code: 'LU',
+  name: 'Luxembourg'
+}, {
+  code: 'MT',
+  name: 'Malta'
+}, {
+  code: 'NL',
+  name: 'Netherlands'
+}, {
+  code: 'NO',
+  name: 'Norway'
+}, {
+  code: 'PL',
+  name: 'Poland'
+}, {
+  code: 'PT',
+  name: 'Portugal'
+}, {
+  code: 'RO',
+  name: 'Romania'
+}, {
+  code: 'SK',
+  name: 'Slovakia'
+}, {
+  code: 'SI',
+  name: 'Slovenia'
+}, {
+  code: 'ES',
+  name: 'Spain'
+}, {
+  code: 'SE',
+  name: 'Sweden'
+}, {
+  code: 'CH',
+  name: 'Switzerland'
+}, {
+  code: 'GB',
+  name: 'United Kingdom'
+}, {
+  code: 'US',
+  name: 'United States'
+}];
 export function PaymentSettings() {
-  const { user } = useAuth();
-  const { data, loading, createConnectedAccount, createAccountLink, updatePayoutSchedule, syncAccountStatus, disconnectStripe, refetch } = useStripeConnect();
-  const { data: guideProfile, isLoading: guideLoading, error: guideError } = useMyGuideProfile();
+  const {
+    user
+  } = useAuth();
+  const {
+    data,
+    loading,
+    createConnectedAccount,
+    createAccountLink,
+    updatePayoutSchedule,
+    syncAccountStatus,
+    disconnectStripe,
+    refetch
+  } = useStripeConnect();
+  const {
+    data: guideProfile,
+    isLoading: guideLoading,
+    error: guideError
+  } = useMyGuideProfile();
   const refreshProfile = useRefreshMyGuideProfile();
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [editingCountry, setEditingCountry] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
   const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
-
   const profileError = guideError as ProfileError | null;
-
   useEffect(() => {
     if (guideProfile?.country) {
       setSelectedCountry(guideProfile.country);
     }
   }, [guideProfile?.country]);
-
   const handleSyncStatus = useCallback(async () => {
     setSyncing(true);
     toast.info('Syncing with Stripe...');
@@ -106,18 +178,15 @@ export function PaymentSettings() {
         await handleSyncStatus();
       }
     };
-
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [data?.stripe_account_id, data?.stripe_kyc_status, handleSyncStatus]);
-
   const handleConnectStripe = async () => {
     const result = await createConnectedAccount();
     if (result) {
       toast.success('Stripe account created successfully');
     }
   };
-
   const handleCompleteVerification = async () => {
     toast.info('Generating verification link...');
     const url = await createAccountLink();
@@ -134,32 +203,26 @@ export function PaymentSettings() {
       toast.error('Failed to create verification link. Please try again.');
     }
   };
-
   const handlePayoutScheduleChange = async (schedule: string) => {
     await updatePayoutSchedule(schedule);
   };
-
   const handleManageDashboard = () => {
     window.open('https://connect.stripe.com/express_login', '_blank');
   };
-
   const handleRefresh = () => {
     console.log('[PaymentSettings] Manual refresh triggered');
     refreshProfile();
     toast.info('Refreshing profile data...');
   };
-
   const handleCountryUpdate = async () => {
     if (!selectedCountry || !user) return;
-    
     try {
-      const { error } = await supabase
-        .from('guide_profiles')
-        .update({ country: selectedCountry })
-        .eq('user_id', user.id);
-      
+      const {
+        error
+      } = await supabase.from('guide_profiles').update({
+        country: selectedCountry
+      }).eq('user_id', user.id);
       if (error) throw error;
-      
       toast.success('Country updated successfully');
       setEditingCountry(false);
       refreshProfile();
@@ -168,7 +231,6 @@ export function PaymentSettings() {
       toast.error('Failed to update country');
     }
   };
-
   const handleDisconnectStripe = async () => {
     await disconnectStripe();
     setShowDisconnectDialog(false);
@@ -177,41 +239,31 @@ export function PaymentSettings() {
 
   // Loading state
   if (loading || guideLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
+    return <div className="flex items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-burgundy" />
-      </div>
-    );
+      </div>;
   }
 
   // Determine error state
   const errorType = profileError?.type || (guideProfile === null ? 'no_profile' : null);
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Debug Panel */}
       <ProfileDebugPanel />
 
       {/* Debug Info (Development Only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <Card className="border-blue-200 bg-blue-50">
+      {process.env.NODE_ENV === 'development' && <Card className="border-blue-200 bg-blue-50">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Bug className="w-4 h-4" />
                 Debug Information
               </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowDebugInfo(!showDebugInfo)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setShowDebugInfo(!showDebugInfo)}>
                 {showDebugInfo ? 'Hide' : 'Show'}
               </Button>
             </div>
           </CardHeader>
-          {showDebugInfo && (
-            <CardContent className="text-xs space-y-2">
+          {showDebugInfo && <CardContent className="text-xs space-y-2">
               <div><strong>User ID:</strong> {user?.id || 'N/A'}</div>
               <div><strong>User Email:</strong> {user?.email || 'N/A'}</div>
               <div><strong>Guide Profile Loaded:</strong> {guideProfile ? 'Yes' : 'No'}</div>
@@ -225,10 +277,8 @@ export function PaymentSettings() {
                 <RefreshCw className="w-3 h-3 mr-1" />
                 Force Refresh
               </Button>
-            </CardContent>
-          )}
-        </Card>
-      )}
+            </CardContent>}
+        </Card>}
 
       {/* Main Stripe Connect Card */}
       <Card>
@@ -240,8 +290,7 @@ export function PaymentSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Error State: No Profile */}
-          {errorType === 'no_profile' && (
-            <Alert className="border-burgundy/20 bg-burgundy/5">
+          {errorType === 'no_profile' && <Alert className="border-burgundy/20 bg-burgundy/5">
               <AlertCircle className="h-4 w-4 text-burgundy" />
               <AlertDescription className="text-charcoal">
                 <div className="space-y-2">
@@ -259,12 +308,10 @@ export function PaymentSettings() {
                   </div>
                 </div>
               </AlertDescription>
-            </Alert>
-          )}
+            </Alert>}
 
           {/* Error State: RLS Blocked */}
-          {errorType === 'rls_blocked' && (
-            <Alert className="border-red-500/20 bg-red-50">
+          {errorType === 'rls_blocked' && <Alert className="border-red-500/20 bg-red-50">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-charcoal">
                 <div className="space-y-2">
@@ -282,12 +329,10 @@ export function PaymentSettings() {
                   </div>
                 </div>
               </AlertDescription>
-            </Alert>
-          )}
+            </Alert>}
 
           {/* Error State: Network Error */}
-          {errorType === 'network_error' && (
-            <Alert className="border-orange-500/20 bg-orange-50">
+          {errorType === 'network_error' && <Alert className="border-orange-500/20 bg-orange-50">
               <AlertCircle className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-charcoal">
                 <div className="space-y-2">
@@ -299,12 +344,10 @@ export function PaymentSettings() {
                   </Button>
                 </div>
               </AlertDescription>
-            </Alert>
-          )}
+            </Alert>}
 
           {/* Error State: Auth Error */}
-          {errorType === 'auth_error' && (
-            <Alert className="border-red-500/20 bg-red-50">
+          {errorType === 'auth_error' && <Alert className="border-red-500/20 bg-red-50">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-charcoal">
                 <div className="space-y-2">
@@ -317,81 +360,64 @@ export function PaymentSettings() {
                   </Link>
                 </div>
               </AlertDescription>
-            </Alert>
-          )}
+            </Alert>}
 
           {/* Success State: Profile Loaded */}
-          {guideProfile && (
-            <>
+          {guideProfile && <>
               {/* Not Verified Warning */}
-              {!guideProfile.verified && (
-                <Alert className="border-yellow-500/20 bg-yellow-50">
+              {!guideProfile.verified && <Alert className="border-yellow-500/20 bg-yellow-50">
                   <AlertCircle className="h-4 w-4 text-yellow-600" />
                   <AlertDescription className="text-charcoal">
                     Your guide profile is pending verification. You can connect Stripe now, but you won't be able to create tours until your profile is verified.
                   </AlertDescription>
-                </Alert>
-              )}
+                </Alert>}
 
               {/* Country Selection */}
               <div className="space-y-2">
                 <Label>Payment Account Country *</Label>
-                {(editingCountry || !guideProfile?.country) ? (
-                  <div className="space-y-2">
-                    <Select
-                      value={selectedCountry}
-                      onValueChange={setSelectedCountry}
-                    >
+                {editingCountry || !guideProfile?.country ? <div className="space-y-2">
+                    <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
                       <SelectContent>
-                        {STRIPE_COUNTRIES.map((country) => (
-                          <SelectItem key={country.code} value={country.code}>
+                        {STRIPE_COUNTRIES.map(country => <SelectItem key={country.code} value={country.code}>
                             {country.name}
-                          </SelectItem>
-                        ))}
+                          </SelectItem>)}
                       </SelectContent>
                     </Select>
-                    {data?.stripe_account_id && (
-                      <Alert className="border-orange-500/20 bg-orange-50">
+                    {data?.stripe_account_id && <Alert className="border-orange-500/20 bg-orange-50">
                         <AlertCircle className="h-4 w-4 text-orange-600" />
                         <AlertDescription className="text-xs">
                           Changing your country will require you to reconnect your Stripe account with the new region.
                         </AlertDescription>
-                      </Alert>
-                    )}
-                    {!data?.stripe_account_id && (
-                      <p className="text-xs text-muted-foreground">
+                      </Alert>}
+                    {!data?.stripe_account_id && <p className="text-xs text-muted-foreground">
                         This determines which Stripe region your account will be created in.
-                      </p>
-                    )}
+                      </p>}
                     <div className="flex gap-2">
                       <Button onClick={handleCountryUpdate} disabled={!selectedCountry} size="sm">
                         Save Country
                       </Button>
-                      {guideProfile?.country && (
-                        <Button onClick={() => { setEditingCountry(false); setSelectedCountry(guideProfile.country!); }} variant="outline" size="sm">
+                      {guideProfile?.country && <Button onClick={() => {
+                  setEditingCountry(false);
+                  setSelectedCountry(guideProfile.country!);
+                }} variant="outline" size="sm">
                           Cancel
-                        </Button>
-                      )}
+                        </Button>}
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between p-3 border rounded-lg bg-muted">
+                  </div> : <div className="flex items-center justify-between p-3 border rounded-lg bg-muted">
                     <span className="text-sm font-medium">
                       {STRIPE_COUNTRIES.find(c => c.code === guideProfile?.country)?.name || guideProfile?.country}
                     </span>
                     <Button onClick={() => setEditingCountry(true)} variant="outline" size="sm">
                       Change
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </div>
 
               {/* Stripe Not Connected */}
-              {!data?.stripe_account_id && (
-                <>
+              {!data?.stripe_account_id && <>
                   <Alert className="border-burgundy/20 bg-burgundy/5">
                     <AlertCircle className="h-4 w-4 text-burgundy" />
                     <AlertDescription className="text-charcoal">
@@ -399,92 +425,49 @@ export function PaymentSettings() {
                       This is a one-time setup that takes about 5 minutes.
                     </AlertDescription>
                   </Alert>
-                  <Button 
-                    onClick={handleConnectStripe} 
-                    className="w-full"
-                    disabled={!guideProfile?.country}
-                  >
-                    Connect Stripe Account
-                  </Button>
-                  {!guideProfile?.country && (
-                    <p className="text-xs text-muted-foreground text-center">
+                  <Button onClick={handleConnectStripe} className="w-full" disabled={!guideProfile?.country}>Create &amp; connect Stripe Account</Button>
+                  {!guideProfile?.country && <p className="text-xs text-muted-foreground text-center">
                       Please select your country first
-                    </p>
-                  )}
-                </>
-              )}
+                    </p>}
+                </>}
 
               {/* Stripe Connected but KYC Incomplete or Pending */}
-              {data?.stripe_account_id && data.stripe_kyc_status !== 'verified' && (
-                <>
-                  <Alert className={
-                    data.stripe_kyc_status === 'incomplete' 
-                      ? "border-orange-500/20 bg-orange-50"
-                      : data.stripe_kyc_status === 'pending'
-                      ? "border-blue-500/20 bg-blue-50"
-                      : "border-red-500/20 bg-red-50"
-                  }>
-                    <AlertCircle className={
-                      data.stripe_kyc_status === 'incomplete' 
-                        ? "h-4 w-4 text-orange-600"
-                        : data.stripe_kyc_status === 'pending'
-                        ? "h-4 w-4 text-blue-600"
-                        : "h-4 w-4 text-red-600"
-                    } />
+              {data?.stripe_account_id && data.stripe_kyc_status !== 'verified' && <>
+                  <Alert className={data.stripe_kyc_status === 'incomplete' ? "border-orange-500/20 bg-orange-50" : data.stripe_kyc_status === 'pending' ? "border-blue-500/20 bg-blue-50" : "border-red-500/20 bg-red-50"}>
+                    <AlertCircle className={data.stripe_kyc_status === 'incomplete' ? "h-4 w-4 text-orange-600" : data.stripe_kyc_status === 'pending' ? "h-4 w-4 text-blue-600" : "h-4 w-4 text-red-600"} />
                     <AlertDescription className="text-charcoal">
-                      {data.stripe_kyc_status === 'incomplete' && (
-                        <>
+                      {data.stripe_kyc_status === 'incomplete' && <>
                           <strong>Additional Information Required</strong>
                           <p className="mt-1">Your Stripe account needs more information. Click "Complete Verification" to provide the required details.</p>
-                        </>
-                      )}
-                      {data.stripe_kyc_status === 'pending' && (
-                        <>
+                        </>}
+                      {data.stripe_kyc_status === 'pending' && <>
                           <strong>Verification In Progress</strong>
                           <p className="mt-1">Stripe is reviewing your account. This usually takes a few minutes to a few hours. You'll receive an email when it's ready.</p>
-                        </>
-                      )}
-                      {data.stripe_kyc_status === 'failed' && (
-                        <>
+                        </>}
+                      {data.stripe_kyc_status === 'failed' && <>
                           <strong>Verification Failed</strong>
                           <p className="mt-1">There was an issue with your verification. Please review your Stripe dashboard for more details.</p>
-                        </>
-                      )}
+                        </>}
                     </AlertDescription>
                   </Alert>
                   <div className="flex gap-2">
-                    {data.stripe_kyc_status === 'incomplete' && (
-                      <Button onClick={handleCompleteVerification} className="flex-1">
+                    {data.stripe_kyc_status === 'incomplete' && <Button onClick={handleCompleteVerification} className="flex-1">
                         Complete Verification
                         <ExternalLink className="ml-2 w-4 h-4" />
-                      </Button>
-                    )}
-                    {(data.stripe_kyc_status === 'pending' || data.stripe_kyc_status === 'failed') && (
-                      <Button onClick={handleManageDashboard} variant="outline" className="flex-1">
+                      </Button>}
+                    {(data.stripe_kyc_status === 'pending' || data.stripe_kyc_status === 'failed') && <Button onClick={handleManageDashboard} variant="outline" className="flex-1">
                         View Stripe Dashboard
                         <ExternalLink className="ml-2 w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button 
-                      onClick={handleSyncStatus} 
-                      variant="outline"
-                      disabled={syncing}
-                      className={data.stripe_kyc_status === 'incomplete' ? '' : 'flex-1'}
-                    >
-                      {syncing ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="w-4 h-4" />
-                      )}
+                      </Button>}
+                    <Button onClick={handleSyncStatus} variant="outline" disabled={syncing} className={data.stripe_kyc_status === 'incomplete' ? '' : 'flex-1'}>
+                      {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                       {data.stripe_kyc_status === 'pending' && <span className="ml-2">Check Status</span>}
                     </Button>
                   </div>
-                </>
-              )}
+                </>}
 
               {/* Stripe Fully Connected */}
-              {data?.stripe_account_id && data.stripe_kyc_status === 'verified' && (
-                <>
+              {data?.stripe_account_id && data.stripe_kyc_status === 'verified' && <>
                   <Alert className="border-green-500/20 bg-green-50">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-charcoal">
@@ -495,10 +478,7 @@ export function PaymentSettings() {
                   {/* Payout Schedule */}
                   <div className="space-y-2">
                     <Label>Payout Schedule</Label>
-                    <Select
-                      value={data.payout_schedule || 'weekly'}
-                      onValueChange={handlePayoutScheduleChange}
-                    >
+                    <Select value={data.payout_schedule || 'weekly'} onValueChange={handlePayoutScheduleChange}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -514,14 +494,12 @@ export function PaymentSettings() {
                   </div>
 
                   {/* Bank Account Info */}
-                  {data.bank_account_last4 && (
-                    <div className="space-y-2">
+                  {data.bank_account_last4 && <div className="space-y-2">
                       <Label>Bank Account</Label>
                       <div className="text-sm text-muted-foreground">
                         •••• {data.bank_account_last4}
                       </div>
-                    </div>
-                  )}
+                    </div>}
 
                   {/* Stripe Dashboard Link */}
                   <Button onClick={handleManageDashboard} variant="outline" className="w-full">
@@ -531,21 +509,15 @@ export function PaymentSettings() {
 
                   {/* Disconnect Stripe */}
                   <div className="pt-4 border-t">
-                    <Button 
-                      onClick={() => setShowDisconnectDialog(true)} 
-                      variant="destructive" 
-                      className="w-full"
-                    >
+                    <Button onClick={() => setShowDisconnectDialog(true)} variant="destructive" className="w-full">
                       Disconnect Stripe Account
                     </Button>
                     <p className="text-xs text-muted-foreground text-center mt-2">
                       This will allow you to change your country and reconnect
                     </p>
                   </div>
-                </>
-              )}
-            </>
-          )}
+                </>}
+            </>}
         </CardContent>
       </Card>
 
@@ -586,6 +558,5 @@ export function PaymentSettings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 }
