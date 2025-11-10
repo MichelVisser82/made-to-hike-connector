@@ -55,9 +55,12 @@ export default function TourPage() {
       <MainLayout dashboardMode={dashboardMode}>
         <TourDetailPage
           tour={tour}
-          onBookTour={(selectedTour) => {
+          onBookTour={(selectedTour, selectedSlotId) => {
             console.log('Booking tour:', selectedTour.id);
-            navigate(`/tours/${selectedTour.slug}/book`);
+            const bookingUrl = selectedSlotId 
+              ? `/tours/${selectedTour.slug}/book?slotId=${selectedSlotId}`
+              : `/tours/${selectedTour.slug}/book`;
+            navigate(bookingUrl);
           }}
           onBackToSearch={() => navigate('/')}
         />

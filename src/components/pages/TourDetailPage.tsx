@@ -26,7 +26,7 @@ import { Skeleton } from '../ui/skeleton';
 
 interface TourDetailPageProps {
   tour: Tour;
-  onBookTour: (tour: Tour) => void;
+  onBookTour: (tour: Tour, selectedSlotId?: string) => void;
   onBackToSearch: () => void;
 }
 
@@ -35,6 +35,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   const [expandedItinerary, setExpandedItinerary] = useState<Record<number, boolean>>({});
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
@@ -263,6 +264,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                         type="button"
                         onClick={() => {
                           setSelectedDate(option.date);
+                          setSelectedSlotId(option.slotId);
                           setShowDateDropdown(false);
                         }}
                         className="w-full px-4 py-3 hover:bg-cream-light transition-colors border-b last:border-b-0 text-left"
@@ -316,7 +318,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               {/* Action Buttons */}
               <div className="space-y-2">
                 <Button 
-                  onClick={() => onBookTour(tour)}
+                  onClick={() => onBookTour(tour, selectedSlotId || undefined)}
                   disabled={!selectedDate}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-2.5"
                 >
@@ -381,7 +383,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* Action Buttons */}
             <div className="space-y-2">
               <Button 
-                onClick={() => onBookTour(tour)}
+                onClick={() => onBookTour(tour, selectedSlotId || undefined)}
                 disabled={!selectedDate}
                 className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-base py-3"
               >

@@ -46,6 +46,8 @@ const bookingFormSchema = z.object({
 export const BookingFlowNew = () => {
   const { tourSlug } = useParams();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const preselectedSlotId = searchParams.get('slotId');
   
   const [currentStep, setCurrentStep] = useState<BookingStep>('account' as BookingStep);
   const [isVerified, setIsVerified] = useState(false);
@@ -67,7 +69,8 @@ export const BookingFlowNew = () => {
     defaultValues: {
       participants: [{ firstName: '', surname: '', age: 0, experience: 'beginner', medicalConditions: '' }],
       dietaryPreferences: [],
-      agreedToTerms: false
+      agreedToTerms: false,
+      selectedDateSlotId: preselectedSlotId || ''
     }
   });
 
