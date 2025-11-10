@@ -300,7 +300,7 @@ export const PaymentStep = ({
           <Card className="p-6">
             <Label className="text-lg font-semibold mb-4 block">Payment Methods</Label>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              We'll redirect you to our secure payment partner, Stripe, where you can complete your booking using the payment method that works best for you. All transactions are encrypted and protected.
+              We'll redirect you to our secure payment partner, Stripe, where you can complete your booking using the payment method that works best for you. {depositAmount > 0 ? 'For deposit payments, card and SEPA direct debit are available to enable automatic final payment collection.' : 'Multiple payment options including cards, digital wallets, and local payment methods are available.'} All transactions are encrypted and protected.
             </p>
 
             <div className="mt-6 p-4 bg-muted rounded-lg">

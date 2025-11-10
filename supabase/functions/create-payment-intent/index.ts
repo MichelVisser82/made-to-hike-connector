@@ -92,7 +92,6 @@ serve(async (req) => {
         });
 
       session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card', 'sepa_debit', 'ideal', 'bancontact', 'giropay', 'sofort', 'eps', 'p24'],
         line_items: [{
           price_data: {
             currency: currency.toLowerCase(),
