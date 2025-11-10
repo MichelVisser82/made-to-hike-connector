@@ -299,22 +299,9 @@ export const PaymentStep = ({
           {/* Payment Methods Info */}
           <Card className="p-6">
             <Label className="text-lg font-semibold mb-4 block">Payment Methods</Label>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 border rounded-lg">
-                <CreditCard className="h-6 w-6 text-primary" />
-                <div>
-                  <p className="font-medium">Credit or Debit Card</p>
-                  <p className="text-sm text-muted-foreground">Visa, Mastercard, Amex</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 border rounded-lg">
-                <Smartphone className="h-6 w-6 text-primary" />
-                <div>
-                  <p className="font-medium">Digital Wallets & Local Methods</p>
-                  <p className="text-sm text-muted-foreground">Apple Pay, Google Pay, SEPA, iDEAL, Bancontact, Giropay</p>
-                </div>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              We'll redirect you to our secure payment partner, Stripe, where you can complete your booking using the payment method that works best for you. All transactions are encrypted and protected.
+            </p>
 
             <div className="mt-6 p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">
