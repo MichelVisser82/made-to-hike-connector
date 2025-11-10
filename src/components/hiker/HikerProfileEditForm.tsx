@@ -13,7 +13,8 @@ import { Loader2, User, Heart, Shield, Phone, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface HikerProfile {
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
   date_of_birth: string;
@@ -57,7 +58,8 @@ export function HikerProfileEditForm() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profile, setProfile] = useState<HikerProfile>({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     date_of_birth: '',
@@ -98,7 +100,8 @@ export function HikerProfileEditForm() {
           : [];
 
         setProfile({
-          name: data.name || '',
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
           email: data.email || '',
           phone: data.phone || '',
           date_of_birth: data.date_of_birth || '',
@@ -130,7 +133,9 @@ export function HikerProfileEditForm() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          name: profile.name,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          name: `${profile.first_name} ${profile.last_name}`.trim(), // Keep name in sync for backwards compatibility
           phone: profile.phone,
           date_of_birth: profile.date_of_birth || null,
           country: profile.country,
@@ -279,14 +284,25 @@ export function HikerProfileEditForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name *</Label>
-            <Input
-              id="name"
-              value={profile.name}
-              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-              placeholder="John Doe"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="first_name">First Name *</Label>
+              <Input
+                id="first_name"
+                value={profile.first_name}
+                onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+                placeholder="John"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="last_name">Last Name *</Label>
+              <Input
+                id="last_name"
+                value={profile.last_name}
+                onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
+                placeholder="Doe"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

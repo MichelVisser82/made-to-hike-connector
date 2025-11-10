@@ -1146,8 +1146,10 @@ export type Database = {
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relationship: string | null
+          first_name: string | null
           hiking_experience: string | null
           id: string
+          last_name: string | null
           medical_conditions: string | null
           name: string
           phone: string | null
@@ -1165,8 +1167,10 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
+          first_name?: string | null
           hiking_experience?: string | null
           id: string
+          last_name?: string | null
           medical_conditions?: string | null
           name: string
           phone?: string | null
@@ -1184,8 +1188,10 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
+          first_name?: string | null
           hiking_experience?: string | null
           id?: string
+          last_name?: string | null
           medical_conditions?: string | null
           name?: string
           phone?: string | null

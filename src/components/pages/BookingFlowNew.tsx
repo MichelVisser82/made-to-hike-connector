@@ -120,14 +120,12 @@ export const BookingFlowNew = () => {
             if (profile.accessibility_needs) form.setValue('accessibilityNeeds', profile.accessibility_needs);
             
             // Pre-fill first participant with user data
-            // Try profile.name first, then fall back to user metadata
             let firstName = '';
             let surname = '';
             
-            if (profile.name) {
-              const nameParts = profile.name.trim().split(' ');
-              firstName = nameParts[0] || '';
-              surname = nameParts.slice(1).join(' ') || '';
+            if (profile.first_name || profile.last_name) {
+              firstName = profile.first_name || '';
+              surname = profile.last_name || '';
             } else if (session.user.user_metadata?.firstName || session.user.user_metadata?.lastName) {
               firstName = session.user.user_metadata.firstName || '';
               surname = session.user.user_metadata.lastName || '';
@@ -405,9 +403,13 @@ export const BookingFlowNew = () => {
       if (bookingError) throw bookingError;
 
       // Update profile with booking info
+      const firstParticipant = form.getValues('participants.0');
       await supabase
         .from('profiles')
         .update({
+          first_name: firstParticipant.firstName,
+          last_name: firstParticipant.surname,
+          name: `${firstParticipant.firstName} ${firstParticipant.surname}`.trim(), // Keep name in sync
           phone: form.getValues('phone'),
           country: form.getValues('country'),
           emergency_contact_name: form.getValues('emergencyContactName'),
