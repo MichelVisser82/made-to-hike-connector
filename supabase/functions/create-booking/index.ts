@@ -92,6 +92,22 @@ serve(async (req) => {
     }
     console.log('Tour found:', tour.title);
 
+    // Get hiker profile for email
+    console.log('Fetching hiker profile for hiker_id:', hiker_id);
+    const { data: hikerProfile, error: hikerProfileError } = await supabase
+      .from('profiles')
+      .select('email, name')
+      .eq('id', hiker_id)
+      .single();
+
+    if (hikerProfileError || !hikerProfile) {
+      console.error('Hiker profile fetch error:', hikerProfileError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch hiker profile' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get date slot info
     console.log('Fetching date slot info for date_slot_id:', date_slot_id);
     const { data: dateSlot, error: dateSlotError } = await supabase
@@ -152,6 +168,7 @@ serve(async (req) => {
         tour_id,
         date_slot_id,
         hiker_id,
+        hiker_email: hikerProfile.email,
         booking_date: dateSlot.slot_date,
         participants,
         participants_details,
@@ -232,19 +249,13 @@ serve(async (req) => {
     // Send confirmation email to hiker
     console.log('Sending confirmation email to hiker...');
     try {
-      const { data: hikerProfile } = await supabase
-        .from('profiles')
-        .select('email, name')
-        .eq('id', hiker_id)
-        .single();
-
       const { data: guideProfile } = await supabase
         .from('guide_profiles')
         .select('display_name')
         .eq('user_id', tour.guide_id)
         .single();
 
-      if (hikerProfile?.email) {
+      if (hikerProfile.email) {
         await supabase.functions.invoke('send-email', {
           body: {
             type: 'booking-confirmation',

@@ -116,7 +116,7 @@ async function handlePaymentProcessing(event: any, supabase: any) {
       updated_at: new Date().toISOString()
     })
     .eq('stripe_payment_intent_id', paymentIntent.id)
-    .select('id, booking_reference, hiker_id, profiles!bookings_hiker_id_fkey(email, name)')
+    .select('id, booking_reference, hiker_id, hiker_email, profiles!bookings_hiker_id_fkey(name)')
     .single();
 
   if (error) {
@@ -134,7 +134,7 @@ async function handlePaymentProcessing(event: any, supabase: any) {
     try {
       await supabase.functions.invoke('send-email', {
         body: {
-          to: booking.profiles.email,
+          to: booking.hiker_email,
           subject: `Payment Processing - Booking ${booking.booking_reference}`,
           html: `
             <h2>Payment Being Processed</h2>
@@ -166,7 +166,7 @@ async function handlePaymentSuccess(event: any, supabase: any) {
       updated_at: new Date().toISOString()
     })
     .eq('stripe_payment_intent_id', paymentIntent.id)
-    .select('id, booking_reference, hiker_id, profiles!bookings_hiker_id_fkey(email, name)')
+    .select('id, booking_reference, hiker_id, hiker_email, profiles!bookings_hiker_id_fkey(name)')
     .single();
 
   if (error) {
@@ -184,7 +184,7 @@ async function handlePaymentSuccess(event: any, supabase: any) {
     try {
       await supabase.functions.invoke('send-email', {
         body: {
-          to: booking.profiles.email,
+          to: booking.hiker_email,
           subject: `Payment Confirmed - Booking ${booking.booking_reference}`,
           html: `
             <h2>Payment Confirmed!</h2>
@@ -268,7 +268,7 @@ async function handlePaymentFailed(event: any, supabase: any) {
   // Send email notification to hiker
   const { data: booking } = await supabase
     .from('bookings')
-    .select('hiker_id, tour_id, profiles!bookings_hiker_id_fkey(email, name)')
+    .select('hiker_id, tour_id, hiker_email, profiles!bookings_hiker_id_fkey(name)')
     .eq('stripe_payment_intent_id', paymentIntent.id)
     .single();
 
@@ -276,7 +276,7 @@ async function handlePaymentFailed(event: any, supabase: any) {
     const errorMessage = getUserFriendlyErrorMessage(failureCode);
     await supabase.functions.invoke('send-email', {
       body: {
-        to: booking.profiles.email,
+        to: booking.hiker_email,
         subject: 'Payment Failed - Action Required',
         html: `
           <h2>Payment Failed</h2>

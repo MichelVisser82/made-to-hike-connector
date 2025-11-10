@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
             meeting_point,
             guide_profiles!tours_guide_id_fkey(display_name)
           ),
-          hiker:profiles!bookings_hiker_id_fkey(name, email)
+          hiker:profiles!bookings_hiker_id_fkey(name)
         `)
         .eq('status', 'confirmed')
       
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
           const { error: emailError } = await supabase.functions.invoke('send-email', {
             body: {
               type: 'automated_template',
-              to: booking.hiker?.email,
+              to: booking.hiker_email,
               subject: processedSubject,
               html: processedContent
             }
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
             await supabase.from('email_logs').insert({
               template_id: template.id,
               booking_id: booking.id,
-              recipient_email: booking.hiker?.email,
+              recipient_email: booking.hiker_email,
               subject: processedSubject,
               status: 'failed'
             })
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
           await supabase.from('email_logs').insert({
             template_id: template.id,
             booking_id: booking.id,
-            recipient_email: booking.hiker?.email,
+            recipient_email: booking.hiker_email,
             subject: processedSubject,
             status: 'sent'
           })

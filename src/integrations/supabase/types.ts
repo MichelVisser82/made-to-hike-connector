@@ -79,6 +79,7 @@ export type Database = {
           final_payment_due_date: string | null
           final_payment_intent_id: string | null
           final_payment_status: string | null
+          hiker_email: string | null
           hiker_id: string
           id: string
           participants: number
@@ -114,6 +115,7 @@ export type Database = {
           final_payment_due_date?: string | null
           final_payment_intent_id?: string | null
           final_payment_status?: string | null
+          hiker_email?: string | null
           hiker_id: string
           id?: string
           participants?: number
@@ -149,6 +151,7 @@ export type Database = {
           final_payment_due_date?: string | null
           final_payment_intent_id?: string | null
           final_payment_status?: string | null
+          hiker_email?: string | null
           hiker_id?: string
           id?: string
           participants?: number
