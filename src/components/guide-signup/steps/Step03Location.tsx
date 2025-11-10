@@ -52,7 +52,7 @@ interface Step03LocationProps {
 export function Step03Location({ data, updateData, onNext, onBack }: Step03LocationProps) {
   const handleNext = () => {
     if (data.country && data.address_line1?.trim() && 
-        data.address_city?.trim() && data.address_postal_code?.trim() && data.date_of_birth) {
+        data.address_city?.trim() && data.address_postal_code?.trim()) {
       onNext();
     }
   };
@@ -68,20 +68,6 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
           <p className="text-muted-foreground">Required for payment account setup and identity verification</p>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Date of Birth */}
-          <div>
-            <Label htmlFor="dob">Date of Birth *</Label>
-            <Input
-              id="dob"
-              type="date"
-              value={data.date_of_birth || ''}
-              onChange={(e) => updateData({ date_of_birth: e.target.value })}
-              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-              className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
-            />
-            <p className="text-xs text-muted-foreground mt-1">Required by Stripe (must be 18+)</p>
-          </div>
-
           {/* Country Selection */}
           <div>
             <Label htmlFor="country">Country *</Label>
@@ -188,7 +174,7 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
             <Button 
               onClick={handleNext} 
               disabled={!data.country || !data.address_line1?.trim() || 
-                       !data.address_city?.trim() || !data.address_postal_code?.trim() || !data.date_of_birth}
+                       !data.address_city?.trim() || !data.address_postal_code?.trim()}
               className="bg-burgundy hover:bg-burgundy/90 text-white"
             >
               Continue

@@ -36,6 +36,7 @@ export function Step02BasicInfo({ data, updateData, onNext, onBack }: Step02Basi
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) newErrors.email = 'Invalid email format';
     if (!data.password) newErrors.password = 'Password is required';
     else if (data.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+    if (!data.date_of_birth) newErrors.date_of_birth = 'Date of birth is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -151,6 +152,21 @@ export function Step02BasicInfo({ data, updateData, onNext, onBack }: Step02Basi
               placeholder="e.g., 5"
             />
             {errors.experience_years && <p className="text-sm text-destructive mt-1">{errors.experience_years}</p>}
+          </div>
+
+          {/* Date of Birth */}
+          <div>
+            <Label htmlFor="dob">Date of Birth *</Label>
+            <Input
+              id="dob"
+              type="date"
+              value={data.date_of_birth || ''}
+              onChange={(e) => updateData({ date_of_birth: e.target.value })}
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+              className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Required by Stripe (must be 18+)</p>
+            {errors.date_of_birth && <p className="text-sm text-destructive mt-1">{errors.date_of_birth}</p>}
           </div>
 
           {/* Navigation */}
