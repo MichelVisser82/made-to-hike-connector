@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { CertificationBadge } from '../ui/certification-badge';
 import { ThumbnailSelectorModal } from './ThumbnailSelectorModal';
 import { ImageSelectorModal } from './ImageSelectorModal';
-import { Loader2, X, Mail, Lock, AlertCircle, Plus, Eye, Star, Upload, Video, ExternalLink, Image as ImageIcon, Trash2, ChevronDown } from 'lucide-react';
+import { Loader2, X, Mail, Lock, AlertCircle, Plus, Eye, Star, Upload, Video, ExternalLink, Image as ImageIcon, Trash2, ChevronDown, Search, Check } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,9 @@ import {
 } from '@/constants/certifications';
 import { uploadCertificateDocument } from '@/utils/imageProcessing';
 import type { GuideCertification } from '@/types/guide';
+import { useHikingRegions } from '@/hooks/useHikingRegions';
+import { ScrollArea } from '../ui/scroll-area';
+import { useMemo } from 'react';
 
 const SPECIALTY_OPTIONS = [
   'Alpine Hiking', 'Mountain Climbing', 'Glacier Trekking', 'Via Ferrata',
@@ -40,10 +43,7 @@ const TERRAIN_OPTIONS = [
   'Alpine Meadows', 'Rocky Terrain', 'Snow & Ice', 'Canyon Routes'
 ];
 
-const GUIDING_AREAS = [
-  'Scottish Highlands', 'Lake District', 'Snowdonia', 'Peak District',
-  'Alps', 'Dolomites', 'Pyrenees', 'Carpathians', 'Scandinavian Mountains'
-];
+// Removed static GUIDING_AREAS - now using dynamic region selection
 
 const LANGUAGES = [
   'English', 'German', 'French', 'Italian', 'Spanish', 
@@ -67,6 +67,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const { data: profile, isLoading, refetch } = useMyGuideProfile();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { data: regions } = useHikingRegions();
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -128,6 +129,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+  const [guidingAreasSearch, setGuidingAreasSearch] = useState('');
   const [heroImagePreview, setHeroImagePreview] = useState<string>('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoType, setVideoType] = useState<'upload' | 'external'>('external');
@@ -151,6 +153,81 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
   const [fileError, setFileError] = useState<string>('');
   const [isUploadingCert, setIsUploadingCert] = useState(false);
   const [certFile, setCertFile] = useState<File | null>(null);
+
+  // Create searchable region labels at all hierarchy levels
+  const regionOptions = useMemo(() => {
+    if (!regions) return [];
+    
+    const options: Array<{
+      id: string;
+      label: string;
+      searchText: string;
+      level: 'country' | 'region' | 'subregion';
+    }> = [];
+    
+    // Track unique entries to avoid duplicates
+    const uniqueCountries = new Set<string>();
+    const uniqueRegions = new Set<string>();
+    const uniqueSubregions = new Set<string>();
+    
+    regions.forEach(r => {
+      // Add country option
+      if (!uniqueCountries.has(r.country)) {
+        uniqueCountries.add(r.country);
+        options.push({
+          id: `country-${r.country}`,
+          label: r.country,
+          searchText: r.country.toLowerCase(),
+          level: 'country',
+        });
+      }
+      
+      // Add region option (if region exists)
+      if (r.region) {
+        const regionLabel = `${r.region}, ${r.country}`;
+        if (!uniqueRegions.has(regionLabel)) {
+          uniqueRegions.add(regionLabel);
+          options.push({
+            id: `region-${regionLabel}`,
+            label: regionLabel,
+            searchText: `${r.region} ${r.country}`.toLowerCase(),
+            level: 'region',
+          });
+        }
+      }
+      
+      // Add subregion option
+      const subregionLabel = r.region 
+        ? `${r.subregion}, ${r.region}, ${r.country}` 
+        : `${r.subregion}, ${r.country}`;
+      
+      if (!uniqueSubregions.has(subregionLabel)) {
+        uniqueSubregions.add(subregionLabel);
+        options.push({
+          id: `subregion-${r.id}`,
+          label: subregionLabel,
+          searchText: `${r.country} ${r.region || ''} ${r.subregion}`.toLowerCase(),
+          level: 'subregion',
+        });
+      }
+    });
+    
+    // Sort: countries first, then regions, then subregions, alphabetically within each level
+    return options.sort((a, b) => {
+      const levelOrder = { country: 0, region: 1, subregion: 2 };
+      if (a.level !== b.level) {
+        return levelOrder[a.level] - levelOrder[b.level];
+      }
+      return a.label.localeCompare(b.label);
+    });
+  }, [regions]);
+
+  // Filter regions based on search
+  const filteredRegions = useMemo(() => {
+    if (!guidingAreasSearch.trim()) return [];
+    const search = guidingAreasSearch.toLowerCase();
+    return regionOptions.filter(r => r.searchText.includes(search));
+  }, [regionOptions, guidingAreasSearch]);
 
   useEffect(() => {
     if (profile) {
@@ -2153,22 +2230,96 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
             </div>
           </div>
 
-          <div>
+          <div className="space-y-4">
             <Label>Guiding Areas</Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {GUIDING_AREAS.map((area) => (
-                <Badge
-                  key={area}
-                  variant={formData.guiding_areas.includes(area) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => setFormData({
-                    ...formData,
-                    guiding_areas: toggleArrayItem(formData.guiding_areas, area)
-                  })}
-                >
-                  {area}
-                </Badge>
-              ))}
+            <p className="text-sm text-muted-foreground">Where do you guide? Select countries, regions, or specific subregions.</p>
+            
+            {/* Selected regions */}
+            {formData.guiding_areas.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Selected Regions:</p>
+                <div className="flex flex-wrap gap-2">
+                  {formData.guiding_areas.map((area) => (
+                    <Badge
+                      key={area}
+                      variant="default"
+                      className="py-2 px-3"
+                    >
+                      {area}
+                      <button
+                        onClick={() => setFormData({
+                          ...formData,
+                          guiding_areas: formData.guiding_areas.filter(a => a !== area)
+                        })}
+                        className="ml-2 hover:opacity-70 focus:outline-none"
+                        aria-label={`Remove ${area}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Search box */}
+            <div className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={guidingAreasSearch}
+                  onChange={(e) => setGuidingAreasSearch(e.target.value)}
+                  placeholder="Search by country, region, or subregion (e.g., Switzerland, Scotland, Dolomites...)"
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Search results */}
+              {guidingAreasSearch && (
+                <ScrollArea className="h-64 border rounded-md">
+                  {filteredRegions.length === 0 ? (
+                    <div className="p-4 text-center text-muted-foreground">No regions found</div>
+                  ) : (
+                    <div className="p-2">
+                      {filteredRegions.map((region) => {
+                        const isSelected = formData.guiding_areas.includes(region.label);
+                        
+                        // Visual indicator based on level
+                        const levelBadge = {
+                          country: { text: '🌍 Country', color: 'text-blue-600' },
+                          region: { text: '📍 Region', color: 'text-green-600' },
+                          subregion: { text: '🏔️ Subregion', color: 'text-orange-600' },
+                        }[region.level];
+                        
+                        return (
+                          <button
+                            key={region.id}
+                            onClick={() => {
+                              if (!isSelected) {
+                                setFormData({
+                                  ...formData,
+                                  guiding_areas: [...formData.guiding_areas, region.label]
+                                });
+                                setGuidingAreasSearch('');
+                              }
+                            }}
+                            disabled={isSelected}
+                            className="w-full text-left px-3 py-2 rounded-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between transition-colors group"
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-sm">{region.label}</span>
+                              <span className={`text-xs ${levelBadge.color} opacity-70 group-hover:opacity-100`}>
+                                {levelBadge.text}
+                              </span>
+                            </div>
+                            {isSelected && <Check className="w-4 h-4 text-primary" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </ScrollArea>
+              )}
             </div>
           </div>
 
