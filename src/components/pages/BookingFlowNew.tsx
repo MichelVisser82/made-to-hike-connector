@@ -193,12 +193,22 @@ export const BookingFlowNew = () => {
     checkAuthAndLoadTour();
   }, [tourSlug, navigate]);
 
-  // Load draft from localStorage
+  // Load draft from localStorage (but skip if this is a fresh signup)
   useEffect(() => {
     const loadDraft = async () => {
       if (tourData && isVerified) {
         const { data } = await supabase.auth.getSession();
         if (!data.session) return;
+        
+        // Check if user just signed up (account created very recently)
+        const userCreatedAt = new Date(data.session.user.created_at);
+        const isNewSignup = Date.now() - userCreatedAt.getTime() < 60000; // Within last minute
+        
+        // Don't load draft for brand new signups - let the pre-filled data persist
+        if (isNewSignup) {
+          console.log('[BookingFlow] Skipping draft load for new signup');
+          return;
+        }
         
         const draftKey = `booking-draft-${tourData.id}-${data.session.user.id}`;
         const draft = localStorage.getItem(draftKey);
@@ -307,6 +317,7 @@ export const BookingFlowNew = () => {
         currency: slot.currency_override || tourData.currency
       });
 
+      console.log('[BookingFlow] Moving to participants step with data:', form.getValues('participants'));
       setCurrentStep('participants' as BookingStep);
     } catch (error) {
       console.error('Error loading slot:', error);
