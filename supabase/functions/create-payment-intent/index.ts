@@ -180,6 +180,11 @@ serve(async (req) => {
     }
 
     console.log('[create-payment-intent] Session created:', session.id);
+    console.log('[create-payment-intent] About to return response:', { 
+      sessionId: session.id, 
+      url: session.url,
+      hasUrl: !!session.url 
+    });
 
     return new Response(
       JSON.stringify({ sessionId: session.id, url: session.url }),

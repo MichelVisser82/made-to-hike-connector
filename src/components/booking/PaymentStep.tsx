@@ -210,35 +210,35 @@ export const PaymentStep = ({
 
       const { data, error } = await Promise.race([invokePromise, timeoutPromise]) as any;
 
-      console.log('[PaymentStep] Payment response received:', { data, error });
-      console.log('[PaymentStep] Response data type:', typeof data);
-      console.log('[PaymentStep] Response data keys:', data ? Object.keys(data) : 'no data');
+      console.log('[PaymentStep] Payment response received:', { 
+        data, 
+        error,
+        dataType: typeof data,
+        dataKeys: data ? Object.keys(data) : 'no data',
+        hasUrl: data?.url,
+        fullResponse: JSON.stringify({ data, error })
+      });
 
+      // Handle Supabase Functions error
       if (error) {
         console.error('[PaymentStep] Edge function error:', error);
-        
-        // Extract the actual error message from the response
-        let errorMsg = 'Failed to initiate payment. Please try again.';
-        
-        if (data?.error) {
-          errorMsg = data.error;
-        } else if (error.message) {
-          errorMsg = error.message;
-        }
-        
-        toast.error(errorMsg);
+        toast.error(error.message || 'Failed to initiate payment. Please try again.');
+        setIsProcessing(false);
         return;
       }
 
+      // Handle error in response data
+      if (data?.error) {
+        console.error('[PaymentStep] Payment error from response:', data.error);
+        toast.error(data.error);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Check for URL in response
       if (!data?.url) {
-        console.error('[PaymentStep] No checkout URL returned:', data);
-        
-        // Check if there's an error in the data object
-        if (data?.error) {
-          toast.error(data.error);
-        } else {
-          toast.error('Failed to initialize payment session. Please try again.');
-        }
+        console.error('[PaymentStep] No checkout URL in response:', data);
+        toast.error('Failed to initialize payment session. Please try again.');
         setIsProcessing(false);
         return;
       }
