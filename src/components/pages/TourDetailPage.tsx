@@ -946,7 +946,12 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     </div>
 
                     {/* Ask Question Button */}
-                    <Button variant="default" size="lg" className="w-full mt-auto">
+                    <Button 
+                      variant="default" 
+                      size="lg" 
+                      className="w-full mt-auto"
+                      onClick={() => setChatOpen(true)}
+                    >
                       <MessageCircle className="mr-2 h-5 w-5" />
                       Ask {guideInfo.displayName.split(' ')[0]} a question
                     </Button>
