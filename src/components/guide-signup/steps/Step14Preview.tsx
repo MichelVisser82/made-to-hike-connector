@@ -26,7 +26,15 @@ export function Step14Preview({ data, onNext, onBack }: Step14PreviewProps) {
             <h3 className="font-semibold mb-2">Basic Information</h3>
             <p><strong>Name:</strong> {data.display_name}</p>
             <p><strong>Email:</strong> {data.email}</p>
-            <p><strong>Location:</strong> {data.location}</p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-2">Guiding Regions</h3>
+            <div className="flex flex-wrap gap-2">
+              {data.guiding_areas?.map((area, i) => (
+                <Badge key={i} variant="secondary">{area}</Badge>
+              ))}
+            </div>
           </div>
 
           <div>
