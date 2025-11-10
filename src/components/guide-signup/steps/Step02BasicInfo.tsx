@@ -146,8 +146,8 @@ export function Step02BasicInfo({ data, updateData, onNext, onBack }: Step02Basi
               type="number"
               min="0"
               max="50"
-              value={data.experience_years || 0}
-              onChange={(e) => updateData({ experience_years: parseInt(e.target.value) || 0 })}
+              value={data.experience_years ?? ''}
+              onChange={(e) => updateData({ experience_years: e.target.value === '' ? undefined : parseInt(e.target.value) || undefined })}
               placeholder="e.g., 5"
             />
             {errors.experience_years && <p className="text-sm text-destructive mt-1">{errors.experience_years}</p>}

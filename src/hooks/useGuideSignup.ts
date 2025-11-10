@@ -27,9 +27,9 @@ export function useGuideSignup() {
   const [formData, setFormData] = useState<Partial<GuideSignupData>>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {
-      min_group_size: 1,
-      max_group_size: 10,
-      experience_years: 0,
+      min_group_size: undefined,
+      max_group_size: undefined,
+      experience_years: undefined,
       daily_rate_currency: 'EUR',
       specialties: [],
       difficulty_levels: [],

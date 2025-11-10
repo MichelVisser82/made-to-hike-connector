@@ -32,8 +32,8 @@ export function Step08DayRates({ data, updateData, onNext, onBack }: Step08DayRa
                 id="daily_rate"
                 type="number"
                 min="0"
-                value={data.daily_rate || ''}
-                onChange={(e) => updateData({ daily_rate: parseFloat(e.target.value) || 0 })}
+                value={data.daily_rate ?? ''}
+                onChange={(e) => updateData({ daily_rate: e.target.value === '' ? undefined : parseFloat(e.target.value) || undefined })}
                 placeholder="250"
               />
             </div>

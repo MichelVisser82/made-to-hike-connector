@@ -13,8 +13,8 @@ interface Step07GroupPreferencesProps {
 }
 
 export function Step07GroupPreferences({ data, updateData, onNext, onBack }: Step07GroupPreferencesProps) {
-  const minSize = data.min_group_size || 1;
-  const maxSize = data.max_group_size || 10;
+  const minSize = data.min_group_size ?? '';
+  const maxSize = data.max_group_size ?? '';
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -35,7 +35,8 @@ export function Step07GroupPreferences({ data, updateData, onNext, onBack }: Ste
                 type="number"
                 min="1"
                 value={minSize}
-                onChange={(e) => updateData({ min_group_size: parseInt(e.target.value) || 1 })}
+                onChange={(e) => updateData({ min_group_size: e.target.value === '' ? undefined : parseInt(e.target.value) || undefined })}
+                placeholder="1"
               />
             </div>
             <div>
@@ -43,9 +44,10 @@ export function Step07GroupPreferences({ data, updateData, onNext, onBack }: Ste
               <Input
                 id="max_group_size"
                 type="number"
-                min={minSize}
+                min={minSize || 1}
                 value={maxSize}
-                onChange={(e) => updateData({ max_group_size: parseInt(e.target.value) || 10 })}
+                onChange={(e) => updateData({ max_group_size: e.target.value === '' ? undefined : parseInt(e.target.value) || undefined })}
+                placeholder="10"
               />
             </div>
           </div>
