@@ -204,7 +204,9 @@ export const PaymentStep = ({
         body: paymentPayload
       });
 
-      console.log('[PaymentStep] Payment response:', { data, error });
+      console.log('[PaymentStep] Payment response received:', { data, error });
+      console.log('[PaymentStep] Response data type:', typeof data);
+      console.log('[PaymentStep] Response data keys:', data ? Object.keys(data) : 'no data');
 
       if (error) {
         console.error('[PaymentStep] Edge function error:', error);
@@ -231,11 +233,20 @@ export const PaymentStep = ({
         } else {
           toast.error('Failed to initialize payment session. Please try again.');
         }
+        setIsProcessing(false);
         return;
       }
 
-      // Redirect to Stripe Checkout
-      window.location.href = data.url;
+      console.log('[PaymentStep] Redirecting to Stripe checkout:', data.url);
+      
+      // Redirect to Stripe Checkout in the same window
+      try {
+        window.location.href = data.url;
+      } catch (redirectError) {
+        console.error('[PaymentStep] Redirect error:', redirectError);
+        toast.error('Failed to redirect to payment page. Please try again.');
+        setIsProcessing(false);
+      }
 
     } catch (error: any) {
       console.error('[PaymentStep] Payment error:', error);
