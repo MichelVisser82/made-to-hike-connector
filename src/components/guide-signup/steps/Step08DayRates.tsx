@@ -5,44 +5,42 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { GuideSignupData } from '@/types/guide';
-
 interface Step08DayRatesProps {
   data: Partial<GuideSignupData>;
   updateData: (data: Partial<GuideSignupData>) => void;
   onNext: () => void;
   onBack: () => void;
 }
-
-export function Step08DayRates({ data, updateData, onNext, onBack }: Step08DayRatesProps) {
-  return (
-    <div className="max-w-2xl mx-auto">
+export function Step08DayRates({
+  data,
+  updateData,
+  onNext,
+  onBack
+}: Step08DayRatesProps) {
+  return <div className="max-w-2xl mx-auto">
       <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal flex items-center gap-2" style={{
+          fontFamily: 'Playfair Display, serif'
+        }}>
             <DollarSign className="w-5 h-5 text-burgundy" />
             Day Rates
           </CardTitle>
-          <p className="text-muted-foreground">Set your daily guiding rate</p>
+          <p className="text-muted-foreground">Set your daily guiding rate (you can change this later)</p>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-1">
               <Label htmlFor="daily_rate">Daily Rate *</Label>
-              <Input
-                id="daily_rate"
-                type="number"
-                min="0"
-                value={data.daily_rate ?? ''}
-                onChange={(e) => updateData({ daily_rate: e.target.value === '' ? undefined : parseFloat(e.target.value) || undefined })}
-                placeholder="250"
-              />
+              <Input id="daily_rate" type="number" min="0" value={data.daily_rate ?? ''} onChange={e => updateData({
+              daily_rate: e.target.value === '' ? undefined : parseFloat(e.target.value) || undefined
+            })} placeholder="250" />
             </div>
             <div className="col-span-1">
               <Label htmlFor="currency">Currency *</Label>
-              <Select
-                value={data.daily_rate_currency || 'EUR'}
-                onValueChange={(value: 'EUR' | 'GBP') => updateData({ daily_rate_currency: value })}
-              >
+              <Select value={data.daily_rate_currency || 'EUR'} onValueChange={(value: 'EUR' | 'GBP') => updateData({
+              daily_rate_currency: value
+            })}>
                 <SelectTrigger id="currency">
                   <SelectValue />
                 </SelectTrigger>
@@ -60,6 +58,5 @@ export function Step08DayRates({ data, updateData, onNext, onBack }: Step08DayRa
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
