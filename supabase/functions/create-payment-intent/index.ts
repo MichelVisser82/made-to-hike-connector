@@ -91,7 +91,9 @@ serve(async (req) => {
           expires_at: expiresAt.toISOString()
         });
 
-      session = await stripe.checkout.sessions.create({
+      // For deposits, only allow payment methods that support saving for future use
+      // For full payments, allow all available payment methods
+      const sessionConfig: any = {
         line_items: [{
           price_data: {
             currency: currency.toLowerCase(),
@@ -111,7 +113,6 @@ serve(async (req) => {
           transfer_data: {
             destination: guide.stripe_account_id, // Guide receives amount - guide fee
           },
-          setup_future_usage: isDeposit ? 'off_session' : undefined, // Save payment method for final payment if deposit
         },
         success_url: `${req.headers.get('origin')}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${req.headers.get('origin')}/tours/${tourId}/book`,
@@ -132,7 +133,15 @@ serve(async (req) => {
           final_payment_amount: String(isDeposit ? Math.round((finalPaymentAmount || 0) * 100) : 0),
           final_payment_days: String(bookingData?.finalPaymentDays || 0),
         },
-      });
+      };
+
+      // For deposits, restrict to payment methods that support saving for future charges
+      if (isDeposit) {
+        sessionConfig.payment_method_types = ['card', 'sepa_debit'];
+        sessionConfig.payment_intent_data.setup_future_usage = 'off_session';
+      }
+
+      session = await stripe.checkout.sessions.create(sessionConfig);
     } catch (stripeError: any) {
       console.error('[create-payment-intent] Stripe error:', stripeError);
       
