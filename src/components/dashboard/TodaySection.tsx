@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
   Mountain, 
@@ -45,6 +46,8 @@ export function TodaySection({
   onSectionNavigate,
   stripeConnected = false,
 }: TodaySectionProps) {
+  const navigate = useNavigate();
+
   const getGreeting = () => {
     const hour = currentDate.getHours();
     if (hour < 12) return 'Good Morning';
@@ -301,7 +304,7 @@ export function TodaySection({
                       Set up your payout account to start earning from bookings
                     </p>
                     <Button
-                      onClick={() => onSectionNavigate('money')}
+                      onClick={() => navigate('/settings/payment')}
                       variant="link"
                       className="text-burgundy p-0 h-auto mt-1 text-xs"
                     >
