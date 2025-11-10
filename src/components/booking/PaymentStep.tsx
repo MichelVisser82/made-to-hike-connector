@@ -420,7 +420,9 @@ export const PaymentStep = ({
               <div className="mt-4 p-3 bg-muted rounded-lg">
                 <div className="flex gap-2">
                   <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground">{depositInfo}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {depositInfo} The remaining balance will be automatically charged to your payment method on the due date.
+                  </p>
                 </div>
               </div>
             )}
