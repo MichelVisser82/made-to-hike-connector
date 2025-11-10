@@ -137,7 +137,7 @@ export const ReviewStep = ({
                   <p className="text-sm text-muted-foreground">
                     {formData.emergencyContactName} ({formData.emergencyContactRelationship})
                   </p>
-                  <p className="text-sm text-muted-foreground">{formData.emergencyContactPhone}</p>
+                  <p className="text-sm text-muted-foreground">{formData.emergencyContactCountry} {formData.emergencyContactPhone}</p>
                 </div>
               </div>
             </div>

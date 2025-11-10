@@ -236,6 +236,50 @@ export const BookingFlowNew = () => {
     loadDraft();
   }, [tourData, isVerified]);
 
+  // Load preselected slot data if slotId is in URL
+  useEffect(() => {
+    const loadPreselectedSlot = async () => {
+      if (preselectedSlotId && tourData && !selectedSlot) {
+        try {
+          const { data: slot, error } = await supabase
+            .from('tour_date_slots')
+            .select('*')
+            .eq('id', preselectedSlotId)
+            .single();
+
+          if (error) throw error;
+
+          setSelectedSlot(slot);
+
+          // Calculate pricing based on current participants
+          const participants = form.getValues('participants');
+          const basePrice = slot.price_override || tourData.price;
+          const subtotal = basePrice * participants.length;
+          const slotDiscount = slot.discount_percentage 
+            ? subtotal * (slot.discount_percentage / 100) 
+            : 0;
+          const serviceFee = tourData.service_fee_percentage 
+            ? subtotal * (tourData.service_fee_percentage / 100) 
+            : subtotal * 0.10;
+          const total = subtotal - slotDiscount + serviceFee;
+
+          setPricing({
+            subtotal,
+            discount: slotDiscount,
+            slotDiscount,
+            serviceFee,
+            total,
+            currency: slot.currency_override || tourData.currency
+          });
+        } catch (error) {
+          console.error('Error loading preselected slot:', error);
+        }
+      }
+    };
+
+    loadPreselectedSlot();
+  }, [preselectedSlotId, tourData, selectedSlot]);
+
   // Save draft to localStorage
   useEffect(() => {
     const saveDraft = async () => {
