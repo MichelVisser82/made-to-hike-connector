@@ -36,7 +36,7 @@ const countries = [
 
 export const ContactStep = ({ form, onNext, onBack }: ContactStepProps) => {
   const handleNext = async () => {
-    const valid = await form.trigger(['phone', 'country', 'emergencyContactName', 'emergencyContactPhone', 'emergencyContactRelationship']);
+    const valid = await form.trigger(['phone', 'country', 'emergencyContactName', 'emergencyContactCountry', 'emergencyContactPhone', 'emergencyContactRelationship']);
     if (valid) {
       onNext();
     }
@@ -125,13 +125,40 @@ export const ContactStep = ({ form, onNext, onBack }: ContactStepProps) => {
             </div>
 
             <div>
-              <Label htmlFor="emergencyContactPhone">Emergency Contact Phone</Label>
+              <Label htmlFor="emergencyContactCountry">Emergency Contact Country Code</Label>
+              <Select
+                value={form.watch('emergencyContactCountry')}
+                onValueChange={(value) => form.setValue('emergencyContactCountry', value)}
+              >
+                <SelectTrigger id="emergencyContactCountry">
+                  <SelectValue placeholder="Select country code" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.code} - {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.emergencyContactCountry && (
+                <p className="text-sm text-destructive mt-1">
+                  {form.formState.errors.emergencyContactCountry.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="emergencyContactPhone">Emergency Contact Phone Number</Label>
               <Input
                 id="emergencyContactPhone"
                 type="tel"
                 {...form.register('emergencyContactPhone')}
-                placeholder="Phone number with country code"
+                placeholder="Enter phone number (e.g., 0123456789)"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                You can include a leading 0 if needed
+              </p>
               {form.formState.errors.emergencyContactPhone && (
                 <p className="text-sm text-destructive mt-1">
                   {form.formState.errors.emergencyContactPhone.message}

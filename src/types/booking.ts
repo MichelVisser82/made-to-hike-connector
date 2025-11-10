@@ -11,6 +11,7 @@ export interface BookingFormData {
   phone: string;
   country: string;
   emergencyContactName: string;
+  emergencyContactCountry: string;
   emergencyContactPhone: string;
   emergencyContactRelationship: string;
   selectedDateSlotId: string;
