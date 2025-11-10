@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Upload } from 'lucide-react';
+import { Upload, Mail, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { GuideSignupData } from '@/types/guide';
 import { sanitizeSlug } from '@/utils/slugValidation';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 interface Step02BasicInfoProps {
   data: Partial<GuideSignupData>;
   updateData: (data: Partial<GuideSignupData>) => void;
@@ -20,6 +23,12 @@ export function Step02BasicInfo({
 }: Step02BasicInfoProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const { toast } = useToast();
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -31,15 +40,102 @@ export function Step02BasicInfo({
       reader.readAsDataURL(file);
     }
   };
+  const handleSendVerificationCode = async () => {
+    if (!data.email?.trim()) {
+      toast({
+        title: 'Email Required',
+        description: 'Please enter your email address first',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      toast({
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSendingCode(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-verification-code', {
+        body: { email: data.email }
+      });
+
+      if (error) throw error;
+
+      setCodeSent(true);
+      toast({
+        title: 'Code Sent!',
+        description: 'Check your email for the verification code',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to Send Code',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode.trim() || verificationCode.length !== 6) {
+      toast({
+        title: 'Invalid Code',
+        description: 'Please enter the 6-digit code',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsVerifyingCode(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke('verify-code', {
+        body: { 
+          email: data.email,
+          code: verificationCode,
+          verifyOnly: true
+        }
+      });
+
+      if (error) throw error;
+
+      if (result.verified) {
+        setIsEmailVerified(true);
+        toast({
+          title: 'Email Verified!',
+          description: 'You can now continue with your application',
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Verification Failed',
+        description: error.message || 'Invalid or expired code',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsVerifyingCode(false);
+    }
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!data.display_name?.trim()) newErrors.display_name = 'Name is required';
-    if (!data.email?.trim()) newErrors.email = 'Email is required';else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) newErrors.email = 'Invalid email format';
-    if (!data.password) newErrors.password = 'Password is required';else if (data.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+    if (!data.email?.trim()) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) newErrors.email = 'Invalid email format';
+    if (!isEmailVerified) newErrors.email_verification = 'Please verify your email address';
+    if (!data.password) newErrors.password = 'Password is required';
+    else if (data.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     if (!data.date_of_birth) newErrors.date_of_birth = 'Date of birth is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleNext = () => {
     if (validate()) onNext();
   };
@@ -97,11 +193,112 @@ export function Step02BasicInfo({
           {/* Email */}
           <div>
             <Label htmlFor="email">Email Address *</Label>
-            <Input id="email" type="email" value={data.email || ''} onChange={e => updateData({
-            email: e.target.value
-          })} placeholder="your@email.com" />
+            <div className="flex gap-2">
+              <Input 
+                id="email" 
+                type="email" 
+                value={data.email || ''} 
+                onChange={e => {
+                  updateData({ email: e.target.value });
+                  setCodeSent(false);
+                  setIsEmailVerified(false);
+                }} 
+                placeholder="your@email.com"
+                disabled={isEmailVerified}
+                className={isEmailVerified ? 'bg-green-50 border-green-500' : ''}
+              />
+              {!isEmailVerified && (
+                <Button
+                  type="button"
+                  onClick={handleSendVerificationCode}
+                  disabled={isSendingCode || !data.email}
+                  variant="outline"
+                  className="whitespace-nowrap"
+                >
+                  {isSendingCode ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : codeSent ? (
+                    <>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Resend Code
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Send Code
+                    </>
+                  )}
+                </Button>
+              )}
+              {isEmailVerified && (
+                <Button
+                  type="button"
+                  disabled
+                  className="bg-green-600 hover:bg-green-600"
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Verified
+                </Button>
+              )}
+            </div>
             {errors.email && <p className="text-sm text-destructive mt-1">{errors.email}</p>}
           </div>
+
+          {/* Verification Code Input */}
+          {codeSent && !isEmailVerified && (
+            <div>
+              <Alert className="mb-4">
+                <AlertDescription>
+                  We've sent a 6-digit verification code to <strong>{data.email}</strong>. Please check your email and enter the code below.
+                </AlertDescription>
+              </Alert>
+              <Label htmlFor="verification_code">Verification Code *</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="verification_code"
+                  type="text"
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={e => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                  className="text-center text-2xl tracking-widest"
+                />
+                <Button
+                  type="button"
+                  onClick={handleVerifyCode}
+                  disabled={isVerifyingCode || verificationCode.length !== 6}
+                  className="bg-burgundy hover:bg-burgundy/90"
+                >
+                  {isVerifyingCode ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    'Verify'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {isEmailVerified && (
+            <Alert className="bg-green-50 border-green-200">
+              <Check className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Email verified successfully! You can now continue with your application.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {errors.email_verification && !isEmailVerified && (
+            <Alert variant="destructive">
+              <AlertDescription>{errors.email_verification}</AlertDescription>
+            </Alert>
+          )}
 
           {/* Password */}
           <div>
