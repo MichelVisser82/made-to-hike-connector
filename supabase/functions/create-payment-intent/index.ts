@@ -83,13 +83,21 @@ serve(async (req) => {
       const sessionKey = `booking_data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
       
-      await supabase
+      const { error: kvError } = await supabase
         .from('kv_store')
         .insert({
           key: sessionKey,
           value: bookingData,
           expires_at: expiresAt.toISOString()
         });
+      
+      if (kvError) {
+        console.error('[create-payment-intent] Failed to store booking data:', kvError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to prepare booking session. Please try again.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
       // For deposits, only allow payment methods that support saving for future use
       // For full payments, allow all available payment methods

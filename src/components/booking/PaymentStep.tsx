@@ -184,7 +184,7 @@ export const PaymentStep = ({
           accessibilityNeeds: fullBookingData.accessibilityNeeds,
           specialRequests: fullBookingData.specialRequests,
           subtotal: pricing.subtotal,
-          discount_code: fullBookingData.discountCode,
+          discount_code: fullBookingData.discountCode || null,
           discount_amount: pricing.discount,
           service_fee_amount: pricing.serviceFee,
           total_price: pricing.total,
