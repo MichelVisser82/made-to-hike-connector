@@ -177,6 +177,7 @@ export const BookingSuccess = () => {
           currency: sessionData.bookingData.currency || sessionData.currency,
           special_requests: sessionData.bookingData.specialRequests,
           stripe_payment_intent_id: sessionData.paymentIntentId,
+          payment_status: sessionData.paymentStatus || 'paid', // Use payment status from verification
           payment_type: sessionData.bookingData.deposit_amount > 0 ? 'deposit' : 'full',
           deposit_amount: sessionData.bookingData.deposit_amount || null,
           final_payment_amount: sessionData.bookingData.final_payment_amount || null,

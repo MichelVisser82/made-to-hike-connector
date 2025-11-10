@@ -33,15 +33,44 @@ serve(async (req) => {
 
     logStep('Retrieving Stripe session', { sessionId: session_id });
 
-    // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    // Retrieve the checkout session with expanded payment intent to check payment method
+    const session = await stripe.checkout.sessions.retrieve(session_id, {
+      expand: ['payment_intent']
+    });
 
-    if (session.payment_status !== 'paid') {
+    logStep('Session retrieved', { 
+      paymentStatus: session.payment_status,
+      paymentIntentId: session.payment_intent 
+    });
+
+    // For SEPA and other delayed payment methods, payment_status will be 'unpaid' initially
+    // but the session is valid and the payment is processing
+    // We need to check if the session is complete and the payment intent exists
+    const isValidPayment = session.payment_status === 'paid' || 
+      (session.status === 'complete' && session.payment_intent);
+
+    if (!isValidPayment) {
+      logStep('Invalid payment status', {
+        paymentStatus: session.payment_status,
+        sessionStatus: session.status,
+        hasPaymentIntent: !!session.payment_intent
+      });
       throw new Error('Payment not completed');
+    }
+
+    // Determine the actual payment status for the booking
+    let bookingPaymentStatus = 'paid';
+    if (session.payment_status === 'unpaid' && session.payment_intent) {
+      // For SEPA and similar methods, mark as processing
+      const paymentIntent = session.payment_intent as any;
+      if (paymentIntent.status === 'processing' || paymentIntent.status === 'requires_action') {
+        bookingPaymentStatus = 'processing';
+      }
     }
 
     logStep('Session verified', { 
       paymentStatus: session.payment_status,
+      bookingPaymentStatus,
       paymentIntentId: session.payment_intent 
     });
 
@@ -80,10 +109,11 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        paymentIntentId: session.payment_intent,
+        paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id,
         sessionId: session_id,
         amountPaid: session.amount_total / 100,
         currency: session.currency,
+        paymentStatus: bookingPaymentStatus,
         bookingData: bookingData
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
