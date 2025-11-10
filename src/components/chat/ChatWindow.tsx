@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Send, MessageSquare } from 'lucide-react';
+import { Loader2, Send, MessageSquare, MapPin } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Conversation } from '@/types/chat';
@@ -178,8 +178,18 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
     <div className="flex flex-col h-[600px] bg-background">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
-        <div>
-          <h3 className="font-semibold">{conversation.tours?.title || 'Chat'}</h3>
+        <div className="flex-1">
+          {conversation.conversation_type === 'tour_inquiry' && conversation.tours?.title && (
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="secondary" className="text-xs">
+                <MapPin className="w-3 h-3 mr-1" />
+                Tour Inquiry
+              </Badge>
+            </div>
+          )}
+          <h3 className="font-semibold">
+            {conversation.tours?.title || 'Chat'}
+          </h3>
           <p className="text-sm text-muted-foreground">
             {conversation.profiles?.name || conversation.anonymous_name || 'Anonymous'}
           </p>

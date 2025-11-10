@@ -524,6 +524,61 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
       text: `New Message\n\nHi ${data.recipientName || 'there'},\n\nYou have a new message from ${data.senderName}.\n\nMessage:\n${data.messagePreview}\n\n${data.isAnonymous ? `Reply to this email to continue the conversation.${data.conversationId ? `\nReference: ${data.conversationId.substring(0, 8)}` : ''}` : `View the conversation: ${data.conversationUrl}`}\n\nThe Made to Hike Team`
     },
 
+    new_anonymous_inquiry: {
+      subject: `${data.tourTitle ? `Question about ${data.tourTitle}` : 'New Tour Inquiry'} from ${data.anonymousName}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tour Inquiry</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">🏔️ Made to Hike</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">New Tour Inquiry</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Hi ${data.recipientName || 'there'},</h2>
+            
+            <div style="background: #f0f8f0; border-left: 4px solid #2c5530; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0 0 10px; color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase;">📍 About Tour</p>
+                <p style="margin: 0; color: #2c5530; font-size: 20px; font-weight: 600;">${data.tourTitle || 'Your Tour'}</p>
+            </div>
+
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                You received a new inquiry from <strong>${data.anonymousName}</strong> (${data.anonymousEmail})
+            </p>
+
+            <div style="background: #f8fffe; border: 1px solid #e2e8f0; border-radius: 6px; padding: 20px; margin: 25px 0;">
+                <p style="margin: 0; color: #4a5568; line-height: 1.6; white-space: pre-wrap;">${data.message}</p>
+            </div>
+
+            <div style="background: #f0f8f0; border-radius: 6px; padding: 20px; margin: 25px 0; text-align: center;">
+                <h3 style="margin: 0 0 10px; color: #2c5530; font-size: 18px;">💬 Reply via Email</h3>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    Simply reply to this email to answer ${data.anonymousName}'s question.
+                </p>
+                ${data.conversationId ? `<p style="margin: 10px 0 0; color: #718096; font-size: 12px;">Reference: ${data.conversationId.substring(0, 8)}</p>` : ''}
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.conversationUrl || 'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard?section=inbox'}" style="display: inline-block; background: #2c5530; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; font-size: 16px;">View in Dashboard</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;"><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `New Tour Inquiry\n\nHi ${data.recipientName || 'there'},\n\n📍 About Tour: ${data.tourTitle || 'Your Tour'}\n\nYou received a new inquiry from ${data.anonymousName} (${data.anonymousEmail})\n\nMessage:\n${data.message}\n\n💬 Simply reply to this email to answer ${data.anonymousName}'s question.${data.conversationId ? `\nReference: ${data.conversationId.substring(0, 8)}` : ''}\n\nOr view in your dashboard: ${data.conversationUrl || 'https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard?section=inbox'}\n\nThe Made to Hike Team`
+    },
+
     review_available: {
       subject: data.recipientType === 'hiker' ? `How was your adventure on ${data.tourTitle}?` : `Please review your hiker from ${data.tourTitle}`,
       html: `
@@ -666,7 +721,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'review_available', 'review_reminder'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
