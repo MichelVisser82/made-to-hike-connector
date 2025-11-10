@@ -125,7 +125,8 @@ export function Step02BasicInfo({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!data.display_name?.trim()) newErrors.display_name = 'Name is required';
+    if (!data.first_name?.trim()) newErrors.first_name = 'First name is required';
+    if (!data.last_name?.trim()) newErrors.last_name = 'Last name is required';
     if (!data.email?.trim()) newErrors.email = 'Email is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) newErrors.email = 'Invalid email format';
     if (!isEmailVerified) newErrors.email_verification = 'Please verify your email address';
@@ -166,13 +167,40 @@ export function Step02BasicInfo({
             </div>
           </div>
 
-          {/* Name */}
-          <div>
-            <Label htmlFor="display_name">Full Name *</Label>
-            <Input id="display_name" value={data.display_name || ''} onChange={e => updateData({
-            display_name: e.target.value
-          })} placeholder="e.g., Sarah Mountain" />
-            {errors.display_name && <p className="text-sm text-destructive mt-1">{errors.display_name}</p>}
+          {/* First Name and Last Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="first_name">First Name *</Label>
+              <Input 
+                id="first_name" 
+                value={data.first_name || ''} 
+                onChange={e => {
+                  const firstName = e.target.value;
+                  updateData({
+                    first_name: firstName,
+                    display_name: `${firstName} ${data.last_name || ''}`.trim()
+                  });
+                }} 
+                placeholder="Sarah" 
+              />
+              {errors.first_name && <p className="text-sm text-destructive mt-1">{errors.first_name}</p>}
+            </div>
+            <div>
+              <Label htmlFor="last_name">Last Name *</Label>
+              <Input 
+                id="last_name" 
+                value={data.last_name || ''} 
+                onChange={e => {
+                  const lastName = e.target.value;
+                  updateData({
+                    last_name: lastName,
+                    display_name: `${data.first_name || ''} ${lastName}`.trim()
+                  });
+                }} 
+                placeholder="Mountain" 
+              />
+              {errors.last_name && <p className="text-sm text-destructive mt-1">{errors.last_name}</p>}
+            </div>
           </div>
 
           {/* Custom Slug (Optional) */}

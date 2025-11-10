@@ -75,6 +75,8 @@ export interface GuideProfile {
 
 export interface GuideSignupData {
   // Step 2: Basic Info
+  first_name: string;
+  last_name: string;
   display_name: string;
   slug?: string;
   email: string;
