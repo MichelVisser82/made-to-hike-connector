@@ -128,14 +128,31 @@ serve(async (req) => {
       );
     }
 
-    // Handle different payment statuses
-    const isProcessing = booking.payment_status === 'processing';
-    const isSucceeded = booking.payment_status === 'succeeded';
+    // Fetch the actual current status from Stripe (database might be outdated)
+    logStep('Fetching current payment intent status from Stripe');
+    const paymentIntent = await stripe.paymentIntents.retrieve(booking.stripe_payment_intent_id);
     
-    if (!isProcessing && !isSucceeded) {
-      logStep('Payment cannot be refunded or cancelled', { payment_status: booking.payment_status });
+    logStep('Current Stripe payment status', { 
+      db_status: booking.payment_status,
+      stripe_status: paymentIntent.status 
+    });
+
+    // Determine if we can cancel or need to refund based on actual Stripe status
+    const canBeCancelled = [
+      'requires_payment_method',
+      'requires_capture', 
+      'requires_reauthorization',
+      'requires_confirmation',
+      'requires_action',
+      'processing'
+    ].includes(paymentIntent.status);
+    
+    const canBeRefunded = paymentIntent.status === 'succeeded';
+    
+    if (!canBeCancelled && !canBeRefunded) {
+      logStep('Payment cannot be cancelled or refunded', { status: paymentIntent.status });
       return new Response(
-        JSON.stringify({ error: `Cannot refund payment with status: ${booking.payment_status}` }),
+        JSON.stringify({ error: `Cannot process cancellation for payment with status: ${paymentIntent.status}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -156,9 +173,9 @@ serve(async (req) => {
     const amountToRefund = refund_amount || booking.total_price;
     const amountInCents = Math.round(Number(amountToRefund) * 100);
 
-    // For processing payments, cancel the payment intent
+    // For payments that can be cancelled, cancel the payment intent
     // For succeeded payments, create a refund
-    if (isProcessing) {
+    if (canBeCancelled) {
       logStep('Cancelling payment intent (payment still processing)', { 
         payment_intent: booking.stripe_payment_intent_id
       });
