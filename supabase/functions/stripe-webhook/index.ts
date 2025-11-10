@@ -42,12 +42,21 @@ serve(async (req) => {
 
     // Handle different event types
     switch (event.type) {
+      case 'payment_intent.processing':
+        await handlePaymentProcessing(event, supabaseClient);
+        break;
+
       case 'payment_intent.succeeded':
         await handlePaymentSuccess(event, supabaseClient);
         break;
       
       case 'payment_intent.payment_failed':
         await handlePaymentFailed(event, supabaseClient);
+        break;
+
+      case 'charge.succeeded':
+        // Backup handler in case payment_intent.succeeded is missed
+        await handleChargeSuccess(event, supabaseClient);
         break;
 
       case 'transfer.created':
@@ -92,18 +101,141 @@ serve(async (req) => {
   }
 });
 
+async function handlePaymentProcessing(event: any, supabase: any) {
+  const paymentIntent = event.data.object;
+  logStep('Payment processing', { 
+    paymentIntentId: paymentIntent.id,
+    paymentMethod: paymentIntent.payment_method_types 
+  });
+
+  // Update booking status to processing (for SEPA, bank transfers, etc.)
+  const { data: booking, error } = await supabase
+    .from('bookings')
+    .update({ 
+      payment_status: 'processing',
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .select('id, booking_reference, hiker_id, profiles!bookings_hiker_id_fkey(email, name)')
+    .single();
+
+  if (error) {
+    logStep('Error updating booking to processing', { error });
+    return;
+  }
+
+  if (booking) {
+    logStep('Booking updated to processing', { 
+      bookingId: booking.id, 
+      bookingReference: booking.booking_reference 
+    });
+
+    // Send email notification about processing payment
+    try {
+      await supabase.functions.invoke('send-email', {
+        body: {
+          to: booking.profiles.email,
+          subject: `Payment Processing - Booking ${booking.booking_reference}`,
+          html: `
+            <h2>Payment Being Processed</h2>
+            <p>Dear ${booking.profiles.name},</p>
+            <p>Your booking <strong>${booking.booking_reference}</strong> has been created and your payment is being processed.</p>
+            <p>SEPA payments typically take 3-5 business days to complete. You will receive a confirmation email once the payment is successful.</p>
+            <p>Your booking is confirmed and the guide has been notified.</p>
+            <p>Thank you for your patience!</p>
+          `
+        }
+      });
+      logStep('Processing notification email sent');
+    } catch (emailError) {
+      logStep('Error sending processing email', { error: emailError });
+    }
+  }
+}
+
 async function handlePaymentSuccess(event: any, supabase: any) {
   const paymentIntent = event.data.object;
   logStep('Payment succeeded', { paymentIntentId: paymentIntent.id });
 
-  // Update booking status
-  const { error } = await supabase
+  // Update booking status to succeeded and confirmed
+  const { data: booking, error } = await supabase
     .from('bookings')
-    .update({ payment_status: 'succeeded', status: 'confirmed' })
-    .eq('stripe_payment_intent_id', paymentIntent.id);
+    .update({ 
+      payment_status: 'succeeded', 
+      status: 'confirmed',
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .select('id, booking_reference, hiker_id, profiles!bookings_hiker_id_fkey(email, name)')
+    .single();
 
   if (error) {
     logStep('Error updating booking', { error });
+    return;
+  }
+
+  if (booking) {
+    logStep('Booking payment confirmed', { 
+      bookingId: booking.id, 
+      bookingReference: booking.booking_reference 
+    });
+
+    // Send email notification about successful payment
+    try {
+      await supabase.functions.invoke('send-email', {
+        body: {
+          to: booking.profiles.email,
+          subject: `Payment Confirmed - Booking ${booking.booking_reference}`,
+          html: `
+            <h2>Payment Confirmed!</h2>
+            <p>Dear ${booking.profiles.name},</p>
+            <p>Great news! Your payment has been successfully processed.</p>
+            <p>Your booking <strong>${booking.booking_reference}</strong> is now fully confirmed.</p>
+            <p>You can view all the details in your dashboard.</p>
+            <p>Looking forward to your adventure!</p>
+          `
+        }
+      });
+      logStep('Payment confirmation email sent');
+    } catch (emailError) {
+      logStep('Error sending confirmation email', { error: emailError });
+    }
+  }
+}
+
+async function handleChargeSuccess(event: any, supabase: any) {
+  const charge = event.data.object;
+  const paymentIntentId = charge.payment_intent;
+  
+  if (!paymentIntentId) {
+    logStep('Charge succeeded but no payment intent', { chargeId: charge.id });
+    return;
+  }
+
+  logStep('Charge succeeded (backup handler)', { 
+    chargeId: charge.id, 
+    paymentIntentId 
+  });
+
+  // Check if booking already has succeeded status
+  const { data: existingBooking } = await supabase
+    .from('bookings')
+    .select('payment_status')
+    .eq('stripe_payment_intent_id', paymentIntentId)
+    .single();
+
+  // Only update if not already succeeded
+  if (existingBooking && existingBooking.payment_status !== 'succeeded') {
+    await supabase
+      .from('bookings')
+      .update({ 
+        payment_status: 'succeeded', 
+        status: 'confirmed',
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_payment_intent_id', paymentIntentId);
+    
+    logStep('Booking updated via charge.succeeded');
   }
 }
 

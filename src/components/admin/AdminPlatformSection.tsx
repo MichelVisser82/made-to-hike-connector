@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { GuideVerificationManager } from './GuideVerificationManager';
 import { DiscountCodesManager } from '../dashboard/policy/DiscountCodesManager';
 import { PlatformFeeSettings } from './PlatformFeeSettings';
+import { ProcessingPaymentsPanel } from './ProcessingPaymentsPanel';
 
 export function AdminPlatformSection() {
   const [searchParams] = useSearchParams();
@@ -33,6 +34,12 @@ export function AdminPlatformSection() {
             Guide Verifications
           </TabsTrigger>
           <TabsTrigger 
+            value="processing-payments"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
+          >
+            Processing Payments
+          </TabsTrigger>
+          <TabsTrigger 
             value="discount-codes"
             className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
           >
@@ -48,6 +55,10 @@ export function AdminPlatformSection() {
 
         <TabsContent value="verifications">
           <GuideVerificationManager />
+        </TabsContent>
+
+        <TabsContent value="processing-payments">
+          <ProcessingPaymentsPanel />
         </TabsContent>
 
         <TabsContent value="discount-codes">
