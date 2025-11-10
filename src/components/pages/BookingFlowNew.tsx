@@ -455,8 +455,6 @@ export const BookingFlowNew = () => {
                 )}
               </div>
 
-              <Separator />
-
               {/* Guide Info */}
               {guideData && (
                 <div>
