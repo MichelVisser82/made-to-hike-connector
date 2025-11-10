@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId, isDeposit, depositAmount, finalPaymentAmount } = await req.json();
+    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId, isDeposit, depositAmount, finalPaymentAmount, hikerEmail } = await req.json();
     
     console.log('[create-payment-intent] Request received:', { 
       amount, 
@@ -25,7 +25,8 @@ serve(async (req) => {
       dateSlotId, 
       isDeposit, 
       depositAmount, 
-      finalPaymentAmount 
+      finalPaymentAmount,
+      hikerEmail 
     });
 
     if (!amount || !serviceFee || !totalAmount || !currency || !tourId || !guideId) {
@@ -77,6 +78,20 @@ serve(async (req) => {
       apiVersion: '2025-08-27.basil',
     });
 
+    // Check if customer exists in Stripe, otherwise use email for auto-population
+    let customerId: string | undefined;
+    if (hikerEmail) {
+      try {
+        const customers = await stripe.customers.list({ email: hikerEmail, limit: 1 });
+        if (customers.data.length > 0) {
+          customerId = customers.data[0].id;
+          console.log('[create-payment-intent] Found existing Stripe customer:', customerId);
+        }
+      } catch (customerError) {
+        console.warn('[create-payment-intent] Could not check for existing customer:', customerError);
+      }
+    }
+
     let session;
     try {
       // Store booking data in KV store temporarily (expires in 1 hour)
@@ -102,6 +117,8 @@ serve(async (req) => {
       // For deposits, only allow payment methods that support saving for future use
       // For full payments, allow all available payment methods
       const sessionConfig: any = {
+        customer: customerId,
+        customer_email: customerId ? undefined : hikerEmail, // Auto-populate email if no customer exists
         line_items: [{
           price_data: {
             currency: currency.toLowerCase(),

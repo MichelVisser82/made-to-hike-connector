@@ -204,6 +204,11 @@ export const PaymentStep = ({
       
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
+      const hikerEmail = session?.user?.email;
+
+      if (!hikerEmail) {
+        throw new Error('User email not available. Please refresh and try again.');
+      }
       
       const response = await fetch(
         'https://ohecxwxumzpfcfsokfkg.supabase.co/functions/v1/create-payment-intent',
@@ -213,7 +218,7 @@ export const PaymentStep = ({
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken || ''}`,
           },
-          body: JSON.stringify(paymentPayload),
+          body: JSON.stringify({ ...paymentPayload, hikerEmail }),
         }
       );
 
