@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { GuideSignupData } from '@/types/guide';
-import { LocationAutocomplete } from '@/components/tour-creation/LocationAutocomplete';
 
 // Stripe-supported countries for Connect accounts
 const STRIPE_COUNTRIES = [
@@ -52,7 +51,7 @@ interface Step03LocationProps {
 
 export function Step03Location({ data, updateData, onNext, onBack }: Step03LocationProps) {
   const handleNext = () => {
-    if (data.location?.trim() && data.country && data.address_line1?.trim() && 
+    if (data.country && data.address_line1?.trim() && 
         data.address_city?.trim() && data.address_postal_code?.trim() && data.date_of_birth) {
       onNext();
     }
@@ -106,29 +105,6 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
             </p>
           </div>
 
-          {/* Location Input */}
-          <div>
-            <Label htmlFor="location">City and Country *</Label>
-            <LocationAutocomplete
-              value={data.location || ''}
-              coordinates={{
-                lat: data.location_lat || 0,
-                lng: data.location_lng || 0
-              }}
-              onLocationSelect={(locationData) => {
-                updateData({
-                  location: locationData.address,
-                  location_lat: locationData.lat,
-                  location_lng: locationData.lng,
-                  location_formatted: locationData.formatted
-                });
-              }}
-              placeholder="Search for your base location..."
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              This helps hikers find guides in their preferred regions
-            </p>
-          </div>
 
           {/* Street Address */}
           <div>
@@ -211,7 +187,7 @@ export function Step03Location({ data, updateData, onNext, onBack }: Step03Locat
             </Button>
             <Button 
               onClick={handleNext} 
-              disabled={!data.location?.trim() || !data.country || !data.address_line1?.trim() || 
+              disabled={!data.country || !data.address_line1?.trim() || 
                        !data.address_city?.trim() || !data.address_postal_code?.trim() || !data.date_of_birth}
               className="bg-burgundy hover:bg-burgundy/90 text-white"
             >
