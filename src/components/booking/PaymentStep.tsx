@@ -199,25 +199,16 @@ export const PaymentStep = ({
 
       console.log('[PaymentStep] Sending payment request:', paymentPayload);
 
-      // Create Stripe Checkout Session with timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Payment request timed out')), 30000)
-      );
-
-      const invokePromise = supabase.functions.invoke('create-payment-intent', {
+      // Create Stripe Checkout Session
+      console.log('[PaymentStep] About to invoke create-payment-intent function...');
+      
+      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: paymentPayload
       });
 
-      const { data, error } = await Promise.race([invokePromise, timeoutPromise]) as any;
-
-      console.log('[PaymentStep] Payment response received:', { 
-        data, 
-        error,
-        dataType: typeof data,
-        dataKeys: data ? Object.keys(data) : 'no data',
-        hasUrl: data?.url,
-        fullResponse: JSON.stringify({ data, error })
-      });
+      console.log('[PaymentStep] Function invoke completed');
+      console.log('[PaymentStep] Response data:', data);
+      console.log('[PaymentStep] Response error:', error);
 
       // Handle Supabase Functions error
       if (error) {
@@ -245,14 +236,8 @@ export const PaymentStep = ({
 
       console.log('[PaymentStep] Redirecting to Stripe checkout:', data.url);
       
-      // Redirect to Stripe Checkout in the same window
-      try {
-        window.location.href = data.url;
-      } catch (redirectError) {
-        console.error('[PaymentStep] Redirect error:', redirectError);
-        toast.error('Failed to redirect to payment page. Please try again.');
-        setIsProcessing(false);
-      }
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
 
     } catch (error: any) {
       console.error('[PaymentStep] Payment error:', error);
