@@ -141,7 +141,7 @@ export const BookingFlowNew = () => {
         // Load tour data with explicit guide_id selection
       const { data: tour, error: tourError } = await supabase
         .from('tours')
-        .select('id, title, slug, guide_id, price, currency, duration, difficulty, description, region, hero_image, guide_profiles!tours_guide_id_fkey(*)')
+        .select('id, title, slug, guide_id, price, currency, duration, difficulty, description, region, hero_image, group_size, min_group_size, max_group_size, images, guide_profiles!tours_guide_id_fkey(*)')
         .eq('slug', tourSlug)
         .maybeSingle();
 
