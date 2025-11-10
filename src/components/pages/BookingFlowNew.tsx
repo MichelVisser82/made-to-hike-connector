@@ -35,7 +35,8 @@ const bookingFormSchema = z.object({
   phone: z.string().regex(/^[0-9]{6,15}$/, 'Phone number must be 6-15 digits'),
   country: z.string().min(1, 'Country code is required'),
   emergencyContactName: z.string().min(2, 'Emergency contact name is required'),
-  emergencyContactPhone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number'),
+  emergencyContactCountry: z.string().min(1, 'Country code is required'),
+  emergencyContactPhone: z.string().regex(/^[0-9]{6,15}$/, 'Phone number must be 6-15 digits'),
   emergencyContactRelationship: z.string().min(1, 'Relationship is required'),
   
   selectedDateSlotId: z.string().uuid('Please select a date'),
