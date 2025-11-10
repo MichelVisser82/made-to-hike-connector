@@ -117,14 +117,25 @@ export const BookingFlowNew = () => {
             if (profile.dietary_preferences) form.setValue('dietaryPreferences', profile.dietary_preferences as string[]);
             if (profile.accessibility_needs) form.setValue('accessibilityNeeds', profile.accessibility_needs);
             
-            // Pre-fill first participant with user data (split name into first and surname)
+            // Pre-fill first participant with user data
+            // Try profile.name first, then fall back to user metadata
+            let firstName = '';
+            let surname = '';
+            
             if (profile.name) {
               const nameParts = profile.name.trim().split(' ');
-              const firstName = nameParts[0] || '';
-              const surname = nameParts.slice(1).join(' ') || '';
+              firstName = nameParts[0] || '';
+              surname = nameParts.slice(1).join(' ') || '';
+            } else if (session.user.user_metadata?.firstName || session.user.user_metadata?.lastName) {
+              firstName = session.user.user_metadata.firstName || '';
+              surname = session.user.user_metadata.lastName || '';
+            }
+            
+            if (firstName || surname) {
               form.setValue('participants.0.firstName', firstName);
               form.setValue('participants.0.surname', surname);
             }
+            
             if (profile.date_of_birth) {
               const age = new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear();
               form.setValue('participants.0.age', age);
@@ -134,6 +145,13 @@ export const BookingFlowNew = () => {
             }
             if (profile.medical_conditions) {
               form.setValue('participants.0.medicalConditions', profile.medical_conditions);
+            }
+          } else {
+            // If profile doesn't exist yet, use user metadata
+            const metadata = session.user.user_metadata;
+            if (metadata?.firstName || metadata?.lastName) {
+              form.setValue('participants.0.firstName', metadata.firstName || '');
+              form.setValue('participants.0.surname', metadata.lastName || '');
             }
           }
         }
