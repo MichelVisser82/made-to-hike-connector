@@ -23,7 +23,7 @@ const passwordSchema = z.object({
 });
 
 interface AccountStepProps {
-  onVerified: (userId: string) => void;
+  onVerified: (userId: string, userData?: { firstName: string, lastName: string }) => void;
 }
 
 export function AccountStep({ onVerified }: AccountStepProps) {
@@ -199,7 +199,7 @@ export function AccountStep({ onVerified }: AccountStepProps) {
         }
         
         if (signInData.user) {
-          onVerified(signInData.user.id);
+          onVerified(signInData.user.id, { firstName, lastName });
           toast({ title: 'Account created and logged in successfully!' });
         }
       } else {

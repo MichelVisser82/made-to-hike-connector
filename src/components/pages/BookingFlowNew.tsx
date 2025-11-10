@@ -245,8 +245,14 @@ export const BookingFlowNew = () => {
     saveDraft();
   }, [currentStep, tourData, isVerified]);
 
-  const handleAccountVerified = async () => {
+  const handleAccountVerified = async (userId: string, userData?: { firstName: string, lastName: string }) => {
     setIsVerified(true);
+    
+    // If userData is provided (new signup), pre-fill first participant immediately
+    if (userData?.firstName || userData?.lastName) {
+      form.setValue('participants.0.firstName', userData.firstName || '');
+      form.setValue('participants.0.surname', userData.lastName || '');
+    }
     
     // Clear old drafts when new user verifies
     const { data } = await supabase.auth.getSession();
