@@ -34,31 +34,17 @@ export function AnonymousChat({ isOpen, onClose, tourId, guideId, tourTitle }: A
     setError(null);
 
     try {
-      // Create anonymous conversation
-      const { data: conversation, error: convError } = await supabase
-        .from('conversations')
-        .insert({
-          tour_id: tourId,
-          guide_id: guideId,
-          anonymous_email: email,
-          anonymous_name: name,
-          conversation_type: 'tour_inquiry',
-          status: 'active'
-        })
-        .select()
-        .single();
-
-      if (convError) throw convError;
-
-      // Send initial message
-      await supabase.functions.invoke('send-message', {
+      const { data, error } = await supabase.functions.invoke('create-anonymous-inquiry', {
         body: {
-          conversationId: conversation.id,
-          content: message,
-          senderType: 'anonymous',
-          senderName: name
+          tourId,
+          guideId,
+          email,
+          name,
+          message
         }
       });
+
+      if (error) throw error;
 
       setSuccess(true);
       setTimeout(() => {
