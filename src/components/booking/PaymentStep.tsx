@@ -199,16 +199,35 @@ export const PaymentStep = ({
 
       console.log('[PaymentStep] Sending payment request:', paymentPayload);
 
-      // Create Stripe Checkout Session
-      console.log('[PaymentStep] About to invoke create-payment-intent function...');
+      // Create Stripe Checkout Session using direct fetch
+      console.log('[PaymentStep] About to call create-payment-intent function...');
       
-      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
-        body: paymentPayload
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+      
+      const response = await fetch(
+        'https://ohecxwxumzpfcfsokfkg.supabase.co/functions/v1/create-payment-intent',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken || ''}`,
+          },
+          body: JSON.stringify(paymentPayload),
+        }
+      );
 
-      console.log('[PaymentStep] Function invoke completed');
+      console.log('[PaymentStep] Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Payment request failed' }));
+        throw new Error(errorData.error || 'Payment request failed');
+      }
+
+      const data = await response.json();
       console.log('[PaymentStep] Response data:', data);
-      console.log('[PaymentStep] Response error:', error);
+      
+      const error = data.error ? { message: data.error } : null;
 
       // Handle Supabase Functions error
       if (error) {
