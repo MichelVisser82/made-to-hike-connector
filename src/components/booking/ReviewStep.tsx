@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, Phone, AlertCircle, Utensils, FileText, Edit } from 'lucide-react';
 import { format } from 'date-fns';
-
 interface ReviewStepProps {
   form: UseFormReturn<BookingFormData>;
   tourData: any;
@@ -18,7 +17,6 @@ interface ReviewStepProps {
   onBack: () => void;
   onEdit: (step: number) => void;
 }
-
 export const ReviewStep = ({
   form,
   tourData,
@@ -30,9 +28,7 @@ export const ReviewStep = ({
   onEdit
 }: ReviewStepProps) => {
   const formData = form.getValues();
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Review Your Booking</h2>
         <p className="text-muted-foreground">
@@ -102,17 +98,13 @@ export const ReviewStep = ({
               </Button>
             </div>
             <div className="space-y-3">
-              {formData.participants.map((p, idx) => (
-                <div key={idx} className="p-3 bg-muted rounded-lg">
+              {formData.participants.map((p, idx) => <div key={idx} className="p-3 bg-muted rounded-lg">
                   <p className="font-medium">{p.firstName} {p.surname}</p>
                   <div className="text-sm text-muted-foreground">
                     Age {p.age} • {p.experience}
                   </div>
-                  {p.medicalConditions && (
-                    <p className="text-sm mt-1">Medical: {p.medicalConditions}</p>
-                  )}
-                </div>
-              ))}
+                  {p.medicalConditions && <p className="text-sm mt-1">Medical: {p.medicalConditions}</p>}
+                </div>)}
             </div>
           </Card>
 
@@ -144,8 +136,7 @@ export const ReviewStep = ({
           </Card>
 
           {/* Special Requests */}
-          {(formData.dietaryPreferences?.length > 0 || formData.accessibilityNeeds || formData.specialRequests) && (
-            <Card className="p-6">
+          {(formData.dietaryPreferences?.length > 0 || formData.accessibilityNeeds || formData.specialRequests) && <Card className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-xl font-semibold">Special Requests</h3>
                 <Button variant="ghost" size="sm" onClick={() => onEdit(4)}>
@@ -154,8 +145,7 @@ export const ReviewStep = ({
                 </Button>
               </div>
               <div className="space-y-3">
-                {formData.dietaryPreferences && formData.dietaryPreferences.length > 0 && (
-                  <div className="flex items-start gap-3">
+                {formData.dietaryPreferences && formData.dietaryPreferences.length > 0 && <div className="flex items-start gap-3">
                     <Utensils className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <p className="font-medium">Dietary Preferences</p>
@@ -163,29 +153,23 @@ export const ReviewStep = ({
                         {formData.dietaryPreferences.join(', ')}
                       </p>
                     </div>
-                  </div>
-                )}
-                {formData.accessibilityNeeds && (
-                  <div className="flex items-start gap-3">
+                  </div>}
+                {formData.accessibilityNeeds && <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <p className="font-medium">Accessibility Needs</p>
                       <p className="text-sm text-muted-foreground">{formData.accessibilityNeeds}</p>
                     </div>
-                  </div>
-                )}
-                {formData.specialRequests && (
-                  <div className="flex items-start gap-3">
+                  </div>}
+                {formData.specialRequests && <div className="flex items-start gap-3">
                     <FileText className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <p className="font-medium">Additional Notes</p>
                       <p className="text-sm text-muted-foreground">{formData.specialRequests}</p>
                     </div>
-                  </div>
-                )}
+                  </div>}
               </div>
-            </Card>
-          )}
+            </Card>}
         </div>
 
         {/* Pricing Summary */}
@@ -204,15 +188,13 @@ export const ReviewStep = ({
                 </span>
               </div>
 
-              {pricing.discount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
+              {pricing.discount > 0 && <div className="flex justify-between text-sm text-green-600">
                   <span>Discount</span>
                   <span>-{pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}{pricing.discount.toFixed(2)}</span>
-                </div>
-              )}
+                </div>}
 
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Service Fee</span>
+                <span className="text-muted-foreground">Platform Fee</span>
                 <span className="font-medium">
                   {pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}
                   {pricing.serviceFee.toFixed(2)}
@@ -241,6 +223,5 @@ export const ReviewStep = ({
           Continue to Payment
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
