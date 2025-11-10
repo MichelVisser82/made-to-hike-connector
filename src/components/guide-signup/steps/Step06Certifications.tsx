@@ -412,9 +412,7 @@ export function Step06Certifications({
           {/* Verification Status Alert */}
           {certifications.length > 0 && !hasPriority1or2 && <Alert>
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                To become a verified guide, add at least one Priority 1 or 2 certification (IFMGA, UIMLA, or national certifications).
-              </AlertDescription>
+              <AlertDescription>To become a verified guide, add at least one certification (IFMGA, UIMLA, or national certifications).</AlertDescription>
             </Alert>}
 
           <div className="flex justify-between pt-4">
