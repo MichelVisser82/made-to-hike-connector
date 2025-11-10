@@ -113,6 +113,7 @@ export const BookingFlowNew = () => {
             if (profile.phone) form.setValue('phone', profile.phone);
             if (profile.country) form.setValue('country', profile.country);
             if (profile.emergency_contact_name) form.setValue('emergencyContactName', profile.emergency_contact_name);
+            if (profile.emergency_contact_country) form.setValue('emergencyContactCountry', profile.emergency_contact_country);
             if (profile.emergency_contact_phone) form.setValue('emergencyContactPhone', profile.emergency_contact_phone);
             if (profile.emergency_contact_relationship) form.setValue('emergencyContactRelationship', profile.emergency_contact_relationship);
             if (profile.dietary_preferences) form.setValue('dietaryPreferences', profile.dietary_preferences as string[]);
@@ -410,6 +411,7 @@ export const BookingFlowNew = () => {
           phone: form.getValues('phone'),
           country: form.getValues('country'),
           emergency_contact_name: form.getValues('emergencyContactName'),
+          emergency_contact_country: form.getValues('emergencyContactCountry'),
           emergency_contact_phone: form.getValues('emergencyContactPhone'),
           emergency_contact_relationship: form.getValues('emergencyContactRelationship'),
           dietary_preferences: form.getValues('dietaryPreferences'),

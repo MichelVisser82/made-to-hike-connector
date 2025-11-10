@@ -1142,6 +1142,7 @@ export type Database = {
           date_of_birth: string | null
           dietary_preferences: Json | null
           email: string
+          emergency_contact_country: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relationship: string | null
@@ -1160,6 +1161,7 @@ export type Database = {
           date_of_birth?: string | null
           dietary_preferences?: Json | null
           email: string
+          emergency_contact_country?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
@@ -1178,6 +1180,7 @@ export type Database = {
           date_of_birth?: string | null
           dietary_preferences?: Json | null
           email?: string
+          emergency_contact_country?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null

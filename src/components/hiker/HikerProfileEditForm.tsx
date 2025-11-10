@@ -23,6 +23,7 @@ interface HikerProfile {
   dietary_preferences: string[];
   accessibility_needs: string;
   emergency_contact_name: string;
+  emergency_contact_country: string;
   emergency_contact_phone: string;
   emergency_contact_relationship: string;
 }
@@ -66,6 +67,7 @@ export function HikerProfileEditForm() {
     dietary_preferences: [],
     accessibility_needs: '',
     emergency_contact_name: '',
+    emergency_contact_country: '',
     emergency_contact_phone: '',
     emergency_contact_relationship: ''
   });
@@ -106,6 +108,7 @@ export function HikerProfileEditForm() {
           dietary_preferences: dietaryPrefs,
           accessibility_needs: data.accessibility_needs || '',
           emergency_contact_name: data.emergency_contact_name || '',
+          emergency_contact_country: data.emergency_contact_country || '',
           emergency_contact_phone: data.emergency_contact_phone || '',
           emergency_contact_relationship: data.emergency_contact_relationship || ''
         });
@@ -136,6 +139,7 @@ export function HikerProfileEditForm() {
           dietary_preferences: profile.dietary_preferences,
           accessibility_needs: profile.accessibility_needs,
           emergency_contact_name: profile.emergency_contact_name,
+          emergency_contact_country: profile.emergency_contact_country,
           emergency_contact_phone: profile.emergency_contact_phone,
           emergency_contact_relationship: profile.emergency_contact_relationship,
           updated_at: new Date().toISOString()
@@ -421,36 +425,81 @@ export function HikerProfileEditForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="emergency_name">Contact Name</Label>
+            <Input
+              id="emergency_name"
+              value={profile.emergency_contact_name}
+              onChange={(e) => setProfile({ ...profile, emergency_contact_name: e.target.value })}
+              placeholder="Jane Doe"
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="emergency_name">Contact Name</Label>
-              <Input
-                id="emergency_name"
-                value={profile.emergency_contact_name}
-                onChange={(e) => setProfile({ ...profile, emergency_contact_name: e.target.value })}
-                placeholder="Jane Doe"
-              />
+              <Label htmlFor="emergency_country">Country Code</Label>
+              <Select
+                value={profile.emergency_contact_country}
+                onValueChange={(value) => setProfile({ ...profile, emergency_contact_country: value })}
+              >
+                <SelectTrigger id="emergency_country">
+                  <SelectValue placeholder="Select country code" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="+1">+1 - United States/Canada</SelectItem>
+                  <SelectItem value="+44">+44 - United Kingdom</SelectItem>
+                  <SelectItem value="+33">+33 - France</SelectItem>
+                  <SelectItem value="+49">+49 - Germany</SelectItem>
+                  <SelectItem value="+39">+39 - Italy</SelectItem>
+                  <SelectItem value="+34">+34 - Spain</SelectItem>
+                  <SelectItem value="+31">+31 - Netherlands</SelectItem>
+                  <SelectItem value="+32">+32 - Belgium</SelectItem>
+                  <SelectItem value="+41">+41 - Switzerland</SelectItem>
+                  <SelectItem value="+43">+43 - Austria</SelectItem>
+                  <SelectItem value="+351">+351 - Portugal</SelectItem>
+                  <SelectItem value="+353">+353 - Ireland</SelectItem>
+                  <SelectItem value="+45">+45 - Denmark</SelectItem>
+                  <SelectItem value="+46">+46 - Sweden</SelectItem>
+                  <SelectItem value="+47">+47 - Norway</SelectItem>
+                  <SelectItem value="+358">+358 - Finland</SelectItem>
+                  <SelectItem value="+48">+48 - Poland</SelectItem>
+                  <SelectItem value="+420">+420 - Czech Republic</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="emergency_phone">Contact Phone</Label>
+              <Label htmlFor="emergency_phone">Phone Number</Label>
               <Input
                 id="emergency_phone"
                 type="tel"
                 value={profile.emergency_contact_phone}
                 onChange={(e) => setProfile({ ...profile, emergency_contact_phone: e.target.value })}
-                placeholder="+1 234 567 8900"
+                placeholder="0123456789"
               />
+              <p className="text-xs text-muted-foreground">
+                You can include a leading 0 if needed
+              </p>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="emergency_relationship">Relationship</Label>
-            <Input
-              id="emergency_relationship"
+            <Select
               value={profile.emergency_contact_relationship}
-              onChange={(e) => setProfile({ ...profile, emergency_contact_relationship: e.target.value })}
-              placeholder="Spouse, Parent, Sibling, Friend..."
-            />
+              onValueChange={(value) => setProfile({ ...profile, emergency_contact_relationship: value })}
+            >
+              <SelectTrigger id="emergency_relationship">
+                <SelectValue placeholder="Select relationship" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="spouse">Spouse</SelectItem>
+                <SelectItem value="parent">Parent</SelectItem>
+                <SelectItem value="sibling">Sibling</SelectItem>
+                <SelectItem value="friend">Friend</SelectItem>
+                <SelectItem value="partner">Partner</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
