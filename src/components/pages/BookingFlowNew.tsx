@@ -14,9 +14,13 @@ import { SpecialRequestsStep } from '@/components/booking/SpecialRequestsStep';
 import { ReviewStep } from '@/components/booking/ReviewStep';
 import { PaymentStep } from '@/components/booking/PaymentStep';
 import { Card } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Loader2, Calendar, MapPin, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { GuideInfoDisplay } from '@/components/guide/GuideInfoDisplay';
+import { format } from 'date-fns';
 
 // Form validation schema
 const bookingFormSchema = z.object({
@@ -375,10 +379,116 @@ export const BookingFlowNew = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-8 max-w-5xl">
-        {/* Tour Header */}
-        <Card className="p-6 mb-8">
-          <h1 className="text-3xl font-bold mb-2">{tourData.title}</h1>
-          <p className="text-muted-foreground">{tourData.region} • {tourData.duration}</p>
+        {/* Tour Header - Booking Summary */}
+        <Card className="overflow-hidden mb-8">
+          <div className="flex flex-col md:flex-row gap-6 p-6">
+            {/* Tour Image */}
+            <div className="flex-shrink-0">
+              <div className="w-full md:w-48 h-40 rounded-lg overflow-hidden">
+                {tourData.hero_image || tourData.images?.[0] ? (
+                  <img
+                    src={tourData.hero_image || tourData.images[0]}
+                    alt={tourData.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <MapPin className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Tour Details */}
+            <div className="flex-1 space-y-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold mb-2">{tourData.title}</h1>
+                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    <span className="capitalize">{tourData.region?.replace('-', ' ')}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{tourData.duration}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>Max {tourData.group_size || tourData.max_group_size}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Selected Date & Price Row */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-1">
+                  {selectedSlot && (
+                    <>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        <span className="font-medium">Selected Date</span>
+                      </div>
+                      <p className="text-lg font-semibold">
+                        {format(new Date(selectedSlot.slot_date), 'EEEE, MMMM d, yyyy')}
+                      </p>
+                    </>
+                  )}
+                  {!selectedSlot && currentStep === 'date' && (
+                    <p className="text-sm text-muted-foreground">Select a date to continue</p>
+                  )}
+                </div>
+
+                {pricing.total > 0 && (
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground mb-1">Total Price</div>
+                    <div className="text-2xl font-bold text-primary">
+                      {pricing.currency === 'EUR' ? '€' : '£'}{pricing.total.toFixed(2)}
+                    </div>
+                    {pricing.discount > 0 && (
+                      <Badge variant="secondary" className="mt-1">
+                        {pricing.discount.toFixed(0)}% Discount Applied
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Guide Info */}
+              {guideData && (
+                <div>
+                  <div className="text-sm text-muted-foreground mb-2">Your Guide</div>
+                  <GuideInfoDisplay
+                    guideInfo={{
+                      displayName: guideData.display_name || guideData.name || 'Professional Guide',
+                      avatarUrl: guideData.profile_image_url || guideData.avatar_url || null,
+                      certificationTitle: guideData.certifications?.[0]?.title || null,
+                      experienceYears: guideData.experience_years || null,
+                      activeSince: guideData.active_since ? new Date(guideData.active_since) : null,
+                      bio: guideData.bio || null,
+                      location: guideData.location || null,
+                      toursCompleted: 0,
+                      averageRating: 0,
+                      totalHikers: 0,
+                      hasBasicInfo: true,
+                      hasProfessionalInfo: true,
+                      hasStatsInfo: false,
+                      isFullyLoaded: false
+                    }}
+                    isLoadingProfessional={false}
+                    showBadge={true}
+                    size="md"
+                    certifications={guideData.certifications}
+                    isGuideVerified={guideData.verified ?? false}
+                    guideSlug={guideData.slug}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </Card>
 
         {/* Progress Indicator */}
