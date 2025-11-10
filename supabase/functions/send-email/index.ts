@@ -5,7 +5,7 @@ import { generateBookingConfirmationEmail, type BookingConfirmationData } from '
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'custom_verification' | 'verification-code' | 'new_message' | 'review_available' | 'review_reminder'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder'
   to: string
   from?: string
   reply_to?: string
@@ -27,6 +27,9 @@ interface EmailRequest {
   depositAmount?: number
   finalPaymentAmount?: number
   finalPaymentDueDate?: string
+  anonymousName?: string
+  anonymousEmail?: string
+  conversationId?: string
 }
 
 interface EmailTemplate {
