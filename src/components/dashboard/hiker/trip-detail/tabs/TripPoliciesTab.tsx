@@ -1,6 +1,10 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, RefreshCw, Shield, FileText } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { 
+  CheckCircle, Cloud, Shield, Mountain, 
+  Info, MessageSquare 
+} from 'lucide-react';
 import type { TripDetails } from '@/hooks/useTripDetails';
 
 interface TripPoliciesTabProps {
@@ -8,177 +12,167 @@ interface TripPoliciesTabProps {
 }
 
 export function TripPoliciesTab({ tripDetails }: TripPoliciesTabProps) {
-  const { tour, booking } = tripDetails;
-  const policyOverrides = tour.policy_overrides;
-
-  // Determine cancellation policy
-  const getCancellationPolicy = () => {
-    if (policyOverrides?.using_default_cancellation === false && policyOverrides?.custom_cancellation_policy_type) {
-      return policyOverrides.custom_cancellation_policy_type;
-    }
-    return 'flexible'; // default
-  };
-
-  const cancellationType = getCancellationPolicy();
-
-  const cancellationPolicies = {
-    flexible: {
-      title: 'Flexible',
-      color: 'bg-green-100 text-green-700',
-      rules: [
-        'Full refund if canceled 7+ days before the tour',
-        '50% refund if canceled 3-6 days before',
-        'No refund if canceled less than 3 days before'
-      ]
-    },
-    moderate: {
-      title: 'Moderate',
-      color: 'bg-yellow-100 text-yellow-700',
-      rules: [
-        'Full refund if canceled 14+ days before the tour',
-        '50% refund if canceled 7-13 days before',
-        'No refund if canceled less than 7 days before'
-      ]
-    },
-    strict: {
-      title: 'Strict',
-      color: 'bg-red-100 text-red-700',
-      rules: [
-        'Full refund if canceled 30+ days before the tour',
-        '50% refund if canceled 14-29 days before',
-        'No refund if canceled less than 14 days before'
-      ]
-    }
-  };
-
-  const policy = cancellationPolicies[cancellationType as keyof typeof cancellationPolicies] || cancellationPolicies.flexible;
+  const { tour } = tripDetails;
+  const difficulty = tour.difficulty || 'moderate';
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-serif font-semibold mb-2">Tour Policies</h2>
-        <p className="text-muted-foreground">
-          Important information about cancellations, weather, and safety
-        </p>
-      </div>
+    <Card className="p-6 bg-white border-burgundy/10 shadow-md">
+      <h2 className="text-2xl mb-6 text-charcoal font-playfair">
+        Important Policies & Information
+      </h2>
 
-      {/* Cancellation Policy */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <RefreshCw className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-lg font-semibold">Cancellation Policy</h3>
-                <Badge className={policy.color}>{policy.title}</Badge>
-              </div>
-              <ul className="space-y-2">
-                {policy.rules.map((rule, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-muted-foreground">{rule}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm text-muted-foreground">
-              To cancel your booking or request a refund, please contact your guide directly or reach out to support.
+      <div className="space-y-6">
+        {/* Cancellation Policy */}
+        <div>
+          <h3 className="text-lg mb-3 text-charcoal font-medium">Cancellation Policy</h3>
+          <div className="space-y-2 text-sm text-charcoal/70">
+            <p className="flex items-start gap-2">
+              <span className="text-sage mt-0.5">•</span>
+              <span><strong>30+ days before:</strong> Full refund minus 5% processing fee</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <span className="text-sage mt-0.5">•</span>
+              <span><strong>15-29 days before:</strong> 50% refund</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <span className="text-gold mt-0.5">•</span>
+              <span><strong>7-14 days before:</strong> 25% refund</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <span className="text-burgundy mt-0.5">•</span>
+              <span><strong>Less than 7 days:</strong> No refund</span>
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Weather Policy */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <AlertCircle className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-3">Weather & Safety Policy</h3>
-              <div className="space-y-3 text-sm text-muted-foreground">
-                <p>
-                  <strong className="text-foreground">Weather Cancellations:</strong> If weather conditions are unsafe, your guide may cancel or reschedule the tour. In such cases, you'll receive a full refund or the option to reschedule.
-                </p>
-                <p>
-                  <strong className="text-foreground">Guide's Decision:</strong> Your guide has final authority on safety decisions. Their priority is ensuring a safe and enjoyable experience for all participants.
-                </p>
-                <p>
-                  <strong className="text-foreground">Communication:</strong> You'll be notified as early as possible of any weather-related changes via email and platform messaging.
-                </p>
+        <Separator />
+
+        {/* Weather Contingency */}
+        <div>
+          <h3 className="text-lg mb-3 text-charcoal font-medium">Weather Contingency</h3>
+          <p className="text-sm text-charcoal/70 mb-3">
+            Mountain weather can be unpredictable. Your guide has the final say on any route changes or cancellations due to weather conditions.
+          </p>
+          <div className="bg-sage/10 border border-sage/20 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <Cloud className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-charcoal">
+                <p className="font-medium mb-1">If the trip is cancelled due to unsafe conditions:</p>
+                <p className="text-charcoal/70">You can either reschedule for another date (subject to availability) or receive a full refund. Your safety is our top priority.</p>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Safety & Liability */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Shield className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-3">Safety & Liability</h3>
-              <div className="space-y-3 text-sm text-muted-foreground">
-                <p>
-                  All participants must follow the guide's instructions and safety protocols at all times.
-                </p>
-                <p>
-                  You must disclose any medical conditions, injuries, or physical limitations that might affect your ability to participate safely.
-                </p>
-                <p>
-                  Travel insurance with medical coverage is strongly recommended for all participants.
-                </p>
-                <p className="font-medium text-foreground">
-                  By participating, you acknowledge the inherent risks of outdoor activities and agree to the terms and conditions.
-                </p>
-              </div>
+        <Separator />
+
+        {/* Fitness Requirements */}
+        <div>
+          <h3 className="text-lg mb-3 text-charcoal font-medium">Fitness Requirements</h3>
+          <p className="text-sm text-charcoal/70 mb-3">
+            This trek is rated as <strong className="capitalize">{difficulty}</strong> and requires appropriate physical preparation.
+          </p>
+          <div className="space-y-2 text-sm text-charcoal/70">
+            <p className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
+              <span>Good cardiovascular fitness for the difficulty level</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
+              <span>Ability to hike with appropriate gear for the duration</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
+              <span>No serious medical conditions that could affect participation</span>
+            </p>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Age Requirements */}
+        <div>
+          <h3 className="text-lg mb-3 text-charcoal font-medium">Age Requirements</h3>
+          <p className="text-sm text-charcoal/70">
+            Age requirements vary by tour difficulty. Minors must be accompanied by a legal guardian. Contact your guide for specific age restrictions.
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Insurance Requirements */}
+        <div>
+          <h3 className="text-lg mb-3 text-charcoal font-medium">Insurance Requirements</h3>
+          <p className="text-sm text-charcoal/70 mb-3">
+            Travel insurance with appropriate coverage is <strong>strongly recommended</strong> for this trek. Your policy should include:
+          </p>
+          <div className="space-y-2 text-sm text-charcoal/70">
+            <p className="flex items-start gap-2">
+              <Shield className="w-4 h-4 text-burgundy mt-0.5 flex-shrink-0" />
+              <span>Emergency medical coverage</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <Shield className="w-4 h-4 text-burgundy mt-0.5 flex-shrink-0" />
+              <span>Mountain rescue and evacuation (if applicable)</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <Shield className="w-4 h-4 text-burgundy mt-0.5 flex-shrink-0" />
+              <span>Trip cancellation and interruption coverage</span>
+            </p>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Group Size */}
+        <div>
+          <h3 className="text-lg mb-3 text-charcoal font-medium">Group Size</h3>
+          <p className="text-sm text-charcoal/70">
+            Maximum group size is {tour.group_size || 'determined by guide'} to ensure personalized attention and safety.
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Environmental Responsibility */}
+        <div>
+          <h3 className="text-lg mb-3 text-charcoal font-medium">Environmental Responsibility</h3>
+          <p className="text-sm text-charcoal/70 mb-3">
+            We practice Leave No Trace principles. All participants must:
+          </p>
+          <div className="space-y-2 text-sm text-charcoal/70">
+            <p className="flex items-start gap-2">
+              <Mountain className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
+              <span>Carry out all trash (including organic waste)</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <Mountain className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
+              <span>Stay on marked trails</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <Mountain className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
+              <span>Respect wildlife and plant life</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Questions Callout */}
+        <div className="bg-burgundy/10 border border-burgundy/20 rounded-lg p-4 mt-6">
+          <div className="flex items-start gap-2">
+            <Info className="w-5 h-5 text-burgundy mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="font-medium text-charcoal mb-2">Questions About Policies?</h4>
+              <p className="text-sm text-charcoal/70 mb-3">
+                If you have any questions about our policies or need clarification, please don't hesitate to contact us.
+              </p>
+              <Button size="sm" className="bg-burgundy hover:bg-burgundy-dark text-white">
+                <MessageSquare className="w-3.5 h-3.5 mr-2" />
+                Contact Support
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Payment Information */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <FileText className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-3">Payment Information</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">Booking Reference</span>
-                  <span className="font-medium">{booking.booking_reference}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">Payment Type</span>
-                  <span className="font-medium capitalize">{booking.payment_type}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">Payment Status</span>
-                  <Badge variant={booking.payment_status === 'succeeded' ? 'default' : 'secondary'}>
-                    {booking.payment_status}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-muted-foreground">Total Amount</span>
-                  <span className="font-bold text-lg">{booking.currency} {booking.total_price}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </Card>
   );
 }
