@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -9,6 +10,7 @@ import {
 import type { TripDetails } from '@/hooks/useTripDetails';
 import { format } from 'date-fns';
 import { HikingLocationMap } from '@/components/tour/HikingLocationMap';
+import { MessageGuideModal } from '../modals/MessageGuideModal';
 
 interface TripLogisticsTabProps {
   tripDetails: TripDetails;
@@ -16,6 +18,7 @@ interface TripLogisticsTabProps {
 
 export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
   const { tour, guide, booking } = tripDetails;
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
   const handleOpenMaps = () => {
     if (tour.meeting_point_lat && tour.meeting_point_lng) {
@@ -157,6 +160,7 @@ export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                  onClick={() => setIsMessageModalOpen(true)}
                 >
                   <Mail className="w-4 h-4 mr-2" />
                   Message through dashboard
@@ -258,6 +262,12 @@ export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
           </div>
         </Card>
       </div>
+
+      <MessageGuideModal
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        tripDetails={tripDetails}
+      />
     </div>
   );
 }
