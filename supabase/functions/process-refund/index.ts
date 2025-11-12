@@ -119,12 +119,81 @@ serve(async (req) => {
       );
     }
 
-    // Validate booking has a payment
+    // Handle bookings with no payment (abandoned checkout)
     if (!booking.stripe_payment_intent_id) {
-      logStep('No payment intent found');
+      logStep('No payment intent found - abandoned checkout, cancelling booking directly');
+      
+      // Update booking status to cancelled (no refund needed since no payment was made)
+      const { error: updateError } = await supabaseAdmin
+        .from('bookings')
+        .update({
+          status: 'cancelled',
+          payment_status: 'cancelled',
+          refund_status: 'not_applicable', // No payment was made
+          refund_reason: reason || 'Booking cancelled before payment completed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', booking_id);
+
+      if (updateError) {
+        logStep('Failed to update booking', { error: updateError });
+        return new Response(
+          JSON.stringify({ error: 'Failed to cancel booking' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Send notifications about cancellation
+      if (hikerProfile?.email) {
+        try {
+          await supabaseAdmin.functions.invoke('send-email', {
+            body: {
+              type: 'booking_cancellation_hiker',
+              to: hikerProfile.email,
+              data: {
+                hiker_name: hikerProfile.name,
+                tour_title: booking.tours.title,
+                booking_reference: booking.booking_reference,
+                booking_date: booking.booking_date,
+                guide_name: booking.tours.guide_display_name,
+                reason: reason || 'Booking cancelled before payment completed'
+              }
+            }
+          });
+        } catch (emailError) {
+          logStep('Failed to send hiker email', { error: emailError });
+        }
+      }
+
+      if (guideProfile?.email) {
+        try {
+          await supabaseAdmin.functions.invoke('send-email', {
+            body: {
+              type: 'booking_cancellation_guide',
+              to: guideProfile.email,
+              data: {
+                guide_name: guideProfile.name,
+                tour_title: booking.tours.title,
+                booking_reference: booking.booking_reference,
+                booking_date: booking.booking_date,
+                hiker_name: hikerProfile?.name || 'Guest',
+                cancelled_at: new Date().toISOString()
+              }
+            }
+          });
+        } catch (emailError) {
+          logStep('Failed to send guide email', { error: emailError });
+        }
+      }
+
       return new Response(
-        JSON.stringify({ error: 'No payment found for this booking' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          success: true,
+          message: 'Booking cancelled successfully. No payment was made, so no refund is needed.',
+          booking_reference: booking.booking_reference,
+          abandoned_checkout: true
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
