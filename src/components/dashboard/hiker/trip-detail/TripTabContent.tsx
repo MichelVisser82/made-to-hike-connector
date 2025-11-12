@@ -13,12 +13,12 @@ interface TripTabContentProps {
 export function TripTabContent({ tripDetails }: TripTabContentProps) {
   return (
     <Tabs defaultValue="itinerary" className="w-full">
-      <TabsList className="grid w-full grid-cols-5 h-auto">
-        <TabsTrigger value="itinerary" className="text-xs sm:text-sm">Day-by-Day</TabsTrigger>
-        <TabsTrigger value="checklist" className="text-xs sm:text-sm">Pre-Trip</TabsTrigger>
-        <TabsTrigger value="logistics" className="text-xs sm:text-sm">Logistics</TabsTrigger>
-        <TabsTrigger value="inclusions" className="text-xs sm:text-sm">What's Included</TabsTrigger>
-        <TabsTrigger value="policies" className="text-xs sm:text-sm">Policies</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-5 h-auto bg-muted/50">
+        <TabsTrigger value="itinerary" className="text-xs sm:text-sm data-[state=active]:bg-white">Day-by-Day Itinerary</TabsTrigger>
+        <TabsTrigger value="checklist" className="text-xs sm:text-sm data-[state=active]:bg-white">Pre-Trip Checklist</TabsTrigger>
+        <TabsTrigger value="logistics" className="text-xs sm:text-sm data-[state=active]:bg-white">Logistics & Meeting</TabsTrigger>
+        <TabsTrigger value="inclusions" className="text-xs sm:text-sm data-[state=active]:bg-white">What's Included</TabsTrigger>
+        <TabsTrigger value="policies" className="text-xs sm:text-sm data-[state=active]:bg-white">Policies</TabsTrigger>
       </TabsList>
 
       <TabsContent value="itinerary" className="mt-6">
