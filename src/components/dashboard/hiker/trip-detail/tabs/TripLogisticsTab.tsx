@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
-  MapPin, Phone, Mail, Navigation, Map, Shield, 
+  MapPin, Phone, Mail, Navigation, Shield, 
   Info, ExternalLink, Share2, Home as HomeIcon 
 } from 'lucide-react';
 import type { TripDetails } from '@/hooks/useTripDetails';
 import { format } from 'date-fns';
+import { HikingLocationMap } from '@/components/tour/HikingLocationMap';
 
 interface TripLogisticsTabProps {
   tripDetails: TripDetails;
@@ -41,9 +42,22 @@ export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
             Meeting Point
           </h2>
           
-          <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center mb-6">
-            <Map className="w-16 h-16 text-charcoal/30" />
-          </div>
+          {(tour.meeting_point_lat && tour.meeting_point_lng) ? (
+            <div className="mb-6">
+              <HikingLocationMap
+                latitude={tour.meeting_point_lat}
+                longitude={tour.meeting_point_lng}
+                title={tour.meeting_point || 'Meeting Point'}
+                height="300px"
+                zoom={14}
+                showControls={true}
+              />
+            </div>
+          ) : (
+            <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center mb-6">
+              <MapPin className="w-16 h-16 text-charcoal/30" />
+            </div>
+          )}
 
           <div className="space-y-4">
             <div>
