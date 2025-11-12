@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-08-27.basil',
 });
 
 const logStep = (step: string, details?: any) => {
@@ -47,19 +47,26 @@ serve(async (req) => {
 
     logStep('Fetching account from Stripe', { accountId: guideProfile.stripe_account_id });
 
-    // Fetch account details from Stripe
+    // Retrieve account details from Stripe
     const account = await stripe.accounts.retrieve(guideProfile.stripe_account_id);
-
+    
     logStep('Account retrieved', { 
       accountId: account.id,
       chargesEnabled: account.charges_enabled,
+      payoutsEnabled: account.payouts_enabled,
       detailsSubmitted: account.details_submitted,
+      capabilities: account.capabilities,
     });
 
-    // Determine KYC status
+    // Determine KYC status based on all required capabilities
     let kycStatus = 'pending';
-    if (account.charges_enabled && account.details_submitted) {
-      kycStatus = 'verified';
+    if (account.charges_enabled && account.details_submitted && account.payouts_enabled) {
+      // Check if transfers capability is active
+      if (account.capabilities?.transfers === 'active') {
+        kycStatus = 'verified';
+      } else {
+        kycStatus = 'incomplete';
+      }
     } else if (account.requirements?.currently_due && account.requirements.currently_due.length > 0) {
       kycStatus = 'incomplete';
     } else if (account.requirements?.disabled_reason) {
@@ -95,9 +102,12 @@ serve(async (req) => {
         account_id: account.id,
         kyc_status: kycStatus,
         charges_enabled: account.charges_enabled,
+        payouts_enabled: account.payouts_enabled,
         details_submitted: account.details_submitted,
+        transfers_capability: account.capabilities?.transfers,
         bank_account_last4: bankAccountLast4,
         requirements_due: account.requirements?.currently_due || [],
+        disabled_reason: account.requirements?.disabled_reason,
         payout_schedule: account.settings?.payouts?.schedule,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

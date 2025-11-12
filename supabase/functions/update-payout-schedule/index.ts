@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-08-27.basil',
 });
 
 const logStep = (step: string, details?: any) => {
@@ -36,8 +36,10 @@ serve(async (req) => {
 
     const { schedule } = await req.json();
 
-    if (!schedule || !['daily', 'weekly', 'monthly', 'manual'].includes(schedule)) {
-      throw new Error('Invalid payout schedule');
+    // Express accounts only support 'weekly' and 'monthly' payout schedules
+    // 'daily' and 'manual' require special approval or Custom accounts
+    if (!schedule || !['weekly', 'monthly'].includes(schedule)) {
+      throw new Error('Invalid payout schedule. Express accounts only support weekly or monthly schedules.');
     }
 
     // Fetch guide profile

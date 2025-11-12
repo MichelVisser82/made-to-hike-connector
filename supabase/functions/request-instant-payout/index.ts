@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-08-27.basil',
 });
 
 const logStep = (step: string, details?: any) => {
@@ -45,6 +45,19 @@ serve(async (req) => {
 
     if (profileError || !guideProfile?.stripe_account_id) {
       throw new Error('No Stripe account found');
+    }
+
+    logStep('Checking account capabilities', { accountId: guideProfile.stripe_account_id });
+
+    // Verify account supports instant payouts
+    const account = await stripe.accounts.retrieve(guideProfile.stripe_account_id);
+    
+    if (!account.capabilities?.instant_payouts || account.capabilities.instant_payouts !== 'active') {
+      throw new Error('Instant payouts are not available for this account. This feature is primarily available for US accounts with supported banks.');
+    }
+
+    if (!account.payouts_enabled) {
+      throw new Error('Payouts are not enabled for this account. Please complete account verification.');
     }
 
     logStep('Checking balance', { accountId: guideProfile.stripe_account_id });

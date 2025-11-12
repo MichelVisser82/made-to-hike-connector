@@ -232,9 +232,15 @@ export function PaymentSettings() {
     }
   };
   const handleDisconnectStripe = async () => {
-    await disconnectStripe();
-    setShowDisconnectDialog(false);
-    refreshProfile();
+    try {
+      await disconnectStripe();
+      setShowDisconnectDialog(false);
+      refreshProfile();
+      toast.success('Stripe account disconnected. You can reconnect with a different country at any time.');
+    } catch (error) {
+      console.error('Error disconnecting Stripe:', error);
+      toast.error('Failed to disconnect Stripe account. Please try again.');
+    }
   };
 
   // Loading state

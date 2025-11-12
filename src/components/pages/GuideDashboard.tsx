@@ -780,7 +780,19 @@ export function GuideDashboard({
               upcomingTours={mockSchedule}
               stats={realStats}
               notifications={mockNotifications}
-              onCreateTour={() => navigate('/tour-creation')}
+              onCreateTour={() => {
+                // Validate Stripe capabilities before allowing tour creation
+                if (!stripeData?.stripe_account_id || stripeData?.stripe_kyc_status !== 'verified') {
+                  toast({ 
+                    title: "Verification Required",
+                    description: "Please complete your Stripe account verification before creating tours.",
+                    variant: "destructive"
+                  });
+                  setActiveSection('money');
+                  return;
+                }
+                navigate('/tour-creation');
+              }}
               onManageAvailability={() => {
                 setToursActiveTab('calendar');
                 setActiveSection('tours');
@@ -813,7 +825,19 @@ export function GuideDashboard({
                 loading={loading}
                 initialTab={toursActiveTab}
                 onTabChange={setToursActiveTab}
-                onCreateTour={() => navigate('/tour-creation')}
+                onCreateTour={() => {
+                  // Validate Stripe capabilities before allowing tour creation
+                  if (!stripeData?.stripe_account_id || stripeData?.stripe_kyc_status !== 'verified') {
+                    toast({ 
+                      title: "Verification Required",
+                      description: "Please complete your Stripe account verification before creating tours.",
+                      variant: "destructive"
+                    });
+                    setActiveSection('money');
+                    return;
+                  }
+                  navigate('/tour-creation');
+                }}
                 onEditTour={(tour) => navigate('/tour-creation', { 
                   state: { tour, editMode: true, tourId: tour.id } 
                 })}

@@ -95,6 +95,20 @@ serve(async (req) => {
         await handlePayoutFailed(event, supabaseClient);
         break;
 
+      case 'transfer.failed':
+        await handleTransferFailed(event, supabaseClient);
+        break;
+
+      case 'account.external_account.created':
+      case 'account.external_account.updated':
+      case 'account.external_account.deleted':
+        await syncAccountStatus(event, supabaseClient);
+        break;
+
+      case 'capability.updated':
+        await handleCapabilityUpdated(event, supabaseClient);
+        break;
+
       default:
         logStep('Unhandled event type', { type: event.type });
     }
@@ -409,7 +423,7 @@ async function syncAccountStatus(event: any, supabase: any) {
   logStep('Account updated', { accountId: account.id });
 
   let kycStatus = 'pending';
-  if (account.charges_enabled && account.details_submitted) {
+  if (account.charges_enabled && account.details_submitted && account.payouts_enabled) {
     kycStatus = 'verified';
   } else if (account.requirements?.currently_due?.length > 0) {
     kycStatus = 'incomplete';
@@ -417,9 +431,19 @@ async function syncAccountStatus(event: any, supabase: any) {
     kycStatus = 'failed';
   }
 
+  // Extract bank account info if available
+  let bankAccountLast4 = null;
+  if (account.external_accounts?.data?.length > 0) {
+    const bankAccount = account.external_accounts.data[0];
+    bankAccountLast4 = bankAccount.last4;
+  }
+
   await supabase
     .from('guide_profiles')
-    .update({ stripe_kyc_status: kycStatus })
+    .update({ 
+      stripe_kyc_status: kycStatus,
+      bank_account_last4: bankAccountLast4,
+    })
     .eq('stripe_account_id', account.id);
 }
 
@@ -469,4 +493,70 @@ async function handlePayoutFailed(event: any, supabase: any) {
     .from('stripe_payouts')
     .update({ status: 'failed' })
     .eq('stripe_payout_id', payout.id);
+  
+  // Send email notification to guide
+  const { data: guide } = await supabase
+    .from('guide_profiles')
+    .select('user_id, display_name, profiles!guide_profiles_user_id_fkey(email)')
+    .eq('stripe_account_id', payout.destination)
+    .single();
+
+  if (guide) {
+    await supabase.functions.invoke('send-email', {
+      body: {
+        to: guide.profiles?.email,
+        subject: 'Payout Failed - Action Required',
+        template: 'payout_failed',
+        data: {
+          guideName: guide.display_name,
+          amount: (payout.amount / 100).toFixed(2),
+          currency: payout.currency.toUpperCase(),
+          failureMessage: payout.failure_message || 'Unknown error',
+          payoutId: payout.id,
+        },
+      },
+    });
+  }
+}
+
+async function handleTransferFailed(event: any, supabase: any) {
+  const transfer = event.data.object;
+  logStep('Transfer failed', { transferId: transfer.id, failureMessage: transfer.failure_message });
+
+  await supabase
+    .from('stripe_transfers')
+    .update({ 
+      status: 'failed',
+      retry_count: supabase.raw('retry_count + 1'),
+      next_retry_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    })
+    .eq('stripe_transfer_id', transfer.id);
+}
+
+async function handleCapabilityUpdated(event: any, supabase: any) {
+  const account = event.account;
+  const capability = event.data.object;
+  
+  logStep('Capability updated', { 
+    accountId: account,
+    capability: capability.id,
+    status: capability.status 
+  });
+
+  // Re-sync account status when capabilities change
+  const accountData = await stripe.accounts.retrieve(account);
+  
+  let kycStatus = 'pending';
+  if (accountData.charges_enabled && accountData.details_submitted && accountData.payouts_enabled) {
+    kycStatus = 'verified';
+  } else if (accountData.requirements?.currently_due?.length > 0) {
+    kycStatus = 'incomplete';
+  } else if (accountData.requirements?.disabled_reason) {
+    kycStatus = 'failed';
+  }
+
+  await supabase
+    .from('guide_profiles')
+    .update({ stripe_kyc_status: kycStatus })
+    .eq('stripe_account_id', account);
 }
