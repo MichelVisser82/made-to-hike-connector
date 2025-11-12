@@ -328,13 +328,35 @@ export function HikerProfileEditForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="country">Country</Label>
-            <Input
-              id="country"
+            <Label htmlFor="country">Country Code</Label>
+            <Select
               value={profile.country}
-              onChange={(e) => setProfile({ ...profile, country: e.target.value })}
-              placeholder="United States"
-            />
+              onValueChange={(value) => setProfile({ ...profile, country: value })}
+            >
+              <SelectTrigger id="country">
+                <SelectValue placeholder="Select country code" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="+1">+1 - United States/Canada</SelectItem>
+                <SelectItem value="+44">+44 - United Kingdom</SelectItem>
+                <SelectItem value="+33">+33 - France</SelectItem>
+                <SelectItem value="+49">+49 - Germany</SelectItem>
+                <SelectItem value="+39">+39 - Italy</SelectItem>
+                <SelectItem value="+34">+34 - Spain</SelectItem>
+                <SelectItem value="+31">+31 - Netherlands</SelectItem>
+                <SelectItem value="+32">+32 - Belgium</SelectItem>
+                <SelectItem value="+41">+41 - Switzerland</SelectItem>
+                <SelectItem value="+43">+43 - Austria</SelectItem>
+                <SelectItem value="+351">+351 - Portugal</SelectItem>
+                <SelectItem value="+353">+353 - Ireland</SelectItem>
+                <SelectItem value="+45">+45 - Denmark</SelectItem>
+                <SelectItem value="+46">+46 - Sweden</SelectItem>
+                <SelectItem value="+47">+47 - Norway</SelectItem>
+                <SelectItem value="+358">+358 - Finland</SelectItem>
+                <SelectItem value="+48">+48 - Poland</SelectItem>
+                <SelectItem value="+420">+420 - Czech Republic</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
