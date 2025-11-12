@@ -50,15 +50,20 @@ export function TripGuideCard({ tripDetails }: TripGuideCardProps) {
         {/* Certification Badges */}
         {guide.certifications && guide.certifications.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
-            {guide.certifications.slice(0, 2).map((cert: any, index: number) => (
-              <Badge 
-                key={index}
-                className={index === 0 ? "bg-sage/10 text-sage border-sage/20 text-xs" : "bg-burgundy/10 text-burgundy border-burgundy/20 text-xs"}
-              >
-                <Shield className="w-3 h-3 mr-1" />
-                {cert.name || cert}
-              </Badge>
-            ))}
+            {guide.certifications.slice(0, 2).map((cert: any, index: number) => {
+              // Handle both object and string certifications
+              const certName = typeof cert === 'string' ? cert : (cert.title || cert.name || 'Certified');
+              
+              return (
+                <Badge 
+                  key={index}
+                  className={index === 0 ? "bg-sage/10 text-sage border-sage/20 text-xs" : "bg-burgundy/10 text-burgundy border-burgundy/20 text-xs"}
+                >
+                  <Shield className="w-3 h-3 mr-1" />
+                  {certName}
+                </Badge>
+              );
+            })}
           </div>
         )}
 
