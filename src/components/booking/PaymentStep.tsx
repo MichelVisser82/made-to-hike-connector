@@ -259,7 +259,16 @@ export const PaymentStep = ({
 
       if (bookingError || !bookingResponse?.booking) {
         console.error('[PaymentStep] Failed to create pending booking:', bookingError);
-        throw new Error('Failed to create booking. Please try again.');
+        
+        // Extract detailed error message if available
+        const errorDetails = bookingError?.message || bookingResponse?.error;
+        
+        // Check if it's a duplicate booking error
+        if (errorDetails && (errorDetails.includes('already have a booking') || bookingResponse?.existingBooking)) {
+          throw new Error(`You already have a booking for this tour on this date (${bookingResponse?.existingBooking || 'existing booking'}). Please check your dashboard.`);
+        }
+        
+        throw new Error(errorDetails || 'Failed to create booking. Please try again.');
       }
 
       const bookingId = bookingResponse.booking.id;
