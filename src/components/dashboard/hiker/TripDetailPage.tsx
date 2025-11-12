@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Share, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTripDetails } from '@/hooks/useTripDetails';
 import { TripHeroSection } from './trip-detail/TripHeroSection';
@@ -59,14 +59,28 @@ export function TripDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-7xl mx-auto py-8 px-4 md:px-6">
-        <Button
-          variant="ghost"
-          onClick={handleBack}
-          className="mb-6 hover:bg-accent"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to My Trips
-        </Button>
+        {/* Header with Back Button and Action Buttons */}
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            onClick={handleBack}
+            className="hover:bg-accent"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to My Trips
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">
+              <Share className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+            <Button variant="outline" size="sm">
+              <FileDown className="w-4 h-4 mr-2" />
+              Export PDF
+            </Button>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content - 2/3 width on desktop */}
