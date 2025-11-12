@@ -161,7 +161,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: any, supabaseClient: 
   const { error } = await supabaseClient
     .from('bookings')
     .update({
-      payment_status: paymentIntent.metadata?.payment_type === 'full' ? 'paid' : 'deposit_paid',
+      payment_status: 'succeeded',
       stripe_payment_intent_id: paymentIntent.id,
       updated_at: new Date().toISOString(),
     })
