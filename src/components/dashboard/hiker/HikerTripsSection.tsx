@@ -76,7 +76,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       const bookingDate = new Date(booking.booking_date);
       const isPast = isBefore(bookingDate, new Date());
       const isCompleted = booking.status.toLowerCase() === 'completed';
-      return isPast || isCompleted;
+      const isNotCancelled = booking.status.toLowerCase() !== 'cancelled';
+      return (isPast || isCompleted) && isNotCancelled;
     })
     .map(booking => ({
       id: booking.id,
