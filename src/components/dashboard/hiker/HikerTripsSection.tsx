@@ -6,8 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, MapPin, Users, Clock, Star, Heart, Eye, MessageCircle, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar, MapPin, Users, Clock, Star, Heart, Eye, MessageCircle, CheckCircle, AlertTriangle, RefreshCw, FileText, Route } from 'lucide-react';
 import { useHikerBookings } from '@/hooks/useHikerBookings';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { format, isAfter, isBefore } from 'date-fns';
 
 interface HikerTripsSectionProps {
@@ -18,8 +22,17 @@ interface HikerTripsSectionProps {
 
 export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerTripsSectionProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('upcoming');
   const { bookings, loading, error } = useHikerBookings(userId);
+  
+  // Modal states
+  const [itineraryModal, setItineraryModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
+  const [preparationModal, setPreparationModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
+  const [messageModal, setMessageModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
+  const [meetingPointModal, setMeetingPointModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageText, setMessageText] = useState('');
 
   // Filter and transform bookings into upcoming trips
   const upcomingTrips = bookings
@@ -88,6 +101,44 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       'GBP': '£'
     };
     return symbols[currency] || currency;
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !messageModal.trip) return;
+
+    setSendingMessage(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error: sendError } = await supabase.functions.invoke('send-message', {
+        body: {
+          recipient_id: messageModal.trip.guideId,
+          message: messageText.trim(),
+          sender_type: 'hiker',
+          tour_id: messageModal.trip.tourId
+        }
+      });
+
+      if (sendError) throw sendError;
+
+      toast({
+        title: 'Message sent',
+        description: `Your message has been sent to ${messageModal.trip.guide.name}.`,
+      });
+
+      setMessageText('');
+      setMessageModal({ isOpen: false, trip: null });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send message. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   if (loading) {
@@ -230,38 +281,46 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                       </div>
                     )}
 
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                    {/* Action Buttons - Stacked Vertically */}
+                    <div className="space-y-2 pt-2">
                       <Button 
-                        className="w-full bg-[#7c2843] hover:bg-[#5d1e32] text-white"
+                        className="w-full bg-[#7c2843] hover:bg-[#5d1e32] text-white justify-start"
                         onClick={() => navigate(`/dashboard/trip/${trip.id}`)}
                       >
                         <Eye className="w-4 h-4 mr-2" />
-                        Complete Details
+                        View Complete Tour Details
                       </Button>
                       <Button 
                         variant="outline" 
-                        className="w-full border-[#7c2843] text-[#7c2843] hover:bg-[#7c2843]/10"
-                        onClick={() => navigate(`/dashboard/trip/${trip.id}`)}
+                        className="w-full justify-start"
+                        onClick={() => setItineraryModal({ isOpen: true, trip })}
                       >
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Itinerary
+                        <FileText className="w-4 h-4 mr-2" />
+                        View Itinerary
                       </Button>
                       <Button 
                         variant="outline" 
-                        className="w-full border-[#7c2843] text-[#7c2843] hover:bg-[#7c2843]/10"
-                        onClick={() => trip.guideId && onMessageGuide(trip.guideId)}
+                        className="w-full justify-start"
+                        onClick={() => setPreparationModal({ isOpen: true, trip })}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Trip Preparation
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => setMessageModal({ isOpen: true, trip })}
                       >
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Message Guide
                       </Button>
                       <Button 
                         variant="outline" 
-                        className="w-full border-[#7c2843] text-[#7c2843] hover:bg-[#7c2843]/10"
-                        onClick={() => navigate(`/dashboard/trip/${trip.id}`)}
+                        className="w-full justify-start"
+                        onClick={() => setMeetingPointModal({ isOpen: true, trip })}
                       >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Preparation
+                        <MapPin className="w-4 h-4 mr-2" />
+                        Meeting Point
                       </Button>
                     </div>
                   </div>
@@ -443,6 +502,137 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Itinerary Modal */}
+      <Dialog open={itineraryModal.isOpen} onOpenChange={() => setItineraryModal({ isOpen: false, trip: null })}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Trip Itinerary</DialogTitle>
+            <DialogDescription>{itineraryModal.trip?.title}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              View your complete day-by-day itinerary on the trip details page.
+            </p>
+            <Button 
+              className="w-full bg-[#7c2843] hover:bg-[#5d1e32]"
+              onClick={() => {
+                setItineraryModal({ isOpen: false, trip: null });
+                navigate(`/dashboard/trip/${itineraryModal.trip?.id}`);
+              }}
+            >
+              View Full Itinerary
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Trip Preparation Modal */}
+      <Dialog open={preparationModal.isOpen} onOpenChange={() => setPreparationModal({ isOpen: false, trip: null })}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Trip Preparation</DialogTitle>
+            <DialogDescription>{preparationModal.trip?.title}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Complete your pre-trip checklist, upload required documents, and prepare for your adventure.
+            </p>
+            <Button 
+              className="w-full bg-[#7c2843] hover:bg-[#5d1e32]"
+              onClick={() => {
+                setPreparationModal({ isOpen: false, trip: null });
+                navigate(`/dashboard/trip/${preparationModal.trip?.id}`);
+              }}
+            >
+              Go to Preparation Checklist
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Message Guide Modal */}
+      <Dialog open={messageModal.isOpen} onOpenChange={() => {
+        setMessageModal({ isOpen: false, trip: null });
+        setMessageText('');
+      }}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Message {messageModal.trip?.guide.name}</DialogTitle>
+            <DialogDescription>
+              Send a message about your trip: {messageModal.trip?.title}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Type your message here..."
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              rows={6}
+              className="resize-none"
+            />
+            <div className="flex gap-3 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setMessageModal({ isOpen: false, trip: null });
+                  setMessageText('');
+                }}
+                disabled={sendingMessage}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={sendingMessage || !messageText.trim()}
+                className="bg-[#7c2843] hover:bg-[#5d1e32]"
+              >
+                {sendingMessage ? 'Sending...' : 'Send Message'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Meeting Point Modal */}
+      <Dialog open={meetingPointModal.isOpen} onOpenChange={() => setMeetingPointModal({ isOpen: false, trip: null })}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Meeting Point</DialogTitle>
+            <DialogDescription>{meetingPointModal.trip?.title}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-[#7c2843] mt-0.5" />
+                <div>
+                  <p className="font-medium">Location</p>
+                  <p className="text-sm text-muted-foreground">{meetingPointModal.trip?.location}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Clock className="w-5 h-5 text-[#7c2843] mt-0.5" />
+                <div>
+                  <p className="font-medium">Date & Time</p>
+                  <p className="text-sm text-muted-foreground">{meetingPointModal.trip?.dates}</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              View more details including exact coordinates and meeting instructions on the trip details page.
+            </p>
+            <Button 
+              className="w-full bg-[#7c2843] hover:bg-[#5d1e32]"
+              onClick={() => {
+                setMeetingPointModal({ isOpen: false, trip: null });
+                navigate(`/dashboard/trip/${meetingPointModal.trip?.id}`);
+              }}
+            >
+              View Full Details
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
