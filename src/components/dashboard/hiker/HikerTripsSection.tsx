@@ -13,6 +13,7 @@ import { useHikerBookings } from '@/hooks/useHikerBookings';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isAfter, isBefore } from 'date-fns';
+import { HikingLocationMap } from '@/components/tour/HikingLocationMap';
 
 interface HikerTripsSectionProps {
   userId: string;
@@ -51,6 +52,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
         avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
       },
       location: booking.tours?.meeting_point || 'TBD',
+      meeting_point_lat: booking.tours?.meeting_point_lat,
+      meeting_point_lng: booking.tours?.meeting_point_lng,
       guests: booking.participants,
       difficulty: booking.tours?.difficulty || 'Intermediate',
       duration: booking.tours?.duration || '1 day',
@@ -598,31 +601,47 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       <Dialog open={meetingPointModal.isOpen} onOpenChange={() => setMeetingPointModal({ isOpen: false, trip: null })}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Meeting Point</DialogTitle>
-            <DialogDescription>{meetingPointModal.trip?.title}</DialogDescription>
+            <DialogTitle className="font-playfair text-charcoal">Meeting Point</DialogTitle>
+            <DialogDescription className="text-charcoal/70">{meetingPointModal.trip?.title}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-[#7c2843] mt-0.5" />
-                <div>
-                  <p className="font-medium">Location</p>
-                  <p className="text-sm text-muted-foreground">{meetingPointModal.trip?.location}</p>
+            {/* Map */}
+            {meetingPointModal.trip?.meeting_point_lat && meetingPointModal.trip?.meeting_point_lng ? (
+              <div className="rounded-lg overflow-hidden border border-burgundy/10">
+                <HikingLocationMap
+                  latitude={meetingPointModal.trip.meeting_point_lat}
+                  longitude={meetingPointModal.trip.meeting_point_lng}
+                  title={meetingPointModal.trip.location}
+                  height="300px"
+                  zoom={14}
+                  showControls={true}
+                />
+              </div>
+            ) : (
+              <div className="aspect-video bg-cream rounded-lg flex items-center justify-center border border-burgundy/10">
+                <MapPin className="w-16 h-16 text-burgundy/30" />
+              </div>
+            )}
+            
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 p-3 bg-cream rounded-lg">
+                <MapPin className="w-5 h-5 text-burgundy mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-charcoal">Location</p>
+                  <p className="text-sm text-charcoal/70">{meetingPointModal.trip?.location}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-[#7c2843] mt-0.5" />
-                <div>
-                  <p className="font-medium">Date & Time</p>
-                  <p className="text-sm text-muted-foreground">{meetingPointModal.trip?.dates}</p>
+              <div className="flex items-start gap-3 p-3 bg-cream rounded-lg">
+                <Clock className="w-5 h-5 text-burgundy mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-charcoal">Date & Time</p>
+                  <p className="text-sm text-charcoal/70">{meetingPointModal.trip?.dates}</p>
                 </div>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              View more details including exact coordinates and meeting instructions on the trip details page.
-            </p>
+            
             <Button 
-              className="w-full bg-[#7c2843] hover:bg-[#5d1e32]"
+              className="w-full bg-burgundy hover:bg-burgundy-dark text-white"
               onClick={() => {
                 setMeetingPointModal({ isOpen: false, trip: null });
                 navigate(`/dashboard/trip/${meetingPointModal.trip?.id}`);

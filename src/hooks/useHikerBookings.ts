@@ -24,6 +24,8 @@ export interface HikerBooking {
     slug: string;
     duration: string;
     meeting_point: string;
+    meeting_point_lat: number | null;
+    meeting_point_lng: number | null;
     guide_id: string;
     difficulty: string;
     currency: string;
@@ -83,6 +85,8 @@ export function useHikerBookings(hikerId: string | undefined) {
             duration,
             currency,
             meeting_point,
+            meeting_point_lat,
+            meeting_point_lng,
             guide_id,
             difficulty,
             hero_image,
