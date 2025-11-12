@@ -128,7 +128,7 @@ serve(async (req) => {
         .from('bookings')
         .update({
           status: 'cancelled',
-          payment_status: 'cancelled',
+          payment_status: 'pending', // Keep as pending since no payment was completed
           refund_status: 'not_applicable', // No payment was made
           refund_reason: reason || 'Booking cancelled before payment completed',
           updated_at: new Date().toISOString()
