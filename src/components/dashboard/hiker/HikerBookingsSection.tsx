@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { MapPin, Users, Download, FileText, MessageSquare, CheckCircle2, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { MapPin, Users, Download, FileText, MessageSquare, CheckCircle2, Calendar, Clock, AlertCircle, Eye } from 'lucide-react';
 import { useHikerBookings } from '@/hooks/useHikerBookings';
 import { ReceiptViewer } from '@/components/booking/ReceiptViewer';
 import { format } from 'date-fns';
@@ -122,11 +122,11 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-serif mb-2">Bookings & Payments</h1>
+          <h1 className="text-3xl font-playfair text-charcoal mb-2">Bookings & Payments</h1>
         </div>
         <div className="space-y-4">
           {[1, 2].map((i) => (
-            <Card key={i}>
+            <Card key={i} className="border-burgundy/10">
               <CardContent className="p-6">
                 <Skeleton className="h-32 w-full" />
               </CardContent>
@@ -141,11 +141,11 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-serif mb-2">Bookings & Payments</h1>
+          <h1 className="text-3xl font-playfair text-charcoal mb-2">Bookings & Payments</h1>
         </div>
-        <Card>
+        <Card className="border-burgundy/10">
           <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">Failed to load bookings. Please try again.</p>
+            <p className="text-charcoal/60">Failed to load bookings. Please try again.</p>
           </CardContent>
         </Card>
       </div>
@@ -155,32 +155,32 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-serif mb-2">Bookings & Payments</h1>
+        <h1 className="text-3xl font-playfair text-charcoal mb-2">Bookings & Payments</h1>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="active">
+        <TabsList className="grid w-full grid-cols-3 bg-cream border border-burgundy/10">
+          <TabsTrigger value="active" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
             Active Bookings
             {activeBookings.length > 0 && (
-              <Badge variant="secondary" className="ml-2">{activeBookings.length}</Badge>
+              <Badge variant="secondary" className="ml-2 bg-burgundy/10 text-burgundy border-burgundy/20">{activeBookings.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="history">Payment History</TabsTrigger>
-          <TabsTrigger value="receipts">Receipts</TabsTrigger>
+          <TabsTrigger value="history" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Payment History</TabsTrigger>
+          <TabsTrigger value="receipts" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Receipts</TabsTrigger>
         </TabsList>
 
         {/* Active Bookings */}
         <TabsContent value="active" className="space-y-4">
           {activeBookings.length === 0 ? (
-            <Card>
+            <Card className="border-burgundy/10">
               <CardContent className="p-12 text-center">
-                <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No Active Bookings</h3>
-                <p className="text-muted-foreground mb-4">
+                <Calendar className="w-12 h-12 mx-auto mb-4 text-burgundy/40" />
+                <h3 className="text-xl font-playfair text-charcoal mb-2">No Active Bookings</h3>
+                <p className="text-charcoal/60 mb-4">
                   You don't have any upcoming hiking adventures yet.
                 </p>
-                <Button onClick={() => window.location.href = '/tours'}>
+                <Button onClick={() => window.location.href = '/tours'} className="bg-burgundy hover:bg-burgundy-dark text-white">
                   Browse Tours
                 </Button>
               </CardContent>
@@ -192,53 +192,53 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
               const paymentBadge = getPaymentStatusBadge(booking.payment_status);
               
               return (
-              <Card key={booking.id}>
+              <Card key={booking.id} className="border-burgundy/10 bg-white">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant={getStatusBadgeVariant(booking.status)}>
+                        <Badge className="bg-sage/20 text-sage border-sage/30 hover:bg-sage/30">
                           {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-charcoal/60">
                           Booking ID: {booking.booking_reference || booking.id.slice(0, 8)}
                         </span>
                       </div>
-                      <h3 className="text-2xl font-semibold mb-2">{tour?.title || 'Tour'}</h3>
-                      <p className="text-muted-foreground">
+                      <h3 className="text-2xl font-playfair text-charcoal mb-2">{tour?.title || 'Tour'}</h3>
+                      <p className="text-charcoal/70">
                         {formatBookingDate(booking.booking_date)}
                         {tour?.duration && ` • ${tour.duration}`}
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-primary">
+                      <div className="text-3xl font-playfair font-bold text-burgundy">
                         {getCurrencySymbol(booking.currency)}{booking.total_price}
                       </div>
-                      <Badge variant={paymentBadge.variant} className="mt-2">
+                      <Badge className="mt-2 bg-sage/20 text-sage border-sage/30">
                         {paymentBadge.label}
                       </Badge>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-6 mb-6 py-4 border-y">
+                  <div className="grid grid-cols-3 gap-6 mb-6 py-4 border-y border-burgundy/10 bg-cream/30 rounded-lg px-4">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Location</p>
+                      <p className="text-sm text-charcoal/60 mb-1">Location</p>
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium">{tour?.meeting_point || 'TBD'}</span>
+                        <MapPin className="w-4 h-4 text-burgundy" />
+                        <span className="font-medium text-charcoal">{tour?.meeting_point || 'TBD'}</span>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Guide</p>
+                      <p className="text-sm text-charcoal/60 mb-1">Guide</p>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{guide?.display_name || 'Guide'}</span>
+                        <span className="font-medium text-charcoal">{guide?.display_name || 'Guide'}</span>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Guests</p>
+                      <p className="text-sm text-charcoal/60 mb-1">Guests</p>
                       <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium">{booking.participants} {booking.participants === 1 ? 'Guest' : 'Guests'}</span>
+                        <Users className="w-4 h-4 text-burgundy" />
+                        <span className="font-medium text-charcoal">{booking.participants} {booking.participants === 1 ? 'Guest' : 'Guests'}</span>
                       </div>
                     </div>
                   </div>
@@ -246,15 +246,15 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                   {booking.payment_type === 'deposit' && (
                     <>
                       {booking.final_payment_status === 'pending' && booking.final_payment_due_date && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div className="bg-sage/10 border border-sage/20 rounded-lg p-4 mb-4">
                           <div className="flex items-start gap-3">
-                            <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+                            <Clock className="h-5 w-5 text-sage mt-0.5 flex-shrink-0" />
                             <div>
-                              <p className="font-medium text-blue-900">Final Payment Scheduled</p>
-                              <p className="text-sm text-blue-700 mt-1">
+                              <p className="font-medium text-charcoal">Final Payment Scheduled</p>
+                              <p className="text-sm text-charcoal/70 mt-1">
                                 Your final payment of {booking.tours?.currency} {booking.final_payment_amount?.toFixed(2)} will be automatically charged on {formatBookingDate(booking.final_payment_due_date)}
                               </p>
-                              <p className="text-xs text-blue-600 mt-2">
+                              <p className="text-xs text-charcoal/60 mt-2">
                                 The payment will be charged to your saved payment method automatically.
                               </p>
                             </div>
@@ -263,13 +263,13 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                       )}
                       
                       {booking.final_payment_status === 'requires_action' && (
-                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                        <div className="bg-burgundy/5 border border-burgundy/20 rounded-lg p-4 mb-4">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3">
-                              <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
+                              <AlertCircle className="h-5 w-5 text-burgundy mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="font-medium text-orange-900">Payment Action Required</p>
-                                <p className="text-sm text-orange-700 mt-1">
+                                <p className="font-medium text-charcoal">Payment Action Required</p>
+                                <p className="text-sm text-charcoal/70 mt-1">
                                   We couldn't automatically charge your payment method. Please complete the payment manually.
                                 </p>
                               </div>
@@ -277,7 +277,7 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                             <Button
                               size="sm"
                               onClick={() => onViewBooking(booking.id)}
-                              className="bg-orange-600 hover:bg-orange-700"
+                              className="bg-burgundy hover:bg-burgundy-dark text-white"
                             >
                               Pay Now
                             </Button>
@@ -288,39 +288,41 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                   )}
 
                   {booking.payment_status.toLowerCase() === 'pending' && booking.payment_type !== 'deposit' && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                    <div className="bg-burgundy/5 border border-burgundy/20 rounded-lg p-4 mb-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-semibold mb-1">Payment Pending</h4>
-                          <p className="text-sm text-muted-foreground">
+                          <h4 className="font-playfair font-semibold text-charcoal mb-1">Payment Pending</h4>
+                          <p className="text-sm text-charcoal/70">
                             Complete your payment to confirm your booking
                           </p>
                         </div>
-                        <Button variant="default" onClick={() => onViewBooking(booking.id)}>Pay Now</Button>
+                        <Button className="bg-burgundy hover:bg-burgundy-dark text-white" onClick={() => onViewBooking(booking.id)}>Pay Now</Button>
                       </div>
                     </div>
                   )}
 
                   {booking.special_requests && (
-                    <div className="bg-muted/50 rounded-lg p-3 mb-4">
-                      <p className="text-sm font-medium mb-1">Special Requests</p>
-                      <p className="text-sm text-muted-foreground">{booking.special_requests}</p>
+                    <div className="bg-cream/50 border border-burgundy/10 rounded-lg p-3 mb-4">
+                      <p className="text-sm font-medium text-charcoal mb-1">Special Requests</p>
+                      <p className="text-sm text-charcoal/70">{booking.special_requests}</p>
                     </div>
                   )}
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" onClick={() => onViewBooking(booking.id)}>
-                      👁️ View Details
+                    <Button variant="outline" onClick={() => onViewBooking(booking.id)} className="border-burgundy/20 text-burgundy hover:bg-burgundy hover:text-white">
+                      <Download className="w-4 h-4 mr-2" />
+                      View Details
                     </Button>
                     <Button 
                       variant="outline"
                       onClick={() => setSelectedReceipt(booking.id)}
                       disabled={!['paid', 'succeeded', 'completed'].includes(booking.payment_status.toLowerCase())}
+                      className="border-burgundy/20 text-burgundy hover:bg-burgundy hover:text-white disabled:opacity-50"
                     >
                       <Download className="w-4 h-4 mr-2" />
                       Receipt
                     </Button>
-                    <Button variant="outline" onClick={() => tour?.guide_id && onContactGuide(tour.guide_id)}>
+                    <Button variant="outline" onClick={() => tour?.guide_id && onContactGuide(tour.guide_id)} className="border-burgundy/20 text-burgundy hover:bg-burgundy hover:text-white">
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Contact
                     </Button>
@@ -335,18 +337,18 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
         {/* Payment History */}
         <TabsContent value="history" className="space-y-4">
           <div className="flex justify-end mb-4">
-            <Button variant="outline">
+            <Button variant="outline" className="border-burgundy/20 text-burgundy hover:bg-burgundy hover:text-white">
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
           </div>
 
           {paymentHistory.length === 0 ? (
-            <Card>
+            <Card className="border-burgundy/10">
               <CardContent className="p-12 text-center">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No Payment History</h3>
-                <p className="text-muted-foreground">
+                <FileText className="w-12 h-12 mx-auto mb-4 text-burgundy/40" />
+                <h3 className="text-xl font-playfair text-charcoal mb-2">No Payment History</h3>
+                <p className="text-charcoal/60">
                   Your payment transactions will appear here once you make bookings.
                 </p>
               </CardContent>
@@ -354,30 +356,30 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
           ) : (
             <div className="space-y-3">
               {paymentHistory.map((payment) => (
-                <Card key={payment.id}>
+                <Card key={payment.id} className="border-burgundy/10 bg-white">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">
                         <div className={`p-2 rounded-full ${
-                          payment.status === 'completed' ? 'bg-green-100' : 'bg-orange-100'
+                          payment.status === 'completed' ? 'bg-sage/20' : 'bg-burgundy/10'
                         }`}>
                           <CheckCircle2 className={`w-5 h-5 ${
-                            payment.status === 'completed' ? 'text-green-600' : 'text-orange-600'
+                            payment.status === 'completed' ? 'text-sage' : 'text-burgundy'
                           }`} />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold">{payment.description}</h4>
-                          <p className="text-sm text-muted-foreground">
+                          <h4 className="font-medium text-charcoal">{payment.description}</h4>
+                          <p className="text-sm text-charcoal/60">
                             {formatBookingDate(payment.date)} • {payment.method}
                             {payment.bookingRef && ` • Ref: ${payment.bookingRef}`}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-xl font-bold">
+                        <div className="text-xl font-playfair font-bold text-burgundy">
                           {getCurrencySymbol(payment.currency)}{payment.amount}
                         </div>
-                        <div className="text-sm text-muted-foreground capitalize">
+                        <div className="text-sm text-charcoal/60 capitalize">
                           {payment.status}
                         </div>
                       </div>
@@ -391,14 +393,14 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
 
         {/* Receipts */}
         <TabsContent value="receipts" className="space-y-4">
-          <h2 className="text-2xl font-serif mb-4">Receipts & Invoices</h2>
+          <h2 className="text-2xl font-playfair text-charcoal mb-4">Receipts & Invoices</h2>
 
           {receipts.length === 0 ? (
-            <Card>
+            <Card className="border-burgundy/10">
               <CardContent className="p-12 text-center">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No Receipts Available</h3>
-                <p className="text-muted-foreground">
+                <FileText className="w-12 h-12 mx-auto mb-4 text-burgundy/40" />
+                <h3 className="text-xl font-playfair text-charcoal mb-2">No Receipts Available</h3>
+                <p className="text-charcoal/60">
                   Receipts will be available after you complete payments for your bookings.
                 </p>
               </CardContent>
@@ -406,28 +408,29 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
           ) : (
             <div className="space-y-3">
               {receipts.map((receipt) => (
-                <Card key={receipt.id}>
+                <Card key={receipt.id} className="border-burgundy/10 bg-white">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="p-3 bg-primary/10 rounded-lg">
-                          <FileText className="w-6 h-6 text-primary" />
+                        <div className="p-3 bg-burgundy/10 rounded-lg">
+                          <FileText className="w-6 h-6 text-burgundy" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold">{receipt.title}</h4>
-                          <p className="text-sm text-muted-foreground">
+                          <h4 className="font-medium text-charcoal">{receipt.title}</h4>
+                          <p className="text-sm text-charcoal/60">
                             {formatBookingDate(receipt.date)} • {receipt.bookingRef}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className="text-xl font-bold">
+                        <div className="text-xl font-playfair font-bold text-burgundy">
                           {getCurrencySymbol(receipt.currency)}{receipt.amount}
                         </div>
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => setSelectedReceipt(receipt.id)}
+                          className="border-burgundy/20 text-burgundy hover:bg-burgundy hover:text-white"
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Download
