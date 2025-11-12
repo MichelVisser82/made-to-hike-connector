@@ -47,7 +47,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
         .from('reviews')
         .select('*')
         .eq('hiker_id', userId)
-        .eq('review_type', 'guide')
+        .eq('review_type', 'hiker_to_guide')
         .in('booking_id', bookingIds);
       
       if (!error && data) {
