@@ -278,39 +278,43 @@ serve(async (req) => {
       console.error('Error creating conversation:', conversationError);
     }
 
-    // Send confirmation email to hiker
-    console.log('Sending confirmation email to hiker...');
-    try {
-      const { data: guideProfile } = await supabase
-        .from('guide_profiles')
-        .select('display_name')
-        .eq('user_id', tour.guide_id)
-        .single();
+    // Only send confirmation email if payment is verified (not pending)
+    if (payment_status && payment_status !== 'pending') {
+      console.log('Sending confirmation email to hiker...');
+      try {
+        const { data: guideProfile } = await supabase
+          .from('guide_profiles')
+          .select('display_name')
+          .eq('user_id', tour.guide_id)
+          .single();
 
-      if (hikerProfile.email) {
-        await supabase.functions.invoke('send-email', {
-          body: {
-            type: 'booking-confirmation',
-            to: hikerProfile.email,
-            bookingReference: booking.booking_reference,
-            tourTitle: tour.title,
-            bookingDate: booking.booking_date,
-            guideName: guideProfile?.display_name || 'Your Guide',
-            meetingPoint: tour.meeting_point || 'Details will be shared',
-            totalPrice: total_price,
-            currency: currency,
-            participants: participants,
-            isDeposit: payment_type === 'deposit',
-            depositAmount: deposit_amount || undefined,
-            finalPaymentAmount: final_payment_amount || undefined,
-            finalPaymentDueDate: final_payment_due_date || undefined,
-          }
-        });
-        console.log('Confirmation email sent successfully');
+        if (hikerProfile.email) {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'booking-confirmation',
+              to: hikerProfile.email,
+              bookingReference: booking.booking_reference,
+              tourTitle: tour.title,
+              bookingDate: booking.booking_date,
+              guideName: guideProfile?.display_name || 'Your Guide',
+              meetingPoint: tour.meeting_point || 'Details will be shared',
+              totalPrice: total_price,
+              currency: currency,
+              participants: participants,
+              isDeposit: payment_type === 'deposit',
+              depositAmount: deposit_amount || undefined,
+              finalPaymentAmount: final_payment_amount || undefined,
+              finalPaymentDueDate: final_payment_due_date || undefined,
+            }
+          });
+          console.log('Confirmation email sent successfully');
+        }
+      } catch (emailError) {
+        console.error('Error sending confirmation email:', emailError);
+        // Don't fail the booking if email fails
       }
-    } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError);
-      // Don't fail the booking if email fails
+    } else {
+      console.log('Skipping confirmation email - payment status is pending');
     }
 
     console.log('Booking created successfully:', booking.id);
