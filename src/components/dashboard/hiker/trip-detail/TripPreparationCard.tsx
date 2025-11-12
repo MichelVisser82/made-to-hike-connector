@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, Circle, ChevronRight } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronRight, AlertCircle } from 'lucide-react';
 import type { TripDetails } from '@/hooks/useTripDetails';
 import { TripPreparationModal } from './modals/TripPreparationModal';
 
@@ -36,35 +36,33 @@ export function TripPreparationCard({ tripDetails }: TripPreparationCardProps) {
 
   return (
     <>
-      <div className="bg-white rounded-lg p-6 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Preparation Status</h3>
+      <div className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md">
+        <h3 className="text-lg mb-3 text-charcoal font-playfair">Preparation Status</h3>
         
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-gray-700">Overall Progress</span>
-            <span className="text-[#7c2843] font-semibold">{preparationStatus.overall_percentage}%</span>
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-charcoal/70">Overall Progress</span>
+            <span className="text-sm font-medium text-burgundy">{preparationStatus.overall_percentage}%</span>
           </div>
           <Progress value={preparationStatus.overall_percentage} className="h-2" />
         </div>
 
-        <div className="space-y-2.5 mb-4">
+        <div className="space-y-2 text-sm mb-4">
           {preparationItems.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-2.5">
+            <div key={idx} className={`flex items-center gap-2 ${item.completed ? 'text-sage' : 'text-gold'}`}>
               {item.completed ? (
-                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4" />
               ) : (
-                <Circle className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                <Circle className="w-4 h-4" />
               )}
-              <span className={`text-sm ${item.completed ? 'text-gray-900' : 'text-gray-500'}`}>
-                {item.label}
-              </span>
+              <span>{item.label}</span>
             </div>
           ))}
         </div>
 
         <Button
           variant={preparationStatus.overall_percentage === 100 ? 'outline' : 'default'}
-          className={preparationStatus.overall_percentage === 100 ? 'w-full' : 'w-full bg-[#7c2843] hover:bg-[#5d1e32] font-medium'}
+          className={preparationStatus.overall_percentage === 100 ? 'w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5' : 'w-full bg-burgundy hover:bg-burgundy-dark text-white'}
           onClick={() => setShowModal(true)}
         >
           {preparationStatus.overall_percentage === 100 ? 'View Details' : 'Complete Preparation'}
