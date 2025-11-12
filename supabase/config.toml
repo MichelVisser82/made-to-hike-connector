@@ -116,3 +116,6 @@ verify_jwt = false
 
 [functions.cleanup-abandoned-bookings]
 verify_jwt = false
+
+[functions.cancel-booking-admin]
+verify_jwt = false
