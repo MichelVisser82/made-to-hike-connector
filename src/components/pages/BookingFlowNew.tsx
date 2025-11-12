@@ -73,7 +73,15 @@ export const BookingFlowNew = () => {
     mode: 'onBlur',
     defaultValues: {
       participants: [{ firstName: '', surname: '', age: 0, experience: 'beginner', medicalConditions: '' }],
+      phone: '',
+      country: '',
+      emergencyContactName: '',
+      emergencyContactCountry: '',
+      emergencyContactPhone: '',
+      emergencyContactRelationship: '',
       dietaryPreferences: [],
+      accessibilityNeeds: '',
+      specialRequests: '',
       agreedToTerms: false,
       selectedDateSlotId: preselectedSlotId || ''
     }
