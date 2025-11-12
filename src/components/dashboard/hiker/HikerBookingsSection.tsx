@@ -102,11 +102,32 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
     return 'destructive';
   };
 
-  const getPaymentStatusBadge = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'paid' || statusLower === 'succeeded' || statusLower === 'completed') return { variant: 'default' as const, label: 'Paid in Full' };
-    if (statusLower === 'pending') return { variant: 'secondary' as const, label: 'Payment Pending' };
-    return { variant: 'outline' as const, label: status };
+  const getPaymentStatusBadge = (booking: any) => {
+    const statusLower = booking.payment_status.toLowerCase();
+    
+    // Check if this is a deposit payment with automatic final payment scheduled
+    if (booking.payment_type === 'deposit') {
+      if (['paid', 'succeeded', 'completed'].includes(statusLower)) {
+        // Deposit has been paid
+        if (booking.final_payment_status === 'pending' && booking.final_payment_due_date) {
+          return { variant: 'default' as const, label: 'Deposit Paid' };
+        } else if (booking.final_payment_status === 'succeeded') {
+          return { variant: 'default' as const, label: 'Paid in Full' };
+        }
+        return { variant: 'default' as const, label: 'Deposit Paid' };
+      } else if (statusLower === 'pending') {
+        return { variant: 'secondary' as const, label: 'Deposit Pending' };
+      }
+    }
+    
+    // Full payment handling
+    if (statusLower === 'paid' || statusLower === 'succeeded' || statusLower === 'completed') {
+      return { variant: 'default' as const, label: 'Paid in Full' };
+    }
+    if (statusLower === 'pending') {
+      return { variant: 'secondary' as const, label: 'Payment Pending' };
+    }
+    return { variant: 'outline' as const, label: booking.payment_status };
   };
 
   const getCurrencySymbol = (currency: string) => {
@@ -189,7 +210,7 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
             activeBookings.map((booking) => {
               const tour = booking.tours;
               const guide = tour?.guide_profiles;
-              const paymentBadge = getPaymentStatusBadge(booking.payment_status);
+              const paymentBadge = getPaymentStatusBadge(booking);
               
               return (
               <Card key={booking.id} className="border-burgundy/10 bg-white">
