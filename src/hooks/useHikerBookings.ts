@@ -31,6 +31,7 @@ export interface HikerBooking {
     currency: string;
     hero_image: string | null;
     images: string[];
+    itinerary: any;
     guide_profiles: {
       display_name: string;
       profile_image_url: string | null;
@@ -91,6 +92,7 @@ export function useHikerBookings(hikerId: string | undefined) {
             difficulty,
             hero_image,
             images,
+            itinerary,
             guide_profiles:guide_profiles!tours_guide_id_fkey (
               display_name,
               profile_image_url

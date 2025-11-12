@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, MapPin, Users, Clock, Star, Heart, Eye, MessageCircle, CheckCircle, AlertTriangle, RefreshCw, FileText, Route } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Star, Heart, Eye, MessageCircle, CheckCircle, AlertTriangle, RefreshCw, FileText, Route, ChevronDown, ChevronUp, Camera } from 'lucide-react';
 import { useHikerBookings } from '@/hooks/useHikerBookings';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +34,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   const [meetingPointModal, setMeetingPointModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const [expandedDay, setExpandedDay] = useState<number | null>(1);
 
   // Filter and transform bookings into upcoming trips
   const upcomingTrips = bookings
@@ -54,6 +55,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       location: booking.tours?.meeting_point || 'TBD',
       meeting_point_lat: booking.tours?.meeting_point_lat,
       meeting_point_lng: booking.tours?.meeting_point_lng,
+      itinerary: booking.tours?.itinerary,
       guests: booking.participants,
       difficulty: booking.tours?.difficulty || 'Intermediate',
       duration: booking.tours?.duration || '1 day',
@@ -85,6 +87,9 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
         avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
       },
       location: booking.tours?.meeting_point || 'TBD',
+      meeting_point_lat: booking.tours?.meeting_point_lat,
+      meeting_point_lng: booking.tours?.meeting_point_lng,
+      itinerary: booking.tours?.itinerary,
       rating: 0, // TODO: Get from reviews
       image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
       reviewPending: true, // TODO: Check if review exists
@@ -507,25 +512,165 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       </Tabs>
 
       {/* Itinerary Modal */}
-      <Dialog open={itineraryModal.isOpen} onOpenChange={() => setItineraryModal({ isOpen: false, trip: null })}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <Dialog open={itineraryModal.isOpen} onOpenChange={() => {
+        setItineraryModal({ isOpen: false, trip: null });
+        setExpandedDay(1);
+      }}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Trip Itinerary</DialogTitle>
-            <DialogDescription>{itineraryModal.trip?.title}</DialogDescription>
+            <DialogTitle className="font-playfair text-charcoal">Trip Itinerary</DialogTitle>
+            <DialogDescription className="text-charcoal/70">{itineraryModal.trip?.title}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              View your complete day-by-day itinerary on the trip details page.
-            </p>
-            <Button 
-              className="w-full bg-[#7c2843] hover:bg-[#5d1e32]"
-              onClick={() => {
-                setItineraryModal({ isOpen: false, trip: null });
-                navigate(`/dashboard/trip/${itineraryModal.trip?.id}`);
-              }}
-            >
-              View Full Itinerary
-            </Button>
+            {(() => {
+              // Handle itinerary data - it might be stored in different formats
+              let itineraryDays: any[] = [];
+              const itinerary = itineraryModal.trip?.itinerary;
+              
+              if (itinerary) {
+                if (Array.isArray(itinerary.days)) {
+                  itineraryDays = itinerary.days;
+                } else if (Array.isArray(itinerary)) {
+                  itineraryDays = itinerary;
+                }
+              }
+
+              if (!itineraryDays || itineraryDays.length === 0) {
+                return (
+                  <div className="text-center py-8">
+                    <p className="text-charcoal/60 mb-4">
+                      Detailed itinerary will be shared closer to your trip date.
+                    </p>
+                    <Button 
+                      className="bg-burgundy hover:bg-burgundy-dark text-white"
+                      onClick={() => {
+                        setItineraryModal({ isOpen: false, trip: null });
+                        navigate(`/dashboard/trip/${itineraryModal.trip?.id}`);
+                      }}
+                    >
+                      View Full Trip Details
+                    </Button>
+                  </div>
+                );
+              }
+
+              return (
+                <>
+                  <div className="space-y-3">
+                    {itineraryDays.map((day: any) => (
+                      <div key={day.day_number} className="border border-burgundy/10 rounded-lg overflow-hidden">
+                        <button
+                          onClick={() => setExpandedDay(expandedDay === day.day_number ? null : day.day_number)}
+                          className="w-full flex items-center justify-between p-4 bg-cream hover:bg-cream/70 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-burgundy text-white flex items-center justify-center text-sm font-playfair flex-shrink-0">
+                              {day.day_number}
+                            </div>
+                            <div className="text-left">
+                              <h3 className="font-medium text-charcoal text-sm">{day.title}</h3>
+                              {day.date && day.start_time && day.end_time && (
+                                <div className="text-xs text-charcoal/60">
+                                  {day.date} • {day.start_time} - {day.end_time}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {expandedDay === day.day_number ? (
+                            <ChevronUp className="w-5 h-5 text-burgundy flex-shrink-0" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-burgundy flex-shrink-0" />
+                          )}
+                        </button>
+                        
+                        {expandedDay === day.day_number && (
+                          <div className="p-4 border-t border-burgundy/10 bg-white">
+                            <div className="space-y-4">
+                              {/* Overview */}
+                              {day.overview && (
+                                <div>
+                                  <h4 className="font-medium text-charcoal mb-2 text-sm">Overview</h4>
+                                  <p className="text-charcoal/70 text-sm">{day.overview}</p>
+                                </div>
+                              )}
+
+                              {/* Detailed Schedule */}
+                              {day.activities && day.activities.length > 0 && (
+                                <div>
+                                  <h4 className="font-medium text-charcoal mb-2 text-sm">Detailed Schedule</h4>
+                                  <div className="space-y-3">
+                                    {day.activities.map((activity: any, idx: number) => (
+                                      <div key={idx} className="flex gap-2">
+                                        {activity.time && (
+                                          <div className="w-16 flex-shrink-0 text-xs text-burgundy font-medium">
+                                            {activity.time}
+                                          </div>
+                                        )}
+                                        <div className="flex-1">
+                                          <div className="font-medium text-charcoal text-xs mb-1">
+                                            {activity.title}
+                                          </div>
+                                          <p className="text-xs text-charcoal/70">{activity.description}</p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Stats */}
+                              {day.stats && (day.stats.distance_km || day.stats.elevation_gain_m || day.stats.hiking_time_hours) && (
+                                <div className="grid grid-cols-3 gap-3 p-3 bg-cream rounded-lg">
+                                  {day.stats.distance_km && (
+                                    <div>
+                                      <div className="text-xs text-charcoal/60 mb-1">Distance</div>
+                                      <div className="font-medium text-charcoal text-sm">{day.stats.distance_km} km</div>
+                                    </div>
+                                  )}
+                                  {day.stats.elevation_gain_m && (
+                                    <div>
+                                      <div className="text-xs text-charcoal/60 mb-1">Elevation</div>
+                                      <div className="font-medium text-charcoal text-sm">+{day.stats.elevation_gain_m}m</div>
+                                    </div>
+                                  )}
+                                  {day.stats.hiking_time_hours && (
+                                    <div>
+                                      <div className="text-xs text-charcoal/60 mb-1">Hiking Time</div>
+                                      <div className="font-medium text-charcoal text-sm">{day.stats.hiking_time_hours}h</div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Photo Opportunities */}
+                              {day.photo_opportunities && (
+                                <div className="bg-sage/10 border border-sage/20 rounded-lg p-3">
+                                  <div className="flex items-start gap-2 mb-1">
+                                    <Camera className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
+                                    <h4 className="font-medium text-charcoal text-xs">Photo Opportunities</h4>
+                                  </div>
+                                  <p className="text-xs text-charcoal/70">{day.photo_opportunities}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    className="w-full bg-burgundy hover:bg-burgundy-dark text-white"
+                    onClick={() => {
+                      setItineraryModal({ isOpen: false, trip: null });
+                      navigate(`/dashboard/trip/${itineraryModal.trip?.id}`);
+                    }}
+                  >
+                    View Full Trip Details
+                  </Button>
+                </>
+              );
+            })()}
           </div>
         </DialogContent>
       </Dialog>
