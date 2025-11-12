@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, MapPin, Users, Clock, Star, Heart } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Star, Heart, Eye, MessageCircle, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useHikerBookings } from '@/hooks/useHikerBookings';
 import { format, isAfter, isBefore } from 'date-fns';
 
@@ -16,6 +17,7 @@ interface HikerTripsSectionProps {
 }
 
 export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerTripsSectionProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upcoming');
   const { bookings, loading, error } = useHikerBookings(userId);
 
@@ -146,7 +148,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                 <p className="text-muted-foreground mb-4">
                   You don't have any upcoming adventures yet.
                 </p>
-                <Button onClick={() => window.location.href = '/tours'}>
+                <Button onClick={() => navigate('/tours')}>
                   Browse Tours
                 </Button>
               </CardContent>
@@ -162,40 +164,45 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
               </div>
 
               {upcomingTrips.map((trip) => (
-              <Card key={trip.id} className="overflow-hidden">
+              <Card key={trip.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                  <div className="relative h-48 md:h-56">
+                  {/* Image Section - 1/3 width */}
+                  <div className="relative h-64 md:h-full">
                     {trip.image && (
                       <img src={trip.image} alt={trip.title} className="w-full h-full object-cover" />
                     )}
+                    {/* Status Badge Overlay */}
                     <Badge 
-                      variant={trip.status === 'confirmed' ? 'default' : 'secondary'}
-                      className="absolute top-4 left-4"
+                      className={`absolute top-4 left-4 ${
+                        trip.status === 'confirmed' 
+                          ? 'bg-green-100 text-green-700 border-green-200' 
+                          : 'bg-orange-100 text-orange-700 border-orange-200'
+                      }`}
                     >
-                      {trip.status === 'confirmed' ? 'Confirmed' : trip.status === 'pending' ? 'Pending' : 'Action Needed'}
+                      {trip.status === 'confirmed' ? 'Confirmed' : 'Action Needed'}
                     </Badge>
                   </div>
-                  <div className="md:col-span-2 p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-2xl font-semibold mb-2">{trip.title}</h3>
-                        <p className="text-muted-foreground mb-4">{trip.dates}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-3xl font-bold text-primary">
-                          {getCurrencySymbol(trip.currency)}{trip.price}
-                        </span>
-                      </div>
+
+                  {/* Content Section - 2/3 width */}
+                  <div className="md:col-span-2 p-6 space-y-4">
+                    {/* Title & Date */}
+                    <div>
+                      <h3 className="text-2xl font-serif font-semibold mb-1">{trip.title}</h3>
+                      <p className="text-muted-foreground">{trip.dates}</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    {/* Guide & Tour Info Grid */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="flex items-center gap-2">
                         <Avatar className="w-8 h-8">
                           {trip.guide.avatar && <AvatarImage src={trip.guide.avatar} />}
-                          <AvatarFallback>{trip.guide.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                          <AvatarFallback>
+                            {trip.guide.name.split(' ').map((n: string) => n[0]).join('')}
+                          </AvatarFallback>
                         </Avatar>
                         <div className="text-sm">
-                          <p className="font-medium">Guide: {trip.guide.name}</p>
+                          <p className="font-medium">{trip.guide.name}</p>
+                          <p className="text-muted-foreground text-xs">Your Guide</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
@@ -212,34 +219,49 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                       </div>
                     </div>
 
+                    {/* Alert Banners */}
                     {trip.paymentStatus.toLowerCase() === 'pending' && (
-                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline" className="bg-orange-100">⚠️</Badge>
-                          <span className="font-medium">Payment pending</span>
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-yellow-900">Payment Pending</p>
+                          <p className="text-sm text-yellow-700">Complete your payment to confirm booking</p>
                         </div>
                       </div>
                     )}
 
-                    {trip.specialRequests && (
-                      <div className="bg-muted/50 rounded-lg p-3 mb-4">
-                        <p className="text-sm font-medium mb-1">Special Requests</p>
-                        <p className="text-sm text-muted-foreground">{trip.specialRequests}</p>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                      <Button variant="default" className="w-full" onClick={() => window.location.href = `/dashboard/trip/${trip.id}`}>
-                        📋 Complete Details
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                      <Button 
+                        className="w-full bg-[#7c2843] hover:bg-[#5d1e32] text-white"
+                        onClick={() => navigate(`/dashboard/trip/${trip.id}`)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Complete Details
                       </Button>
-                      <Button variant="outline" className="w-full" onClick={() => window.location.href = `/dashboard/trip/${trip.id}`}>
-                        🗺️ Itinerary
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-[#7c2843] text-[#7c2843] hover:bg-[#7c2843]/10"
+                        onClick={() => navigate(`/dashboard/trip/${trip.id}`)}
+                      >
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Itinerary
                       </Button>
-                      <Button variant="outline" className="w-full" onClick={() => trip.guideId && onMessageGuide(trip.guideId)}>
-                        💬 Message
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-[#7c2843] text-[#7c2843] hover:bg-[#7c2843]/10"
+                        onClick={() => trip.guideId && onMessageGuide(trip.guideId)}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Message Guide
                       </Button>
-                      <Button variant="outline" className="w-full" onClick={() => window.location.href = `/dashboard/trip/${trip.id}`}>
-                        ✓ Preparation
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-[#7c2843] text-[#7c2843] hover:bg-[#7c2843]/10"
+                        onClick={() => navigate(`/dashboard/trip/${trip.id}`)}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Preparation
                       </Button>
                     </div>
                   </div>
@@ -288,17 +310,19 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                   <div className="space-y-2">
                     <Button 
                       variant={trip.reviewPending ? 'default' : 'outline'} 
-                      className="w-full"
-                      onClick={() => window.location.href = `/dashboard?section=reviews&bookingId=${trip.id}`}
+                      className={trip.reviewPending ? 'w-full bg-[#7c2843] hover:bg-[#5d1e32]' : 'w-full'}
+                      onClick={() => navigate(`/dashboard?section=reviews&bookingId=${trip.id}`)}
                     >
-                      ⭐ {trip.reviewPending ? 'Write Review' : 'View Your Review'}
+                      <Star className="w-4 h-4 mr-2" />
+                      {trip.reviewPending ? 'Write Review' : 'View Your Review'}
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="w-full"
-                      onClick={() => trip.tourSlug && (window.location.href = `/tours/${trip.tourSlug}`)}
+                      className="w-full border-[#7c2843] text-[#7c2843] hover:bg-[#7c2843]/10"
+                      onClick={() => trip.tourSlug && navigate(`/tours/${trip.tourSlug}`)}
                     >
-                      🔄 Book Again
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Book Again
                     </Button>
                   </div>
                 </CardContent>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams, useLocation } from 'react-router-dom';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { TodaySection } from '@/components/dashboard/TodaySection';
 import { GuideDashboard } from '@/components/pages/GuideDashboard';
@@ -15,6 +15,7 @@ import type { User } from '@/types';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { bookingId, tourSlug } = useParams();
   const { user, signOut } = useAuth();
@@ -55,7 +56,7 @@ export default function DashboardPage() {
   }
 
   // If viewing trip detail page (hiker's detailed booking view)
-  if (bookingId && searchParams.get('view') === 'trip') {
+  if (bookingId && location.pathname.startsWith('/dashboard/trip/')) {
     return <TripDetailPage />;
   }
 
