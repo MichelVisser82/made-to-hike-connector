@@ -266,18 +266,35 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
 
                   {booking.payment_type === 'deposit' && (
                     <>
-                      {booking.final_payment_status === 'pending' && booking.final_payment_due_date && (
+                      {(!booking.final_payment_status || booking.final_payment_status === 'pending') && booking.final_payment_due_date && booking.final_payment_amount && (
                         <div className="bg-sage/10 border border-sage/20 rounded-lg p-4 mb-4">
                           <div className="flex items-start gap-3">
                             <Clock className="h-5 w-5 text-sage mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="font-medium text-charcoal">Final Payment Scheduled</p>
-                              <p className="text-sm text-charcoal/70 mt-1">
-                                Your final payment of {booking.tours?.currency} {booking.final_payment_amount?.toFixed(2)} will be automatically charged on {formatBookingDate(booking.final_payment_due_date)}
-                              </p>
-                              <p className="text-xs text-charcoal/60 mt-2">
-                                The payment will be charged to your saved payment method automatically.
-                              </p>
+                            <div className="flex-1">
+                              <p className="font-medium text-charcoal mb-2">Final Payment Scheduled</p>
+                              <div className="grid grid-cols-2 gap-4 mb-3">
+                                <div>
+                                  <p className="text-xs text-charcoal/60 mb-1">Deposit Paid</p>
+                                  <p className="text-sm font-medium text-charcoal">
+                                    {getCurrencySymbol(booking.currency)}{booking.deposit_amount?.toFixed(2) || (booking.total_price - (booking.final_payment_amount || 0)).toFixed(2)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-charcoal/60 mb-1">Final Payment Due</p>
+                                  <p className="text-sm font-medium text-charcoal">
+                                    {getCurrencySymbol(booking.currency)}{booking.final_payment_amount.toFixed(2)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="bg-white rounded-md p-3 border border-sage/20">
+                                <div className="flex items-center justify-between mb-1">
+                                  <p className="text-sm font-medium text-charcoal">Auto-charge date:</p>
+                                  <p className="text-sm font-semibold text-sage">{formatBookingDate(booking.final_payment_due_date)}</p>
+                                </div>
+                                <p className="text-xs text-charcoal/60">
+                                  The final payment will be automatically charged to your saved payment method on this date.
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>

@@ -15,6 +15,7 @@ export interface HikerBooking {
   final_payment_status: string | null;
   final_payment_amount: number | null;
   final_payment_due_date: string | null;
+  deposit_amount: number | null;
   created_at: string;
   special_requests: string | null;
   tour_id: string;
@@ -75,6 +76,7 @@ export function useHikerBookings(hikerId: string | undefined) {
           final_payment_status,
           final_payment_amount,
           final_payment_due_date,
+          deposit_amount,
           stripe_payment_intent_id,
           created_at,
           special_requests,
