@@ -211,7 +211,6 @@ serve(async (req) => {
         mode: 'payment',
         payment_intent_data: {
           application_fee_amount: totalFee, // Platform takes service fee + guide fee
-          customer: customerId, // Attach customer to payment intent for saving payment methods
           transfer_data: {
             destination: guide.stripe_account_id, // Guide receives amount - guide fee
           },
