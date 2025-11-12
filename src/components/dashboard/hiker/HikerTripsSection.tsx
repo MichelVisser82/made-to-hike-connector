@@ -229,17 +229,17 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                     )}
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                      <Button variant="default" className="w-full" onClick={() => trip.tourId && onViewTour(trip.tourId)}>
-                        📋 View Tour
+                      <Button variant="default" className="w-full" onClick={() => window.location.href = `/dashboard/trip/${trip.id}`}>
+                        📋 Complete Details
                       </Button>
-                      <Button variant="outline" className="w-full">
-                        📍 Meeting Point
+                      <Button variant="outline" className="w-full" onClick={() => window.location.href = `/dashboard/trip/${trip.id}`}>
+                        🗺️ Itinerary
                       </Button>
                       <Button variant="outline" className="w-full" onClick={() => trip.guideId && onMessageGuide(trip.guideId)}>
-                        💬 Message Guide
+                        💬 Message
                       </Button>
-                      <Button variant="outline" className="w-full">
-                        ℹ️ Details
+                      <Button variant="outline" className="w-full" onClick={() => window.location.href = `/dashboard/trip/${trip.id}`}>
+                        ✓ Preparation
                       </Button>
                     </div>
                   </div>

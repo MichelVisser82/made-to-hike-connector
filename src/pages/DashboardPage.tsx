@@ -7,6 +7,7 @@ import { AdminDashboard } from '@/components/pages/AdminDashboard';
 import { UserDashboard } from '@/components/pages/UserDashboard';
 import { BookingDetailView } from '@/components/dashboard/BookingDetailView';
 import { TourBookingDetailPage } from '@/components/dashboard/TourBookingDetailPage';
+import { TripDetailPage } from '@/components/dashboard/hiker/TripDetailPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import type { DashboardSection } from '@/types/dashboard';
@@ -51,6 +52,11 @@ export default function DashboardPage() {
 
   if (!user || !mappedUser) {
     return null; // Will redirect via useEffect
+  }
+
+  // If viewing trip detail page (hiker's detailed booking view)
+  if (bookingId && searchParams.get('view') === 'trip') {
+    return <TripDetailPage />;
   }
 
   // If viewing a booking detail by tour, wrap it with layout

@@ -120,6 +120,14 @@ const App: React.FC = () => {
                     </ProtectedRoute>
                   } 
                 />
+                <Route 
+                  path="/dashboard/trip/:bookingId" 
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  } 
+                />
                 {/* Dynamic guide profile route - BEFORE NotFound */}
                 <Route path="/:slug" element={<GuidePage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

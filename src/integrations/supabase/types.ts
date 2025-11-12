@@ -82,6 +82,8 @@ export type Database = {
           hiker_email: string | null
           hiker_id: string
           id: string
+          insurance_file_url: string | null
+          insurance_uploaded_at: string | null
           participants: number
           participants_details: Json | null
           payment_status: string | null
@@ -101,6 +103,7 @@ export type Database = {
           total_price: number
           tour_id: string
           updated_at: string
+          waiver_uploaded_at: string | null
         }
         Insert: {
           booking_date: string
@@ -118,6 +121,8 @@ export type Database = {
           hiker_email?: string | null
           hiker_id: string
           id?: string
+          insurance_file_url?: string | null
+          insurance_uploaded_at?: string | null
           participants?: number
           participants_details?: Json | null
           payment_status?: string | null
@@ -137,6 +142,7 @@ export type Database = {
           total_price: number
           tour_id: string
           updated_at?: string
+          waiver_uploaded_at?: string | null
         }
         Update: {
           booking_date?: string
@@ -154,6 +160,8 @@ export type Database = {
           hiker_email?: string | null
           hiker_id?: string
           id?: string
+          insurance_file_url?: string | null
+          insurance_uploaded_at?: string | null
           participants?: number
           participants_details?: Json | null
           payment_status?: string | null
@@ -173,6 +181,7 @@ export type Database = {
           total_price?: number
           tour_id?: string
           updated_at?: string
+          waiver_uploaded_at?: string | null
         }
         Relationships: [
           {
@@ -2264,6 +2273,47 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "guide_profiles_public"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      trip_checklist_items: {
+        Row: {
+          booking_id: string
+          checked_at: string | null
+          created_at: string | null
+          id: string
+          is_checked: boolean | null
+          item_name: string
+          item_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          checked_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_checked?: boolean | null
+          item_name: string
+          item_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          checked_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_checked?: boolean | null
+          item_name?: string
+          item_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_checklist_items_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
           },
         ]
       }
