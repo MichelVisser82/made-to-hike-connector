@@ -181,7 +181,7 @@ serve(async (req) => {
     console.log('Checking for duplicate bookings...');
     const { data: existingBookings } = await supabase
       .from('bookings')
-      .select('id, booking_reference, status, payment_status')
+      .select('id, booking_reference, status, payment_status, stripe_payment_intent_id')
       .eq('hiker_id', hiker_id)
       .eq('tour_id', tour_id)
       .eq('booking_date', dateSlot.slot_date)
@@ -193,9 +193,9 @@ serve(async (req) => {
       const existing = existingBookings[0];
       console.log('Found existing booking:', existing);
       
-      // If there's a pending booking without payment, allow this new attempt
-      if (existing.payment_status === 'pending' && !existing.payment_status) {
-        console.log('Existing booking is pending without payment, allowing new booking');
+      // If there's a pending booking without payment intent, allow this new attempt
+      if (existing.payment_status === 'pending' && !existing.stripe_payment_intent_id) {
+        console.log('Existing booking is pending without payment intent, allowing new booking');
       } else {
         console.error('Duplicate booking detected:', existing.booking_reference);
         return new Response(
