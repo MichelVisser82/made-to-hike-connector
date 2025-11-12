@@ -109,7 +109,7 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
           <div className="flex flex-col items-center gap-2">
             <Mountain className="w-5 h-5 text-muted-foreground" />
             <div className="text-xs text-muted-foreground">Max Altitude</div>
-            <div className="font-semibold">{tour.max_altitude || '4,808m'}</div>
+            <div className="font-semibold">4,808m</div>
           </div>
         </div>
       </div>
