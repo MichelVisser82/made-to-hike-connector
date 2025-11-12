@@ -193,9 +193,112 @@ serve(async (req) => {
       const existing = existingBookings[0];
       console.log('Found existing booking:', existing);
       
-      // If there's a pending booking without payment intent, allow this new attempt
+      // If there's a pending booking without payment intent, update it instead of creating new
       if (existing.payment_status === 'pending' && !existing.stripe_payment_intent_id) {
-        console.log('Existing booking is pending without payment intent, allowing new booking');
+        console.log('Updating existing pending booking with payment information');
+        
+        const { data: updatedBooking, error: updateError } = await supabase
+          .from('bookings')
+          .update({
+            participants,
+            participants_details,
+            total_price,
+            subtotal,
+            discount_code,
+            discount_amount: discount_amount || 0,
+            service_fee_amount: service_fee_amount || 0,
+            currency,
+            payment_status: payment_status || 'succeeded',
+            special_requests,
+            stripe_payment_intent_id,
+            payment_type: payment_type || 'full',
+            deposit_amount: deposit_amount || null,
+            final_payment_amount: final_payment_amount || null,
+            final_payment_due_date: final_payment_due_date || null,
+            final_payment_status: final_payment_status || null,
+            status: tour.auto_confirm ? 'confirmed' : 'pending_confirmation',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('Error updating booking:', updateError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to update booking', details: updateError }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log('Booking updated successfully:', updatedBooking.id);
+
+        // Get or create conversation
+        const { data: existingConversation } = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('hiker_id', hiker_id)
+          .eq('guide_id', tour.guide_id)
+          .eq('tour_id', tour_id)
+          .maybeSingle();
+
+        let conversation = existingConversation;
+        if (!existingConversation) {
+          const { data: newConversation } = await supabase
+            .from('conversations')
+            .insert({
+              hiker_id: hiker_id,
+              guide_id: tour.guide_id,
+              tour_id: tour_id,
+              last_message_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+          conversation = newConversation;
+        }
+
+        // Send confirmation email if payment is verified
+        if (payment_status && payment_status !== 'pending') {
+          try {
+            const { data: guideProfile } = await supabase
+              .from('guide_profiles')
+              .select('display_name')
+              .eq('user_id', tour.guide_id)
+              .single();
+
+            if (hikerProfile.email) {
+              await supabase.functions.invoke('send-email', {
+                body: {
+                  type: 'booking-confirmation',
+                  to: hikerProfile.email,
+                  bookingReference: updatedBooking.booking_reference,
+                  tourTitle: tour.title,
+                  bookingDate: updatedBooking.booking_date,
+                  guideName: guideProfile?.display_name || 'Your Guide',
+                  meetingPoint: tour.meeting_point || 'Details will be shared',
+                  totalPrice: total_price,
+                  currency: currency,
+                  participants: participants,
+                  isDeposit: payment_type === 'deposit',
+                  depositAmount: deposit_amount || undefined,
+                  finalPaymentAmount: final_payment_amount || undefined,
+                  finalPaymentDueDate: final_payment_due_date || undefined,
+                }
+              });
+            }
+          } catch (emailError) {
+            console.error('Error sending confirmation email:', emailError);
+          }
+        }
+
+        return new Response(
+          JSON.stringify({
+            booking: updatedBooking,
+            conversation,
+            message: 'Booking updated successfully'
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       } else {
         console.error('Duplicate booking detected:', existing.booking_reference);
         return new Response(
