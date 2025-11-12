@@ -75,9 +75,9 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     .filter(booking => {
       const bookingDate = new Date(booking.booking_date);
       const isPast = isBefore(bookingDate, new Date());
-      const isCompleted = booking.status.toLowerCase() === 'completed';
       const isNotCancelled = booking.status.toLowerCase() !== 'cancelled';
-      return (isPast || isCompleted) && isNotCancelled;
+      // Show any non-cancelled booking with a past date
+      return isPast && isNotCancelled;
     })
     .map(booking => ({
       id: booking.id,
