@@ -65,9 +65,9 @@ export function MessageGuideModal({ isOpen, onClose, tripDetails }: MessageGuide
       // Send message using edge function
       const { error: sendError } = await supabase.functions.invoke('send-message', {
         body: {
-          conversation_id: conversationId,
-          message: message.trim(),
-          sender_type: 'hiker'
+          conversationId: conversationId,
+          content: message.trim(),
+          senderType: 'hiker'
         }
       });
 
