@@ -175,7 +175,7 @@ serve(async (req) => {
           .from('bookings')
           .update({
             final_payment_intent_id: paymentIntent.id,
-            final_payment_status: paymentIntent.status === 'succeeded' ? 'paid' : 'processing',
+            final_payment_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'processing',
             payment_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'processing',
             updated_at: new Date().toISOString()
           })

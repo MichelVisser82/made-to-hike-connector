@@ -119,3 +119,14 @@ verify_jwt = false
 
 [functions.cancel-booking-admin]
 verify_jwt = false
+
+[functions.collect-final-payments]
+verify_jwt = false
+
+# Cron jobs configuration
+[cron]
+enabled = true
+
+[cron.jobs.collect-final-payments]
+schedule = "0 9 * * *"  # Run daily at 9:00 AM UTC
+function_name = "collect-final-payments"
