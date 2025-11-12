@@ -588,7 +588,7 @@ export const BookingFlowNew = () => {
 
         {/* Progress Indicator */}
         {currentStep !== 'account' && (
-          <BookingProgress currentStep={getStepNumber()} totalSteps={6} />
+          <BookingProgress currentStep={getStepNumber()} totalSteps={7} />
         )}
 
         {/* Step Content */}
