@@ -123,6 +123,27 @@ export function useTripDetails(bookingId: string | undefined) {
         .eq('id', user?.id)
         .single();
 
+      // Fetch guide stats (rating and review count)
+      const guideId = bookingData.tours?.guide_profiles?.user_id;
+      let guideStats = { average_rating: 0, review_count: 0 };
+      
+      if (guideId) {
+        const { data: reviews } = await supabase
+          .from('reviews')
+          .select('overall_rating')
+          .eq('guide_id', guideId)
+          .eq('review_type', 'hiker_to_guide')
+          .eq('review_status', 'published');
+
+        if (reviews && reviews.length > 0) {
+          const avgRating = reviews.reduce((sum, r) => sum + r.overall_rating, 0) / reviews.length;
+          guideStats = {
+            average_rating: Math.round(avgRating * 10) / 10, // Round to 1 decimal
+            review_count: reviews.length
+          };
+        }
+      }
+
       // Calculate preparation status
       const checklist = checklistData || [];
       const checkedItems = checklist.filter(item => item.is_checked).length;
@@ -160,7 +181,9 @@ export function useTripDetails(bookingId: string | undefined) {
           ...bookingData.tours?.guide_profiles,
           certifications: Array.isArray(bookingData.tours?.guide_profiles?.certifications)
             ? bookingData.tours?.guide_profiles?.certifications
-            : []
+            : [],
+          average_rating: guideStats.average_rating,
+          review_count: guideStats.review_count
         } as any,
         checklist: (checklist || []) as TripChecklistItem[],
         preparationStatus
