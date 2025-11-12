@@ -177,6 +177,37 @@ serve(async (req) => {
       );
     }
 
+    // Check for existing pending or confirmed bookings for same user/tour/date
+    console.log('Checking for duplicate bookings...');
+    const { data: existingBookings } = await supabase
+      .from('bookings')
+      .select('id, booking_reference, status, payment_status')
+      .eq('hiker_id', hiker_id)
+      .eq('tour_id', tour_id)
+      .eq('booking_date', dateSlot.slot_date)
+      .in('status', ['pending', 'pending_confirmation', 'confirmed'])
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (existingBookings && existingBookings.length > 0) {
+      const existing = existingBookings[0];
+      console.log('Found existing booking:', existing);
+      
+      // If there's a pending booking without payment, allow this new attempt
+      if (existing.payment_status === 'pending' && !existing.payment_status) {
+        console.log('Existing booking is pending without payment, allowing new booking');
+      } else {
+        console.error('Duplicate booking detected:', existing.booking_reference);
+        return new Response(
+          JSON.stringify({ 
+            error: 'You already have a booking for this tour on this date',
+            existingBooking: existing.booking_reference
+          }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // Determine booking status based on auto_confirm setting
     const bookingStatus = tour.auto_confirm ? 'confirmed' : 'pending_confirmation';
 
