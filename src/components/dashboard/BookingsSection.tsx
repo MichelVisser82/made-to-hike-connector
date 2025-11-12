@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, Download, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -30,8 +30,17 @@ export function BookingsSection({
 }: BookingsSectionProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'status' | 'tour'>('status');
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
+  
+  // Check URL params to auto-select pending tab
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'pending') {
+      setActiveTab('pending');
+    }
+  }, [searchParams]);
   
   // Fetch tour bookings
   const { tours, loading: toursLoading } = useGuideBookingsByTour(user?.id);
