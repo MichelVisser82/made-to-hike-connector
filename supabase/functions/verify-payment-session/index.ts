@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-08-27.basil',
 });
 
 const logStep = (step: string, details?: any) => {
@@ -40,8 +40,21 @@ serve(async (req) => {
 
     logStep('Session retrieved', { 
       paymentStatus: session.payment_status,
-      paymentIntentId: session.payment_intent 
+      paymentIntentId: session.payment_intent,
+      sessionStatus: session.status
     });
+
+    // Check if session expired
+    if (session.status === 'expired') {
+      logStep('Session expired', { sessionId: session_id, expiresAt: session.expires_at });
+      return new Response(
+        JSON.stringify({ 
+          error: 'Payment session expired. Please start a new booking.',
+          expired: true
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // For SEPA and other delayed payment methods, payment_status will be 'unpaid' initially
     // but the session is valid and the payment is processing

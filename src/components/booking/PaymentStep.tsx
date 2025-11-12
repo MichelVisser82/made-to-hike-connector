@@ -40,6 +40,8 @@ export const PaymentStep = ({
   const [depositAmount, setDepositAmount] = useState(0);
   const [finalPaymentAmount, setFinalPaymentAmount] = useState(0);
   const [depositInfo, setDepositInfo] = useState<string>('');
+  const [lastPaymentAttempt, setLastPaymentAttempt] = useState<number>(0);
+  const [paymentCooldown, setPaymentCooldown] = useState<number>(0);
 
   const agreedToTerms = form.watch('agreedToTerms');
   const { defaults, isLoading: isPolicyLoading } = useGuidePolicyDefaults(guideId);
@@ -64,6 +66,14 @@ export const PaymentStep = ({
       setDepositInfo(`${depositPercent}% deposit (${pricing.currency}${deposit}) + ${pricing.currency}${pricing.serviceFee.toFixed(2)} service fee due now. Remaining ${pricing.currency}${finalPrice - deposit} due ${defaults.final_payment_days || 14} days before tour.`);
     }
   }, [defaults, isPolicyLoading, pricing, guideId]);
+
+  // Cooldown timer for rate limiting
+  useEffect(() => {
+    if (paymentCooldown > 0) {
+      const timer = setTimeout(() => setPaymentCooldown(paymentCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [paymentCooldown]);
 
   const validateDiscountCode = async () => {
     if (!discountCode.trim()) {
@@ -129,6 +139,17 @@ export const PaymentStep = ({
   };
 
   const handleCompleteBooking = async () => {
+    // Rate limiting check
+    const now = Date.now();
+    const timeSinceLastAttempt = now - lastPaymentAttempt;
+    
+    if (timeSinceLastAttempt < 5000) {
+      const remainingSeconds = Math.ceil((5000 - timeSinceLastAttempt) / 1000);
+      toast.error(`Please wait ${remainingSeconds} seconds before trying again`);
+      setPaymentCooldown(remainingSeconds);
+      return;
+    }
+
     if (!agreedToTerms) {
       toast.error('Please agree to the terms and conditions');
       return;
@@ -146,6 +167,7 @@ export const PaymentStep = ({
       return;
     }
 
+    setLastPaymentAttempt(now);
     setIsProcessing(true);
 
     try {
@@ -156,10 +178,60 @@ export const PaymentStep = ({
         throw new Error('Please select a date for your tour');
       }
 
+      // Get user session
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+      const hikerEmail = session?.user?.email;
+      const userId = session?.user?.id;
+
+      if (!hikerEmail || !userId) {
+        throw new Error('User authentication not available. Please refresh and try again.');
+      }
+
       const finalPrice = pricing.subtotal - pricing.discount;
       const amountToCharge = depositAmount > 0 ? depositAmount : finalPrice;
       const totalToCharge = amountToCharge + pricing.serviceFee;
 
+      // STEP 1: Create pending booking FIRST (before Stripe redirect)
+      console.log('[PaymentStep] Creating pending booking before payment...');
+      
+      const createBookingData = {
+        tour_id: tourId,
+        date_slot_id: fullBookingData.selectedDateSlotId,
+        hiker_id: userId,
+        participants: fullBookingData.participants.length,
+        participants_details: fullBookingData.participants,
+        total_price: pricing.total,
+        subtotal: pricing.subtotal,
+        discount_code: fullBookingData.discountCode,
+        discount_amount: pricing.discount,
+        service_fee_amount: pricing.serviceFee,
+        currency: pricing.currency,
+        special_requests: fullBookingData.specialRequests,
+        status: 'pending',
+        payment_status: 'pending',
+        payment_type: depositAmount > 0 ? 'deposit' : 'full',
+        deposit_amount: depositAmount || null,
+        final_payment_amount: finalPaymentAmount || null,
+        final_payment_due_date: depositAmount > 0 && defaults?.final_payment_days 
+          ? new Date(Date.now() + defaults.final_payment_days * 24 * 60 * 60 * 1000).toISOString() 
+          : null,
+        final_payment_status: depositAmount > 0 ? 'pending' : null,
+      };
+
+      const { data: bookingResponse, error: bookingError } = await supabase.functions.invoke('create-booking', {
+        body: createBookingData
+      });
+
+      if (bookingError || !bookingResponse?.booking) {
+        console.error('[PaymentStep] Failed to create pending booking:', bookingError);
+        throw new Error('Failed to create booking. Please try again.');
+      }
+
+      const bookingId = bookingResponse.booking.id;
+      console.log('[PaymentStep] Pending booking created:', bookingId);
+
+      // STEP 2: Create Stripe session with booking_id in metadata
       const paymentPayload = {
         amount: amountToCharge, // Deposit or full price (after discount, before service fee)
         serviceFee: pricing.serviceFee, // Pre-calculated service fee
@@ -168,6 +240,7 @@ export const PaymentStep = ({
         tourId: tourId,
         guideId: guideId,
         dateSlotId: fullBookingData.selectedDateSlotId,
+        bookingId: bookingId, // Pass booking ID to Stripe
         tourTitle: `Hiking Tour Booking`,
         isDeposit: depositAmount > 0,
         depositAmount: depositAmount,
@@ -198,17 +271,6 @@ export const PaymentStep = ({
       };
 
       console.log('[PaymentStep] Sending payment request:', paymentPayload);
-
-      // Create Stripe Checkout Session using direct fetch
-      console.log('[PaymentStep] About to call create-payment-intent function...');
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      const authToken = session?.access_token;
-      const hikerEmail = session?.user?.email;
-
-      if (!hikerEmail) {
-        throw new Error('User email not available. Please refresh and try again.');
-      }
       
       const response = await fetch(
         'https://ohecxwxumzpfcfsokfkg.supabase.co/functions/v1/create-payment-intent',
@@ -455,7 +517,7 @@ export const PaymentStep = ({
 
             <Button
               onClick={handleCompleteBooking}
-              disabled={!agreedToTerms || isProcessing || isPolicyLoading}
+              disabled={!agreedToTerms || isProcessing || isPolicyLoading || paymentCooldown > 0}
               className="w-full mt-6"
               size="lg"
             >
@@ -466,6 +528,8 @@ export const PaymentStep = ({
                 </>
               ) : isPolicyLoading ? (
                 'Loading payment info...'
+              ) : paymentCooldown > 0 ? (
+                `Wait ${paymentCooldown}s`
               ) : (
                 `Pay ${pricing.currency === 'EUR' ? '€' : pricing.currency === 'GBP' ? '£' : '$'}${depositAmount > 0 ? (depositAmount + pricing.serviceFee).toFixed(2) : pricing.total.toFixed(2)}`
               )}

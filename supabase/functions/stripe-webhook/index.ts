@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-08-27.basil',
 });
 
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
@@ -32,7 +32,19 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Log webhook event
+    // Check if event already processed (idempotency)
+    const { data: existingEvent } = await supabaseClient
+      .from('stripe_webhook_events')
+      .select('processed')
+      .eq('stripe_event_id', event.id)
+      .single();
+
+    if (existingEvent?.processed) {
+      logStep('Event already processed, skipping', { eventId: event.id });
+      return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 });
+    }
+
+    // Log webhook event with ON CONFLICT handling
     await supabaseClient.from('stripe_webhook_events').insert({
       stripe_event_id: event.id,
       event_type: event.type,
@@ -97,25 +109,45 @@ serve(async (req) => {
 
   } catch (error) {
     logStep('ERROR', { message: error.message });
+    
+    // If signature verification failed, return 200 to stop retries
+    if (error.message?.includes('signature') || error.message?.includes('Signature')) {
+      logStep('SECURITY: Invalid signature - possible attack', { signature });
+      return new Response(
+        JSON.stringify({ received: false, reason: 'invalid_signature' }), 
+        { status: 200 }
+      );
+    }
+    
+    // For other errors, return 400 so Stripe retries
     return new Response(JSON.stringify({ error: error.message }), { status: 400 });
   }
 });
 
 async function handlePaymentProcessing(event: any, supabase: any) {
   const paymentIntent = event.data.object;
+  const bookingId = paymentIntent.metadata?.booking_id;
+  
   logStep('Payment processing', { 
     paymentIntentId: paymentIntent.id,
+    bookingId,
     paymentMethod: paymentIntent.payment_method_types 
   });
+
+  if (!bookingId) {
+    logStep('No booking_id in metadata, skipping');
+    return;
+  }
 
   // Update booking status to processing (for SEPA, bank transfers, etc.)
   const { data: booking, error } = await supabase
     .from('bookings')
     .update({ 
       payment_status: 'processing',
+      stripe_payment_intent_id: paymentIntent.id,
       updated_at: new Date().toISOString()
     })
-    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .eq('id', bookingId)
     .select('id, booking_reference, hiker_id, hiker_email, profiles!bookings_hiker_id_fkey(name)')
     .single();
 
@@ -155,7 +187,17 @@ async function handlePaymentProcessing(event: any, supabase: any) {
 
 async function handlePaymentSuccess(event: any, supabase: any) {
   const paymentIntent = event.data.object;
-  logStep('Payment succeeded', { paymentIntentId: paymentIntent.id });
+  const bookingId = paymentIntent.metadata?.booking_id;
+  
+  logStep('Payment succeeded', { 
+    paymentIntentId: paymentIntent.id,
+    bookingId
+  });
+
+  if (!bookingId) {
+    logStep('No booking_id in metadata, skipping');
+    return;
+  }
 
   // Update booking status to succeeded and confirmed
   const { data: booking, error } = await supabase
@@ -163,9 +205,10 @@ async function handlePaymentSuccess(event: any, supabase: any) {
     .update({ 
       payment_status: 'succeeded', 
       status: 'confirmed',
+      stripe_payment_intent_id: paymentIntent.id,
       updated_at: new Date().toISOString()
     })
-    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .eq('id', bookingId)
     .select('id, booking_reference, hiker_id, hiker_email, profiles!bookings_hiker_id_fkey(name)')
     .single();
 
@@ -241,14 +284,21 @@ async function handleChargeSuccess(event: any, supabase: any) {
 
 async function handlePaymentFailed(event: any, supabase: any) {
   const paymentIntent = event.data.object;
+  const bookingId = paymentIntent.metadata?.booking_id;
   const failureCode = paymentIntent.last_payment_error?.code;
   const failureMessage = paymentIntent.last_payment_error?.message;
   
   logStep('Payment failed', { 
     paymentIntentId: paymentIntent.id,
+    bookingId,
     code: failureCode,
     message: failureMessage 
   });
+
+  if (!bookingId) {
+    logStep('No booking_id in metadata, skipping');
+    return;
+  }
 
   // Update booking with failure details
   const { error } = await supabase
@@ -256,9 +306,10 @@ async function handlePaymentFailed(event: any, supabase: any) {
     .update({ 
       payment_status: 'failed',
       status: 'cancelled',
+      stripe_payment_intent_id: paymentIntent.id,
       updated_at: new Date().toISOString()
     })
-    .eq('stripe_payment_intent_id', paymentIntent.id);
+    .eq('id', bookingId);
 
   if (error) {
     logStep('Error updating booking', { error });

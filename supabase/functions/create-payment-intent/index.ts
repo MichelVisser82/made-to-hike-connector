@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId, isDeposit, depositAmount, finalPaymentAmount, hikerEmail } = await req.json();
+    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId, isDeposit, depositAmount, finalPaymentAmount, hikerEmail, bookingId } = await req.json();
     
     console.log('[create-payment-intent] Request received:', { 
       amount, 
@@ -26,7 +26,8 @@ serve(async (req) => {
       isDeposit, 
       depositAmount, 
       finalPaymentAmount,
-      hikerEmail 
+      hikerEmail,
+      bookingId
     });
 
     if (!amount || !serviceFee || !totalAmount || !currency || !tourId || !guideId) {
@@ -92,6 +93,43 @@ serve(async (req) => {
       }
     }
 
+    // Verify guide's Stripe account is ready for payments
+    try {
+      const account = await stripe.accounts.retrieve(guide.stripe_account_id);
+      
+      console.log('[create-payment-intent] Guide account status:', {
+        accountId: guide.stripe_account_id,
+        chargesEnabled: account.charges_enabled,
+        payoutsEnabled: account.payouts_enabled,
+        detailsSubmitted: account.details_submitted
+      });
+      
+      if (!account.charges_enabled) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Guide account is not ready to receive payments. The guide needs to complete their Stripe onboarding.',
+            accountStatus: 'not_ready'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Check for transfer capabilities
+      if (account.capabilities?.transfers !== 'active') {
+        console.warn('[create-payment-intent] Transfer capability not active:', account.capabilities);
+      }
+      
+    } catch (accountError) {
+      console.error('[create-payment-intent] Failed to verify guide account:', accountError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Unable to verify guide payment setup. Please contact support.',
+          details: accountError.message
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     let session;
     try {
       // Store booking data in KV store temporarily (expires in 1 hour)
@@ -135,13 +173,24 @@ serve(async (req) => {
         mode: 'payment',
         payment_intent_data: {
           application_fee_amount: totalFee, // Platform takes service fee + guide fee
+          customer: customerId, // Attach customer to payment intent for saving payment methods
           transfer_data: {
             destination: guide.stripe_account_id, // Guide receives amount - guide fee
+          },
+          setup_future_usage: isDeposit ? 'off_session' : undefined, // Save payment method for deposits
+          metadata: {
+            booking_id: bookingId || '',
+            tour_id: tourId,
+            guide_id: guideId,
+            date_slot_id: dateSlotId || '',
+            is_deposit: String(isDeposit || false),
+            tour_price: String(amountCents),
           },
         },
         success_url: `${req.headers.get('origin')}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${req.headers.get('origin')}/tours/${tourId}/book`,
         metadata: {
+          booking_id: bookingId || '',
           tour_id: tourId,
           guide_id: guideId,
           date_slot_id: dateSlotId || '',
@@ -160,11 +209,8 @@ serve(async (req) => {
         },
       };
 
-      // For deposits, restrict to payment methods that support saving for future charges
-      if (isDeposit) {
-        sessionConfig.payment_method_types = ['card', 'sepa_debit'];
-        sessionConfig.payment_intent_data.setup_future_usage = 'off_session';
-      }
+      // Stripe automatically filters payment methods based on setup_future_usage
+      // No need to manually restrict payment_method_types
 
       session = await stripe.checkout.sessions.create(sessionConfig);
     } catch (stripeError: any) {
