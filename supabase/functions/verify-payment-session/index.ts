@@ -72,7 +72,7 @@ serve(async (req) => {
     }
 
     // Determine the actual payment status for the booking
-    let bookingPaymentStatus = 'paid';
+    let bookingPaymentStatus = 'succeeded';
     if (session.payment_status === 'unpaid' && session.payment_intent) {
       // For SEPA and similar methods, mark as processing
       const paymentIntent = session.payment_intent as any;
