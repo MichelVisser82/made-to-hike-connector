@@ -70,6 +70,8 @@ export interface TripDetails {
     languages_spoken: string[];
     certifications: any[];
     experience_years: number | null;
+    average_rating: number;
+    review_count: number;
   };
   checklist: TripChecklistItem[];
   preparationStatus: PreparationStatus;
