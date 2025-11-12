@@ -16,12 +16,14 @@ export function TripSidebar({ tripDetails }: TripSidebarProps) {
     <div className="space-y-6">
       <TripGuideCard tripDetails={tripDetails} />
       
-      {/* Countdown Timer - No Card Box */}
+      {/* Countdown Timer */}
       {isUpcoming && (
-        <div className="bg-[#7c2843] text-white rounded-lg p-6 text-center shadow-sm">
-          <div className="text-sm font-medium mb-2">Your adventure starts in</div>
-          <div className="text-6xl font-bold mb-1">{daysUntilTrip}</div>
-          <div className="text-sm opacity-90">Days</div>
+        <div className="p-6 bg-gradient-to-br from-burgundy to-burgundy-dark text-white rounded-lg shadow-lg">
+          <div className="text-center">
+            <div className="text-sm opacity-90 mb-2">Your adventure starts in</div>
+            <div className="text-5xl mb-1 font-playfair">{daysUntilTrip}</div>
+            <div className="text-sm opacity-90">Days</div>
+          </div>
         </div>
       )}
 
