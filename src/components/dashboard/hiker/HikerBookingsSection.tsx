@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { MapPin, Users, Download, FileText, MessageSquare, CheckCircle2, Calendar } from 'lucide-react';
+import { MapPin, Users, Download, FileText, MessageSquare, CheckCircle2, Calendar, Clock, AlertCircle } from 'lucide-react';
 import { useHikerBookings } from '@/hooks/useHikerBookings';
 import { ReceiptViewer } from '@/components/booking/ReceiptViewer';
 import { format } from 'date-fns';
@@ -243,7 +243,51 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                     </div>
                   </div>
 
-                  {booking.payment_status.toLowerCase() === 'pending' && (
+                  {booking.payment_type === 'deposit' && (
+                    <>
+                      {booking.final_payment_status === 'pending' && booking.final_payment_due_date && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                          <div className="flex items-start gap-3">
+                            <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-blue-900">Final Payment Scheduled</p>
+                              <p className="text-sm text-blue-700 mt-1">
+                                Your final payment of {booking.tours?.currency} {booking.final_payment_amount?.toFixed(2)} will be automatically charged on {formatBookingDate(booking.final_payment_due_date)}
+                              </p>
+                              <p className="text-xs text-blue-600 mt-2">
+                                The payment will be charged to your saved payment method automatically.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {booking.final_payment_status === 'requires_action' && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                              <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
+                              <div>
+                                <p className="font-medium text-orange-900">Payment Action Required</p>
+                                <p className="text-sm text-orange-700 mt-1">
+                                  We couldn't automatically charge your payment method. Please complete the payment manually.
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() => onViewBooking(booking.id)}
+                              className="bg-orange-600 hover:bg-orange-700"
+                            >
+                              Pay Now
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {booking.payment_status.toLowerCase() === 'pending' && booking.payment_type !== 'deposit' && (
                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -252,7 +296,7 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                             Complete your payment to confirm your booking
                           </p>
                         </div>
-                        <Button variant="default">Pay Now</Button>
+                        <Button variant="default" onClick={() => onViewBooking(booking.id)}>Pay Now</Button>
                       </div>
                     </div>
                   )}

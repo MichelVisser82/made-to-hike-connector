@@ -10,7 +10,11 @@ export interface HikerBooking {
   currency: string;
   status: string;
   payment_status: string;
+  payment_type: string;
   stripe_payment_intent_id: string | null;
+  final_payment_status: string | null;
+  final_payment_amount: number | null;
+  final_payment_due_date: string | null;
   created_at: string;
   special_requests: string | null;
   tour_id: string;
@@ -22,6 +26,7 @@ export interface HikerBooking {
     meeting_point: string;
     guide_id: string;
     difficulty: string;
+    currency: string;
     hero_image: string | null;
     images: string[];
     guide_profiles: {
@@ -63,6 +68,10 @@ export function useHikerBookings(hikerId: string | undefined) {
           currency,
           status,
           payment_status,
+          payment_type,
+          final_payment_status,
+          final_payment_amount,
+          final_payment_due_date,
           stripe_payment_intent_id,
           created_at,
           special_requests,
@@ -72,6 +81,7 @@ export function useHikerBookings(hikerId: string | undefined) {
             title,
             slug,
             duration,
+            currency,
             meeting_point,
             guide_id,
             difficulty,

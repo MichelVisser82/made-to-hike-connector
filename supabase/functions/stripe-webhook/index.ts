@@ -216,10 +216,12 @@ async function handlePaymentProcessing(event: any, supabase: any) {
 async function handlePaymentSuccess(event: any, supabase: any) {
   const paymentIntent = event.data.object;
   const bookingId = paymentIntent.metadata?.booking_id;
+  const isFinalPayment = paymentIntent.metadata?.is_final_payment === 'true';
   
   logStep('Payment succeeded', { 
     paymentIntentId: paymentIntent.id,
-    bookingId
+    bookingId,
+    isFinalPayment
   });
 
   if (!bookingId) {
@@ -227,49 +229,87 @@ async function handlePaymentSuccess(event: any, supabase: any) {
     return;
   }
 
-  // Update booking status to succeeded and confirmed
-  const { data: booking, error } = await supabase
-    .from('bookings')
-    .update({ 
-      payment_status: 'succeeded', 
-      status: 'confirmed',
-      stripe_payment_intent_id: paymentIntent.id,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', bookingId)
-    .select('id, booking_reference, hiker_id, hiker_email, profiles!bookings_hiker_id_fkey(name)')
-    .single();
+  // Different handling for initial deposit vs final payment
+  if (isFinalPayment) {
+    // Update final payment status
+    const { data: booking, error } = await supabase
+      .from('bookings')
+      .update({ 
+        final_payment_status: 'paid',
+        final_payment_intent_id: paymentIntent.id,
+        payment_status: 'succeeded',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', bookingId)
+      .select('id, booking_reference, hiker_id, hiker_email, profiles!bookings_hiker_id_fkey(name)')
+      .single();
 
-  if (error) {
-    logStep('Error updating booking', { error });
-    return;
-  }
+    if (error) {
+      logStep('Error updating final payment', { error });
+      return;
+    }
 
-  if (booking) {
-    logStep('Booking payment confirmed', { 
+    logStep('Final payment confirmed', { 
       bookingId: booking.id, 
       bookingReference: booking.booking_reference 
     });
 
-    // Send email notification about successful payment
-    try {
-      await supabase.functions.invoke('send-email', {
-        body: {
-          to: booking.hiker_email,
-          subject: `Payment Confirmed - Booking ${booking.booking_reference}`,
-          html: `
-            <h2>Payment Confirmed!</h2>
-            <p>Dear ${booking.profiles.name},</p>
-            <p>Great news! Your payment has been successfully processed.</p>
-            <p>Your booking <strong>${booking.booking_reference}</strong> is now fully confirmed.</p>
-            <p>You can view all the details in your dashboard.</p>
-            <p>Looking forward to your adventure!</p>
-          `
-        }
+  } else {
+    // Update initial payment status
+    const { data: booking, error } = await supabase
+      .from('bookings')
+      .update({ 
+        payment_status: 'succeeded', 
+        status: 'confirmed',
+        stripe_payment_intent_id: paymentIntent.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', bookingId)
+      .select('id, booking_reference, hiker_id, hiker_email, payment_type, final_payment_due_date, profiles!bookings_hiker_id_fkey(name)')
+      .single();
+
+    if (error) {
+      logStep('Error updating booking', { error });
+      return;
+    }
+
+    if (booking) {
+      logStep('Booking payment confirmed', { 
+        bookingId: booking.id, 
+        bookingReference: booking.booking_reference 
       });
-      logStep('Payment confirmation email sent');
-    } catch (emailError) {
-      logStep('Error sending confirmation email', { error: emailError });
+
+      // Send email notification about successful payment
+      try {
+        const isDeposit = booking.payment_type === 'deposit';
+        const emailHtml = isDeposit ? `
+          <h2>Deposit Payment Confirmed!</h2>
+          <p>Dear ${booking.profiles.name},</p>
+          <p>Great news! Your deposit payment has been successfully processed.</p>
+          <p>Your booking <strong>${booking.booking_reference}</strong> is now confirmed.</p>
+          <p><strong>Important:</strong> Your final payment will be automatically charged on ${new Date(booking.final_payment_due_date).toLocaleDateString()}.</p>
+          <p>You can view all the details in your dashboard.</p>
+          <p>Looking forward to your adventure!</p>
+        ` : `
+          <h2>Payment Confirmed!</h2>
+          <p>Dear ${booking.profiles.name},</p>
+          <p>Great news! Your payment has been successfully processed.</p>
+          <p>Your booking <strong>${booking.booking_reference}</strong> is now fully confirmed.</p>
+          <p>You can view all the details in your dashboard.</p>
+          <p>Looking forward to your adventure!</p>
+        `;
+
+        await supabase.functions.invoke('send-email', {
+          body: {
+            to: booking.hiker_email,
+            subject: `Payment Confirmed - Booking ${booking.booking_reference}`,
+            html: emailHtml
+          }
+        });
+        logStep('Payment confirmation email sent');
+      } catch (emailError) {
+        logStep('Error sending confirmation email', { error: emailError });
+      }
     }
   }
 }
