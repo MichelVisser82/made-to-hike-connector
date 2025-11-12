@@ -1,4 +1,4 @@
-import { Calendar, Mountain, MessageSquare, Heart } from 'lucide-react';
+import { Calendar, Mountain, MessageSquare, Heart, User, MapPin, Users, Eye, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -125,9 +125,18 @@ export function HikerTodaySection({
                       </div>
                       <h3 className="text-xl font-playfair text-charcoal mb-2">{trip.tour?.title}</h3>
                       <div className="space-y-1 text-sm text-charcoal/70">
-                        <p>👤 Guide: {trip.tour?.guide_display_name}</p>
-                        <p>📍 {trip.tour?.meeting_point}</p>
-                        <p>👥 {trip.participants} Guests</p>
+                        <p className="flex items-center gap-1.5">
+                          <User className="w-4 h-4" />
+                          <span>Guide: {trip.tour?.guide_display_name}</span>
+                        </p>
+                        <p className="flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4" />
+                          <span>{trip.tour?.meeting_point}</span>
+                        </p>
+                        <p className="flex items-center gap-1.5">
+                          <Users className="w-4 h-4" />
+                          <span>{trip.participants} Guests</span>
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -140,14 +149,16 @@ export function HikerTodaySection({
                       onClick={() => onViewTrip(trip)} 
                       className="flex-1 bg-burgundy hover:bg-burgundy-dark text-white"
                     >
-                      👁️ View Details
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Details
                     </Button>
                     <Button 
                       onClick={() => onMessageGuide(trip.tour?.guide_id)} 
                       variant="outline" 
                       className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
                     >
-                      💬 Message Guide
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Message Guide
                     </Button>
                   </div>
                 </CardContent>
@@ -234,7 +245,10 @@ export function HikerTodaySection({
                 </Button>
               </div>
               <h4 className="font-playfair font-semibold text-charcoal mb-1">Dolomites Via Ferrata</h4>
-              <p className="text-sm text-charcoal/70 mb-2">📍 Italy</p>
+              <p className="text-sm text-charcoal/70 mb-2 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4" />
+                <span>Italy</span>
+              </p>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-bold text-burgundy">€340</span>
                 <Button size="sm" variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5">
