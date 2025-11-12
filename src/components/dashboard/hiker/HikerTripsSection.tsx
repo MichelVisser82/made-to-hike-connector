@@ -36,13 +36,11 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   const [messageText, setMessageText] = useState('');
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
 
-  // Filter and transform bookings into upcoming trips
+  // Filter and transform bookings into current & upcoming trips
   const upcomingTrips = bookings
     .filter(booking => {
-      const bookingDate = new Date(booking.booking_date);
-      const isUpcoming = isAfter(bookingDate, new Date());
       const isActive = ['confirmed', 'pending', 'pending_confirmation'].includes(booking.status.toLowerCase());
-      return isUpcoming && isActive;
+      return isActive;
     })
     .map(booking => ({
       id: booking.id,
@@ -70,14 +68,10 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       paymentStatus: booking.payment_status
     }));
 
-  // Filter and transform bookings into past trips
+  // Filter and transform bookings into past trips (only completed)
   const pastTrips = bookings
     .filter(booking => {
-      const bookingDate = new Date(booking.booking_date);
-      const isPast = isBefore(bookingDate, new Date());
-      const isNotCancelled = booking.status.toLowerCase() !== 'cancelled';
-      // Show any non-cancelled booking with a past date
-      return isPast && isNotCancelled;
+      return booking.status.toLowerCase() === 'completed';
     })
     .map(booking => ({
       id: booking.id,
@@ -222,21 +216,21 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="upcoming">Upcoming Trips</TabsTrigger>
+          <TabsTrigger value="upcoming">Current & Upcoming Trips</TabsTrigger>
           <TabsTrigger value="past">Past Trips</TabsTrigger>
           <TabsTrigger value="wishlist">Trip Wishlist</TabsTrigger>
           <TabsTrigger value="guides">Saved Guides</TabsTrigger>
         </TabsList>
 
-        {/* Upcoming Trips */}
+        {/* Current & Upcoming Trips */}
         <TabsContent value="upcoming" className="space-y-4">
           {upcomingTrips.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
                 <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No Upcoming Trips</h3>
+                <h3 className="text-xl font-semibold mb-2">No Active Trips</h3>
                 <p className="text-muted-foreground mb-4">
-                  You don't have any upcoming adventures yet.
+                  You don't have any current or upcoming adventures yet.
                 </p>
                 <Button onClick={() => navigate('/tours')}>
                   Browse Tours
