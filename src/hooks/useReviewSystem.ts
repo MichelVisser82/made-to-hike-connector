@@ -188,6 +188,80 @@ export function useReceivedReviews(isGuide: boolean) {
   });
 }
 
+// Hook to get published reviews given (written by the user)
+export function useGivenReviews(isGuide: boolean) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['given-reviews', user?.id, isGuide],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const column = isGuide ? 'guide_id' : 'hiker_id';
+      const otherColumn = isGuide ? 'hiker_id' : 'guide_id';
+      const reviewType = isGuide ? 'guide_to_hiker' : 'hiker_to_guide';
+
+      const { data, error } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          tours!inner (title, hero_image, images),
+          bookings!inner (booking_date)
+        `)
+        .eq(column, user.id)
+        .eq('review_type', reviewType)
+        .eq('review_status', 'published')
+        .order('published_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch profile data for the reviewed person
+      const reviewsWithProfiles = await Promise.all(
+        (data || []).map(async (review) => {
+          let profileData = null;
+          let guideProfileData = null;
+
+          // If hiker reviewing guide, fetch guide profile
+          if (review.review_type === 'hiker_to_guide') {
+            const { data: guideProfile } = await supabase
+              .from('guide_profiles')
+              .select('display_name, profile_image_url, certifications, verified')
+              .eq('user_id', review.guide_id)
+              .maybeSingle();
+            
+            if (guideProfile) {
+              profileData = {
+                name: guideProfile.display_name,
+                avatar_url: guideProfile.profile_image_url
+              };
+              guideProfileData = guideProfile;
+            }
+          } else {
+            // If guide reviewing hiker, fetch hiker profile
+            const { data: hikerProfile } = await supabase
+              .from('profiles')
+              .select('name, avatar_url')
+              .eq('id', review.hiker_id)
+              .maybeSingle();
+            
+            profileData = hikerProfile;
+          }
+
+          return {
+            ...review,
+            profiles: profileData,
+            guide_profiles: guideProfileData
+          };
+        })
+      );
+
+      return reviewsWithProfiles as unknown as ReviewData[];
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
 // Hook to submit a review
 export function useSubmitReview() {
   const queryClient = useQueryClient();

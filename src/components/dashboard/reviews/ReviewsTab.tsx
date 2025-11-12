@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { usePendingReviews, useReceivedReviews, ReviewData } from '@/hooks/useReviewSystem';
+import { usePendingReviews, useReceivedReviews, useGivenReviews, ReviewData } from '@/hooks/useReviewSystem';
 import PendingReviewCard from './PendingReviewCard';
 import PublishedReviewCard from './PublishedReviewCard';
 import HikerReviewForm from './HikerReviewForm';
@@ -20,6 +20,7 @@ interface ReviewsTabProps {
 export default function ReviewsTab({ isGuide, openBookingId, onClearBookingId }: ReviewsTabProps) {
   const pendingReviews = usePendingReviews();
   const receivedReviews = useReceivedReviews(isGuide);
+  const givenReviews = useGivenReviews(isGuide);
   
   const [reviewFormOpen, setReviewFormOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<ReviewData | null>(null);
@@ -78,12 +79,15 @@ export default function ReviewsTab({ isGuide, openBookingId, onClearBookingId }:
   return (
     <>
       <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pending">
             Pending {pendingCount > 0 && `(${pendingCount})`}
           </TabsTrigger>
           <TabsTrigger value="awaiting">
             Awaiting Publication {submittedCount > 0 && `(${submittedCount})`}
+          </TabsTrigger>
+          <TabsTrigger value="given">
+            Reviews Given
           </TabsTrigger>
           <TabsTrigger value="received">
             Reviews Received
@@ -150,6 +154,36 @@ export default function ReviewsTab({ isGuide, openBookingId, onClearBookingId }:
                       </div>
                     </CardContent>
                   </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </TabsContent>
+
+        <TabsContent value="given" className="space-y-4 mt-4">
+          {givenReviews.isLoading ? (
+            <Card>
+              <CardContent className="p-8 text-center text-muted-foreground">
+                Loading your reviews...
+              </CardContent>
+            </Card>
+          ) : givenReviews.data?.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center text-muted-foreground">
+                <AlertCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No reviews written yet</p>
+                <p className="text-sm mt-1">Your published reviews will appear here</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <ScrollArea className="h-[600px]">
+              <div className="space-y-4 pr-4">
+                {givenReviews.data?.map((review) => (
+                  <PublishedReviewCard
+                    key={review.id}
+                    review={review}
+                    showResponseButton={false}
+                  />
                 ))}
               </div>
             </ScrollArea>
