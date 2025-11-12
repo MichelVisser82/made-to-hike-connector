@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, Circle, ChevronRight } from 'lucide-react';
@@ -16,29 +15,20 @@ export function TripPreparationCard({ tripDetails }: TripPreparationCardProps) {
 
   const preparationItems = [
     {
-      label: 'Payment Confirmed',
+      label: 'Payment confirmed',
       completed: preparationStatus.payment_confirmed,
-      icon: preparationStatus.payment_confirmed ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : <Circle className="w-5 h-5 text-muted-foreground" />
     },
     {
-      label: 'Emergency Contact',
+      label: 'Emergency contact added',
       completed: preparationStatus.emergency_contact_added,
-      icon: preparationStatus.emergency_contact_added ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : <Circle className="w-5 h-5 text-muted-foreground" />
     },
     {
-      label: 'Waiver Signed',
+      label: 'Waiver pending',
       completed: preparationStatus.waiver_signed,
-      icon: preparationStatus.waiver_signed ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : <Circle className="w-5 h-5 text-muted-foreground" />
     },
     {
-      label: 'Travel Insurance',
+      label: 'Travel insurance needed',
       completed: preparationStatus.insurance_uploaded,
-      icon: preparationStatus.insurance_uploaded ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : <Circle className="w-5 h-5 text-muted-foreground" />
-    },
-    {
-      label: 'Trip Checklist',
-      completed: preparationStatus.checklist_completed,
-      icon: preparationStatus.checklist_completed ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : <Circle className="w-5 h-5 text-muted-foreground" />
     }
   ];
 
@@ -46,40 +36,41 @@ export function TripPreparationCard({ tripDetails }: TripPreparationCardProps) {
 
   return (
     <>
-      <Card className={preparationStatus.overall_percentage === 100 ? 'border-green-200 bg-green-50/30' : ''}>
-        <CardHeader>
-          <CardTitle className="text-lg">Trip Preparation</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">{completedCount} of {preparationItems.length} completed</span>
-              <span className="text-muted-foreground">{preparationStatus.overall_percentage}%</span>
+      <div className="bg-white rounded-lg p-6 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">Preparation Status</h3>
+        
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium text-gray-700">Overall Progress</span>
+            <span className="text-[#7c2843] font-semibold">{preparationStatus.overall_percentage}%</span>
+          </div>
+          <Progress value={preparationStatus.overall_percentage} className="h-2" />
+        </div>
+
+        <div className="space-y-2.5 mb-4">
+          {preparationItems.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-2.5">
+              {item.completed ? (
+                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              ) : (
+                <Circle className="w-4 h-4 text-gray-300 flex-shrink-0" />
+              )}
+              <span className={`text-sm ${item.completed ? 'text-gray-900' : 'text-gray-500'}`}>
+                {item.label}
+              </span>
             </div>
-            <Progress value={preparationStatus.overall_percentage} className="h-2" />
-          </div>
+          ))}
+        </div>
 
-          <div className="space-y-3">
-            {preparationItems.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                {item.icon}
-                <span className={`text-sm ${item.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <Button
-            variant={preparationStatus.overall_percentage === 100 ? 'outline' : 'default'}
-            className={preparationStatus.overall_percentage === 100 ? 'w-full' : 'w-full bg-[#7c2843] hover:bg-[#5d1e32]'}
-            onClick={() => setShowModal(true)}
-          >
-            {preparationStatus.overall_percentage === 100 ? 'View Details' : 'Complete Preparation'}
-            <ChevronRight className="w-4 h-4 ml-2" />
-          </Button>
-        </CardContent>
-      </Card>
+        <Button
+          variant={preparationStatus.overall_percentage === 100 ? 'outline' : 'default'}
+          className={preparationStatus.overall_percentage === 100 ? 'w-full' : 'w-full bg-[#7c2843] hover:bg-[#5d1e32] font-medium'}
+          onClick={() => setShowModal(true)}
+        >
+          {preparationStatus.overall_percentage === 100 ? 'View Details' : 'Complete Preparation'}
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
 
       <TripPreparationModal
         isOpen={showModal}

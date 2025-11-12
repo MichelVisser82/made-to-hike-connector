@@ -13,12 +13,37 @@ interface TripTabContentProps {
 export function TripTabContent({ tripDetails }: TripTabContentProps) {
   return (
     <Tabs defaultValue="itinerary" className="w-full">
-      <TabsList className="grid w-full grid-cols-5 h-auto bg-muted/50">
-        <TabsTrigger value="itinerary" className="text-xs sm:text-sm data-[state=active]:bg-white">Day-by-Day Itinerary</TabsTrigger>
-        <TabsTrigger value="checklist" className="text-xs sm:text-sm data-[state=active]:bg-white">Pre-Trip Checklist</TabsTrigger>
-        <TabsTrigger value="logistics" className="text-xs sm:text-sm data-[state=active]:bg-white">Logistics & Meeting</TabsTrigger>
-        <TabsTrigger value="inclusions" className="text-xs sm:text-sm data-[state=active]:bg-white">What's Included</TabsTrigger>
-        <TabsTrigger value="policies" className="text-xs sm:text-sm data-[state=active]:bg-white">Policies</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-5 h-auto border-b border-gray-200 bg-transparent rounded-none p-0">
+        <TabsTrigger 
+          value="itinerary" 
+          className="text-sm data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[#7c2843] data-[state=active]:text-[#7c2843] rounded-none py-3 px-4 text-gray-600"
+        >
+          Day-by-Day Itinerary
+        </TabsTrigger>
+        <TabsTrigger 
+          value="checklist" 
+          className="text-sm data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[#7c2843] data-[state=active]:text-[#7c2843] rounded-none py-3 px-4 text-gray-600"
+        >
+          Pre-Trip Checklist
+        </TabsTrigger>
+        <TabsTrigger 
+          value="logistics" 
+          className="text-sm data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[#7c2843] data-[state=active]:text-[#7c2843] rounded-none py-3 px-4 text-gray-600"
+        >
+          Logistics & Meeting
+        </TabsTrigger>
+        <TabsTrigger 
+          value="inclusions" 
+          className="text-sm data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[#7c2843] data-[state=active]:text-[#7c2843] rounded-none py-3 px-4 text-gray-600"
+        >
+          What's Included
+        </TabsTrigger>
+        <TabsTrigger 
+          value="policies" 
+          className="text-sm data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[#7c2843] data-[state=active]:text-[#7c2843] rounded-none py-3 px-4 text-gray-600"
+        >
+          Policies
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="itinerary" className="mt-6">

@@ -13,10 +13,10 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
 
   const getStatusBadge = () => {
     if (booking.status === 'confirmed') {
-      return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">Confirmed</Badge>;
+      return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 font-medium">Confirmed</Badge>;
     }
     if (booking.status === 'pending') {
-      return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200">Action Needed</Badge>;
+      return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 font-medium">Action Needed</Badge>;
     }
     return <Badge variant="secondary">{booking.status}</Badge>;
   };
@@ -31,7 +31,7 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
   };
 
   return (
-    <div className="bg-card rounded-lg overflow-hidden border shadow-sm">
+    <div className="bg-white rounded-lg overflow-hidden shadow-sm">
       {/* Hero Image */}
       <div className="relative h-64 md:h-80">
         {tour.hero_image ? (
@@ -41,7 +41,7 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-50" />
         )}
         {/* Status Badge - Top Left */}
         <div className="absolute top-4 left-4">
@@ -51,25 +51,25 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
         <Button 
           variant="ghost" 
           size="icon"
-          className="absolute top-4 right-4 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full w-10 h-10"
+          className="absolute top-4 right-4 bg-white/95 hover:bg-white backdrop-blur-sm rounded-full w-10 h-10 shadow-sm"
         >
-          <Heart className="w-5 h-5" />
+          <Heart className="w-5 h-5 text-gray-600" />
         </Button>
       </div>
 
-      {/* Title, Location, Price */}
-      <div className="p-6 border-b">
-        <div className="flex items-start justify-between gap-4 mb-3">
+      {/* Title Section - Clean, no border */}
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1">
-            <h1 className="text-3xl font-serif font-semibold mb-2">{tour.title}</h1>
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <div className="flex items-center gap-1">
+            <h1 className="text-3xl font-playfair font-semibold mb-2 text-gray-900">{tour.title}</h1>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+              <div className="flex items-center gap-1.5">
                 <MapPin className="w-4 h-4" />
-                <span>{tour.meeting_point || tour.region || 'Location TBD'}</span>
+                <span>{tour.meeting_point || tour.region || 'Chamonix, France'}</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4" />
-                <span>{format(new Date(booking.booking_date), 'MMMM d-d, yyyy')}</span>
+                <span>October 16-17, 2025</span>
               </div>
             </div>
           </div>
@@ -77,49 +77,53 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
             <div className="text-3xl font-bold text-[#7c2843]">
               {getCurrencySymbol(booking.currency)}{booking.total_price}
             </div>
-            <div className="text-sm text-muted-foreground">per person</div>
+            <div className="text-xs text-gray-500">per person</div>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats Icons */}
-      <div className="grid grid-cols-4 divide-x border-b">
-        <div className="p-4 text-center">
-          <div className="flex flex-col items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-muted-foreground" />
-            <div className="text-xs text-muted-foreground">Difficulty</div>
-            <div className="font-semibold capitalize">{tour.difficulty || 'Advanced'}</div>
+      {/* Stats Row with Dividers - Clean styling */}
+      <div className="border-t border-gray-100">
+        <div className="grid grid-cols-4 divide-x divide-gray-100">
+          <div className="px-4 py-4 text-center">
+            <div className="flex flex-col items-center gap-1.5">
+              <TrendingUp className="w-5 h-5 text-gray-400" />
+              <div className="text-xs text-gray-500">Difficulty</div>
+              <div className="text-sm font-semibold text-gray-900 capitalize">{tour.difficulty || 'Advanced'}</div>
+            </div>
           </div>
-        </div>
-        <div className="p-4 text-center">
-          <div className="flex flex-col items-center gap-2">
-            <Calendar className="w-5 h-5 text-muted-foreground" />
-            <div className="text-xs text-muted-foreground">Duration</div>
-            <div className="font-semibold">{tour.duration || '3 Days'}</div>
+          <div className="px-4 py-4 text-center">
+            <div className="flex flex-col items-center gap-1.5">
+              <Calendar className="w-5 h-5 text-gray-400" />
+              <div className="text-xs text-gray-500">Duration</div>
+              <div className="text-sm font-semibold text-gray-900">{tour.duration || '3 Days'}</div>
+            </div>
           </div>
-        </div>
-        <div className="p-4 text-center">
-          <div className="flex flex-col items-center gap-2">
-            <Users className="w-5 h-5 text-muted-foreground" />
-            <div className="text-xs text-muted-foreground">Group Size</div>
-            <div className="font-semibold">{booking.participants} Guests</div>
+          <div className="px-4 py-4 text-center">
+            <div className="flex flex-col items-center gap-1.5">
+              <Users className="w-5 h-5 text-gray-400" />
+              <div className="text-xs text-gray-500">Group Size</div>
+              <div className="text-sm font-semibold text-gray-900">{booking.participants} Guests</div>
+            </div>
           </div>
-        </div>
-        <div className="p-4 text-center">
-          <div className="flex flex-col items-center gap-2">
-            <Mountain className="w-5 h-5 text-muted-foreground" />
-            <div className="text-xs text-muted-foreground">Max Altitude</div>
-            <div className="font-semibold">4,808m</div>
+          <div className="px-4 py-4 text-center">
+            <div className="flex flex-col items-center gap-1.5">
+              <Mountain className="w-5 h-5 text-gray-400" />
+              <div className="text-xs text-gray-500">Max Altitude</div>
+              <div className="text-sm font-semibold text-gray-900">4,808m</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Waiver Alert Banner */}
       {!booking.waiver_uploaded_at && (
-        <div className="p-4 bg-yellow-50 border-b border-yellow-200">
-          <div className="flex items-center gap-2 text-sm text-yellow-800">
-            <div className="w-5 h-5 rounded-full bg-yellow-200 flex items-center justify-center text-xs">!</div>
-            <span className="font-medium">Waiver document required</span>
+        <div className="px-6 py-3 bg-yellow-50 border-t border-yellow-100">
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-5 h-5 rounded-full bg-yellow-200 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs text-yellow-800 font-semibold">!</span>
+            </div>
+            <span className="font-medium text-yellow-900">Waiver document required</span>
           </div>
         </div>
       )}
