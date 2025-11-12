@@ -64,7 +64,7 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
   const completedTrips = bookings.filter(b => b.status === 'completed').length;
 
   const handleViewTrip = (trip: any) => {
-    if (trip.tour?.slug) navigate(`/tours/${trip.tour.slug}`);
+    navigate(`/dashboard/trip/${trip.id}`);
   };
 
   const renderSection = () => {
