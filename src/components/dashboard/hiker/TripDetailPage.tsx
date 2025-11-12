@@ -18,7 +18,7 @@ export function TripDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gray-50">
         <div className="container max-w-7xl mx-auto py-8 px-4 md:px-6">
           <Skeleton className="h-8 w-32 mb-8" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -38,7 +38,7 @@ export function TripDetailPage() {
 
   if (error || !tripDetails) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gray-50">
         <div className="container max-w-7xl mx-auto py-8 px-4 md:px-6">
           <Button
             variant="ghost"
@@ -48,8 +48,8 @@ export function TripDetailPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to My Trips
           </Button>
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Failed to load trip details. Please try again.</p>
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+            <p className="text-gray-600">Failed to load trip details. Please try again.</p>
           </div>
         </div>
       </div>
