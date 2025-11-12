@@ -71,7 +71,7 @@ export function TripGuideCard({ tripDetails }: TripGuideCardProps) {
 
           <div className="space-y-2 pt-4 border-t">
             <Button
-              className="w-full"
+              className="w-full bg-[#7c2843] hover:bg-[#5d1e32] text-white"
               onClick={() => setShowMessageModal(true)}
             >
               <MessageCircle className="w-4 h-4 mr-2" />

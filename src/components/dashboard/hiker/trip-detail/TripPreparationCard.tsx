@@ -72,7 +72,7 @@ export function TripPreparationCard({ tripDetails }: TripPreparationCardProps) {
 
           <Button
             variant={preparationStatus.overall_percentage === 100 ? 'outline' : 'default'}
-            className="w-full"
+            className={preparationStatus.overall_percentage === 100 ? 'w-full' : 'w-full bg-[#7c2843] hover:bg-[#5d1e32]'}
             onClick={() => setShowModal(true)}
           >
             {preparationStatus.overall_percentage === 100 ? 'View Details' : 'Complete Preparation'}
