@@ -79,7 +79,7 @@ serve(async (req) => {
       apiVersion: '2025-08-27.basil',
     });
 
-    // Check if customer exists in Stripe, otherwise use email for auto-population
+    // Check if customer exists in Stripe, otherwise create one to ensure payment method is saved
     let customerId: string | undefined;
     if (hikerEmail) {
       try {
@@ -87,9 +87,20 @@ serve(async (req) => {
         if (customers.data.length > 0) {
           customerId = customers.data[0].id;
           console.log('[create-payment-intent] Found existing Stripe customer:', customerId);
+        } else if (isDeposit) {
+          // Create customer for deposits to ensure payment method can be saved
+          const newCustomer = await stripe.customers.create({
+            email: hikerEmail,
+            metadata: {
+              booking_id: bookingId || '',
+              tour_id: tourId,
+            }
+          });
+          customerId = newCustomer.id;
+          console.log('[create-payment-intent] Created new Stripe customer for deposit:', customerId);
         }
       } catch (customerError) {
-        console.warn('[create-payment-intent] Could not check for existing customer:', customerError);
+        console.warn('[create-payment-intent] Could not check/create customer:', customerError);
       }
     }
 
