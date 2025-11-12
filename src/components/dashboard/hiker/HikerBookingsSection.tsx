@@ -308,7 +308,7 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                     </>
                   )}
 
-                  {booking.payment_status.toLowerCase() === 'pending' && booking.payment_type !== 'deposit' && (
+                  {booking.payment_status.toLowerCase() === 'pending' && booking.payment_type !== 'deposit' && !booking.stripe_payment_intent_id && (
                     <div className="bg-burgundy/5 border border-burgundy/20 rounded-lg p-4 mb-4">
                       <div className="flex items-center justify-between">
                         <div>
