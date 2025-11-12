@@ -14,236 +14,55 @@ export const BookingSuccess = () => {
   const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
-    const createBooking = async () => {
-      console.log('BookingSuccess: Starting booking creation process');
-      console.log('BookingSuccess: Session ID:', sessionId);
-      
+    const verifyPayment = async () => {
       if (!sessionId) {
-        console.error('BookingSuccess: No session ID found');
         toast.error('Invalid payment session');
         navigate('/');
         return;
       }
 
       try {
-        console.log('BookingSuccess: Getting authenticated user...');
-        // Get authenticated user
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
-        if (authError || !user) {
-          console.error('BookingSuccess: Error getting user:', authError);
-          toast.error('Authentication required');
-          navigate('/');
-          return;
-        }
-
-        console.log('BookingSuccess: User authenticated:', user.id, user.email);
-
-        // Verify the session and create booking
-        console.log('BookingSuccess: Calling verify-payment-session...');
-        const { data: sessionData, error: sessionError } = await supabase.functions.invoke('verify-payment-session', {
+        // Verify payment session - this now creates the booking
+        const { data: verificationData, error: verificationError } = await supabase.functions.invoke('verify-payment-session', {
           body: { session_id: sessionId }
         });
 
-        console.log('BookingSuccess: verify-payment-session response:', sessionData, sessionError);
-
-        if (sessionError) {
-          console.error('BookingSuccess: Error verifying session:', sessionError);
-          toast.error(`Failed to verify payment: ${sessionError.message}`);
+        if (verificationError) {
+          console.error('Payment verification error:', verificationError);
+          toast.error(`Payment verification failed: ${verificationError.message}`);
           setIsProcessing(false);
           return;
         }
 
-        if (!sessionData || !sessionData.bookingData) {
-          console.error('BookingSuccess: No booking data in session response:', sessionData);
+        if (!verificationData?.booking?.booking_reference) {
+          console.error('No booking reference in response:', verificationData);
           toast.error('Invalid payment session data');
           setIsProcessing(false);
           return;
         }
 
-        console.log('BookingSuccess: Session verified, booking data:', sessionData.bookingData);
-
-        // Check if profile exists, create if not
-        console.log('BookingSuccess: Checking if profile exists...');
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id, date_of_birth')
-          .eq('id', user.id)
-          .single();
-
-        console.log('BookingSuccess: Existing profile:', existingProfile);
-
-        if (!existingProfile) {
-          console.log('BookingSuccess: Creating profile for user:', user.id);
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: user.id,
-              email: user.email!,
-              name: sessionData.bookingData.participants?.[0]?.firstName + ' ' + sessionData.bookingData.participants?.[0]?.surname || user.email!
-            });
-
-          if (profileError) {
-            console.error('BookingSuccess: Error creating profile:', profileError);
-          } else {
-            console.log('BookingSuccess: Profile created successfully');
-          }
-        }
-
-        // Update profile with booking contact information
-        const profileUpdateData: any = {
-          phone: sessionData.bookingData.phone,
-          country: sessionData.bookingData.country,
-          emergency_contact_name: sessionData.bookingData.emergencyContactName,
-          emergency_contact_phone: sessionData.bookingData.emergencyContactPhone,
-          emergency_contact_relationship: sessionData.bookingData.emergencyContactRelationship,
-        };
-
-        // Add dietary preferences if present
-        if (sessionData.bookingData.dietaryPreferences?.length > 0) {
-          profileUpdateData.dietary_preferences = sessionData.bookingData.dietaryPreferences;
-        }
-
-        // Add accessibility needs if present
-        if (sessionData.bookingData.accessibilityNeeds) {
-          profileUpdateData.accessibility_needs = sessionData.bookingData.accessibilityNeeds;
-        }
-
-        // Add first participant's data to profile for future pre-population
-        if (sessionData.bookingData.participants?.length > 0) {
-          const firstParticipant = sessionData.bookingData.participants[0];
-          
-          // Save hiking experience level
-          if (firstParticipant.experience) {
-            profileUpdateData.hiking_experience = firstParticipant.experience;
-          }
-          
-          // Save medical conditions
-          if (firstParticipant.medicalConditions) {
-            profileUpdateData.medical_conditions = firstParticipant.medicalConditions;
-          }
-          
-          // Calculate and save date of birth from age if not already set
-          if (firstParticipant.age && !existingProfile?.date_of_birth) {
-            const currentYear = new Date().getFullYear();
-            const birthYear = currentYear - firstParticipant.age;
-            profileUpdateData.date_of_birth = `${birthYear}-01-01`;
-          }
-        }
-
-        console.log('BookingSuccess: Updating profile with booking data...');
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update(profileUpdateData)
-          .eq('id', user.id);
-
-        if (updateError) {
-          console.error('BookingSuccess: Error updating profile:', updateError);
-        } else {
-          console.log('BookingSuccess: Profile updated successfully');
-        }
-
-        // Map the data to what create-booking expects
-        const tourDate = new Date(sessionData.bookingData.date_slot_id); // Will get actual date from slot below
-        
-        // Calculate final payment due date if deposit
-        let finalPaymentDueDate = null;
-        if (sessionData.bookingData.deposit_amount > 0 && sessionData.bookingData.final_payment_days) {
-          // First get the actual tour date from the date slot
-          const { data: dateSlot } = await supabase
-            .from('tour_date_slots')
-            .select('slot_date')
-            .eq('id', sessionData.bookingData.date_slot_id)
-            .single();
-          
-          if (dateSlot?.slot_date) {
-            const tourDate = new Date(dateSlot.slot_date);
-            finalPaymentDueDate = new Date(tourDate);
-            finalPaymentDueDate.setDate(finalPaymentDueDate.getDate() - sessionData.bookingData.final_payment_days);
-          }
-        }
-        
-        const createBookingData = {
-          tour_id: sessionData.bookingData.tour_id,
-          date_slot_id: sessionData.bookingData.date_slot_id,
-          hiker_id: user.id,
-          participants: sessionData.bookingData.participantCount || sessionData.bookingData.participants?.length || 1,
-          participants_details: sessionData.bookingData.participants || [],
-          total_price: sessionData.bookingData.total_price || sessionData.amountPaid,
-          subtotal: sessionData.bookingData.subtotal,
-          discount_code: sessionData.bookingData.discount_code,
-          discount_amount: sessionData.bookingData.discount_amount || 0,
-          service_fee_amount: sessionData.bookingData.service_fee_amount || 0,
-          currency: sessionData.bookingData.currency || sessionData.currency,
-          special_requests: sessionData.bookingData.specialRequests,
-          stripe_payment_intent_id: sessionData.paymentIntentId,
-          payment_type: sessionData.bookingData.deposit_amount > 0 ? 'deposit' : 'full',
-          payment_status: sessionData.bookingData.deposit_amount > 0 ? 'processing' : (sessionData.paymentStatus || 'succeeded'),
-          deposit_amount: sessionData.bookingData.deposit_amount || null,
-          final_payment_amount: sessionData.bookingData.final_payment_amount || null,
-          final_payment_due_date: finalPaymentDueDate?.toISOString().split('T')[0] || null,
-          final_payment_status: sessionData.bookingData.deposit_amount > 0 ? 'pending' : null,
-          primary_contact_id: null,
-        };
-
-        console.log('BookingSuccess: Calling create-booking with data:', createBookingData);
-
-        // Validate the data before sending
-        if (!createBookingData.tour_id || !createBookingData.date_slot_id || !createBookingData.participants) {
-          console.error('BookingSuccess: Invalid booking data:', {
-            tour_id: createBookingData.tour_id,
-            date_slot_id: createBookingData.date_slot_id,
-            participants: createBookingData.participants,
-            hiker_id: createBookingData.hiker_id
-          });
-          toast.error('Invalid booking data. Please contact support.');
-          setIsProcessing(false);
-          return;
-        }
-
-        // Create the booking in database
-        const { data: bookingData, error: bookingError } = await supabase.functions.invoke('create-booking', {
-          body: createBookingData
-        });
-
-        console.log('BookingSuccess: create-booking response:', bookingData, bookingError);
-
-        if (bookingError) {
-          console.error('Error creating booking:', bookingError);
-          toast.error(`Booking creation failed: ${bookingError.message}`);
-          setIsProcessing(false);
-          return;
-        }
-
-        if (!bookingData?.booking) {
-          console.error('No booking in response:', bookingData);
-          toast.error('Booking creation failed. Please contact support.');
-          setIsProcessing(false);
-          return;
-        }
-
-        setBookingReference(bookingData.booking.booking_reference);
+        setBookingReference(verificationData.booking.booking_reference);
         toast.success('Booking confirmed!');
         setIsProcessing(false);
 
-        // Redirect to dashboard after a brief delay to show success message
+        // Redirect to dashboard after brief delay
         setTimeout(() => {
           navigate('/dashboard', { 
             state: { 
               bookingSuccess: true,
-              bookingReference: bookingData.booking.booking_reference 
+              bookingReference: verificationData.booking.booking_reference 
             }
           });
         }, 2000);
 
       } catch (error: any) {
-        console.error('Booking creation error:', error);
+        console.error('Payment verification error:', error);
         toast.error(`Error: ${error.message || 'An error occurred. Please contact support.'}`);
         setIsProcessing(false);
       }
     };
 
-    createBooking();
+    verifyPayment();
   }, [sessionId, navigate]);
 
   if (isProcessing) {
