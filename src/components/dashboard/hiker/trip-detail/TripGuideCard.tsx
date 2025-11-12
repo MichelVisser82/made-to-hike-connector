@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Phone, Star, Shield } from 'lucide-react';
+import { CertificationBadge } from '@/components/ui/certification-badge';
+import { MessageCircle, Phone, Star } from 'lucide-react';
 import type { TripDetails } from '@/hooks/useTripDetails';
 import { MessageGuideModal } from './modals/MessageGuideModal';
 
@@ -50,20 +50,15 @@ export function TripGuideCard({ tripDetails }: TripGuideCardProps) {
         {/* Certification Badges */}
         {guide.certifications && guide.certifications.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
-            {guide.certifications.slice(0, 2).map((cert: any, index: number) => {
-              // Handle both object and string certifications
-              const certName = typeof cert === 'string' ? cert : (cert.title || cert.name || 'Certified');
-              
-              return (
-                <Badge 
-                  key={index}
-                  className={index === 0 ? "bg-sage/10 text-sage border-sage/20 text-xs" : "bg-burgundy/10 text-burgundy border-burgundy/20 text-xs"}
-                >
-                  <Shield className="w-3 h-3 mr-1" />
-                  {certName}
-                </Badge>
-              );
-            })}
+            {guide.certifications.slice(0, 2).map((cert: any, index: number) => (
+              <CertificationBadge
+                key={index}
+                certification={cert}
+                displayMode="simple"
+                showTooltip={true}
+                size="compact"
+              />
+            ))}
           </div>
         )}
 
