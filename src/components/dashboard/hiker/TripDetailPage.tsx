@@ -57,25 +57,25 @@ export function TripDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <div className="container max-w-7xl mx-auto py-8 px-4 md:px-6">
         {/* Header with Back Button and Action Buttons */}
         <div className="flex items-center justify-between mb-6">
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="hover:bg-accent"
+            className="hover:bg-white text-gray-700"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to My Trips
           </Button>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="bg-white">
               <Share className="w-4 h-4 mr-2" />
               Share
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="bg-white">
               <FileDown className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
