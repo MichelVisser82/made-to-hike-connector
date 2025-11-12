@@ -99,7 +99,6 @@ serve(async (req) => {
         
         if (kvData?.value) {
           bookingData = kvData.value;
-          // Add metadata fields to booking data
           bookingData.tour_id = session.metadata.tour_id;
           bookingData.date_slot_id = session.metadata.date_slot_id;
           logStep('Booking data retrieved from KV store', { 
@@ -118,16 +117,46 @@ serve(async (req) => {
       }
     }
 
-    // Return payment verification success with booking data
+    if (!bookingData) {
+      throw new Error('Booking data not found. Please contact support.');
+    }
+
+    // Create the booking NOW that payment is confirmed
+    logStep('Creating booking after successful payment', { bookingData });
+    
+    const paymentIntentId = typeof session.payment_intent === 'string' 
+      ? session.payment_intent 
+      : session.payment_intent?.id;
+
+    const { data: createdBooking, error: createBookingError } = await supabaseClient.functions.invoke(
+      'create-booking',
+      {
+        body: {
+          ...bookingData,
+          stripe_payment_intent_id: paymentIntentId,
+          payment_status: bookingPaymentStatus,
+        }
+      }
+    );
+
+    if (createBookingError || !createdBooking?.booking) {
+      logStep('ERROR creating booking', { error: createBookingError });
+      throw new Error('Failed to create booking after payment. Please contact support with your payment confirmation.');
+    }
+
+    logStep('Booking created successfully', { bookingId: createdBooking.booking.id });
+
+    // Return payment verification success with created booking
     return new Response(
       JSON.stringify({ 
         success: true,
-        paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id,
+        paymentIntentId,
         sessionId: session_id,
         amountPaid: session.amount_total / 100,
         currency: session.currency,
         paymentStatus: bookingPaymentStatus,
-        bookingData: bookingData
+        booking: createdBooking.booking,
+        bookingId: createdBooking.booking.id
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -226,13 +226,12 @@ export const PaymentStep = ({
       const amountToCharge = depositAmount > 0 ? depositAmount : finalPrice;
       const totalToCharge = amountToCharge + pricing.serviceFee;
 
-      // STEP 1: Create pending booking FIRST (before Stripe redirect)
-      console.log('[PaymentStep] Creating pending booking before payment...');
-      
-      const createBookingData = {
+      // Prepare complete booking data to pass through Stripe session
+      const completeBookingData = {
         tour_id: tourId,
         date_slot_id: fullBookingData.selectedDateSlotId,
         hiker_id: userId,
+        hiker_email: hikerEmail,
         participants: fullBookingData.participants.length,
         participants_details: fullBookingData.participants,
         total_price: pricing.total,
@@ -242,75 +241,39 @@ export const PaymentStep = ({
         service_fee_amount: pricing.serviceFee,
         currency: pricing.currency,
         special_requests: fullBookingData.specialRequests,
-        status: 'pending',
-        payment_status: 'pending',
         payment_type: depositAmount > 0 ? 'deposit' : 'full',
         deposit_amount: depositAmount || null,
         final_payment_amount: finalPaymentAmount || null,
         final_payment_due_date: depositAmount > 0 && defaults?.final_payment_days 
           ? new Date(Date.now() + defaults.final_payment_days * 24 * 60 * 60 * 1000).toISOString() 
           : null,
-        final_payment_status: depositAmount > 0 ? 'pending' : null,
+        phone: fullBookingData.phone,
+        country: fullBookingData.country,
+        emergencyContactName: fullBookingData.emergencyContactName,
+        emergencyContactPhone: fullBookingData.emergencyContactPhone,
+        emergencyContactCountry: fullBookingData.emergencyContactCountry,
+        emergencyContactRelationship: fullBookingData.emergencyContactRelationship,
+        dietaryPreferences: fullBookingData.dietaryPreferences,
+        accessibilityNeeds: fullBookingData.accessibilityNeeds,
       };
 
-      const { data: bookingResponse, error: bookingError } = await supabase.functions.invoke('create-booking', {
-        body: createBookingData
-      });
+      console.log('[PaymentStep] Creating Stripe checkout session with booking data...');
 
-      if (bookingError || !bookingResponse?.booking) {
-        console.error('[PaymentStep] Failed to create pending booking:', bookingError);
-        
-        // Extract detailed error message if available
-        const errorDetails = bookingError?.message || bookingResponse?.error;
-        
-        // Check if it's a duplicate booking error
-        if (errorDetails && (errorDetails.includes('already have a booking') || bookingResponse?.existingBooking)) {
-          throw new Error(`You already have a booking for this tour on this date (${bookingResponse?.existingBooking || 'existing booking'}). Please check your dashboard.`);
-        }
-        
-        throw new Error(errorDetails || 'Failed to create booking. Please try again.');
-      }
-
-      const bookingId = bookingResponse.booking.id;
-      console.log('[PaymentStep] Pending booking created:', bookingId);
-
-      // STEP 2: Create Stripe session with booking_id in metadata
+      // Create Stripe session (booking will be created AFTER successful payment)
       const paymentPayload = {
-        amount: amountToCharge, // Deposit or full price (after discount, before service fee)
-        serviceFee: pricing.serviceFee, // Pre-calculated service fee
-        totalAmount: totalToCharge, // Total to charge (deposit/full price + service fee)
+        amount: amountToCharge,
+        serviceFee: pricing.serviceFee,
+        totalAmount: totalToCharge,
         currency: pricing.currency,
         tourId: tourId,
         guideId: guideId,
         dateSlotId: fullBookingData.selectedDateSlotId,
-        bookingId: bookingId, // Pass booking ID to Stripe
         tourTitle: `Hiking Tour Booking`,
         isDeposit: depositAmount > 0,
         depositAmount: depositAmount,
         finalPaymentAmount: finalPaymentAmount,
-        bookingData: {
-          participants: fullBookingData.participants,
-          participantCount: fullBookingData.participants.length,
-          phone: fullBookingData.phone,
-          country: fullBookingData.country,
-          emergencyContactName: fullBookingData.emergencyContactName,
-          emergencyContactPhone: fullBookingData.emergencyContactPhone,
-          emergencyContactRelationship: fullBookingData.emergencyContactRelationship,
-          dietaryPreferences: fullBookingData.dietaryPreferences,
-          accessibilityNeeds: fullBookingData.accessibilityNeeds,
-          specialRequests: fullBookingData.specialRequests,
-          subtotal: pricing.subtotal,
-          discount_code: fullBookingData.discountCode || null,
-          discount_amount: pricing.discount,
-          service_fee_amount: pricing.serviceFee,
-          total_price: pricing.total,
-          deposit_amount: depositAmount,
-          final_payment_amount: finalPaymentAmount,
-          final_payment_days: defaults?.final_payment_days || 0,
-          tour_id: tourId,
-          date_slot_id: fullBookingData.selectedDateSlotId,
-          currency: pricing.currency,
-        }
+        hikerEmail: hikerEmail,
+        bookingData: completeBookingData, // All booking data stored in KV during checkout
       };
 
       console.log('[PaymentStep] Sending payment request:', paymentPayload);

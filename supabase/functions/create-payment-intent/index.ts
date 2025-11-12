@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId, isDeposit, depositAmount, finalPaymentAmount, hikerEmail, bookingId } = await req.json();
+    const { amount, serviceFee, totalAmount, currency, tourId, tourTitle, bookingData, guideId, dateSlotId, isDeposit, depositAmount, finalPaymentAmount, hikerEmail } = await req.json();
     
     console.log('[create-payment-intent] Request received:', { 
       amount, 
@@ -26,8 +26,7 @@ serve(async (req) => {
       isDeposit, 
       depositAmount, 
       finalPaymentAmount,
-      hikerEmail,
-      bookingId
+      hikerEmail
     });
 
     if (!amount || !serviceFee || !totalAmount || !currency || !tourId || !guideId) {
@@ -116,13 +115,12 @@ serve(async (req) => {
           console.log('[create-payment-intent] Found existing Stripe customer:', customerId);
         } else if (isDeposit) {
           // Create customer for deposits to ensure payment method can be saved
-          const newCustomer = await stripe.customers.create({
-            email: hikerEmail,
-            metadata: {
-              booking_id: bookingId || '',
-              tour_id: tourId,
-            }
-          });
+        const newCustomer = await stripe.customers.create({
+          email: hikerEmail,
+          metadata: {
+            tour_id: tourId,
+          }
+        });
           customerId = newCustomer.id;
           console.log('[create-payment-intent] Created new Stripe customer for deposit:', customerId);
         }
@@ -216,7 +214,6 @@ serve(async (req) => {
           },
           setup_future_usage: isDeposit ? 'off_session' : undefined, // Save payment method for deposits
           metadata: {
-            booking_id: bookingId || '',
             tour_id: tourId,
             guide_id: guideId,
             date_slot_id: dateSlotId || '',
@@ -227,7 +224,6 @@ serve(async (req) => {
         success_url: `${req.headers.get('origin')}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${req.headers.get('origin')}/tours/${tourId}/book`,
         metadata: {
-          booking_id: bookingId || '',
           tour_id: tourId,
           guide_id: guideId,
           date_slot_id: dateSlotId || '',
