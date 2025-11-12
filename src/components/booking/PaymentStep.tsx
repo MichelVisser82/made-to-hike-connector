@@ -44,28 +44,62 @@ export const PaymentStep = ({
   const [paymentCooldown, setPaymentCooldown] = useState<number>(0);
 
   const agreedToTerms = form.watch('agreedToTerms');
+  const selectedDateSlotId = form.watch('selectedDateSlotId');
   const { defaults, isLoading: isPolicyLoading } = useGuidePolicyDefaults(guideId);
+  const [selectedSlotDate, setSelectedSlotDate] = useState<Date | null>(null);
 
-  // Calculate deposit amount based on guide's policy defaults
+  // Fetch selected date slot to check tour date
   useEffect(() => {
-    if (!defaults || isPolicyLoading) return;
+    const fetchSlotDate = async () => {
+      if (!selectedDateSlotId) return;
+      
+      const { data: slot } = await supabase
+        .from('tour_date_slots')
+        .select('slot_date')
+        .eq('id', selectedDateSlotId)
+        .single();
+      
+      if (slot) {
+        setSelectedSlotDate(new Date(slot.slot_date));
+      }
+    };
+    
+    fetchSlotDate();
+  }, [selectedDateSlotId]);
+
+  // Calculate deposit amount based on guide's policy defaults and tour date
+  useEffect(() => {
+    if (!defaults || isPolicyLoading || !selectedSlotDate) return;
 
     const finalPrice = pricing.subtotal - pricing.discount;
+    const finalPaymentDays = defaults.final_payment_days || 14;
+    
+    // Calculate days until tour
+    const now = new Date();
+    const daysUntilTour = Math.ceil((selectedSlotDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // If tour is within the final payment deadline, require full payment
+    const isWithinDeadline = daysUntilTour <= finalPaymentDays;
 
-    if (defaults.deposit_type === 'none') {
+    if (defaults.deposit_type === 'none' || isWithinDeadline) {
       // Full payment required
       setDepositAmount(0);
       setFinalPaymentAmount(0);
-      setDepositInfo('Full payment required at booking');
+      
+      if (isWithinDeadline) {
+        setDepositInfo(`Full payment required - tour is within ${finalPaymentDays} day deadline (${daysUntilTour} days away)`);
+      } else {
+        setDepositInfo('Full payment required at booking');
+      }
     } else if (defaults.deposit_type === 'percentage') {
       // Calculate deposit as percentage
       const depositPercent = defaults.deposit_amount || 30;
       const deposit = Math.round((finalPrice * depositPercent) / 100);
       setDepositAmount(deposit);
       setFinalPaymentAmount(finalPrice - deposit);
-      setDepositInfo(`${depositPercent}% deposit (${pricing.currency}${deposit}) + ${pricing.currency}${pricing.serviceFee.toFixed(2)} service fee due now. Remaining ${pricing.currency}${finalPrice - deposit} due ${defaults.final_payment_days || 14} days before tour.`);
+      setDepositInfo(`${depositPercent}% deposit (${pricing.currency}${deposit}) + ${pricing.currency}${pricing.serviceFee.toFixed(2)} service fee due now. Remaining ${pricing.currency}${finalPrice - deposit} due ${finalPaymentDays} days before tour.`);
     }
-  }, [defaults, isPolicyLoading, pricing, guideId]);
+  }, [defaults, isPolicyLoading, pricing, selectedSlotDate]);
 
   // Cooldown timer for rate limiting
   useEffect(() => {

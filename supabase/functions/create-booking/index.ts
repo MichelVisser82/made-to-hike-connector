@@ -67,6 +67,38 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Validate deposit payment is allowed based on tour date
+    if (payment_type === 'deposit' && date_slot_id) {
+      const { data: dateSlot } = await supabase
+        .from('tour_date_slots')
+        .select('slot_date')
+        .eq('id', date_slot_id)
+        .single();
+      
+      const { data: guide } = await supabase
+        .from('guide_profiles')
+        .select('final_payment_days')
+        .eq('user_id', (await supabase.from('tours').select('guide_id').eq('id', tour_id).single()).data?.guide_id)
+        .single();
+      
+      if (dateSlot && guide) {
+        const finalPaymentDays = guide.final_payment_days || 14;
+        const tourDate = new Date(dateSlot.slot_date);
+        const now = new Date();
+        const daysUntilTour = Math.ceil((tourDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntilTour <= finalPaymentDays) {
+          console.error('Deposit not allowed - tour is within final payment deadline');
+          return new Response(
+            JSON.stringify({ 
+              error: `Tour is within ${finalPaymentDays} day payment deadline. Full payment required.`
+            }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+    }
+
     // Get tour info and check auto_confirm setting
     console.log('Fetching tour info for tour_id:', tour_id);
     const { data: tour, error: tourError } = await supabase

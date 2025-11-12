@@ -37,6 +37,7 @@ serve(async (req) => {
       .select(`
         id,
         booking_reference,
+        booking_date,
         hiker_id,
         hiker_email,
         guide_id,
@@ -51,6 +52,7 @@ serve(async (req) => {
       `)
       .eq('payment_type', 'deposit')
       .lte('final_payment_due_date', today)
+      .gte('booking_date', today) // Only process bookings for future tours
       .in('final_payment_status', ['pending', 'failed']);
 
     if (fetchError) {

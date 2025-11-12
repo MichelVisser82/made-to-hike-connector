@@ -45,7 +45,7 @@ serve(async (req) => {
 
     const { data: guide, error: guideError } = await supabase
       .from('guide_profiles')
-      .select('stripe_account_id, uses_custom_fees, custom_guide_fee_percentage, custom_hiker_fee_percentage')
+      .select('stripe_account_id, uses_custom_fees, custom_guide_fee_percentage, custom_hiker_fee_percentage, deposit_type, deposit_amount, final_payment_days')
       .eq('user_id', guideId)
       .single();
 
@@ -55,6 +55,33 @@ serve(async (req) => {
         JSON.stringify({ error: 'Guide payment setup incomplete' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Validate deposit payment is allowed based on tour date
+    if (isDeposit && dateSlotId) {
+      const { data: dateSlot } = await supabase
+        .from('tour_date_slots')
+        .select('slot_date')
+        .eq('id', dateSlotId)
+        .single();
+      
+      if (dateSlot) {
+        const finalPaymentDays = guide.final_payment_days || 14;
+        const tourDate = new Date(dateSlot.slot_date);
+        const now = new Date();
+        const daysUntilTour = Math.ceil((tourDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntilTour <= finalPaymentDays) {
+          console.error('[create-payment-intent] Tour is within final payment deadline, deposit not allowed');
+          return new Response(
+            JSON.stringify({ 
+              error: `Tour is within ${finalPaymentDays} day payment deadline. Full payment required.`,
+              requiresFullPayment: true
+            }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
     }
 
     const { data: settings } = await supabase
