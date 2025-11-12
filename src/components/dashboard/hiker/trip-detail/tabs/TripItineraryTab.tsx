@@ -10,7 +10,20 @@ interface TripItineraryTabProps {
 export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
   const { tour } = tripDetails;
-  const itineraryDays = tour.itinerary?.days;
+  
+  // Handle itinerary data - it might be stored in different formats
+  let itineraryDays: TripItineraryDay[] = [];
+  
+  if (tour.itinerary) {
+    // If itinerary has a days array directly
+    if (Array.isArray(tour.itinerary.days)) {
+      itineraryDays = tour.itinerary.days;
+    }
+    // If itinerary is an array itself
+    else if (Array.isArray(tour.itinerary)) {
+      itineraryDays = tour.itinerary;
+    }
+  }
 
   return (
     <Card className="p-6 bg-white border-burgundy/10 shadow-md">
