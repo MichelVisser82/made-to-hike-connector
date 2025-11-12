@@ -209,6 +209,11 @@ serve(async (req) => {
         },
       };
 
+      // Add on_behalf_of for platform fee transparency
+      if (guide.stripe_account_id) {
+        sessionConfig.payment_intent_data.on_behalf_of = guide.stripe_account_id;
+      }
+
       // Stripe automatically filters payment methods based on setup_future_usage
       // No need to manually restrict payment_method_types
 

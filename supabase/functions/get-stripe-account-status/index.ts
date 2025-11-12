@@ -82,12 +82,24 @@ serve(async (req) => {
       }
     }
 
+    // Prepare comprehensive requirements data
+    const requirementsData = account.requirements ? {
+      currently_due: account.requirements.currently_due || [],
+      eventually_due: account.requirements.eventually_due || [],
+      past_due: account.requirements.past_due || [],
+      pending_verification: account.requirements.pending_verification || [],
+      disabled_reason: account.requirements.disabled_reason || null,
+      errors: account.requirements.errors || [],
+      current_deadline: account.requirements.current_deadline || null,
+    } : {};
+
     // Update guide profile
     const { error: updateError } = await supabaseClient
       .from('guide_profiles')
       .update({ 
         stripe_kyc_status: kycStatus,
         bank_account_last4: bankAccountLast4,
+        stripe_requirements: requirementsData,
       })
       .eq('user_id', user.id);
 

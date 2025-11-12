@@ -558,6 +558,8 @@ export type Database = {
       }
       guide_profiles: {
         Row: {
+          account_link_expires_at: string | null
+          account_link_url: string | null
           active_since: string | null
           address_city: string | null
           address_line1: string | null
@@ -614,6 +616,7 @@ export type Database = {
           specialties: string[] | null
           stripe_account_id: string | null
           stripe_kyc_status: string | null
+          stripe_requirements: Json | null
           terrain_capabilities: string[] | null
           upcoming_availability_end: string | null
           upcoming_availability_start: string | null
@@ -625,6 +628,8 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          account_link_expires_at?: string | null
+          account_link_url?: string | null
           active_since?: string | null
           address_city?: string | null
           address_line1?: string | null
@@ -681,6 +686,7 @@ export type Database = {
           specialties?: string[] | null
           stripe_account_id?: string | null
           stripe_kyc_status?: string | null
+          stripe_requirements?: Json | null
           terrain_capabilities?: string[] | null
           upcoming_availability_end?: string | null
           upcoming_availability_start?: string | null
@@ -692,6 +698,8 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          account_link_expires_at?: string | null
+          account_link_url?: string | null
           active_since?: string | null
           address_city?: string | null
           address_line1?: string | null
@@ -748,6 +756,7 @@ export type Database = {
           specialties?: string[] | null
           stripe_account_id?: string | null
           stripe_kyc_status?: string | null
+          stripe_requirements?: Json | null
           terrain_capabilities?: string[] | null
           upcoming_availability_end?: string | null
           upcoming_availability_start?: string | null
@@ -1413,6 +1422,48 @@ export type Database = {
           },
         ]
       }
+      stripe_balance_snapshots: {
+        Row: {
+          available_balance: Json
+          created_at: string | null
+          guide_id: string
+          id: string
+          pending_balance: Json
+          platform_fees_collected: number | null
+          reserved_balance: Json | null
+          snapshot_date: string
+          stripe_account_id: string
+          total_payouts: number | null
+          total_transfers: number | null
+        }
+        Insert: {
+          available_balance: Json
+          created_at?: string | null
+          guide_id: string
+          id?: string
+          pending_balance: Json
+          platform_fees_collected?: number | null
+          reserved_balance?: Json | null
+          snapshot_date: string
+          stripe_account_id: string
+          total_payouts?: number | null
+          total_transfers?: number | null
+        }
+        Update: {
+          available_balance?: Json
+          created_at?: string | null
+          guide_id?: string
+          id?: string
+          pending_balance?: Json
+          platform_fees_collected?: number | null
+          reserved_balance?: Json | null
+          snapshot_date?: string
+          stripe_account_id?: string
+          total_payouts?: number | null
+          total_transfers?: number | null
+        }
+        Relationships: []
+      }
       stripe_payouts: {
         Row: {
           amount: number
@@ -1539,30 +1590,36 @@ export type Database = {
       }
       stripe_webhook_events: {
         Row: {
+          api_version: string | null
           created_at: string | null
           error_message: string | null
           event_type: string
           id: string
+          livemode: boolean | null
           payload: Json
           processed: boolean | null
           processed_at: string | null
           stripe_event_id: string
         }
         Insert: {
+          api_version?: string | null
           created_at?: string | null
           error_message?: string | null
           event_type: string
           id?: string
+          livemode?: boolean | null
           payload: Json
           processed?: boolean | null
           processed_at?: string | null
           stripe_event_id: string
         }
         Update: {
+          api_version?: string | null
           created_at?: string | null
           error_message?: string | null
           event_type?: string
           id?: string
+          livemode?: boolean | null
           payload?: Json
           processed?: boolean | null
           processed_at?: string | null
@@ -2413,6 +2470,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      webhook_processing_queue: {
+        Row: {
+          api_version: string | null
+          created_at: string | null
+          error_message: string | null
+          event_data: Json
+          event_id: string
+          event_type: string
+          id: string
+          livemode: boolean | null
+          max_retries: number | null
+          next_retry_at: string | null
+          processed_at: string | null
+          processing_status: string | null
+          retry_count: number | null
+        }
+        Insert: {
+          api_version?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          event_data: Json
+          event_id: string
+          event_type: string
+          id?: string
+          livemode?: boolean | null
+          max_retries?: number | null
+          next_retry_at?: string | null
+          processed_at?: string | null
+          processing_status?: string | null
+          retry_count?: number | null
+        }
+        Update: {
+          api_version?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          event_data?: Json
+          event_id?: string
+          event_type?: string
+          id?: string
+          livemode?: boolean | null
+          max_retries?: number | null
+          next_retry_at?: string | null
+          processed_at?: string | null
+          processing_status?: string | null
+          retry_count?: number | null
+        }
+        Relationships: []
       }
       website_images: {
         Row: {

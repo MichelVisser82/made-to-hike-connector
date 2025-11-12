@@ -25,7 +25,7 @@ serve(async (req) => {
     const body = await req.text();
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
 
-    logStep('Event received', { type: event.type, id: event.id });
+    logStep('Event received', { type: event.type, id: event.id, apiVersion: event.api_version, livemode: event.livemode });
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -44,13 +44,27 @@ serve(async (req) => {
       return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 });
     }
 
-    // Log webhook event with ON CONFLICT handling
+    // Log webhook event with api_version and livemode
     await supabaseClient.from('stripe_webhook_events').insert({
       stripe_event_id: event.id,
       event_type: event.type,
       payload: event,
+      api_version: event.api_version,
+      livemode: event.livemode,
       processed: false,
     });
+
+    // Queue event for async processing
+    await supabaseClient.from('webhook_processing_queue').insert({
+      event_id: event.id,
+      event_type: event.type,
+      event_data: event.data.object,
+      api_version: event.api_version,
+      livemode: event.livemode,
+      processing_status: 'pending',
+    });
+
+    logStep('Event queued for async processing', { eventId: event.id });
 
     // Handle different event types
     switch (event.type) {
@@ -438,11 +452,23 @@ async function syncAccountStatus(event: any, supabase: any) {
     bankAccountLast4 = bankAccount.last4;
   }
 
+  // Store comprehensive requirements data
+  const requirementsData = account.requirements ? {
+    currently_due: account.requirements.currently_due || [],
+    eventually_due: account.requirements.eventually_due || [],
+    past_due: account.requirements.past_due || [],
+    pending_verification: account.requirements.pending_verification || [],
+    disabled_reason: account.requirements.disabled_reason || null,
+    errors: account.requirements.errors || [],
+    current_deadline: account.requirements.current_deadline || null,
+  } : {};
+
   await supabase
     .from('guide_profiles')
     .update({ 
       stripe_kyc_status: kycStatus,
       bank_account_last4: bankAccountLast4,
+      stripe_requirements: requirementsData,
     })
     .eq('stripe_account_id', account.id);
 }

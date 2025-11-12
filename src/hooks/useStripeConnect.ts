@@ -8,6 +8,9 @@ interface StripeConnectData {
   stripe_kyc_status: string;
   payout_schedule: string;
   bank_account_last4: string | null;
+  stripe_requirements: any;
+  account_link_url: string | null;
+  account_link_expires_at: string | null;
 }
 
 export function useStripeConnect() {
@@ -29,7 +32,7 @@ export function useStripeConnect() {
       
       const { data: guideData, error } = await supabase
         .from('guide_profiles')
-        .select('stripe_account_id, stripe_kyc_status, payout_schedule, bank_account_last4')
+        .select('stripe_account_id, stripe_kyc_status, payout_schedule, bank_account_last4, stripe_requirements, account_link_url, account_link_expires_at')
         .eq('user_id', user.id)
         .single();
 
@@ -82,6 +85,14 @@ export function useStripeConnect() {
     if (!user || !data?.stripe_account_id) return null;
 
     try {
+      // Check if existing link is still valid
+      if (data.account_link_expires_at) {
+        const expiresAt = new Date(data.account_link_expires_at);
+        if (expiresAt > new Date() && data.account_link_url) {
+          return data.account_link_url;
+        }
+      }
+
       const { data: response, error } = await supabase.functions.invoke('create-stripe-account-link', {
         body: { 
           account_id: data.stripe_account_id,
@@ -92,6 +103,7 @@ export function useStripeConnect() {
 
       if (error) throw error;
 
+      await fetchStripeData(); // Refresh to get new expiration
       return response.url;
     } catch (error: any) {
       console.error('Error creating account link:', error);

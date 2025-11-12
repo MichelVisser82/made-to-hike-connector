@@ -36,10 +36,27 @@ serve(async (req) => {
       type: 'account_onboarding',
     });
 
-    logStep('Account link created', { url: accountLink.url });
+    logStep('Account link created', { url: accountLink.url, expiresAt: accountLink.expires_at });
+
+    // Store account link URL and expiration in database
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    await supabaseClient
+      .from('guide_profiles')
+      .update({
+        account_link_url: accountLink.url,
+        account_link_expires_at: new Date(accountLink.expires_at * 1000).toISOString(),
+      })
+      .eq('stripe_account_id', account_id);
 
     return new Response(
-      JSON.stringify({ url: accountLink.url }),
+      JSON.stringify({ 
+        url: accountLink.url,
+        expires_at: accountLink.expires_at,
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

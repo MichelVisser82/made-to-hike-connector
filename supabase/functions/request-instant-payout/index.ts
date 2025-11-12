@@ -60,6 +60,12 @@ serve(async (req) => {
       throw new Error('Payouts are not enabled for this account. Please complete account verification.');
     }
 
+    // Regional restrictions: Check country and currency match
+    const platformCountry = 'US'; // Your platform country
+    if (account.country !== platformCountry) {
+      throw new Error('Instant payouts only available for accounts in the same country as the platform');
+    }
+
     logStep('Checking balance', { accountId: guideProfile.stripe_account_id });
 
     // Check available balance
