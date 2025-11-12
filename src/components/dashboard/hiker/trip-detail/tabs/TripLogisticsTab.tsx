@@ -1,6 +1,11 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Phone, Mail, Clock, Navigation, Car, User } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  MapPin, Phone, Mail, Navigation, Map, Shield, 
+  Info, ExternalLink, Share2, Home as HomeIcon 
+} from 'lucide-react';
 import type { TripDetails } from '@/hooks/useTripDetails';
 import { format } from 'date-fns';
 
@@ -18,140 +23,227 @@ export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
     }
   };
 
+  const guideInitials = guide.display_name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-serif font-semibold mb-2">Logistics & Meeting Point</h2>
-        <p className="text-muted-foreground">
-          Everything you need to know about meeting up and getting started
-        </p>
-      </div>
+      {/* Meeting Point & Contact Information */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Meeting Point */}
+        <Card className="p-6 bg-white border-burgundy/10 shadow-md">
+          <h2 className="text-2xl mb-6 text-charcoal flex items-center gap-2 font-playfair">
+            <MapPin className="w-6 h-6 text-burgundy" />
+            Meeting Point
+          </h2>
+          
+          <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center mb-6">
+            <Map className="w-16 h-16 text-charcoal/30" />
+          </div>
 
-      {/* Meeting Point */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <MapPin className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-2">Meeting Point</h3>
-              <p className="text-muted-foreground mb-4">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-charcoal mb-2">Location Details</h4>
+              <p className="text-charcoal/70 mb-1">
                 {tour.meeting_point || 'Meeting point to be confirmed'}
               </p>
+              {tour.meeting_point_formatted && (
+                <p className="text-charcoal/70 mb-1">{tour.meeting_point_formatted}</p>
+              )}
               {(tour.meeting_point_lat && tour.meeting_point_lng) && (
-                <Button onClick={handleOpenMaps} variant="outline">
-                  <Navigation className="w-4 h-4 mr-2" />
+                <p className="text-sm text-charcoal/60">
+                  GPS: {tour.meeting_point_lat.toFixed(4)}° N, {tour.meeting_point_lng.toFixed(4)}° E
+                </p>
+              )}
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="font-medium text-charcoal mb-2">Meeting Time</h4>
+              <p className="text-lg text-burgundy mb-1 font-playfair">
+                {format(new Date(booking.booking_date), 'EEEE, MMMM d, yyyy')}
+              </p>
+              <p className="text-sm text-charcoal/60">
+                Please arrive 15 minutes early for check-in
+              </p>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="font-medium text-charcoal mb-2">Parking Information</h4>
+              <p className="text-charcoal/70 mb-1">Check with your guide for parking details</p>
+              <p className="text-sm text-charcoal/60">
+                Your guide will confirm the exact meeting time closer to the date
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              {(tour.meeting_point_lat && tour.meeting_point_lng) && (
+                <Button 
+                  onClick={handleOpenMaps}
+                  className="flex-1 bg-burgundy hover:bg-burgundy-dark text-white"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
                   Open in Maps
                 </Button>
               )}
+              <Button 
+                variant="outline" 
+                className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
             </div>
           </div>
+        </Card>
 
-          {/* Map placeholder */}
-          {(tour.meeting_point_lat && tour.meeting_point_lng) && (
-            <div className="mt-4 h-64 bg-muted rounded-lg flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <MapPin className="w-8 h-8 mx-auto mb-2" />
-                <p className="text-sm">Interactive map coming soon</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* Contact & Emergency */}
+        <Card className="p-6 bg-white border-burgundy/10 shadow-md">
+          <h2 className="text-2xl mb-6 text-charcoal flex items-center gap-2 font-playfair">
+            <Phone className="w-6 h-6 text-burgundy" />
+            Contact Information
+          </h2>
 
-      {/* Meeting Time */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Clock className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-2">Meeting Time</h3>
-              <p className="text-muted-foreground mb-2">
-                {format(new Date(booking.booking_date), 'EEEE, MMMM d, yyyy')}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Your guide will confirm the exact meeting time closer to the date.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Contact Information */}
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <User className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Guide</div>
-                <div className="font-medium">{guide.display_name}</div>
-              </div>
-            </div>
-
-            {guide.phone && (
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Phone className="w-5 h-5 text-primary" />
-                </div>
+          <div className="space-y-6">
+            <div>
+              <h4 className="font-medium text-charcoal mb-3">Your Guide</h4>
+              <div className="flex items-center gap-3 mb-4">
+                <Avatar className="h-12 w-12">
+                  {guide.profile_image_url ? (
+                    <img src={guide.profile_image_url} alt={guide.display_name} />
+                  ) : (
+                    <AvatarFallback className="bg-burgundy text-white">
+                      {guideInitials}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
                 <div>
-                  <div className="text-sm text-muted-foreground">Phone</div>
-                  <a href={`tel:${guide.phone}`} className="font-medium hover:text-primary">
+                  <div className="font-medium text-charcoal">{guide.display_name}</div>
+                  <div className="text-sm text-charcoal/60">Professional Mountain Guide</div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {guide.phone && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                    onClick={() => window.location.href = `tel:${guide.phone}`}
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
                     {guide.phone}
-                  </a>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Mail className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Contact via platform</div>
-                <div className="font-medium">Message through dashboard</div>
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Message through dashboard
+                </Button>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Getting There */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Car className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-2">Getting There</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Plan your journey to the meeting point. Your guide will provide detailed directions and parking information closer to the date.
-              </p>
+            <Separator />
+
+            <div>
+              <h4 className="font-medium text-charcoal mb-3">Emergency Contacts</h4>
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span>Public transport options available</span>
+                <div className="flex items-start gap-2 p-3 bg-cream rounded-lg">
+                  <Shield className="w-4 h-4 text-burgundy mt-0.5 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium text-charcoal">Mountain Rescue</div>
+                    <div className="text-charcoal/70">112 (European Emergency Number)</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span>Parking information will be shared</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span>Arrive 15 minutes early</span>
+                <div className="flex items-start gap-2 p-3 bg-cream rounded-lg">
+                  <Phone className="w-4 h-4 text-burgundy mt-0.5 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium text-charcoal">Made to Hike Support</div>
+                    <div className="text-charcoal/70">Emergency support available</div>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <div className="bg-gold/10 border border-gold/20 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <Info className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-charcoal">
+                  For non-emergencies, contact your guide directly. For urgent matters on the day of departure, call the guide's mobile number.
+                </p>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </Card>
+      </div>
+
+      {/* Transportation & Accommodation */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6 bg-white border-burgundy/10 shadow-md">
+          <h3 className="text-xl mb-4 text-charcoal flex items-center gap-2 font-playfair">
+            <Navigation className="w-5 h-5 text-burgundy" />
+            Getting There
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-charcoal mb-2 text-sm">By Car</h4>
+              <p className="text-sm text-charcoal/70">
+                Directions to the meeting point will be provided by your guide closer to the tour date
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-charcoal mb-2 text-sm">By Public Transport</h4>
+              <p className="text-sm text-charcoal/70">
+                Your guide will provide information about public transport options for reaching the meeting point
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-charcoal mb-2 text-sm">Travel Planning</h4>
+              <p className="text-sm text-charcoal/70">
+                Contact your guide for recommendations on the best way to reach the meeting location
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 bg-white border-burgundy/10 shadow-md">
+          <h3 className="text-xl mb-4 text-charcoal flex items-center gap-2 font-playfair">
+            <HomeIcon className="w-5 h-5 text-burgundy" />
+            Accommodation
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-charcoal mb-2 text-sm">Tour Accommodation</h4>
+              <p className="text-sm text-charcoal/70 mb-1">
+                {tour.includes && tour.includes.some(item => 
+                  item.toLowerCase().includes('accommodation') || 
+                  item.toLowerCase().includes('lodging') ||
+                  item.toLowerCase().includes('hut')
+                ) 
+                  ? 'Accommodation is included in your tour price'
+                  : 'Check tour inclusions for accommodation details'
+                }
+              </p>
+              <p className="text-sm text-charcoal/60">
+                Your guide will provide specific accommodation information
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-charcoal mb-2 text-sm">Pre/Post Trip</h4>
+              <p className="text-sm text-charcoal/70">
+                Consider booking accommodation near the meeting point for nights before/after the trek (not included)
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
