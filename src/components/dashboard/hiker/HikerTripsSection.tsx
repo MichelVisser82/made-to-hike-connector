@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +26,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('upcoming');
   const { bookings, loading, error } = useHikerBookings(userId);
+  const [reviews, setReviews] = useState<any[]>([]);
   
   // Modal states
   const [itineraryModal, setItineraryModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
@@ -35,6 +36,27 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
+
+  // Fetch reviews for all bookings
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!userId || bookings.length === 0) return;
+      
+      const bookingIds = bookings.map(b => b.id);
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('hiker_id', userId)
+        .eq('review_type', 'guide')
+        .in('booking_id', bookingIds);
+      
+      if (!error && data) {
+        setReviews(data);
+      }
+    };
+    
+    fetchReviews();
+  }, [userId, bookings]);
 
   // Filter and transform bookings into current & upcoming trips
   const upcomingTrips = bookings
@@ -73,25 +95,34 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     .filter(booking => {
       return booking.status.toLowerCase() === 'completed';
     })
-    .map(booking => ({
-      id: booking.id,
-      title: booking.tours?.title || 'Tour',
-      dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
-      guide: { 
-        name: booking.tours?.guide_profiles?.display_name || 'Guide', 
-        avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
-      },
-      location: booking.tours?.meeting_point || 'TBD',
-      meeting_point_lat: booking.tours?.meeting_point_lat,
-      meeting_point_lng: booking.tours?.meeting_point_lng,
-      itinerary: booking.tours?.itinerary,
-      rating: 0, // TODO: Get from reviews
-      image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
-      reviewPending: true, // TODO: Check if review exists
-      tourId: booking.tour_id,
-      tourSlug: booking.tours?.slug || '',
-      guideId: booking.tours?.guide_id
-    }));
+    .map(booking => {
+      // Find published review for this booking
+      const publishedReview = reviews.find(r => 
+        r.booking_id === booking.id && 
+        r.review_status === 'published'
+      );
+      
+      return {
+        id: booking.id,
+        title: booking.tours?.title || 'Tour',
+        dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
+        guide: { 
+          name: booking.tours?.guide_profiles?.display_name || 'Guide', 
+          avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
+        },
+        location: booking.tours?.meeting_point || 'TBD',
+        meeting_point_lat: booking.tours?.meeting_point_lat,
+        meeting_point_lng: booking.tours?.meeting_point_lng,
+        itinerary: booking.tours?.itinerary,
+        rating: publishedReview?.overall_rating || 0,
+        image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
+        reviewPending: !publishedReview,
+        reviewId: publishedReview?.id,
+        tourId: booking.tour_id,
+        tourSlug: booking.tours?.slug || '',
+        guideId: booking.tours?.guide_id
+      };
+    });
 
   // TODO: Implement wishlist and saved guides from database
   const wishlist: any[] = [];
@@ -378,6 +409,9 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                   {trip.reviewPending && (
                     <Badge className="absolute top-4 right-4 bg-orange-500">Review Pending</Badge>
                   )}
+                  {!trip.reviewPending && (
+                    <Badge className="absolute top-4 right-4 bg-green-500">Review Written</Badge>
+                  )}
                 </div>
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-2">{trip.title}</h3>
@@ -403,10 +437,16 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                     <Button 
                       variant={trip.reviewPending ? 'default' : 'outline'} 
                       className={trip.reviewPending ? 'w-full bg-[#7c2843] hover:bg-[#5d1e32]' : 'w-full'}
-                      onClick={() => navigate(`/dashboard?section=reviews&bookingId=${trip.id}`)}
+                      onClick={() => {
+                        if (trip.reviewPending) {
+                          navigate(`/dashboard?section=reviews&bookingId=${trip.id}`);
+                        } else {
+                          navigate(`/dashboard?section=reviews`);
+                        }
+                      }}
                     >
                       <Star className="w-4 h-4 mr-2" />
-                      {trip.reviewPending ? 'Write Review' : 'View Your Review'}
+                      {trip.reviewPending ? 'Write Review' : 'Read Your Review'}
                     </Button>
                     <Button 
                       variant="outline" 
