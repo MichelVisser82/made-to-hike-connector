@@ -119,12 +119,41 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Find or create conversation
+      let conversationId: string;
+      
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('hiker_id', user.id)
+        .eq('guide_id', messageModal.trip.guideId)
+        .eq('tour_id', messageModal.trip.tourId)
+        .maybeSingle();
+
+      if (existingConv) {
+        conversationId = existingConv.id;
+      } else {
+        const { data: newConv, error: convError } = await supabase
+          .from('conversations')
+          .insert({
+            hiker_id: user.id,
+            guide_id: messageModal.trip.guideId,
+            tour_id: messageModal.trip.tourId,
+            conversation_type: 'tour_inquiry'
+          })
+          .select('id')
+          .single();
+
+        if (convError) throw convError;
+        conversationId = newConv.id;
+      }
+
+      // Send message with correct parameters
       const { error: sendError } = await supabase.functions.invoke('send-message', {
         body: {
-          recipient_id: messageModal.trip.guideId,
-          message: messageText.trim(),
-          sender_type: 'hiker',
-          tour_id: messageModal.trip.tourId
+          conversationId,
+          content: messageText.trim(),
+          senderType: 'hiker'
         }
       });
 
