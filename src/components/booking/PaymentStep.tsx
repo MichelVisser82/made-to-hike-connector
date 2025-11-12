@@ -244,8 +244,8 @@ export const PaymentStep = ({
         payment_type: depositAmount > 0 ? 'deposit' : 'full',
         deposit_amount: depositAmount || null,
         final_payment_amount: finalPaymentAmount || null,
-        final_payment_due_date: depositAmount > 0 && defaults?.final_payment_days 
-          ? new Date(Date.now() + defaults.final_payment_days * 24 * 60 * 60 * 1000).toISOString() 
+        final_payment_due_date: depositAmount > 0 && defaults?.final_payment_days && selectedSlotDate
+          ? new Date(selectedSlotDate.getTime() - defaults.final_payment_days * 24 * 60 * 60 * 1000).toISOString() 
           : null,
         phone: fullBookingData.phone,
         country: fullBookingData.country,
