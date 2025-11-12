@@ -74,7 +74,7 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
       case 'my-trips':
         return <HikerTripsSection userId={user.id} onViewTour={(id) => navigate(`/tours/${id}`)} onMessageGuide={(id) => setActiveSection('inbox')} />;
       case 'bookings':
-        return <HikerBookingsSection userId={user.id} onViewBooking={(id) => navigate(`/dashboard/booking/${id}`)} onContactGuide={(id) => setActiveSection('inbox')} />;
+        return <HikerBookingsSection userId={user.id} onViewBooking={(id) => navigate(`/dashboard/trip/${id}`)} onContactGuide={(id) => setActiveSection('inbox')} />;
       case 'reviews':
         return <HikerReviewsSection 
           userId={user.id} 
