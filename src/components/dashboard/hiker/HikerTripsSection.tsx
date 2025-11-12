@@ -119,7 +119,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Find or create conversation
+      // Find or create conversation for this specific booking
       let conversationId: string;
       
       const { data: existingConv } = await supabase
@@ -127,7 +127,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
         .select('id')
         .eq('hiker_id', user.id)
         .eq('guide_id', messageModal.trip.guideId)
-        .eq('tour_id', messageModal.trip.tourId)
+        .eq('booking_id', messageModal.trip.id)
         .maybeSingle();
 
       if (existingConv) {
@@ -139,7 +139,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
             hiker_id: user.id,
             guide_id: messageModal.trip.guideId,
             tour_id: messageModal.trip.tourId,
-            conversation_type: 'tour_inquiry'
+            booking_id: messageModal.trip.id,
+            conversation_type: 'booking_related'
           })
           .select('id')
           .single();
