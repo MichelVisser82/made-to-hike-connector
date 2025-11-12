@@ -41,47 +41,47 @@ export function HikerTodaySection({
       label: 'Next Adventure',
       value: daysUntilNextTrip > 0 ? `${daysUntilNextTrip} Days` : 'Not scheduled',
       subtext: nextTrip?.tour?.title || 'No upcoming trips',
-      gradient: 'from-primary to-primary-dark',
-      iconColor: 'text-primary'
+      gradient: 'from-burgundy to-burgundy-dark',
+      iconColor: 'text-burgundy'
     },
     {
       icon: Calendar,
       label: 'Trips Completed',
       value: completedTrips,
       subtext: `+2 this year`,
-      gradient: 'from-green-500 to-green-700',
-      iconColor: 'text-green-500'
+      gradient: 'from-sage to-sage-dark',
+      iconColor: 'text-sage'
     },
     {
       icon: MessageSquare,
       label: 'Badges Earned',
       value: badgesEarned,
       subtext: '5 regions explored',
-      gradient: 'from-orange-500 to-orange-700',
-      iconColor: 'text-orange-500'
+      gradient: 'from-gold to-gold-dark',
+      iconColor: 'text-gold'
     },
     {
       icon: Heart,
       label: 'Saved Tours',
       value: savedTours,
       subtext: 'In your wishlist',
-      gradient: 'from-primary to-primary-dark',
-      iconColor: 'text-primary'
+      gradient: 'from-burgundy to-burgundy-dark',
+      iconColor: 'text-burgundy'
     }
   ];
 
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg p-8">
-        <h1 className="text-3xl font-serif mb-2">Welcome Back, {profile?.name || 'Hiker'}</h1>
+      <div className="bg-gradient-to-r from-burgundy to-burgundy-dark text-white rounded-lg p-8 shadow-md">
+        <h1 className="text-3xl font-playfair mb-2">Welcome Back, {profile?.name || 'Hiker'}</h1>
         <p className="text-white/90">{currentDate}</p>
       </div>
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow">
+          <Card key={index} className="hover:shadow-md transition-shadow border-burgundy/10 bg-white">
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 rounded-lg bg-gradient-to-br ${metric.gradient}`}>
@@ -89,9 +89,9 @@ export function HikerTodaySection({
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">{metric.value}</p>
-                <p className="text-sm font-medium text-muted-foreground">{metric.label}</p>
-                <p className="text-xs text-muted-foreground">{metric.subtext}</p>
+                <p className="text-3xl font-bold text-charcoal">{metric.value}</p>
+                <p className="text-sm font-medium text-charcoal/70">{metric.label}</p>
+                <p className="text-xs text-charcoal/60">{metric.subtext}</p>
               </div>
             </CardContent>
           </Card>
@@ -102,41 +102,51 @@ export function HikerTodaySection({
         {/* Upcoming Trips */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-serif">Upcoming Trips</h2>
-            <Button variant="link" className="text-primary">View All →</Button>
+            <h2 className="text-2xl font-playfair text-charcoal">Upcoming Trips</h2>
+            <Button variant="link" className="text-burgundy hover:text-burgundy-dark">View All →</Button>
           </div>
 
           {upcomingTrips.length > 0 ? (
             upcomingTrips.slice(0, 2).map((trip) => (
-              <Card key={trip.id}>
+              <Card key={trip.id} className="border-burgundy/10 bg-white shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant={trip.status === 'confirmed' ? 'default' : 'secondary'}>
+                        <Badge 
+                          variant={trip.status === 'confirmed' ? 'default' : 'secondary'}
+                          className={trip.status === 'confirmed' ? 'bg-sage text-white' : 'bg-gold/20 text-gold-dark'}
+                        >
                           {trip.status === 'confirmed' ? 'Confirmed' : 'Action Needed'}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-charcoal/60">
                           Oct 15, 2025
                         </span>
                       </div>
-                      <h3 className="text-xl font-semibold mb-2">{trip.tour?.title}</h3>
-                      <div className="space-y-1 text-sm text-muted-foreground">
+                      <h3 className="text-xl font-playfair text-charcoal mb-2">{trip.tour?.title}</h3>
+                      <div className="space-y-1 text-sm text-charcoal/70">
                         <p>👤 Guide: {trip.tour?.guide_display_name}</p>
                         <p>📍 {trip.tour?.meeting_point}</p>
                         <p>👥 {trip.participants} Guests</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-4xl font-bold text-primary">{daysUntilNextTrip}</div>
-                      <div className="text-sm text-muted-foreground">days</div>
+                      <div className="text-4xl font-bold text-burgundy">{daysUntilNextTrip}</div>
+                      <div className="text-sm text-charcoal/60">days</div>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => onViewTrip(trip)} variant="outline" className="flex-1">
+                    <Button 
+                      onClick={() => onViewTrip(trip)} 
+                      className="flex-1 bg-burgundy hover:bg-burgundy-dark text-white"
+                    >
                       👁️ View Details
                     </Button>
-                    <Button onClick={() => onMessageGuide(trip.tour?.guide_id)} variant="outline" className="flex-1">
+                    <Button 
+                      onClick={() => onMessageGuide(trip.tour?.guide_id)} 
+                      variant="outline" 
+                      className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                    >
                       💬 Message Guide
                     </Button>
                   </div>
@@ -144,29 +154,29 @@ export function HikerTodaySection({
               </Card>
             ))
           ) : (
-            <Card>
+            <Card className="border-burgundy/10 bg-white shadow-md">
               <CardContent className="p-12 text-center">
-                <Mountain className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No Upcoming Trips</h3>
-                <p className="text-muted-foreground mb-4">Start planning your next adventure</p>
-                <Button>Explore Tours</Button>
+                <Mountain className="w-16 h-16 mx-auto mb-4 text-burgundy/30" />
+                <h3 className="text-xl font-playfair text-charcoal mb-2">No Upcoming Trips</h3>
+                <p className="text-charcoal/70 mb-4">Start planning your next adventure</p>
+                <Button className="bg-burgundy hover:bg-burgundy-dark text-white">Explore Tours</Button>
               </CardContent>
             </Card>
           )}
 
           {nextTrip && (
-            <Card className="bg-orange-50 border-orange-200">
+            <Card className="bg-gold/10 border-gold/20 shadow-md">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-orange-100 rounded-full">
-                    <MessageSquare className="w-5 h-5 text-orange-600" />
+                  <div className="p-2 bg-gold/20 rounded-full">
+                    <MessageSquare className="w-5 h-5 text-gold-dark" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold mb-1">Trip Preparation</h4>
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <h4 className="font-semibold text-charcoal mb-1">Trip Preparation</h4>
+                    <p className="text-sm text-charcoal/70 mb-2">
                       You have 2 action items for your upcoming Mont Blanc trek
                     </p>
-                    <Button variant="outline" size="sm" className="bg-white">
+                    <Button variant="outline" size="sm" className="bg-white border-burgundy/30 text-burgundy hover:bg-burgundy/5">
                       View Checklist
                     </Button>
                   </div>
@@ -178,29 +188,29 @@ export function HikerTodaySection({
 
         {/* Action Items & For You */}
         <div className="space-y-4">
-          <Card>
+          <Card className="border-burgundy/10 bg-white shadow-md">
             <CardHeader>
-              <CardTitle className="text-lg">Action Items</CardTitle>
+              <CardTitle className="text-lg font-playfair text-charcoal">Action Items</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
-                <Badge variant="destructive" className="mt-1">Urgent</Badge>
+              <div className="flex items-start gap-3 p-3 bg-gold/10 rounded-lg border border-gold/20">
+                <Badge variant="destructive" className="mt-1 bg-burgundy">Urgent</Badge>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Upload waiver for Mont Blanc Trek</p>
+                  <p className="text-sm font-medium text-charcoal">Upload waiver for Mont Blanc Trek</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 bg-muted rounded-lg">
-                <div className="w-5 h-5 rounded-full bg-muted-foreground/20 mt-1" />
+              <div className="flex items-start gap-3 p-3 bg-cream rounded-lg">
+                <div className="w-5 h-5 rounded-full bg-burgundy/20 mt-1" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Review your experience with Emma</p>
+                  <p className="text-sm font-medium text-charcoal">Review your experience with Emma</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg">
-                <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mt-1">
-                  <span className="text-xs">✓</span>
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-sage/20">
+                <div className="w-5 h-5 rounded-full bg-sage flex items-center justify-center mt-1">
+                  <span className="text-xs text-white">✓</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-muted-foreground line-through">
+                  <p className="text-sm font-medium text-charcoal/60 line-through">
                     Payment confirmed — Scottish Highlands
                   </p>
                 </div>
@@ -208,9 +218,9 @@ export function HikerTodaySection({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-burgundy/10 bg-white shadow-md">
             <CardHeader>
-              <CardTitle className="text-lg">For You</CardTitle>
+              <CardTitle className="text-lg font-playfair text-charcoal">For You</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="relative rounded-lg overflow-hidden mb-3">
@@ -220,14 +230,16 @@ export function HikerTodaySection({
                   className="w-full h-40 object-cover"
                 />
                 <Button size="sm" variant="ghost" className="absolute top-2 right-2 bg-white/90 hover:bg-white">
-                  <Heart className="w-4 h-4" />
+                  <Heart className="w-4 h-4 text-burgundy" />
                 </Button>
               </div>
-              <h4 className="font-semibold mb-1">Dolomites Via Ferrata</h4>
-              <p className="text-sm text-muted-foreground mb-2">📍 Italy</p>
+              <h4 className="font-playfair font-semibold text-charcoal mb-1">Dolomites Via Ferrata</h4>
+              <p className="text-sm text-charcoal/70 mb-2">📍 Italy</p>
               <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-primary">€340</span>
-                <Button size="sm" variant="outline">Explore More Tours</Button>
+                <span className="text-lg font-bold text-burgundy">€340</span>
+                <Button size="sm" variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5">
+                  Explore More Tours
+                </Button>
               </div>
             </CardContent>
           </Card>
