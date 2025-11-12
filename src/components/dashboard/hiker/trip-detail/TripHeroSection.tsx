@@ -67,11 +67,11 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
             <div className="flex items-center gap-4 text-charcoal/70">
               <div className="flex items-center gap-1">
                 <MapPin className="w-4 h-4 text-burgundy" />
-                <span>{tour.meeting_point || tour.region || 'Chamonix, France'}</span>
+                <span>{tour.meeting_point_formatted || tour.meeting_point || tour.region || 'Location TBD'}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4 text-burgundy" />
-                <span>October 16-17, 2025</span>
+                <span>{format(new Date(booking.booking_date), 'MMMM d, yyyy')}</span>
               </div>
             </div>
           </div>
@@ -98,12 +98,14 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
           <div className="p-4 bg-white border border-burgundy/10 rounded-lg shadow-sm">
             <Users className="w-5 h-5 text-burgundy mb-2" />
             <div className="text-sm text-charcoal/60 mb-1">Group Size</div>
-            <div className="font-medium text-charcoal">{booking.participants} Guests</div>
+            <div className="font-medium text-charcoal">{booking.participants} {booking.participants === 1 ? 'Guest' : 'Guests'}</div>
           </div>
           <div className="p-4 bg-white border border-burgundy/10 rounded-lg shadow-sm">
             <Mountain className="w-5 h-5 text-burgundy mb-2" />
-            <div className="text-sm text-charcoal/60 mb-1">Max Altitude</div>
-            <div className="font-medium text-charcoal">4,808m</div>
+            <div className="text-sm text-charcoal/60 mb-1">Distance</div>
+            <div className="font-medium text-charcoal">
+              {tour.distance_km ? `${tour.distance_km} km` : 'Multi-day'}
+            </div>
           </div>
         </div>
       </div>

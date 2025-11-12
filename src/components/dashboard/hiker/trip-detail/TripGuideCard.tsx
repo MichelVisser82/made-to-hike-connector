@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Phone, Star, Award, Shield } from 'lucide-react';
+import { MessageCircle, Phone, Star, Shield } from 'lucide-react';
 import type { TripDetails } from '@/hooks/useTripDetails';
 import { MessageGuideModal } from './modals/MessageGuideModal';
 
@@ -35,25 +35,32 @@ export function TripGuideCard({ tripDetails }: TripGuideCardProps) {
           <div className="flex-1">
             <h4 className="font-medium text-charcoal mb-1">{guide.display_name}</h4>
             <div className="text-sm text-charcoal/60 mb-2">Professional Mountain Guide</div>
-            <div className="flex items-center gap-1 text-xs text-charcoal/70">
-              <Star className="w-3.5 h-3.5 text-gold fill-gold" />
-              <span className="font-medium">4.9</span>
-              <span className="text-charcoal/50">(127 reviews)</span>
-            </div>
+            {guide.review_count > 0 ? (
+              <div className="flex items-center gap-1 text-xs text-charcoal/70">
+                <Star className="w-3.5 h-3.5 text-gold fill-gold" />
+                <span className="font-medium">{guide.average_rating.toFixed(1)}</span>
+                <span className="text-charcoal/50">({guide.review_count} {guide.review_count === 1 ? 'review' : 'reviews'})</span>
+              </div>
+            ) : (
+              <div className="text-xs text-charcoal/50">No reviews yet</div>
+            )}
           </div>
         </div>
 
         {/* Certification Badges */}
-        <div className="flex gap-2 mb-3">
-          <Badge className="bg-sage/10 text-sage border-sage/20 text-xs">
-            <Shield className="w-3 h-3 mr-1" />
-            UIAGM Certified
-          </Badge>
-          <Badge className="bg-burgundy/10 text-burgundy border-burgundy/20 text-xs">
-            <Award className="w-3 h-3 mr-1" />
-            First Aid
-          </Badge>
-        </div>
+        {guide.certifications && guide.certifications.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {guide.certifications.slice(0, 2).map((cert: any, index: number) => (
+              <Badge 
+                key={index}
+                className={index === 0 ? "bg-sage/10 text-sage border-sage/20 text-xs" : "bg-burgundy/10 text-burgundy border-burgundy/20 text-xs"}
+              >
+                <Shield className="w-3 h-3 mr-1" />
+                {cert.name || cert}
+              </Badge>
+            ))}
+          </div>
+        )}
 
         <div className="border-t border-burgundy/10 my-4" />
 
