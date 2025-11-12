@@ -1,4 +1,4 @@
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, Controller } from 'react-hook-form';
 import { BookingFormData } from '@/types/booking';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,21 +61,24 @@ export const ContactStep = ({ form, onNext, onBack }: ContactStepProps) => {
           <div className="grid gap-4">
             <div>
               <Label htmlFor="country">Country Code</Label>
-              <Select
-                value={form.watch('country')}
-                onValueChange={(value) => form.setValue('country', value)}
-              >
-                <SelectTrigger id="country">
-                  <SelectValue placeholder="Select country code" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country.code} value={country.code}>
-                      {country.code} - {country.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="country"
+                control={form.control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="country">
+                      <SelectValue placeholder="Select country code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.code} - {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {form.formState.errors.country && (
                 <p className="text-sm text-destructive mt-1">
                   {form.formState.errors.country.message}
@@ -126,21 +129,24 @@ export const ContactStep = ({ form, onNext, onBack }: ContactStepProps) => {
 
             <div>
               <Label htmlFor="emergencyContactCountry">Emergency Contact Country Code</Label>
-              <Select
-                value={form.watch('emergencyContactCountry')}
-                onValueChange={(value) => form.setValue('emergencyContactCountry', value)}
-              >
-                <SelectTrigger id="emergencyContactCountry">
-                  <SelectValue placeholder="Select country code" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country.code} value={country.code}>
-                      {country.code} - {country.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="emergencyContactCountry"
+                control={form.control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="emergencyContactCountry">
+                      <SelectValue placeholder="Select country code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.code} - {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {form.formState.errors.emergencyContactCountry && (
                 <p className="text-sm text-destructive mt-1">
                   {form.formState.errors.emergencyContactCountry.message}
@@ -168,22 +174,25 @@ export const ContactStep = ({ form, onNext, onBack }: ContactStepProps) => {
 
             <div>
               <Label htmlFor="emergencyContactRelationship">Relationship</Label>
-              <Select
-                value={form.watch('emergencyContactRelationship')}
-                onValueChange={(value) => form.setValue('emergencyContactRelationship', value)}
-              >
-                <SelectTrigger id="emergencyContactRelationship">
-                  <SelectValue placeholder="Select relationship" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="spouse">Spouse</SelectItem>
-                  <SelectItem value="parent">Parent</SelectItem>
-                  <SelectItem value="sibling">Sibling</SelectItem>
-                  <SelectItem value="friend">Friend</SelectItem>
-                  <SelectItem value="partner">Partner</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+                name="emergencyContactRelationship"
+                control={form.control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="emergencyContactRelationship">
+                      <SelectValue placeholder="Select relationship" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="spouse">Spouse</SelectItem>
+                      <SelectItem value="parent">Parent</SelectItem>
+                      <SelectItem value="sibling">Sibling</SelectItem>
+                      <SelectItem value="friend">Friend</SelectItem>
+                      <SelectItem value="partner">Partner</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {form.formState.errors.emergencyContactRelationship && (
                 <p className="text-sm text-destructive mt-1">
                   {form.formState.errors.emergencyContactRelationship.message}
