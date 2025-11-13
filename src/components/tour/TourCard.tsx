@@ -66,7 +66,7 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
           size="sm"
           variant="ghost"
           onClick={handleSaveClick}
-          className={`absolute top-3 right-3 bg-white/90 backdrop-blur-sm z-10
+          className={`absolute top-3 left-3 bg-white/90 backdrop-blur-sm z-10
             ${isSaved ? 'text-burgundy' : 'text-charcoal/70 hover:text-burgundy'}
             opacity-0 group-hover:opacity-100 transition-opacity shadow-sm`}
           aria-label={isSaved ? 'Remove from saved tours' : 'Save tour'}

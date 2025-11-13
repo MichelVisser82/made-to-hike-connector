@@ -187,7 +187,11 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
                 }`}
                 onClick={() => toggleFollowGuide(guide.user_id)}
               >
-                <Heart className={`h-4 w-4 mr-2 ${isFollowing ? 'fill-burgundy' : ''}`} />
+                {isFollowing ? (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                ) : (
+                  <UserPlus className="h-4 w-4 mr-2" />
+                )}
                 {isFollowing ? 'Following' : 'Follow Guide'}
               </Button>
               <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm py-2">
@@ -228,7 +232,11 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
               }`}
               onClick={() => toggleFollowGuide(guide.user_id)}
             >
-              <Heart className={`h-4 w-4 mr-2 ${isFollowing ? 'fill-burgundy' : ''}`} />
+              {isFollowing ? (
+                <CheckCircle className="h-4 w-4 mr-2" />
+              ) : (
+                <UserPlus className="h-4 w-4 mr-2" />
+              )}
               {isFollowing ? 'Following' : 'Follow Guide'}
             </Button>
             <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm sm:text-base py-2.5 sm:py-3">
