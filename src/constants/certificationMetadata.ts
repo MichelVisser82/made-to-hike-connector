@@ -10,6 +10,7 @@ export interface CertificationMetadata {
   activityTypes: string[];
   trainingHours?: number;
   recognitionCountries?: number;
+  recognitionRegion?: string;
   recertificationYears?: number;
   badgeColor: string;
   certType?: 'mountain-guide' | 'medical';
@@ -119,7 +120,7 @@ export const CERTIFICATION_METADATA: Record<string, CertificationMetadata> = {
     qualificationDescription: 'Qualified to lead groups in mountainous terrain in summer conditions.',
     activityTypes: ['Hill walking', 'Mountain hiking', 'Navigation'],
     trainingHours: 600,
-    recognitionCountries: 15,
+    recognitionRegion: 'UK & Ireland',
     badgeColor: '#8FA68E',
   },
   'IFMGA': {
