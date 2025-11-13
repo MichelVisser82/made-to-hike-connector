@@ -275,7 +275,11 @@ export function ToursSection({
                     {/* Row 2: Price & Bookings */}
                     <div className="flex justify-between text-sm text-charcoal/70 mb-4">
                       <span>{tour.currency === 'EUR' ? '€' : '£'}{tour.price} per person</span>
-                      <span>No bookings yet</span>
+                      <span>
+                        {(tour as any).bookings_count 
+                          ? `${(tour as any).bookings_count} booking${(tour as any).bookings_count !== 1 ? 's' : ''}`
+                          : 'No bookings yet'}
+                      </span>
                     </div>
 
                     {/* Actions */}
