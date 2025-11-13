@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeFAQAnswer } from '@/utils/sanitizeHTML';
 
 interface FAQ {
   id: string;
@@ -91,12 +92,7 @@ export function HelpFAQSection() {
               <div 
                 className="text-sm text-muted-foreground prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ 
-                  __html: faq.answer
-                    .replace(/\\n/g, '\n')
-                    .replace(/\n\n/g, '<br><br>')
-                    .replace(/\n/g, '<br>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/- /g, '• ')
+                  __html: sanitizeFAQAnswer(faq.answer)
                 }}
               />
               

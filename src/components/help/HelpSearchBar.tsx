@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useHelpSearch } from '@/hooks/useHelpSearch';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeFAQAnswer } from '@/utils/sanitizeHTML';
 
 interface FAQ {
   id: string;
@@ -132,12 +133,7 @@ export function HelpSearchBar({ onNoResults }: HelpSearchBarProps) {
                   <div 
                     className="text-sm text-muted-foreground prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ 
-                      __html: faq.answer
-                        .replace(/\\n/g, '\n')
-                        .replace(/\n\n/g, '<br><br>')
-                        .replace(/\n/g, '<br>')
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/- /g, '• ')
+                      __html: sanitizeFAQAnswer(faq.answer)
                     }}
                   />
                 </div>
