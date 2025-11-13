@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { CertificationBadge } from '@/components/ui/certification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -562,9 +563,13 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                         <p className="text-xs text-charcoal/60 mb-1.5">Certifications</p>
                         <div className="flex flex-wrap gap-1.5">
                           {guide.certifications.slice(0, 2).map((cert, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs bg-sage/20">
-                              {cert}
-                            </Badge>
+                            <CertificationBadge
+                              key={idx}
+                              certification={cert}
+                              displayMode="simple"
+                              showTooltip={true}
+                              size="compact"
+                            />
                           ))}
                         </div>
                       </div>
