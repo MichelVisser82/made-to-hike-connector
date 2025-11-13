@@ -30,14 +30,14 @@ interface HikerProfile {
 }
 
 const DIETARY_OPTIONS = [
-  'Vegetarian',
-  'Vegan',
-  'Gluten-Free',
-  'Dairy-Free',
-  'Nut Allergy',
-  'Halal',
-  'Kosher',
-  'Other'
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'vegan', label: 'Vegan' },
+  { value: 'gluten-free', label: 'Gluten-Free' },
+  { value: 'dairy-free', label: 'Dairy-Free' },
+  { value: 'nut-allergy', label: 'Nut Allergy' },
+  { value: 'halal', label: 'Halal' },
+  { value: 'kosher', label: 'Kosher' },
+  { value: 'other', label: 'Other' }
 ];
 
 const HIKING_EXPERIENCE_LEVELS = [
@@ -94,9 +94,9 @@ export function HikerProfileEditForm() {
       if (error) throw error;
 
       if (data) {
-        // Safely parse dietary preferences from JSON
+        // Safely parse dietary preferences from JSON and normalize to lowercase
         const dietaryPrefs = Array.isArray(data.dietary_preferences) 
-          ? (data.dietary_preferences as string[])
+          ? (data.dietary_preferences as string[]).map(p => p.toLowerCase())
           : [];
 
         setProfile({
@@ -130,6 +130,11 @@ export function HikerProfileEditForm() {
     try {
       setSaving(true);
 
+      // Normalize dietary preferences and remove duplicates
+      const normalizedDietaryPrefs = Array.from(new Set(
+        profile.dietary_preferences.map(p => p.toLowerCase())
+      ));
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -141,7 +146,7 @@ export function HikerProfileEditForm() {
           country: profile.country,
           hiking_experience: profile.hiking_experience,
           medical_conditions: profile.medical_conditions,
-          dietary_preferences: profile.dietary_preferences,
+          dietary_preferences: normalizedDietaryPrefs,
           accessibility_needs: profile.accessibility_needs,
           emergency_contact_name: profile.emergency_contact_name,
           emergency_contact_country: profile.emergency_contact_country,
@@ -162,12 +167,13 @@ export function HikerProfileEditForm() {
     }
   };
 
-  const toggleDietaryPreference = (preference: string) => {
+  const toggleDietaryPreference = (value: string) => {
+    const normalizedValue = value.toLowerCase();
     setProfile(prev => ({
       ...prev,
-      dietary_preferences: prev.dietary_preferences.includes(preference)
-        ? prev.dietary_preferences.filter(p => p !== preference)
-        : [...prev.dietary_preferences, preference]
+      dietary_preferences: prev.dietary_preferences.includes(normalizedValue)
+        ? prev.dietary_preferences.filter(p => p !== normalizedValue)
+        : [...prev.dietary_preferences, normalizedValue]
     }));
   };
 
@@ -421,17 +427,17 @@ export function HikerProfileEditForm() {
             <Label>Dietary Preferences</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {DIETARY_OPTIONS.map((option) => (
-                <div key={option} className="flex items-center space-x-2">
+                <div key={option.value} className="flex items-center space-x-2">
                   <Checkbox
-                    id={`diet-${option}`}
-                    checked={profile.dietary_preferences.includes(option)}
-                    onCheckedChange={() => toggleDietaryPreference(option)}
+                    id={`diet-${option.value}`}
+                    checked={profile.dietary_preferences.includes(option.value)}
+                    onCheckedChange={() => toggleDietaryPreference(option.value)}
                   />
                   <Label
-                    htmlFor={`diet-${option}`}
+                    htmlFor={`diet-${option.value}`}
                     className="text-sm font-normal cursor-pointer"
                   >
-                    {option}
+                    {option.label}
                   </Label>
                 </div>
               ))}
