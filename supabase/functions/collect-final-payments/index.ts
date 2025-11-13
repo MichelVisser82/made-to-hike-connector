@@ -40,15 +40,12 @@ serve(async (req) => {
         booking_date,
         hiker_id,
         hiker_email,
-        guide_id,
         tour_id,
         final_payment_amount,
         final_payment_due_date,
         final_payment_status,
         stripe_payment_intent_id,
-        tours(title, currency),
-        guide_profiles!bookings_guide_id_fkey(stripe_account_id, uses_custom_fees, custom_guide_fee_percentage, custom_hiker_fee_percentage),
-        profiles!bookings_hiker_id_fkey(name)
+        tours(title, currency, guide_id)
       `)
       .eq('payment_type', 'deposit')
       .lte('final_payment_due_date', today)
@@ -87,6 +84,39 @@ serve(async (req) => {
           finalPaymentAmount: booking.final_payment_amount 
         });
 
+        const guideId = booking.tours.guide_id;
+
+        // Fetch hiker profile for email personalization
+        const { data: hikerProfile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', booking.hiker_id)
+          .single();
+        
+        const hikerName = hikerProfile?.name || 'Hiker';
+
+        // Fetch guide profile data separately
+        const { data: guideProfile, error: guideError } = await supabase
+          .from('guide_profiles')
+          .select('stripe_account_id, uses_custom_fees, custom_guide_fee_percentage, custom_hiker_fee_percentage')
+          .eq('user_id', guideId)
+          .single();
+
+        if (guideError || !guideProfile) {
+          logStep('Error fetching guide profile', { bookingId: booking.id, error: guideError });
+          failureCount++;
+          continue;
+        }
+
+        // Fetch hiker profile for email personalization
+        const { data: hikerProfile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', booking.hiker_id)
+          .single();
+        
+        const hikerName = hikerProfile?.name || 'Hiker';
+
         // Retrieve the original payment intent to get the saved payment method
         const originalPaymentIntent = await stripe.paymentIntents.retrieve(
           booking.stripe_payment_intent_id
@@ -111,7 +141,7 @@ serve(async (req) => {
               subject: `Final Payment Required - ${booking.booking_reference}`,
               html: `
                 <h2>Final Payment Required</h2>
-                <p>Dear ${booking.profiles.name},</p>
+                <p>Dear ${hikerName},</p>
                 <p>The final payment for your booking <strong>${booking.booking_reference}</strong> is now due.</p>
                 <p>Amount due: ${booking.tours.currency} ${(booking.final_payment_amount || 0).toFixed(2)}</p>
                 <p>We were unable to automatically charge your saved payment method. Please log in to your account to complete the payment manually.</p>
@@ -125,13 +155,12 @@ serve(async (req) => {
         }
 
         // Calculate fees
-        const guide = booking.guide_profiles;
-        const guideFee = guide.uses_custom_fees 
-          ? (guide.custom_guide_fee_percentage || 5) 
+        const guideFee = guideProfile.uses_custom_fees 
+          ? (guideProfile.custom_guide_fee_percentage || 5) 
           : (settings?.default_guide_fee_percentage || 5);
         
-        const hikerFee = guide.uses_custom_fees
-          ? (guide.custom_hiker_fee_percentage || 10)
+        const hikerFee = guideProfile.uses_custom_fees
+          ? (guideProfile.custom_hiker_fee_percentage || 10)
           : (settings?.default_hiker_fee_percentage || 10);
 
         const finalPaymentCents = Math.round((booking.final_payment_amount || 0) * 100);
@@ -151,13 +180,13 @@ serve(async (req) => {
           confirm: true, // Automatically confirm the payment
           application_fee_amount: totalPlatformFee,
           transfer_data: {
-            destination: guide.stripe_account_id,
+            destination: guideProfile.stripe_account_id,
           },
-          on_behalf_of: guide.stripe_account_id,
+          on_behalf_of: guideProfile.stripe_account_id,
           metadata: {
             booking_id: booking.id,
             tour_id: booking.tour_id,
-            guide_id: booking.guide_id,
+            guide_id: guideId,
             is_final_payment: 'true',
             original_payment_intent: booking.stripe_payment_intent_id,
           },
@@ -189,7 +218,7 @@ serve(async (req) => {
               subject: `Final Payment Processed - ${booking.booking_reference}`,
               html: `
                 <h2>Final Payment Successful</h2>
-                <p>Dear ${booking.profiles.name},</p>
+                <p>Dear ${hikerName},</p>
                 <p>Your final payment for <strong>${booking.booking_reference}</strong> has been processed successfully.</p>
                 <p>Amount charged: ${booking.tours.currency} ${(booking.final_payment_amount || 0).toFixed(2)}</p>
                 <p>Your booking is now fully paid. We look forward to seeing you on the trail!</p>
@@ -239,7 +268,7 @@ serve(async (req) => {
             subject: `${emailSubject} - ${booking.booking_reference}`,
             html: `
               <h2>${emailSubject}</h2>
-              <p>Dear ${booking.profiles.name},</p>
+              <p>Dear ${hikerName},</p>
               <p>${emailMessage}</p>
               <p>Amount due: ${booking.tours.currency} ${(booking.final_payment_amount || 0).toFixed(2)}</p>
               <p>Please log in to your account to update your payment method and complete the payment.</p>
