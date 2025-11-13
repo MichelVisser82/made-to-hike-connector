@@ -358,7 +358,13 @@ export function CertificationHoverCard({ certification, children }: Certificatio
                   <span><strong>{metadata.trainingHours}h</strong> training</span>
                 </div>
               )}
-              {metadata?.recognitionCountries && (
+              {metadata?.recognitionRegion && (
+                <div className="flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5" />
+                  <span><strong>{metadata.recognitionRegion}</strong></span>
+                </div>
+              )}
+              {!metadata?.recognitionRegion && metadata?.recognitionCountries && (
                 <div className="flex items-center gap-1.5">
                   <Globe className="w-3.5 h-3.5" />
                   <span><strong>{metadata.recognitionCountries}+</strong> countries</span>
