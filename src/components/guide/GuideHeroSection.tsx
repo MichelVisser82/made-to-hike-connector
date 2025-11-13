@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, CheckCircle, Star, Users, Clock, Award, MessageCircle, Mail, Heart, UserPlus } from 'lucide-react';
+import { MapPin, CheckCircle, Star, Users, Clock, Award, MessageCircle, Mail, Heart, UserPlus, Share2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import type { GuideProfile, GuideStats } from '@/types/guide';
@@ -79,6 +79,46 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
 
       {/* Content - Positioned at bottom */}
       <div className="relative container mx-auto px-4 lg:h-full lg:flex lg:items-end lg:pb-8">
+        {/* Share Button - Icon Only */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-4 right-40 text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+          onClick={() => {
+            const guideUrl = window.location.href;
+            if (navigator.share) {
+              navigator.share({
+                title: guide.display_name,
+                text: `Check out ${guide.display_name}'s guide profile`,
+                url: guideUrl
+              }).catch(() => {});
+            } else {
+              navigator.clipboard.writeText(guideUrl);
+            }
+          }}
+          aria-label="Share guide profile"
+        >
+          <Share2 className="h-4 w-4" />
+        </Button>
+
+        {/* Follow Button - Top Right */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`absolute top-4 right-4 backdrop-blur-sm ${isFollowing 
+            ? 'text-burgundy bg-white/90 hover:bg-white hover:text-burgundy-dark' 
+            : 'text-white bg-white/20 hover:bg-white/30'
+          }`}
+          onClick={() => toggleFollowGuide(guide.user_id)}
+        >
+          {isFollowing ? (
+            <CheckCircle className="h-4 w-4 mr-2" />
+          ) : (
+            <UserPlus className="h-4 w-4 mr-2" />
+          )}
+          {isFollowing ? 'Following' : 'Follow Guide'}
+        </Button>
+
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between lg:gap-6 w-full py-8 lg:py-0">
           {/* Left Side - Profile + Info */}
           <div className="flex flex-col md:flex-row gap-6 items-center md:items-start flex-1">
@@ -179,21 +219,6 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
             </div>
 
             <div className="space-y-2">
-              <Button 
-                variant="ghost"
-                className={`w-full mb-2 ${isFollowing 
-                  ? 'text-burgundy hover:text-burgundy-dark' 
-                  : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
-                }`}
-                onClick={() => toggleFollowGuide(guide.user_id)}
-              >
-                {isFollowing ? (
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                ) : (
-                  <UserPlus className="h-4 w-4 mr-2" />
-                )}
-                {isFollowing ? 'Following' : 'Follow Guide'}
-              </Button>
               <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm py-2">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Send Message
@@ -224,21 +249,6 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           </div>
 
           <div className="space-y-2 sm:space-y-3">
-            <Button 
-              variant="ghost"
-              className={`w-full mb-2 ${isFollowing 
-                ? 'text-burgundy hover:text-burgundy-dark' 
-                : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
-              }`}
-              onClick={() => toggleFollowGuide(guide.user_id)}
-            >
-              {isFollowing ? (
-                <CheckCircle className="h-4 w-4 mr-2" />
-              ) : (
-                <UserPlus className="h-4 w-4 mr-2" />
-              )}
-              {isFollowing ? 'Following' : 'Follow Guide'}
-            </Button>
             <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm sm:text-base py-2.5 sm:py-3">
               <MessageCircle className="w-4 h-4 mr-2" />
               Send Message
