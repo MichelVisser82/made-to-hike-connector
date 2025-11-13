@@ -224,8 +224,24 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </Card>
             </div>
 
+            {/* Save Tour Button (Desktop) */}
+            <div className="hidden lg:block lg:w-80 lg:mt-24 mb-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`w-full ${isSaved 
+                  ? 'text-burgundy hover:text-burgundy-dark' 
+                  : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
+                }`}
+                onClick={() => toggleSaveTour(tour.id)}
+              >
+                <Heart className={`h-4 w-4 mr-2 ${isSaved ? 'fill-burgundy' : ''}`} />
+                {isSaved ? 'Saved' : 'Save Tour'}
+              </Button>
+            </div>
+
             {/* Right Side - Booking Card (Desktop) */}
-            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-24 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-3">
+            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-3">
               {/* Guide Info */}
               <div className="mb-3 pb-3 border-b border-burgundy/10">
                 <GuideInfoDisplay 
@@ -238,20 +254,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   guideSlug={guideProfile?.slug}
                 />
               </div>
-
-              {/* Save Tour Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`w-full mb-2 ${isSaved 
-                  ? 'text-burgundy hover:text-burgundy-dark' 
-                  : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
-                }`}
-                onClick={() => toggleSaveTour(tour.id)}
-              >
-                <Heart className={`h-4 w-4 mr-2 ${isSaved ? 'fill-burgundy' : ''}`} />
-                {isSaved ? 'Saved' : 'Save Tour'}
-              </Button>
 
               {/* Price Display */}
               <div className="text-center py-2 border-b mb-3">
