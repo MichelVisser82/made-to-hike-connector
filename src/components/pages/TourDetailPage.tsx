@@ -225,9 +225,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
 
             {/* Right Side - Booking Card (Desktop) */}
-            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-20 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-5">
+            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-24 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-3">
               {/* Guide Info */}
-              <div className="mb-4 pb-4 border-b border-burgundy/10">
+              <div className="mb-3 pb-3 border-b border-burgundy/10">
                 <GuideInfoDisplay 
                   guideInfo={guideInfo}
                   isLoadingProfessional={isLoadingProfessional}
@@ -243,7 +243,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               <Button
                 variant="ghost"
                 size="sm"
-                className={`w-full mb-4 ${isSaved 
+                className={`w-full mb-2 ${isSaved 
                   ? 'text-burgundy hover:text-burgundy-dark' 
                   : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
                 }`}
@@ -254,21 +254,21 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </Button>
 
               {/* Price Display */}
-              <div className="text-center py-3 border-b mb-4">
-                <div className="text-sm text-charcoal/60 mb-1">From</div>
-                <div className="text-3xl font-bold text-charcoal">
+              <div className="text-center py-2 border-b mb-3">
+                <div className="text-xs text-charcoal/60 mb-0.5">From</div>
+                <div className="text-2xl font-bold text-charcoal">
                   {tour.currency === 'EUR' ? '€' : '£'}{lowestPrice}
-                  <span className="text-base font-normal text-charcoal/60"> / person</span>
+                  <span className="text-sm font-normal text-charcoal/60"> / person</span>
                 </div>
               </div>
               
               {/* Date Selection */}
-              <div className="relative mb-4">
-                <label className="block text-sm font-medium mb-2 text-charcoal">Select a Date</label>
+              <div className="relative mb-3">
+                <label className="block text-xs font-medium mb-1.5 text-charcoal">Select a Date</label>
                 <button
                   type="button"
                   onClick={() => setShowDateDropdown(!showDateDropdown)}
-                  className="w-full px-4 py-3 border rounded-lg bg-card hover:border-primary transition-colors flex items-center justify-between text-left"
+                  className="w-full px-3 py-2 border rounded-lg bg-card hover:border-primary transition-colors flex items-center justify-between text-left"
                 >
                   <span className={selectedDate ? "text-charcoal" : "text-charcoal/60"}>
                     {selectedDate 
@@ -331,10 +331,10 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
               {/* Available Spots */}
               {selectedDateOption && selectedDateOption.spotsLeft <= 3 && (
-                <div className="bg-burgundy/10 rounded-lg p-3 mb-4">
+                <div className="bg-burgundy/10 rounded-lg p-2 mb-3">
                   <div className="flex items-center justify-center gap-2">
-                    <Users className="h-4 w-4 text-burgundy" />
-                    <span className="text-sm font-medium text-burgundy">
+                    <Users className="h-3.5 w-3.5 text-burgundy" />
+                    <span className="text-xs font-medium text-burgundy">
                       Only {selectedDateOption.spotsLeft} spots left!
                     </span>
                   </div>
@@ -342,24 +342,24 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               )}
               
               {/* Action Buttons */}
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Button 
                   onClick={() => onBookTour(tour, selectedSlotId || undefined)}
                   disabled={!selectedDate}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-2.5"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-2"
                 >
                   Book Now
                 </Button>
                 <Button 
                   variant="outline"
-                  className="w-full border-primary text-primary hover:bg-primary/10 text-sm py-2.5"
+                  className="w-full border-primary text-primary hover:bg-primary/10 text-sm py-2"
                   onClick={() => setChatOpen(true)}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Ask the Guide
                 </Button>
                 {selectedDate && (
-                  <p className="text-xs text-center text-charcoal/60">You won't be charged yet</p>
+                  <p className="text-xs text-center text-charcoal/60 mt-1">You won't be charged yet</p>
                 )}
               </div>
             </Card>
