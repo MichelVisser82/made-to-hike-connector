@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { MapPin, CheckCircle, Star, Users, Clock, Award, MessageCircle, Mail, Heart, UserPlus, Share2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
+import { Textarea } from '../ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import type { GuideProfile, GuideStats } from '@/types/guide';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { useFollowedGuides } from '@/hooks/useFollowedGuides';
@@ -15,7 +18,11 @@ interface GuideHeroSectionProps {
 export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   const [fallbackHeroUrl, setFallbackHeroUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | undefined>();
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
   const { fetchImages, getImageUrl } = useWebsiteImages();
+  const { toast } = useToast();
 
   // Get current user
   useEffect(() => {
@@ -219,7 +226,10 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
             </div>
 
             <div className="space-y-2">
-              <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm py-2">
+              <Button 
+                className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm py-2"
+                onClick={() => setMessageModalOpen(true)}
+              >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Send Message
               </Button>
@@ -249,7 +259,10 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           </div>
 
           <div className="space-y-2 sm:space-y-3">
-            <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm sm:text-base py-2.5 sm:py-3">
+            <Button 
+              className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm sm:text-base py-2.5 sm:py-3"
+              onClick={() => setMessageModalOpen(true)}
+            >
               <MessageCircle className="w-4 h-4 mr-2" />
               Send Message
             </Button>
@@ -260,6 +273,106 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           </div>
         </Card>
       </div>
+
+      {/* Message Modal */}
+      <Dialog open={messageModalOpen} onOpenChange={setMessageModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="font-playfair text-charcoal">Message {guide.display_name}</DialogTitle>
+            <DialogDescription className="text-charcoal/70">
+              Send a message to inquire about tours or ask questions
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Type your message here..."
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              rows={5}
+            />
+            <div className="flex justify-end">
+              <Button
+                disabled={sendingMessage || !messageText.trim()}
+                onClick={async () => {
+                  if (!messageText.trim()) return;
+
+                  setSendingMessage(true);
+                  try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                      toast({
+                        title: 'Authentication required',
+                        description: 'Please sign in to send a message.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+
+                    // Find or create conversation with this guide
+                    let conversationId: string;
+                    
+                    const { data: existingConv } = await supabase
+                      .from('conversations')
+                      .select('id')
+                      .eq('hiker_id', user.id)
+                      .eq('guide_id', guide.user_id)
+                      .is('booking_id', null)
+                      .maybeSingle();
+
+                    if (existingConv) {
+                      conversationId = existingConv.id;
+                    } else {
+                      const { data: newConv, error: convError } = await supabase
+                        .from('conversations')
+                        .insert({
+                          hiker_id: user.id,
+                          guide_id: guide.user_id,
+                          conversation_type: 'general'
+                        })
+                        .select('id')
+                        .single();
+
+                      if (convError) throw convError;
+                      conversationId = newConv.id;
+                    }
+
+                    // Send message
+                    const { error: sendError } = await supabase.functions.invoke('send-message', {
+                      body: {
+                        conversationId,
+                        content: messageText.trim(),
+                        senderType: 'hiker'
+                      }
+                    });
+
+                    if (sendError) throw sendError;
+
+                    toast({
+                      title: 'Message sent',
+                      description: `Your message has been sent to ${guide.display_name}.`,
+                    });
+
+                    setMessageText('');
+                    setMessageModalOpen(false);
+                  } catch (error) {
+                    console.error('Error sending message:', error);
+                    toast({
+                      title: 'Error',
+                      description: 'Failed to send message. Please try again.',
+                      variant: 'destructive',
+                    });
+                  } finally {
+                    setSendingMessage(false);
+                  }
+                }}
+                className="bg-burgundy hover:bg-burgundy/90 text-white"
+              >
+                {sendingMessage ? 'Sending...' : 'Send Message'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
