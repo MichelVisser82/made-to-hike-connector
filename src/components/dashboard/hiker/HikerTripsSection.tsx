@@ -40,9 +40,11 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   const [itineraryModal, setItineraryModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
   const [preparationModal, setPreparationModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
   const [messageModal, setMessageModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
+  const [guideMessageModal, setGuideMessageModal] = useState<{ isOpen: boolean; guide: any | null }>({ isOpen: false, guide: null });
   const [meetingPointModal, setMeetingPointModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const [guideMessageText, setGuideMessageText] = useState('');
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
 
   useEffect(() => {
@@ -597,7 +599,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                       <Button 
                         variant="outline"
                         className="border-burgundy text-burgundy hover:bg-burgundy/10"
-                        onClick={() => onMessageGuide(guide.id)}
+                        onClick={() => setGuideMessageModal({ isOpen: true, guide })}
                       >
                         <MessageCircle className="w-4 h-4" />
                       </Button>
@@ -777,6 +779,99 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                   }
                 }}
                 className="bg-[#7c2843] hover:bg-[#5d1e32]"
+              >
+                {sendingMessage ? 'Sending...' : 'Send Message'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Guide Message Modal */}
+      <Dialog open={guideMessageModal.isOpen} onOpenChange={() => setGuideMessageModal({ isOpen: false, guide: null })}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="font-playfair text-charcoal">Message Guide</DialogTitle>
+            <DialogDescription className="text-charcoal/70">
+              Send a message to {guideMessageModal.guide?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Type your message here..."
+              value={guideMessageText}
+              onChange={(e) => setGuideMessageText(e.target.value)}
+              rows={5}
+            />
+            <div className="flex justify-end">
+              <Button
+                disabled={sendingMessage || !guideMessageText.trim()}
+                onClick={async () => {
+                  if (!guideMessageText.trim() || !guideMessageModal.guide) return;
+
+                  setSendingMessage(true);
+                  try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) throw new Error('Not authenticated');
+
+                    // Find or create conversation with this guide
+                    let conversationId: string;
+                    
+                    const { data: existingConv } = await supabase
+                      .from('conversations')
+                      .select('id')
+                      .eq('hiker_id', user.id)
+                      .eq('guide_id', guideMessageModal.guide.id)
+                      .is('booking_id', null)
+                      .maybeSingle();
+
+                    if (existingConv) {
+                      conversationId = existingConv.id;
+                    } else {
+                      const { data: newConv, error: convError } = await supabase
+                        .from('conversations')
+                        .insert({
+                          hiker_id: user.id,
+                          guide_id: guideMessageModal.guide.id,
+                          conversation_type: 'general'
+                        })
+                        .select('id')
+                        .single();
+
+                      if (convError) throw convError;
+                      conversationId = newConv.id;
+                    }
+
+                    // Send message
+                    const { error: sendError } = await supabase.functions.invoke('send-message', {
+                      body: {
+                        conversationId,
+                        content: guideMessageText.trim(),
+                        senderType: 'hiker'
+                      }
+                    });
+
+                    if (sendError) throw sendError;
+
+                    toast({
+                      title: 'Message sent',
+                      description: `Your message has been sent to ${guideMessageModal.guide.name}.`,
+                    });
+
+                    setGuideMessageText('');
+                    setGuideMessageModal({ isOpen: false, guide: null });
+                  } catch (error) {
+                    console.error('Error sending message:', error);
+                    toast({
+                      title: 'Error',
+                      description: 'Failed to send message. Please try again.',
+                      variant: 'destructive',
+                    });
+                  } finally {
+                    setSendingMessage(false);
+                  }
+                }}
+                className="bg-burgundy hover:bg-burgundy/90 text-white"
               >
                 {sendingMessage ? 'Sending...' : 'Send Message'}
               </Button>
