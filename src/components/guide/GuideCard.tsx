@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Star, Users, Calendar } from 'lucide-react';
+import { Star, Users, Calendar, UserPlus, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
+import { useFollowedGuides } from '@/hooks/useFollowedGuides';
+import { supabase } from '@/integrations/supabase/client';
 import type { GuideWithStats } from '@/hooks/useAllGuides';
 import { getCertificationMetadata } from '@/constants/certificationMetadata';
 
@@ -15,6 +17,14 @@ export function GuideCard({ guide }: GuideCardProps) {
   const navigate = useNavigate();
   const { fetchImages, getImageUrl } = useWebsiteImages();
   const [guideHeroImage, setGuideHeroImage] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
+  }, []);
+
+  const { isGuideFollowed, toggleFollowGuide } = useFollowedGuides(userId);
+  const isFollowing = isGuideFollowed(guide.user_id);
 
   useEffect(() => {
     const loadGuideImage = async () => {
@@ -29,6 +39,11 @@ export function GuideCard({ guide }: GuideCardProps) {
     loadGuideImage();
   }, [guide.user_id, guide.hero_background_url, fetchImages, getImageUrl]);
 
+  const handleFollowClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFollowGuide(guide.user_id);
+  };
+
   const handleViewProfile = () => {
     if (guide.slug) {
       navigate(`/${guide.slug}`);
@@ -42,6 +57,25 @@ export function GuideCard({ guide }: GuideCardProps) {
     <article className="group relative bg-card rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border">
       {/* Hero Image */}
       <div className="relative aspect-[3/4] overflow-hidden">
+        {/* Follow Button */}
+        <Button
+          size="sm"
+          variant={isFollowing ? "default" : "ghost"}
+          onClick={handleFollowClick}
+          className={`absolute top-3 right-3 z-10 shadow-sm
+            ${isFollowing 
+              ? "bg-burgundy text-white hover:bg-burgundy-dark" 
+              : "bg-white/90 backdrop-blur-sm text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5"
+            } opacity-0 group-hover:opacity-100 transition-opacity`}
+          aria-label={isFollowing ? 'Unfollow guide' : 'Follow guide'}
+        >
+          {isFollowing ? (
+            <CheckCircle className="h-4 w-4" />
+          ) : (
+            <UserPlus className="h-4 w-4" />
+          )}
+        </Button>
+        
         <img
           src={guideHeroImage || guide.hero_background_url || guide.profile_image_url || '/placeholder.svg'}
           alt={`${guide.display_name} - Mountain Guide`}
