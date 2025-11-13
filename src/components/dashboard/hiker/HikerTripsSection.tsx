@@ -539,19 +539,21 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                       </div>
                     )}
 
-                    {/* Rating and Tour Count */}
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {guide.rating?.toFixed(1) || '5.0'}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        ({guide.reviewCount || 0})
-                      </span>
-                      <span className="text-sm text-charcoal/70 ml-2">
-                        {guide.tourCount || 0} tours
-                      </span>
-                    </div>
+                    {/* Rating and Tour Count - Only show if there's real data */}
+                    {(guide.reviewCount > 0 || guide.tourCount > 0) && (
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {guide.rating?.toFixed(1) || '5.0'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({guide.reviewCount || 0})
+                        </span>
+                        <span className="text-sm text-charcoal/70 ml-2">
+                          {guide.tourCount || 0} tours
+                        </span>
+                      </div>
+                    )}
 
                     {/* Specialties */}
                     {guide.specialties && guide.specialties.length > 0 && (
