@@ -12,6 +12,7 @@ interface FollowedGuide {
     display_name: string;
     slug: string;
     profile_image_url: string | null;
+    hero_background_url: string | null;
     bio: string | null;
     location: string | null;
     specialties: string[] | null;
@@ -41,6 +42,7 @@ export function useFollowedGuides(userId: string | undefined) {
             display_name,
             slug,
             profile_image_url,
+            hero_background_url,
             bio,
             location,
             specialties,
