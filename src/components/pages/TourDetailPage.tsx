@@ -225,7 +225,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
 
             {/* Right Side - Booking Card (Desktop) */}
-            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-5">
+            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-20 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-5">
               {/* Guide Info */}
               <div className="mb-4 pb-4 border-b border-burgundy/10">
                 <GuideInfoDisplay 
