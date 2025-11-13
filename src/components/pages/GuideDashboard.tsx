@@ -133,12 +133,22 @@ export function GuideDashboard({
       setLoading(true);
       const { data, error } = await supabase
         .from('tours')
-        .select('*')
+        .select(`
+          *,
+          bookings:bookings(count)
+        `)
         .eq('guide_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTours(data as Tour[] || []);
+      
+      // Transform data to include booking count
+      const toursWithBookings = data?.map(tour => ({
+        ...tour,
+        bookings_count: tour.bookings?.[0]?.count || 0
+      })) || [];
+      
+      setTours(toursWithBookings as Tour[] || []);
     } catch (error) {
       console.error('Error fetching tours:', error);
       toast({
