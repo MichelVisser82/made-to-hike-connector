@@ -14,9 +14,8 @@ import { useSavedTours } from '@/hooks/useSavedTours';
 import { useFollowedGuides } from '@/hooks/useFollowedGuides';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { format, isAfter, isBefore } from 'date-fns';
+import { format } from 'date-fns';
 import { HikingLocationMap } from '@/components/tour/HikingLocationMap';
-import { getCertificationMetadata } from '@/constants/certificationMetadata';
 
 interface HikerTripsSectionProps {
   userId: string;
@@ -42,7 +41,6 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   const [messageText, setMessageText] = useState('');
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
 
-  // Fetch reviews for all bookings
   useEffect(() => {
     const fetchReviews = async () => {
       if (!userId || bookings.length === 0) return;
@@ -63,12 +61,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     fetchReviews();
   }, [userId, bookings]);
 
-  // Filter and transform bookings into current & upcoming trips
   const upcomingTrips = bookings
-    .filter(booking => {
-      const isActive = ['confirmed', 'pending', 'pending_confirmation'].includes(booking.status.toLowerCase());
-      return isActive;
-    })
+    .filter(booking => ['confirmed', 'pending', 'pending_confirmation'].includes(booking.status.toLowerCase()))
     .map(booking => ({
       id: booking.id,
       title: booking.tours?.title || 'Tour',
@@ -83,173 +77,75 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       itinerary: booking.tours?.itinerary,
       guests: booking.participants,
       difficulty: booking.tours?.difficulty || 'Intermediate',
-      duration: booking.tours?.duration || '1 day',
-      status: booking.status.toLowerCase(),
-      image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
       tourId: booking.tour_id,
-      tourSlug: booking.tours?.slug || '',
       guideId: booking.tours?.guide_id,
-      price: booking.total_price,
-      currency: booking.currency,
-      specialRequests: booking.special_requests,
-      paymentStatus: booking.payment_status
-    }));
+      status: booking.status,
+      duration: booking.tours?.duration_days,
+      image: booking.tours?.thumbnail_image,
+      reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
+      booking_date: booking.booking_date,
+    }))
+    .sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime());
 
-  // Filter and transform bookings into past trips (only completed)
   const pastTrips = bookings
-    .filter(booking => {
-      return booking.status.toLowerCase() === 'completed';
-    })
-    .map(booking => {
-      // Find published review for this booking
-      const publishedReview = reviews.find(r => 
-        r.booking_id === booking.id && 
-        r.review_status === 'published'
-      );
-      
-      return {
-        id: booking.id,
-        title: booking.tours?.title || 'Tour',
-        dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
-        guide: { 
-          name: booking.tours?.guide_profiles?.display_name || 'Guide', 
-          avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
-        },
-        location: booking.tours?.meeting_point || 'TBD',
-        meeting_point_lat: booking.tours?.meeting_point_lat,
-        meeting_point_lng: booking.tours?.meeting_point_lng,
-        itinerary: booking.tours?.itinerary,
-        rating: publishedReview?.overall_rating || 0,
-        image: booking.tours?.hero_image || (booking.tours?.images && booking.tours.images[0]) || '',
-        reviewPending: !publishedReview,
-        reviewId: publishedReview?.id,
-        tourId: booking.tour_id,
-        tourSlug: booking.tours?.slug || '',
-        guideId: booking.tours?.guide_id
-      };
-    });
+    .filter(booking => booking.status.toLowerCase() === 'completed')
+    .map(booking => ({
+      id: booking.id,
+      title: booking.tours?.title || 'Tour',
+      dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
+      guide: { 
+        name: booking.tours?.guide_profiles?.display_name || 'Guide', 
+        avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
+      },
+      location: booking.tours?.meeting_point || 'Location',
+      guests: booking.participants,
+      difficulty: booking.tours?.difficulty || 'Intermediate',
+      tourId: booking.tour_id,
+      guideId: booking.tours?.guide_id,
+      status: booking.status,
+      duration: booking.tours?.duration_days,
+      image: booking.tours?.thumbnail_image,
+      reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
+      booking_date: booking.booking_date,
+    }))
+    .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime());
 
-  // Transform saved tours
-  const wishlist = savedTours.map(st => ({
-    id: st.tours.id,
-    title: st.tours.title,
-    slug: st.tours.slug,
-    region: st.tours.region,
-    difficulty: st.tours.difficulty,
-    duration: st.tours.duration,
-    price: st.tours.price,
-    currency: st.tours.currency,
-    rating: st.tours.rating,
-    reviewsCount: st.tours.reviews_count,
-    image: st.tours.hero_image || (st.tours.images?.[0] || ''),
-    guideName: st.tours.guide_display_name,
-    savedAt: st.saved_at
+  const savedToursData = savedTours.map(saved => ({
+    id: saved.tour_id,
+    title: saved.tours?.title || 'Tour',
+    location: saved.tours?.region || 'Location',
+    price: saved.tours?.price_per_person || 0,
+    currency: saved.tours?.currency || 'EUR',
+    image: saved.tours?.thumbnail_image || '/placeholder.svg',
+    difficulty: saved.tours?.difficulty || 'Intermediate',
+    duration: saved.tours?.duration_days || 1,
+    guide: saved.tours?.guide_profiles?.display_name || 'Guide',
   }));
 
-  // Transform followed guides
-  const savedGuidesData = followedGuides.map(fg => ({
-    id: fg.guide_profiles.user_id,
-    name: fg.guide_profiles.display_name,
-    slug: fg.guide_profiles.slug,
-    avatar: fg.guide_profiles.profile_image_url,
-    bio: fg.guide_profiles.bio,
-    location: fg.guide_profiles.location,
-    specialties: fg.guide_profiles.specialties || [],
-    certifications: fg.guide_profiles.certifications || [],
-    experienceYears: fg.guide_profiles.experience_years,
-    dailyRate: fg.guide_profiles.daily_rate,
-    dailyRateCurrency: fg.guide_profiles.daily_rate_currency,
-    followedAt: fg.followed_at
+  const savedGuidesData = followedGuides.map(follow => ({
+    id: follow.guide_id,
+    name: follow.guide_profiles?.display_name || 'Guide',
+    avatar: follow.guide_profiles?.profile_image_url || '/placeholder.svg',
+    location: follow.guide_profiles?.location || 'Location',
+    bio: follow.guide_profiles?.bio || '',
+    specialties: follow.guide_profiles?.specialties || [],
+    dailyRate: follow.guide_profiles?.day_rate_solo,
+    dailyRateCurrency: follow.guide_profiles?.day_rate_currency || 'EUR',
+    slug: follow.guide_profiles?.slug || '',
   }));
-
-  const getCurrencySymbol = (currency: string) => {
-    const symbols: Record<string, string> = {
-      'EUR': '€',
-      'USD': '$',
-      'GBP': '£'
-    };
-    return symbols[currency] || currency;
-  };
-
-  const handleSendMessage = async () => {
-    if (!messageText.trim() || !messageModal.trip) return;
-
-    setSendingMessage(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      // Find or create conversation for this specific booking
-      let conversationId: string;
-      
-      const { data: existingConv } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('hiker_id', user.id)
-        .eq('guide_id', messageModal.trip.guideId)
-        .eq('booking_id', messageModal.trip.id)
-        .maybeSingle();
-
-      if (existingConv) {
-        conversationId = existingConv.id;
-      } else {
-        const { data: newConv, error: convError } = await supabase
-          .from('conversations')
-          .insert({
-            hiker_id: user.id,
-            guide_id: messageModal.trip.guideId,
-            tour_id: messageModal.trip.tourId,
-            booking_id: messageModal.trip.id,
-            conversation_type: 'booking_related'
-          })
-          .select('id')
-          .single();
-
-        if (convError) throw convError;
-        conversationId = newConv.id;
-      }
-
-      // Send message with correct parameters
-      const { error: sendError } = await supabase.functions.invoke('send-message', {
-        body: {
-          conversationId,
-          content: messageText.trim(),
-          senderType: 'hiker'
-        }
-      });
-
-      if (sendError) throw sendError;
-
-      toast({
-        title: 'Message sent',
-        description: `Your message has been sent to ${messageModal.trip.guide.name}.`,
-      });
-
-      setMessageText('');
-      setMessageModal({ isOpen: false, trip: null });
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to send message. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setSendingMessage(false);
-    }
-  };
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-serif mb-2">My Trips & Favorites</h1>
-        </div>
-        <div className="space-y-4">
-          {[1, 2].map((i) => (
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-12 w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2, 3, 4].map(i => (
             <Card key={i}>
-              <CardContent className="p-6">
-                <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-48 w-full" />
+              <CardContent className="p-6 space-y-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
               </CardContent>
             </Card>
           ))}
@@ -261,12 +157,12 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   if (error) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-serif mb-2">My Trips & Favorites</h1>
-        </div>
         <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">Failed to load trips. Please try again.</p>
+          <CardContent className="p-6">
+            <div className="text-center text-red-600">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-4" />
+              <p>Error loading trips: {error}</p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -287,281 +183,215 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
           <TabsTrigger value="guides">Saved Guides</TabsTrigger>
         </TabsList>
 
-        {/* Current & Upcoming Trips */}
-        <TabsContent value="upcoming" className="space-y-4">
+        <TabsContent value="upcoming" className="mt-6">
           {upcomingTrips.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No Active Trips</h3>
-                <p className="text-muted-foreground mb-4">
-                  You don't have any current or upcoming adventures yet.
-                </p>
-                <Button onClick={() => navigate('/tours')}>
-                  Browse Tours
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="text-center py-12">
+              <Calendar className="w-12 h-12 mx-auto mb-4 text-charcoal/30" />
+              <p className="text-lg text-charcoal/60 mb-2">No upcoming trips yet</p>
+              <p className="text-sm text-charcoal/40 mb-4">Start planning your next adventure</p>
+              <Button onClick={() => navigate('/tours')}>Browse Tours</Button>
+            </div>
           ) : (
-            <>
-              <div className="flex justify-between items-center">
-                <Badge variant="secondary">{upcomingTrips.length} {upcomingTrips.length === 1 ? 'trip' : 'trips'}</Badge>
-                <Button variant="outline">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Calendar View
-                </Button>
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {upcomingTrips.map((trip) => (
-              <Card key={trip.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                  {/* Image Section - 1/3 width */}
-                  <div className="relative h-64 md:h-full">
-                    {trip.image && (
-                      <img src={trip.image} alt={trip.title} className="w-full h-full object-cover" />
-                    )}
-                    {/* Status Badge Overlay */}
-                    <Badge 
-                      className={`absolute top-4 left-4 ${
-                        trip.status === 'confirmed' 
-                          ? 'bg-green-100 text-green-700 border-green-200' 
-                          : 'bg-orange-100 text-orange-700 border-orange-200'
-                      }`}
-                    >
-                      {trip.status === 'confirmed' ? 'Confirmed' : 'Action Needed'}
-                    </Badge>
-                  </div>
-
-                  {/* Content Section - 2/3 width */}
-                  <div className="md:col-span-2 p-6 space-y-4">
-                    {/* Title & Date */}
-                    <div>
-                      <h3 className="text-2xl font-serif font-semibold mb-1">{trip.title}</h3>
-                      <p className="text-muted-foreground">{trip.dates}</p>
+                <Card key={trip.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="flex flex-col md:flex-row h-full">
+                    <div className="md:w-1/3 h-48 md:h-auto relative">
+                      <img src={trip.image || '/placeholder.svg'} alt={trip.title} className="w-full h-full object-cover" />
                     </div>
-
-                    {/* Guide & Tour Info Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="w-8 h-8">
-                          {trip.guide.avatar && <AvatarImage src={trip.guide.avatar} />}
-                          <AvatarFallback>
-                            {trip.guide.name.split(' ').map((n: string) => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="text-sm">
-                          <p className="font-medium">{trip.guide.name}</p>
-                          <p className="text-muted-foreground text-xs">Your Guide</p>
+                    <div className="md:w-2/3 flex flex-col">
+                      <CardContent className="p-6 flex-1">
+                        <h3 className="font-bold text-xl mb-2">{trip.title}</h3>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-charcoal/70">
+                            <Calendar className="w-4 h-4" />
+                            <span>{trip.dates}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-charcoal/70">
+                            <MapPin className="w-4 h-4" />
+                            <span>{trip.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-charcoal/70">
+                            <Users className="w-4 h-4" />
+                            <span>{trip.guests} {trip.guests === 1 ? 'guest' : 'guests'}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <span>{trip.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Users className="w-4 h-4 text-muted-foreground" />
-                        <span>{trip.guests} {trip.guests === 1 ? 'Guest' : 'Guests'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="w-4 h-4 text-muted-foreground" />
-                        <span>{trip.duration}</span>
-                      </div>
-                    </div>
 
-                    {/* Alert Banners */}
-                    {trip.paymentStatus.toLowerCase() === 'pending' && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-3">
-                        <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-yellow-900">Payment Pending</p>
-                          <p className="text-sm text-yellow-700">Complete your payment to confirm booking</p>
+                        <div className="flex items-center gap-2 mb-4">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={trip.guide.avatar} />
+                            <AvatarFallback>{trip.guide.name[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{trip.guide.name}</span>
                         </div>
-                      </div>
-                    )}
 
-                    {/* Action Buttons - Stacked Vertically */}
-                    <div className="space-y-2 pt-2">
-                      <Button 
-                        className="w-full bg-[#7c2843] hover:bg-[#5d1e32] text-white justify-start"
-                        onClick={() => navigate(`/dashboard/trip/${trip.id}`)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Complete Tour Details
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setItineraryModal({ isOpen: true, trip })}
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        View Itinerary
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setPreparationModal({ isOpen: true, trip })}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Trip Preparation
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setMessageModal({ isOpen: true, trip })}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Message Guide
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setMeetingPointModal({ isOpen: true, trip })}
-                      >
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Meeting Point
-                      </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setItineraryModal({ isOpen: true, trip })}
+                          >
+                            View Itinerary
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setPreparationModal({ isOpen: true, trip })}
+                          >
+                            Trip Preparation
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setMessageModal({ isOpen: true, trip })}
+                          >
+                            💬 Message Guide
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setMeetingPointModal({ isOpen: true, trip })}
+                          >
+                            Meeting Point
+                          </Button>
+                        </div>
+                        
+                        <Button
+                          className="w-full mt-3 bg-burgundy hover:bg-burgundy/90"
+                          onClick={() => navigate(`/dashboard/trip/${trip.id}`)}
+                        >
+                          View Complete Tour Details
+                        </Button>
+                      </CardContent>
                     </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
               ))}
-            </>
+            </div>
           )}
         </TabsContent>
 
-        {/* Past Trips */}
-        <TabsContent value="past" className="space-y-4">
-          <div className="flex justify-end mb-4">
-            <Button variant="outline">Most Recent ▼</Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {pastTrips.map((trip) => (
-              <Card key={trip.id} className="overflow-hidden">
-                <div className="relative h-48">
-                  <img src={trip.image} alt={trip.title} className="w-full h-full object-cover" />
-                  {trip.reviewPending && (
-                    <Badge className="absolute top-4 right-4 bg-orange-500">Review Pending</Badge>
-                  )}
-                  {!trip.reviewPending && (
-                    <Badge className="absolute top-4 right-4 bg-green-500">Review Written</Badge>
-                  )}
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">{trip.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-1">{trip.dates}</p>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback>{trip.guide.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm">Guide: {trip.guide.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mb-4">
-                    <MapPin className="w-4 h-4" />
-                    <span>{trip.location}</span>
-                  </div>
-                  {!trip.reviewPending && (
-                    <div className="flex items-center gap-1 mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${i < trip.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
-                      ))}
+        <TabsContent value="past" className="mt-6">
+          {pastTrips.length === 0 ? (
+            <div className="text-center py-12">
+              <CheckCircle className="w-12 h-12 mx-auto mb-4 text-charcoal/30" />
+              <p className="text-lg text-charcoal/60 mb-2">No completed trips yet</p>
+              <p className="text-sm text-charcoal/40">Your adventure history will appear here</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {pastTrips.map((trip) => (
+                <Card key={trip.id} className="overflow-hidden">
+                  <div className="flex flex-col md:flex-row h-full">
+                    <div className="md:w-1/3 h-48 md:h-auto relative">
+                      <img src={trip.image || '/placeholder.svg'} alt={trip.title} className="w-full h-full object-cover" />
                     </div>
-                  )}
-                  <div className="space-y-2">
-                    <Button 
-                      variant={trip.reviewPending ? 'default' : 'outline'} 
-                      className={trip.reviewPending ? 'w-full bg-[#7c2843] hover:bg-[#5d1e32]' : 'w-full'}
-                      onClick={() => {
-                        if (trip.reviewPending) {
-                          navigate(`/dashboard?section=reviews&bookingId=${trip.id}`);
-                        } else {
-                          navigate(`/dashboard?section=reviews`);
-                        }
-                      }}
-                    >
-                      <Star className="w-4 h-4 mr-2" />
-                      {trip.reviewPending ? 'Write Review' : 'Read Your Review'}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-[#7c2843] text-[#7c2843] hover:bg-[#7c2843]/10"
-                      onClick={() => trip.tourSlug && navigate(`/tours/${trip.tourSlug}`)}
-                    >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Book Again
-                    </Button>
+                    <div className="md:w-2/3 flex flex-col">
+                      <CardContent className="p-6 flex-1">
+                        <h3 className="font-bold text-xl mb-2">{trip.title}</h3>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-charcoal/70">
+                            <Calendar className="w-4 h-4" />
+                            <span>{trip.dates}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-charcoal/70">
+                            <MapPin className="w-4 h-4" />
+                            <span>{trip.location}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 mb-4">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={trip.guide.avatar} />
+                            <AvatarFallback>{trip.guide.name[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{trip.guide.name}</span>
+                        </div>
+
+                        {trip.reviewSubmitted ? (
+                          <div className="flex items-center gap-2 text-green-600 text-sm">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Review submitted</span>
+                          </div>
+                        ) : (
+                          <Button
+                            className="w-full"
+                            variant="outline"
+                            onClick={() => navigate(`/dashboard/trip/${trip.id}?tab=review`)}
+                          >
+                            Write a Review
+                          </Button>
+                        )}
+                      </CardContent>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        {/* Trip Wishlist */}
-        <TabsContent value="wishlist" className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-serif">Trip Wishlist</h2>
-            <span className="text-muted-foreground">{wishlist.length} saved tours</span>
-          </div>
-
+        <TabsContent value="wishlist" className="mt-6">
           {loadingSavedTours ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2].map(i => (
                 <Card key={i} className="overflow-hidden">
                   <Skeleton className="h-48 w-full" />
-                  <CardContent className="p-4 space-y-2">
+                  <CardContent className="p-6 space-y-2">
                     <Skeleton className="h-6 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                   </CardContent>
                 </Card>
               ))}
             </div>
-          ) : wishlist.length === 0 ? (
+          ) : savedToursData.length === 0 ? (
             <div className="text-center py-12">
               <Heart className="w-12 h-12 mx-auto mb-4 text-charcoal/30" />
               <p className="text-lg text-charcoal/60 mb-2">No saved tours yet</p>
-              <p className="text-sm text-charcoal/40 mb-4">Browse tours and save your favorites for later</p>
-              <Button onClick={() => navigate('/tours')}>Discover Tours</Button>
+              <p className="text-sm text-charcoal/40 mb-4">Save tours you're interested in to view them later</p>
+              <Button onClick={() => navigate('/tours')}>Browse Tours</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {wishlist.map((tour) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {savedToursData.map((tour) => (
                 <Card key={tour.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative h-48">
                     <img src={tour.image} alt={tour.title} className="w-full h-full object-cover" />
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="absolute top-2 right-2 bg-white/90 hover:bg-white"
-                      onClick={() => toggleSaveTour(tour.id)}
-                    >
-                      <Heart className="w-4 h-4 fill-burgundy text-burgundy" />
-                    </Button>
                   </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">{tour.title}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>{tour.region}</span>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-bold text-lg">{tour.title}</h3>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => toggleSaveTour(tour.id)}
+                      >
+                        <Heart className="w-4 h-4 fill-burgundy text-burgundy" />
+                      </Button>
                     </div>
-                    <p className="text-sm mb-2">with {tour.guideName}</p>
-                    <div className="flex items-center gap-2 mb-3">
-                      {tour.rating > 0 && (
-                        <>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{tour.rating}</span>
-                          </div>
-                          <span className="text-sm text-muted-foreground">({tour.reviewsCount})</span>
-                        </>
-                      )}
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-charcoal/70">
+                        <MapPin className="w-4 h-4" />
+                        <span>{tour.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-charcoal/70">
+                        <Clock className="w-4 h-4" />
+                        <span>{tour.duration} {tour.duration === 1 ? 'day' : 'days'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Badge variant="secondary">{tour.difficulty}</Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
+
+                    <div className="flex items-center justify-between pt-4 border-t">
                       <span className="text-lg font-bold text-primary">
                         {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                       </span>
+                      <Button onClick={() => navigate(`/tour/${tour.id}`)}>View Tour</Button>
                     </div>
-                    <Button className="w-full mt-3" onClick={() => navigate(`/tours/${tour.slug}`)}>View Tour</Button>
                   </CardContent>
                 </Card>
               ))}
@@ -569,13 +399,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
           )}
         </TabsContent>
 
-        {/* Saved Guides */}
-        <TabsContent value="guides" className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-serif">Saved Guides</h2>
-            <span className="text-muted-foreground">{savedGuidesData.length} followed guides</span>
-          </div>
-
+        <TabsContent value="guides" className="mt-6">
           {loadingFollowedGuides ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[1, 2].map(i => (
@@ -661,68 +485,6 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
             </div>
           )}
         </TabsContent>
-              <Card key={guide.id} className="overflow-hidden">
-                <div className="relative h-48">
-                  <img src={guide.image} alt={guide.name} className="w-full h-full object-cover" />
-                </div>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12">
-                        <AvatarFallback className="bg-primary text-white">
-                          {guide.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold text-lg">{guide.name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <MapPin className="w-4 h-4" />
-                          <span>{guide.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="ghost">
-                      <Heart className="w-4 h-4 fill-primary text-primary" />
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium">{guide.rating}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">({guide.tours} tours)</span>
-                  </div>
-
-                  <div className="mb-4">
-                    <p className="text-sm font-medium mb-2">Specialties</p>
-                    <div className="flex flex-wrap gap-2">
-                      {guide.specialties.map((specialty, idx) => (
-                        <Badge key={idx} variant="secondary">{specialty}</Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <p className="text-sm font-medium mb-2">Certifications</p>
-                    <div className="flex flex-wrap gap-2">
-                      {guide.certifications.map((cert, idx) => (
-                        <Badge key={idx} variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                          {cert}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="default">View Profile</Button>
-                    <Button variant="outline">💬 Message</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
       </Tabs>
 
       {/* Itinerary Modal */}
@@ -738,153 +500,42 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
           <div className="space-y-4">
             {(() => {
               // Handle itinerary data - it might be stored in different formats
-              let itineraryDays: any[] = [];
-              const itinerary = itineraryModal.trip?.itinerary;
-              
-              if (itinerary) {
-                if (Array.isArray(itinerary.days)) {
-                  itineraryDays = itinerary.days;
-                } else if (Array.isArray(itinerary)) {
-                  itineraryDays = itinerary;
-                }
+              if (!itineraryModal.trip?.itinerary) {
+                return <p>No itinerary available.</p>;
               }
-
-              if (!itineraryDays || itineraryDays.length === 0) {
-                return (
-                  <div className="text-center py-8">
-                    <p className="text-charcoal/60 mb-4">
-                      Detailed itinerary will be shared closer to your trip date.
-                    </p>
-                    <Button 
-                      className="bg-burgundy hover:bg-burgundy-dark text-white"
-                      onClick={() => {
-                        setItineraryModal({ isOpen: false, trip: null });
-                        navigate(`/dashboard/trip/${itineraryModal.trip?.id}`);
-                      }}
+              if (Array.isArray(itineraryModal.trip.itinerary)) {
+                return itineraryModal.trip.itinerary.map((day: any, index: number) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <button
+                      className="flex justify-between w-full text-left font-semibold"
+                      onClick={() => setExpandedDay(expandedDay === index ? null : index)}
                     >
-                      View Full Trip Details
-                    </Button>
-                  </div>
-                );
-              }
-
-              return (
-                <>
-                  <div className="space-y-3">
-                    {itineraryDays.map((day: any) => (
-                      <div key={day.day_number} className="border border-burgundy/10 rounded-lg overflow-hidden">
-                        <button
-                          onClick={() => setExpandedDay(expandedDay === day.day_number ? null : day.day_number)}
-                          className="w-full flex items-center justify-between p-4 bg-cream hover:bg-cream/70 transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-burgundy text-white flex items-center justify-center text-sm font-playfair flex-shrink-0">
-                              {day.day_number}
-                            </div>
-                            <div className="text-left">
-                              <h3 className="font-medium text-charcoal text-sm">{day.title}</h3>
-                              {day.date && day.start_time && day.end_time && (
-                                <div className="text-xs text-charcoal/60">
-                                  {day.date} • {day.start_time} - {day.end_time}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          {expandedDay === day.day_number ? (
-                            <ChevronUp className="w-5 h-5 text-burgundy flex-shrink-0" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-burgundy flex-shrink-0" />
-                          )}
-                        </button>
-                        
-                        {expandedDay === day.day_number && (
-                          <div className="p-4 border-t border-burgundy/10 bg-white">
-                            <div className="space-y-4">
-                              {/* Overview */}
-                              {day.overview && (
-                                <div>
-                                  <h4 className="font-medium text-charcoal mb-2 text-sm">Overview</h4>
-                                  <p className="text-charcoal/70 text-sm">{day.overview}</p>
-                                </div>
-                              )}
-
-                              {/* Detailed Schedule */}
-                              {day.activities && day.activities.length > 0 && (
-                                <div>
-                                  <h4 className="font-medium text-charcoal mb-2 text-sm">Detailed Schedule</h4>
-                                  <div className="space-y-3">
-                                    {day.activities.map((activity: any, idx: number) => (
-                                      <div key={idx} className="flex gap-2">
-                                        {activity.time && (
-                                          <div className="w-16 flex-shrink-0 text-xs text-burgundy font-medium">
-                                            {activity.time}
-                                          </div>
-                                        )}
-                                        <div className="flex-1">
-                                          <div className="font-medium text-charcoal text-xs mb-1">
-                                            {activity.title}
-                                          </div>
-                                          <p className="text-xs text-charcoal/70">{activity.description}</p>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Stats */}
-                              {day.stats && (day.stats.distance_km || day.stats.elevation_gain_m || day.stats.hiking_time_hours) && (
-                                <div className="grid grid-cols-3 gap-3 p-3 bg-cream rounded-lg">
-                                  {day.stats.distance_km && (
-                                    <div>
-                                      <div className="text-xs text-charcoal/60 mb-1">Distance</div>
-                                      <div className="font-medium text-charcoal text-sm">{day.stats.distance_km} km</div>
-                                    </div>
-                                  )}
-                                  {day.stats.elevation_gain_m && (
-                                    <div>
-                                      <div className="text-xs text-charcoal/60 mb-1">Elevation</div>
-                                      <div className="font-medium text-charcoal text-sm">+{day.stats.elevation_gain_m}m</div>
-                                    </div>
-                                  )}
-                                  {day.stats.hiking_time_hours && (
-                                    <div>
-                                      <div className="text-xs text-charcoal/60 mb-1">Hiking Time</div>
-                                      <div className="font-medium text-charcoal text-sm">{day.stats.hiking_time_hours}h</div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Photo Opportunities */}
-                              {day.photo_opportunities && (
-                                <div className="bg-sage/10 border border-sage/20 rounded-lg p-3">
-                                  <div className="flex items-start gap-2 mb-1">
-                                    <Camera className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
-                                    <h4 className="font-medium text-charcoal text-xs">Photo Opportunities</h4>
-                                  </div>
-                                  <p className="text-xs text-charcoal/70">{day.photo_opportunities}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                      <span>Day {index + 1}</span>
+                      {expandedDay === index ? <ChevronUp /> : <ChevronDown />}
+                    </button>
+                    {expandedDay === index && (
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        {day.activities?.map((activity: string, idx: number) => (
+                          <p key={idx}>- {activity}</p>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                  
-                  <Button 
-                    className="w-full bg-burgundy hover:bg-burgundy-dark text-white"
-                    onClick={() => {
-                      setItineraryModal({ isOpen: false, trip: null });
-                      navigate(`/dashboard/trip/${itineraryModal.trip?.id}`);
-                    }}
-                  >
-                    View Full Trip Details
-                  </Button>
-                </>
-              );
+                ));
+              }
+              if (typeof itineraryModal.trip.itinerary === 'string') {
+                return <p>{itineraryModal.trip.itinerary}</p>;
+              }
+              return <p>Itinerary format not recognized.</p>;
             })()}
+            <Button
+              className="w-full mt-4 bg-burgundy hover:bg-burgundy/90"
+              onClick={() => {
+                navigate(`/dashboard/trip/${itineraryModal.trip?.id}`);
+              }}
+            >
+              View Full Trip Details
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -930,23 +581,78 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
               placeholder="Type your message here..."
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
-              rows={6}
-              className="resize-none"
+              rows={5}
             />
-            <div className="flex gap-3 justify-end">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setMessageModal({ isOpen: false, trip: null });
-                  setMessageText('');
-                }}
-                disabled={sendingMessage}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSendMessage} 
+            <div className="flex justify-end">
+              <Button
                 disabled={sendingMessage || !messageText.trim()}
+                onClick={async () => {
+                  if (!messageText.trim() || !messageModal.trip) return;
+
+                  setSendingMessage(true);
+                  try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) throw new Error('Not authenticated');
+
+                    // Find or create conversation for this specific booking
+                    let conversationId: string;
+                    
+                    const { data: existingConv } = await supabase
+                      .from('conversations')
+                      .select('id')
+                      .eq('hiker_id', user.id)
+                      .eq('guide_id', messageModal.trip.guideId)
+                      .eq('booking_id', messageModal.trip.id)
+                      .maybeSingle();
+
+                    if (existingConv) {
+                      conversationId = existingConv.id;
+                    } else {
+                      const { data: newConv, error: convError } = await supabase
+                        .from('conversations')
+                        .insert({
+                          hiker_id: user.id,
+                          guide_id: messageModal.trip.guideId,
+                          tour_id: messageModal.trip.tourId,
+                          booking_id: messageModal.trip.id,
+                          conversation_type: 'booking_related'
+                        })
+                        .select('id')
+                        .single();
+
+                      if (convError) throw convError;
+                      conversationId = newConv.id;
+                    }
+
+                    // Send message with correct parameters
+                    const { error: sendError } = await supabase.functions.invoke('send-message', {
+                      body: {
+                        conversationId,
+                        content: messageText.trim(),
+                        senderType: 'hiker'
+                      }
+                    });
+
+                    if (sendError) throw sendError;
+
+                    toast({
+                      title: 'Message sent',
+                      description: `Your message has been sent to ${messageModal.trip.guide.name}.`,
+                    });
+
+                    setMessageText('');
+                    setMessageModal({ isOpen: false, trip: null });
+                  } catch (error) {
+                    console.error('Error sending message:', error);
+                    toast({
+                      title: 'Error',
+                      description: 'Failed to send message. Please try again.',
+                      variant: 'destructive',
+                    });
+                  } finally {
+                    setSendingMessage(false);
+                  }
+                }}
                 className="bg-[#7c2843] hover:bg-[#5d1e32]"
               >
                 {sendingMessage ? 'Sending...' : 'Send Message'}
