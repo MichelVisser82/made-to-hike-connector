@@ -12,6 +12,7 @@ import { Calendar, MapPin, Users, Clock, Star, Heart, Eye, MessageCircle, CheckC
 import { useHikerBookings } from '@/hooks/useHikerBookings';
 import { useSavedTours } from '@/hooks/useSavedTours';
 import { useFollowedGuides } from '@/hooks/useFollowedGuides';
+import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -30,7 +31,9 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   const { bookings, loading, error } = useHikerBookings(userId);
   const { savedTours, isLoading: loadingSavedTours, toggleSaveTour } = useSavedTours(userId);
   const { followedGuides, isLoading: loadingFollowedGuides, toggleFollowGuide } = useFollowedGuides(userId);
+  const { fetchImages, getImageUrl } = useWebsiteImages();
   const [reviews, setReviews] = useState<any[]>([]);
+  const [guideHeroImages, setGuideHeroImages] = useState<Record<string, string>>({});
   
   // Modal states
   const [itineraryModal, setItineraryModal] = useState<{ isOpen: boolean; trip: any | null }>({ isOpen: false, trip: null });
@@ -60,6 +63,39 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     
     fetchReviews();
   }, [userId, bookings]);
+
+  // Fetch fallback hero images for guides without hero_background_url
+  useEffect(() => {
+    const loadGuideHeroImages = async () => {
+      if (!followedGuides || followedGuides.length === 0) return;
+      
+      const newHeroImages: Record<string, string> = {};
+      
+      for (const follow of followedGuides) {
+        const guide = follow.guide_profiles as any;
+        if (guide && !guide.hero_background_url) {
+          const guideImages = await fetchImages({ guide_id: follow.guide_id });
+          
+          if (guideImages && guideImages.length > 0) {
+            const heroImages = guideImages.filter(img => 
+              img.category === 'hero' || img.usage_context?.includes('hero')
+            );
+            const landscapeImages = guideImages.filter(img => 
+              img.category === 'landscape' || img.usage_context?.includes('landscape')
+            );
+            
+            const imageToUse = heroImages[0] || landscapeImages[0] || guideImages[0];
+            const imageUrl = getImageUrl(imageToUse);
+            newHeroImages[follow.guide_id] = imageUrl;
+          }
+        }
+      }
+      
+      setGuideHeroImages(newHeroImages);
+    };
+    
+    loadGuideHeroImages();
+  }, [followedGuides, fetchImages, getImageUrl]);
 
   const upcomingTrips = bookings
     .filter(booking => ['confirmed', 'pending', 'pending_confirmation'].includes(booking.status.toLowerCase()))
@@ -129,7 +165,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     id: follow.guide_id,
     name: follow.guide_profiles?.display_name || 'Guide',
     avatar: follow.guide_profiles?.profile_image_url || '/placeholder.svg',
-    heroImage: (follow.guide_profiles as any)?.hero_background_url || follow.guide_profiles?.profile_image_url || '/placeholder.svg',
+    heroImage: (follow.guide_profiles as any)?.hero_background_url || guideHeroImages[follow.guide_id] || follow.guide_profiles?.profile_image_url || '/placeholder.svg',
     location: follow.guide_profiles?.location || 'Location',
     bio: follow.guide_profiles?.bio || '',
     specialties: follow.guide_profiles?.specialties || [],
