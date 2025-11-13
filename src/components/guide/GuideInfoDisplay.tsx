@@ -107,26 +107,22 @@ export function GuideInfoDisplay({
 
   const AvatarComponent = guideSlug ? (
     <Link to={`/${guideSlug}`} className="block hover:opacity-80 transition-opacity">
-      <Avatar className={avatarSizes[size]}>
-        <AvatarImage 
-          src={guideInfo.avatarUrl || ''} 
-          alt={guideInfo.displayName} 
+      <div className={avatarSizes[size]}>
+        <img
+          src={guideInfo.avatarUrl || 'https://via.placeholder.com/80'}
+          alt={guideInfo.displayName}
+          className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
         />
-        <AvatarFallback>
-          {guideInfo.displayName.split(' ').map(n => n[0]).join('')}
-        </AvatarFallback>
-      </Avatar>
+      </div>
     </Link>
   ) : (
-    <Avatar className={avatarSizes[size]}>
-      <AvatarImage 
-        src={guideInfo.avatarUrl || ''} 
-        alt={guideInfo.displayName} 
+    <div className={avatarSizes[size]}>
+      <img
+        src={guideInfo.avatarUrl || 'https://via.placeholder.com/80'}
+        alt={guideInfo.displayName}
+        className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
       />
-      <AvatarFallback>
-        {guideInfo.displayName.split(' ').map(n => n[0]).join('')}
-      </AvatarFallback>
-    </Avatar>
+    </div>
   );
 
   return (
