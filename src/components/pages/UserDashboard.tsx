@@ -6,6 +6,7 @@ import { HikerTripsSection } from '@/components/dashboard/hiker/HikerTripsSectio
 import { HikerBookingsSection } from '@/components/dashboard/hiker/HikerBookingsSection';
 import { HikerReviewsSection } from '@/components/dashboard/hiker/HikerReviewsSection';
 import { HikerInboxSection } from '@/components/dashboard/hiker/HikerInboxSection';
+import { useSavedTours } from '@/hooks/useSavedTours';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@/types';
 import type { Tour } from '@/types';
@@ -25,6 +26,9 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
   );
   const [bookings, setBookings] = useState<any[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
+  
+  // Fetch saved tours count
+  const { savedTours } = useSavedTours(user.id);
 
   useEffect(() => {
     const newParams = new URLSearchParams(searchParams);
@@ -70,7 +74,7 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
   const renderSection = () => {
     switch (activeSection) {
       case 'today':
-        return <HikerTodaySection userId={user.id} upcomingTrips={upcomingTrips} completedTrips={completedTrips} badgesEarned={8} savedTours={15} onViewTrip={handleViewTrip} onMessageGuide={(id) => setActiveSection('inbox')} />;
+        return <HikerTodaySection userId={user.id} upcomingTrips={upcomingTrips} completedTrips={completedTrips} badgesEarned={8} savedTours={savedTours.length} onViewTrip={handleViewTrip} onMessageGuide={(id) => setActiveSection('inbox')} />;
       case 'my-trips':
         return <HikerTripsSection userId={user.id} onViewTour={(id) => navigate(`/tours/${id}`)} onMessageGuide={(id) => setActiveSection('inbox')} />;
       case 'bookings':
