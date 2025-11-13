@@ -151,6 +151,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
 
   const savedToursData = savedTours.map(saved => ({
     id: saved.tour_id,
+    slug: (saved.tours as any)?.slug || '',
     title: (saved.tours as any)?.title || 'Tour',
     location: (saved.tours as any)?.region || 'Location',
     price: (saved.tours as any)?.price || 0,
@@ -465,7 +466,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                       </span>
                       <Button 
                         className="bg-burgundy hover:bg-burgundy/90 text-white"
-                        onClick={() => navigate(`/tour/${tour.id}`)}
+                        onClick={() => navigate(`/tours/${tour.slug}`)}
                       >
                         View Tour
                       </Button>
