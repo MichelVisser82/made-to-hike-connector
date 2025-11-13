@@ -32,7 +32,7 @@ export function useFollowedGuides(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) return [];
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('followed_guides')
         .select(`
           *,
@@ -70,7 +70,7 @@ export function useFollowedGuides(userId: string | undefined) {
     mutationFn: async (guideId: string) => {
       if (!userId) throw new Error('User not authenticated');
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('followed_guides')
         .insert({ follower_id: userId, guide_id: guideId });
 
@@ -91,7 +91,7 @@ export function useFollowedGuides(userId: string | undefined) {
     mutationFn: async (guideId: string) => {
       if (!userId) throw new Error('User not authenticated');
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('followed_guides')
         .delete()
         .eq('follower_id', userId)

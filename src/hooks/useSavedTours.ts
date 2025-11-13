@@ -21,7 +21,7 @@ export function useSavedTours(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) return [];
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('saved_tours')
         .select(`
           *,
@@ -63,7 +63,7 @@ export function useSavedTours(userId: string | undefined) {
     mutationFn: async (tourId: string) => {
       if (!userId) throw new Error('User not authenticated');
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('saved_tours')
         .insert({ user_id: userId, tour_id: tourId });
 
@@ -84,7 +84,7 @@ export function useSavedTours(userId: string | undefined) {
     mutationFn: async (tourId: string) => {
       if (!userId) throw new Error('User not authenticated');
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('saved_tours')
         .delete()
         .eq('user_id', userId)
