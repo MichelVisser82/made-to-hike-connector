@@ -170,9 +170,19 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     location: follow.guide_profiles?.location || 'Location',
     bio: follow.guide_profiles?.bio || '',
     specialties: follow.guide_profiles?.specialties || [],
-    certifications: follow.guide_profiles?.certifications?.map((c: any) => 
-      typeof c === 'string' ? c : (c?.title || c?.name || c?.type || 'Certification')
-    ) || [],
+    certifications: follow.guide_profiles?.certifications?.map((c: any) => {
+      // If it's a string, convert to certification object
+      if (typeof c === 'string') {
+        return { title: c, certifyingBody: '', certificationType: 'custom' as const };
+      }
+      // If it's already an object, ensure it has required fields
+      return {
+        title: c?.title || c?.name || c?.type || 'Certification',
+        certifyingBody: c?.certifyingBody || c?.certifying_body || '',
+        certificationType: c?.certificationType || 'custom' as const,
+        ...c
+      };
+    }) || [],
     dailyRate: follow.guide_profiles?.daily_rate,
     dailyRateCurrency: follow.guide_profiles?.daily_rate_currency || 'EUR',
     slug: follow.guide_profiles?.slug || '',
