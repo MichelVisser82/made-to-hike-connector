@@ -306,9 +306,11 @@ export function TourBookingDetailPage() {
     ];
     
     const rows = bookings.map(booking => {
-      // Handle dietary preferences array
+      // Handle dietary preferences array - capitalize for display
       const dietaryReqs = booking.hiker.dietary_preferences && Array.isArray(booking.hiker.dietary_preferences)
-        ? booking.hiker.dietary_preferences.join('; ')
+        ? booking.hiker.dietary_preferences.map(pref => 
+            pref.charAt(0).toUpperCase() + pref.slice(1)
+          ).join('; ')
         : 'None';
       
       return [
@@ -555,7 +557,9 @@ export function TourBookingDetailPage() {
                   <span className="font-medium">Dietary:</span>
                   <span>
                     {booking.hiker.dietary_preferences && booking.hiker.dietary_preferences.length > 0
-                      ? booking.hiker.dietary_preferences.join(', ')
+                      ? booking.hiker.dietary_preferences.map(pref => 
+                          pref.charAt(0).toUpperCase() + pref.slice(1)
+                        ).join(', ')
                       : 'N/A'}
                   </span>
                 </div>

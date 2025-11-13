@@ -110,6 +110,8 @@ export const BookingFlowNew = () => {
           }
           
           // Load user profile to pre-fill data
+          // Note: Data flows both ways - profile pre-fills booking form,
+          // and successful bookings update profile for future use
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')

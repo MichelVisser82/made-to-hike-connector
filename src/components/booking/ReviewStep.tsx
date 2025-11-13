@@ -150,7 +150,9 @@ export const ReviewStep = ({
                     <div>
                       <p className="font-medium">Dietary Preferences</p>
                       <p className="text-sm text-muted-foreground">
-                        {formData.dietaryPreferences.join(', ')}
+                        {formData.dietaryPreferences.map(pref => 
+                          pref.charAt(0).toUpperCase() + pref.slice(1)
+                        ).join(', ')}
                       </p>
                     </div>
                   </div>}

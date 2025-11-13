@@ -26,11 +26,12 @@ export const SpecialRequestsStep = ({ form, onNext, onBack }: SpecialRequestsSte
   const dietaryPreferences = form.watch('dietaryPreferences') || [];
 
   const toggleDietary = (value: string) => {
+    const normalizedValue = value.toLowerCase();
     const current = dietaryPreferences;
-    if (current.includes(value)) {
-      form.setValue('dietaryPreferences', current.filter((v) => v !== value));
+    if (current.includes(normalizedValue)) {
+      form.setValue('dietaryPreferences', current.filter((v) => v !== normalizedValue));
     } else {
-      form.setValue('dietaryPreferences', [...current, value]);
+      form.setValue('dietaryPreferences', [...current, normalizedValue]);
     }
   };
 
