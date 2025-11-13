@@ -159,6 +159,20 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             Back to Search
           </Button>
 
+          {/* Save Tour Button - Top Right */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`absolute top-4 right-4 backdrop-blur-sm ${isSaved 
+              ? 'text-burgundy bg-white/90 hover:bg-white hover:text-burgundy-dark' 
+              : 'text-white bg-white/20 hover:bg-white/30'
+            }`}
+            onClick={() => toggleSaveTour(tour.id)}
+          >
+            <Heart className={`h-4 w-4 mr-2 ${isSaved ? 'fill-burgundy' : ''}`} />
+            {isSaved ? 'Saved' : 'Save Tour'}
+          </Button>
+
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between lg:gap-6 w-full py-8 lg:py-0">
             {/* Left Side - Tour Info */}
             <div className="flex-1 text-center lg:text-left pt-16 lg:pt-0">
@@ -224,24 +238,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </Card>
             </div>
 
-            {/* Save Tour Button (Desktop) */}
-            <div className="hidden lg:block lg:w-80 lg:mt-24 mb-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`w-full ${isSaved 
-                  ? 'text-burgundy hover:text-burgundy-dark' 
-                  : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
-                }`}
-                onClick={() => toggleSaveTour(tour.id)}
-              >
-                <Heart className={`h-4 w-4 mr-2 ${isSaved ? 'fill-burgundy' : ''}`} />
-                {isSaved ? 'Saved' : 'Save Tour'}
-              </Button>
-            </div>
-
             {/* Right Side - Booking Card (Desktop) */}
-            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-3">
+            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-24 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-3">
               {/* Guide Info */}
               <div className="mb-3 pb-3 border-b border-burgundy/10">
                 <GuideInfoDisplay 
