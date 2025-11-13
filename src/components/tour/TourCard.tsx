@@ -6,7 +6,9 @@ import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { CertificationBadge } from '../ui/certification-badge';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
 import { useGuideProfile } from '@/hooks/useGuideProfile';
-import { MapPin, Clock, Users, Star } from 'lucide-react';
+import { useSavedTours } from '@/hooks/useSavedTours';
+import { supabase } from '@/integrations/supabase/client';
+import { MapPin, Clock, Users, Star, Heart } from 'lucide-react';
 import type { Tour } from '@/types';
 
 interface TourCardProps {
@@ -15,13 +17,23 @@ interface TourCardProps {
   onBookTour: (tour: Tour) => void;
 }
 
+import { useState, useEffect } from 'react';
+
 /**
  * Reusable tour card component with consistent guide data display
  * Uses useEnhancedGuideInfo for fresh, cached guide profile data
  */
 export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
+  const [userId, setUserId] = useState<string | undefined>();
+  
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
+  }, []);
+  
   const { guideInfo, isLoadingProfessional } = useEnhancedGuideInfo(tour);
   const { data: guideProfile } = useGuideProfile(tour.guide_id);
+  const { isTourSaved, toggleSaveTour } = useSavedTours(userId);
+  const isSaved = isTourSaved(tour.id);
   
   // Pass certifications to GuideInfoDisplay for primary cert badge
   const certifications = guideProfile?.certifications;
@@ -37,6 +49,11 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
   // Check if guide is verified
   const isGuideVerified = guideProfile?.verified || false;
 
+  const handleSaveClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleSaveTour(tour.id);
+  };
+
   return (
     <article 
       className="group relative bg-card rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border cursor-pointer"
@@ -44,6 +61,19 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
     >
       {/* Hero Image Section */}
       <div className="relative aspect-[3/4] overflow-hidden">
+        {/* Save Button Overlay */}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleSaveClick}
+          className={`absolute top-3 right-3 bg-white/90 backdrop-blur-sm z-10
+            ${isSaved ? 'text-burgundy' : 'text-charcoal/70 hover:text-burgundy'}
+            opacity-0 group-hover:opacity-100 transition-opacity shadow-sm`}
+          aria-label={isSaved ? 'Remove from saved tours' : 'Save tour'}
+        >
+          <Heart className={`h-4 w-4 ${isSaved ? 'fill-burgundy' : ''}`} />
+        </Button>
+        
         {tour.hero_image ? (
           <img
             src={tour.hero_image}

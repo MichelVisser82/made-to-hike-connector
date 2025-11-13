@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -17,6 +17,8 @@ import { useTourDateAvailability } from '@/hooks/useTourDateAvailability';
 import { useTourMapData } from '@/hooks/useTourMapData';
 import { useTourReviews } from '@/hooks/useTourReviews';
 import { useRelatedTours } from '@/hooks/useRelatedTours';
+import { useSavedTours } from '@/hooks/useSavedTours';
+import { supabase } from '@/integrations/supabase/client';
 import { format, addDays, parse } from 'date-fns';
 import { HikingLocationMap } from '../tour/HikingLocationMap';
 import { PublicTourMapSection } from '../tour/PublicTourMapSection';
@@ -38,12 +40,22 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [userId, setUserId] = useState<string | undefined>();
+  
+  // Get current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
+  }, []);
   
   // Use unified hook for consistent guide data
   const { guideInfo, isLoadingProfessional, guideProfile } = useEnhancedGuideInfo(tour);
   
   // Get primary certification for large badge display
   const primaryCert = guideProfile?.certifications ? getPrimaryCertification(guideProfile.certifications) : null;
+
+  // Save tour functionality
+  const { isTourSaved, toggleSaveTour } = useSavedTours(userId);
+  const isSaved = isTourSaved(tour.id);
 
   // Fetch real date availability
   const { data: dateSlots, isLoading: isLoadingDates } = useTourDateAvailability(tour.id);
@@ -226,6 +238,20 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   guideSlug={guideProfile?.slug}
                 />
               </div>
+
+              {/* Save Tour Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`w-full mb-4 ${isSaved 
+                  ? 'text-burgundy hover:text-burgundy-dark' 
+                  : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
+                }`}
+                onClick={() => toggleSaveTour(tour.id)}
+              >
+                <Heart className={`h-4 w-4 mr-2 ${isSaved ? 'fill-burgundy' : ''}`} />
+                {isSaved ? 'Saved' : 'Save Tour'}
+              </Button>
 
               {/* Price Display */}
               <div className="text-center py-3 border-b mb-4">

@@ -8,12 +8,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, MapPin, Users, Clock, Star, Heart, Eye, MessageCircle, CheckCircle, AlertTriangle, RefreshCw, FileText, Route, ChevronDown, ChevronUp, Camera } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Star, Heart, Eye, MessageCircle, CheckCircle, AlertTriangle, RefreshCw, FileText, Route, ChevronDown, ChevronUp, Camera, Trash2, Award } from 'lucide-react';
 import { useHikerBookings } from '@/hooks/useHikerBookings';
+import { useSavedTours } from '@/hooks/useSavedTours';
+import { useFollowedGuides } from '@/hooks/useFollowedGuides';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isAfter, isBefore } from 'date-fns';
 import { HikingLocationMap } from '@/components/tour/HikingLocationMap';
+import { getCertificationMetadata } from '@/constants/certificationMetadata';
 
 interface HikerTripsSectionProps {
   userId: string;
@@ -26,6 +29,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('upcoming');
   const { bookings, loading, error } = useHikerBookings(userId);
+  const { savedTours, isLoading: loadingSavedTours, toggleSaveTour } = useSavedTours(userId);
+  const { followedGuides, isLoading: loadingFollowedGuides, toggleFollowGuide } = useFollowedGuides(userId);
   const [reviews, setReviews] = useState<any[]>([]);
   
   // Modal states
@@ -124,9 +129,38 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       };
     });
 
-  // TODO: Implement wishlist and saved guides from database
-  const wishlist: any[] = [];
-  const savedGuides: any[] = [];
+  // Transform saved tours
+  const wishlist = savedTours.map(st => ({
+    id: st.tours.id,
+    title: st.tours.title,
+    slug: st.tours.slug,
+    region: st.tours.region,
+    difficulty: st.tours.difficulty,
+    duration: st.tours.duration,
+    price: st.tours.price,
+    currency: st.tours.currency,
+    rating: st.tours.rating,
+    reviewsCount: st.tours.reviews_count,
+    image: st.tours.hero_image || (st.tours.images?.[0] || ''),
+    guideName: st.tours.guide_display_name,
+    savedAt: st.saved_at
+  }));
+
+  // Transform followed guides
+  const savedGuidesData = followedGuides.map(fg => ({
+    id: fg.guide_profiles.user_id,
+    name: fg.guide_profiles.display_name,
+    slug: fg.guide_profiles.slug,
+    avatar: fg.guide_profiles.profile_image_url,
+    bio: fg.guide_profiles.bio,
+    location: fg.guide_profiles.location,
+    specialties: fg.guide_profiles.specialties || [],
+    certifications: fg.guide_profiles.certifications || [],
+    experienceYears: fg.guide_profiles.experience_years,
+    dailyRate: fg.guide_profiles.daily_rate,
+    dailyRateCurrency: fg.guide_profiles.daily_rate_currency,
+    followedAt: fg.followed_at
+  }));
 
   const getCurrencySymbol = (currency: string) => {
     const symbols: Record<string, string> = {
@@ -470,48 +504,163 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
             <span className="text-muted-foreground">{wishlist.length} saved tours</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {wishlist.map((tour) => (
-              <Card key={tour.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative h-48">
-                  <img src={tour.image} alt={tour.title} className="w-full h-full object-cover" />
-                  <Button size="sm" variant="ghost" className="absolute top-2 right-2 bg-white/90 hover:bg-white">
-                    <Heart className="w-4 h-4 fill-primary text-primary" />
-                  </Button>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">{tour.title}</h3>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                    <MapPin className="w-4 h-4" />
-                    <span>{tour.location}</span>
+          {loadingSavedTours ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="h-48 w-full" />
+                  <CardContent className="p-4 space-y-2">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : wishlist.length === 0 ? (
+            <div className="text-center py-12">
+              <Heart className="w-12 h-12 mx-auto mb-4 text-charcoal/30" />
+              <p className="text-lg text-charcoal/60 mb-2">No saved tours yet</p>
+              <p className="text-sm text-charcoal/40 mb-4">Browse tours and save your favorites for later</p>
+              <Button onClick={() => navigate('/tours')}>Discover Tours</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {wishlist.map((tour) => (
+                <Card key={tour.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="relative h-48">
+                    <img src={tour.image} alt={tour.title} className="w-full h-full object-cover" />
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="absolute top-2 right-2 bg-white/90 hover:bg-white"
+                      onClick={() => toggleSaveTour(tour.id)}
+                    >
+                      <Heart className="w-4 h-4 fill-burgundy text-burgundy" />
+                    </Button>
                   </div>
-                  <p className="text-sm mb-2">with {tour.guide}</p>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{tour.rating}</span>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">{tour.title}</h3>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>{tour.region}</span>
                     </div>
-                    <span className="text-sm text-muted-foreground">({tour.reviews})</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-primary">€{tour.price}</span>
-                  </div>
-                  <Button className="w-full mt-3">View Tour</Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <p className="text-sm mb-2">with {tour.guideName}</p>
+                    <div className="flex items-center gap-2 mb-3">
+                      {tour.rating > 0 && (
+                        <>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium">{tour.rating}</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">({tour.reviewsCount})</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-primary">
+                        {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
+                      </span>
+                    </div>
+                    <Button className="w-full mt-3" onClick={() => navigate(`/tours/${tour.slug}`)}>View Tour</Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         {/* Saved Guides */}
         <TabsContent value="guides" className="space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-serif">Saved Guides</h2>
-            <span className="text-muted-foreground">{savedGuides.length} followed guides</span>
+            <span className="text-muted-foreground">{savedGuidesData.length} followed guides</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {savedGuides.map((guide) => (
+          {loadingFollowedGuides ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2].map(i => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="h-48 w-full" />
+                  <CardContent className="p-6 space-y-2">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : savedGuidesData.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="w-12 h-12 mx-auto mb-4 text-charcoal/30" />
+              <p className="text-lg text-charcoal/60 mb-2">Not following any guides yet</p>
+              <p className="text-sm text-charcoal/40 mb-4">Discover expert mountain guides and follow your favorites</p>
+              <Button onClick={() => navigate('/guides')}>Browse Guides</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {savedGuidesData.map((guide) => (
+                <Card key={guide.id} className="overflow-hidden">
+                  <div className="relative h-48">
+                    <img 
+                      src={guide.avatar || '/placeholder.svg'} 
+                      alt={guide.name} 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={guide.avatar || ''} />
+                          <AvatarFallback className="bg-primary text-white">
+                            {guide.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold text-lg">{guide.name}</h3>
+                          {guide.location && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="w-4 h-4" />
+                              <span>{guide.location}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => toggleFollowGuide(guide.id)}
+                      >
+                        <Heart className="w-4 h-4 fill-burgundy text-burgundy" />
+                      </Button>
+                    </div>
+
+                    {guide.bio && (
+                      <p className="text-sm text-charcoal/70 mb-4 line-clamp-2">{guide.bio}</p>
+                    )}
+
+                    {guide.specialties && guide.specialties.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {guide.specialties.slice(0, 3).map((specialty, idx) => (
+                          <Badge key={idx} variant="secondary">{specialty}</Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      {guide.dailyRate && (
+                        <span className="text-lg font-bold text-primary">
+                          {guide.dailyRateCurrency === 'EUR' ? '€' : '£'}{guide.dailyRate}/day
+                        </span>
+                      )}
+                      <Button onClick={() => navigate(`/${guide.slug}`)}>View Profile</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
               <Card key={guide.id} className="overflow-hidden">
                 <div className="relative h-48">
                   <img src={guide.image} alt={guide.name} className="w-full h-full object-cover" />
