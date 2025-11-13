@@ -133,7 +133,9 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     location: follow.guide_profiles?.location || 'Location',
     bio: follow.guide_profiles?.bio || '',
     specialties: follow.guide_profiles?.specialties || [],
-    certifications: follow.guide_profiles?.certifications?.map((c: any) => c.name || c) || [],
+    certifications: follow.guide_profiles?.certifications?.map((c: any) => 
+      typeof c === 'string' ? c : (c?.title || c?.name || c?.type || 'Certification')
+    ) || [],
     dailyRate: follow.guide_profiles?.daily_rate,
     dailyRateCurrency: follow.guide_profiles?.daily_rate_currency || 'EUR',
     slug: follow.guide_profiles?.slug || '',
