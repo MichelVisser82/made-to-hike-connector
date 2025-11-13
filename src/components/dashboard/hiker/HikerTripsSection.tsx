@@ -80,8 +80,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       tourId: booking.tour_id,
       guideId: booking.tours?.guide_id,
       status: booking.status,
-      duration: booking.tours?.duration_days,
-      image: booking.tours?.thumbnail_image,
+      duration: booking.tours?.duration,
+      image: booking.tours?.hero_image,
       reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
       booking_date: booking.booking_date,
     }))
@@ -103,8 +103,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
       tourId: booking.tour_id,
       guideId: booking.tours?.guide_id,
       status: booking.status,
-      duration: booking.tours?.duration_days,
-      image: booking.tours?.thumbnail_image,
+      duration: booking.tours?.duration,
+      image: booking.tours?.hero_image,
       reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
       booking_date: booking.booking_date,
     }))
@@ -112,14 +112,14 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
 
   const savedToursData = savedTours.map(saved => ({
     id: saved.tour_id,
-    title: saved.tours?.title || 'Tour',
-    location: saved.tours?.region || 'Location',
-    price: saved.tours?.price_per_person || 0,
-    currency: saved.tours?.currency || 'EUR',
-    image: saved.tours?.thumbnail_image || '/placeholder.svg',
-    difficulty: saved.tours?.difficulty || 'Intermediate',
-    duration: saved.tours?.duration_days || 1,
-    guide: saved.tours?.guide_profiles?.display_name || 'Guide',
+    title: (saved.tours as any)?.title || 'Tour',
+    location: (saved.tours as any)?.region || 'Location',
+    price: (saved.tours as any)?.price || 0,
+    currency: (saved.tours as any)?.currency || 'EUR',
+    image: (saved.tours as any)?.hero_image || (saved.tours as any)?.images?.[0] || '/placeholder.svg',
+    difficulty: (saved.tours as any)?.difficulty || 'Intermediate',
+    duration: (saved.tours as any)?.duration || '1',
+    guide: (saved.tours as any)?.guide_display_name || 'Guide',
   }));
 
   const savedGuidesData = followedGuides.map(follow => ({
@@ -129,8 +129,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     location: follow.guide_profiles?.location || 'Location',
     bio: follow.guide_profiles?.bio || '',
     specialties: follow.guide_profiles?.specialties || [],
-    dailyRate: follow.guide_profiles?.day_rate_solo,
-    dailyRateCurrency: follow.guide_profiles?.day_rate_currency || 'EUR',
+    dailyRate: follow.guide_profiles?.daily_rate,
+    dailyRateCurrency: follow.guide_profiles?.daily_rate_currency || 'EUR',
     slug: follow.guide_profiles?.slug || '',
   }));
 
@@ -161,7 +161,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
           <CardContent className="p-6">
             <div className="text-center text-red-600">
               <AlertTriangle className="w-12 h-12 mx-auto mb-4" />
-              <p>Error loading trips: {error}</p>
+              <p>Error loading trips: {String(error)}</p>
             </div>
           </CardContent>
         </Card>
@@ -379,7 +379,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
                       </div>
                       <div className="flex items-center gap-2 text-sm text-charcoal/70">
                         <Clock className="w-4 h-4" />
-                        <span>{tour.duration} {tour.duration === 1 ? 'day' : 'days'}</span>
+                        <span>{tour.duration} {tour.duration === '1' ? 'day' : 'days'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Badge variant="secondary">{tour.difficulty}</Badge>
