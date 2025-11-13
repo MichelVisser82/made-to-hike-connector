@@ -120,18 +120,26 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
     difficulty: (saved.tours as any)?.difficulty || 'Intermediate',
     duration: (saved.tours as any)?.duration || '1',
     guide: (saved.tours as any)?.guide_display_name || 'Guide',
+    guideName: (saved.tours as any)?.guide_display_name || 'Guide',
+    rating: (saved.tours as any)?.rating || 0,
+    reviewsCount: (saved.tours as any)?.reviews_count || 0,
   }));
 
   const savedGuidesData = followedGuides.map(follow => ({
     id: follow.guide_id,
     name: follow.guide_profiles?.display_name || 'Guide',
     avatar: follow.guide_profiles?.profile_image_url || '/placeholder.svg',
+    heroImage: (follow.guide_profiles as any)?.hero_background_url || follow.guide_profiles?.profile_image_url || '/placeholder.svg',
     location: follow.guide_profiles?.location || 'Location',
     bio: follow.guide_profiles?.bio || '',
     specialties: follow.guide_profiles?.specialties || [],
+    certifications: follow.guide_profiles?.certifications?.map((c: any) => c.name || c) || [],
     dailyRate: follow.guide_profiles?.daily_rate,
     dailyRateCurrency: follow.guide_profiles?.daily_rate_currency || 'EUR',
     slug: follow.guide_profiles?.slug || '',
+    rating: (follow.guide_profiles as any)?.average_rating || 4.9,
+    reviewCount: (follow.guide_profiles as any)?.review_count || 0,
+    tourCount: (follow.guide_profiles as any)?.tour_count || 0,
   }));
 
   if (loading) {
@@ -354,43 +362,62 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
               <Button onClick={() => navigate('/tours')}>Browse Tours</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {savedToursData.map((tour) => (
-                <Card key={tour.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="relative h-48">
+                <Card key={tour.id} className="overflow-hidden hover:shadow-lg transition-shadow relative group">
+                  {/* Heart Button - Top Right */}
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    className="absolute top-3 right-3 z-10 bg-white/90 backdrop-blur-sm hover:bg-white"
+                    onClick={() => toggleSaveTour(tour.id)}
+                  >
+                    <Heart className="w-4 h-4 fill-burgundy text-burgundy" />
+                  </Button>
+
+                  {/* Tour Image */}
+                  <div className="relative aspect-[3/4]">
                     <img src={tour.image} alt={tour.title} className="w-full h-full object-cover" />
                   </div>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-bold text-lg">{tour.title}</h3>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => toggleSaveTour(tour.id)}
-                      >
-                        <Heart className="w-4 h-4 fill-burgundy text-burgundy" />
-                      </Button>
+
+                  {/* Card Content */}
+                  <CardContent className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{tour.title}</h3>
+                    
+                    <div className="flex items-center gap-1.5 text-sm text-charcoal/70 mb-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{tour.location}</span>
                     </div>
                     
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-charcoal/70">
-                        <MapPin className="w-4 h-4" />
-                        <span>{tour.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-charcoal/70">
-                        <Clock className="w-4 h-4" />
-                        <span>{tour.duration} {tour.duration === '1' ? 'day' : 'days'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="secondary">{tour.difficulty}</Badge>
-                      </div>
-                    </div>
+                    <p className="text-sm text-charcoal/70 mb-2">
+                      with {tour.guideName}
+                    </p>
 
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      <span className="text-lg font-bold text-primary">
+                    {/* Rating */}
+                    {tour.rating > 0 && (
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {tour.rating.toFixed(1)}
+                        </span>
+                        {tour.reviewsCount > 0 && (
+                          <span className="text-xs text-gray-500">
+                            ({tour.reviewsCount})
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-3 border-t">
+                      <span className="text-lg font-bold text-burgundy">
                         {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
                       </span>
-                      <Button onClick={() => navigate(`/tour/${tour.id}`)}>View Tour</Button>
+                      <Button 
+                        className="bg-burgundy hover:bg-burgundy/90 text-white"
+                        onClick={() => navigate(`/tour/${tour.id}`)}
+                      >
+                        View Tour
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -421,63 +448,104 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerT
               <Button onClick={() => navigate('/guides')}>Browse Guides</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {savedGuidesData.map((guide) => (
-                <Card key={guide.id} className="overflow-hidden">
-                  <div className="relative h-48">
+                <Card key={guide.id} className="overflow-hidden hover:shadow-lg transition-shadow relative group">
+                  {/* Heart Button - Top Right */}
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    className="absolute top-3 right-3 z-10 bg-white/90 backdrop-blur-sm hover:bg-white"
+                    onClick={() => toggleFollowGuide(guide.id)}
+                  >
+                    <Heart className="w-4 h-4 fill-burgundy text-burgundy" />
+                  </Button>
+
+                  {/* Hero Image with Avatar Overlay */}
+                  <div className="relative aspect-[3/4]">
                     <img 
-                      src={guide.avatar || '/placeholder.svg'} 
+                      src={guide.heroImage || guide.avatar || '/placeholder.svg'} 
                       alt={guide.name} 
                       className="w-full h-full object-cover" 
                     />
+                    {/* Avatar - Bottom Left Overlay */}
+                    <div className="absolute bottom-3 left-3">
+                      <Avatar className="w-16 h-16 border-2 border-white shadow-lg">
+                        <AvatarImage src={guide.avatar || ''} />
+                        <AvatarFallback className="bg-burgundy text-white text-lg font-semibold">
+                          {guide.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
                   </div>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={guide.avatar || ''} />
-                          <AvatarFallback className="bg-primary text-white">
-                            {guide.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-lg">{guide.name}</h3>
-                          {guide.location && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4" />
-                              <span>{guide.location}</span>
-                            </div>
-                          )}
-                        </div>
+
+                  {/* Card Content */}
+                  <CardContent className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{guide.name}</h3>
+                    
+                    {guide.location && (
+                      <div className="flex items-center gap-1.5 text-sm text-charcoal/70 mb-2">
+                        <MapPin className="w-4 h-4" />
+                        <span>{guide.location}</span>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => toggleFollowGuide(guide.id)}
-                      >
-                        <Heart className="w-4 h-4 fill-burgundy text-burgundy" />
-                      </Button>
+                    )}
+
+                    {/* Rating and Tour Count */}
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                      <span className="text-sm font-medium text-gray-900">
+                        {guide.rating?.toFixed(1) || '5.0'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        ({guide.reviewCount || 0})
+                      </span>
+                      <span className="text-sm text-charcoal/70 ml-2">
+                        {guide.tourCount || 0} tours
+                      </span>
                     </div>
 
-                    {guide.bio && (
-                      <p className="text-sm text-charcoal/70 mb-4 line-clamp-2">{guide.bio}</p>
-                    )}
-
+                    {/* Specialties */}
                     {guide.specialties && guide.specialties.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {guide.specialties.slice(0, 3).map((specialty, idx) => (
-                          <Badge key={idx} variant="secondary">{specialty}</Badge>
-                        ))}
+                      <div className="mb-3">
+                        <p className="text-xs text-charcoal/60 mb-1.5">Specialties</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {guide.specialties.slice(0, 3).map((specialty, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs border-burgundy/30 text-burgundy">
+                              {specialty}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      {guide.dailyRate && (
-                        <span className="text-lg font-bold text-primary">
-                          {guide.dailyRateCurrency === 'EUR' ? '€' : '£'}{guide.dailyRate}/day
-                        </span>
-                      )}
-                      <Button onClick={() => navigate(`/${guide.slug}`)}>View Profile</Button>
+                    {/* Certifications */}
+                    {guide.certifications && guide.certifications.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-xs text-charcoal/60 mb-1.5">Certifications</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {guide.certifications.slice(0, 2).map((cert, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs bg-sage/20">
+                              {cert}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-3 border-t">
+                      <Button 
+                        className="flex-1 bg-burgundy hover:bg-burgundy/90 text-white"
+                        onClick={() => navigate(`/${guide.slug}`)}
+                      >
+                        View Profile
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="border-burgundy text-burgundy hover:bg-burgundy/10"
+                        onClick={() => onMessageGuide(guide.id)}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
