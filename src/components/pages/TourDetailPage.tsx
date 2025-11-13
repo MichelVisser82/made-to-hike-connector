@@ -163,7 +163,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-32 text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+            className="absolute top-4 right-40 text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
             onClick={() => {
               const tourUrl = window.location.href;
               if (navigator.share) {
