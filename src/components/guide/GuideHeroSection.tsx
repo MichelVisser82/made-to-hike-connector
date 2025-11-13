@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { MapPin, CheckCircle, Star, Users, Clock, Award, MessageCircle, Mail } from 'lucide-react';
+import { MapPin, CheckCircle, Star, Users, Clock, Award, MessageCircle, Mail, Heart, UserPlus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import type { GuideProfile, GuideStats } from '@/types/guide';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
+import { useFollowedGuides } from '@/hooks/useFollowedGuides';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GuideHeroSectionProps {
   guide: GuideProfile;
@@ -12,7 +14,17 @@ interface GuideHeroSectionProps {
 
 export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   const [fallbackHeroUrl, setFallbackHeroUrl] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | undefined>();
   const { fetchImages, getImageUrl } = useWebsiteImages();
+
+  // Get current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
+  }, []);
+
+  // Follow functionality
+  const { isGuideFollowed, toggleFollowGuide } = useFollowedGuides(userId);
+  const isFollowing = isGuideFollowed(guide.user_id);
 
   const activeSinceYear = guide.active_since 
     ? new Date(guide.active_since).getFullYear()
@@ -167,6 +179,17 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
             </div>
 
             <div className="space-y-2">
+              <Button 
+                variant="ghost"
+                className={`w-full mb-2 ${isFollowing 
+                  ? 'text-burgundy hover:text-burgundy-dark' 
+                  : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
+                }`}
+                onClick={() => toggleFollowGuide(guide.user_id)}
+              >
+                <Heart className={`h-4 w-4 mr-2 ${isFollowing ? 'fill-burgundy' : ''}`} />
+                {isFollowing ? 'Following' : 'Follow Guide'}
+              </Button>
               <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm py-2">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Send Message
@@ -197,6 +220,17 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           </div>
 
           <div className="space-y-2 sm:space-y-3">
+            <Button 
+              variant="ghost"
+              className={`w-full mb-2 ${isFollowing 
+                ? 'text-burgundy hover:text-burgundy-dark' 
+                : 'text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5'
+              }`}
+              onClick={() => toggleFollowGuide(guide.user_id)}
+            >
+              <Heart className={`h-4 w-4 mr-2 ${isFollowing ? 'fill-burgundy' : ''}`} />
+              {isFollowing ? 'Following' : 'Follow Guide'}
+            </Button>
             <Button className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm sm:text-base py-2.5 sm:py-3">
               <MessageCircle className="w-4 h-4 mr-2" />
               Send Message
