@@ -32,6 +32,14 @@ serve(async (req) => {
       final_payment_amount,
       final_payment_due_date,
       final_payment_status,
+      phone,
+      country,
+      emergencyContactName,
+      emergencyContactPhone,
+      emergencyContactCountry,
+      emergencyContactRelationship,
+      dietaryPreferences,
+      accessibilityNeeds,
     } = bookingData;
 
     console.log('Validating required fields...');
@@ -232,6 +240,46 @@ serve(async (req) => {
       );
     }
     console.log('Booking created successfully:', booking.id, 'Reference:', booking.booking_reference);
+
+    // Update hiker profile with booking data for future bookings
+    console.log('Updating hiker profile with booking information...');
+    try {
+      const profileUpdateData: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      // Only update fields that were provided in booking
+      if (phone) profileUpdateData.phone = phone;
+      if (country) profileUpdateData.country = country;
+      if (emergencyContactName) profileUpdateData.emergency_contact_name = emergencyContactName;
+      if (emergencyContactPhone) profileUpdateData.emergency_contact_phone = emergencyContactPhone;
+      if (emergencyContactCountry) profileUpdateData.emergency_contact_country = emergencyContactCountry;
+      if (emergencyContactRelationship) profileUpdateData.emergency_contact_relationship = emergencyContactRelationship;
+      if (accessibilityNeeds) profileUpdateData.accessibility_needs = accessibilityNeeds;
+      
+      // Normalize dietary preferences to lowercase and remove duplicates
+      if (dietaryPreferences && Array.isArray(dietaryPreferences)) {
+        const normalizedDietary = Array.from(new Set(
+          dietaryPreferences.map((pref: string) => pref.toLowerCase())
+        ));
+        profileUpdateData.dietary_preferences = normalizedDietary;
+      }
+
+      const { error: profileUpdateError } = await supabase
+        .from('profiles')
+        .update(profileUpdateData)
+        .eq('id', hiker_id);
+
+      if (profileUpdateError) {
+        console.error('Error updating profile:', profileUpdateError);
+        // Don't fail the booking if profile update fails, just log it
+      } else {
+        console.log('Profile updated successfully with booking data');
+      }
+    } catch (profileError) {
+      console.error('Exception updating profile:', profileError);
+      // Don't fail the booking if profile update fails
+    }
 
     // Update tour_date_slots to reflect booked spots
     const newSpotsBooked = dateSlot.spots_booked + participants;
