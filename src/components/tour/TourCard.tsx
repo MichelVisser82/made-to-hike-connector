@@ -96,9 +96,9 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-cream-light" />
         
-        {/* Difficulty Badge - Top Left */}
+        {/* Difficulty Badge - Top Right */}
         <Badge 
-          className="absolute top-3 left-3 border-0"
+          className="absolute top-3 right-3 border-0"
           variant={
             tour.difficulty === 'easy' ? 'default' :
             tour.difficulty === 'moderate' ? 'secondary' :
