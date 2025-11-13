@@ -108,21 +108,6 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
           {tour.difficulty}
         </Badge>
 
-        {/* Rating - Top Right */}
-        {tour.rating > 0 && (
-          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
-            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-            <span className="text-sm font-medium text-gray-900">
-              {tour.rating.toFixed(1)}
-            </span>
-            {tour.reviews_count > 0 && (
-              <span className="text-xs text-gray-500">
-                ({tour.reviews_count})
-              </span>
-            )}
-          </div>
-        )}
-
         {/* Guide Avatar - Bottom Left */}
         <div className="absolute bottom-3 left-3">
           {guideProfile?.profile_image_url ? (
@@ -148,9 +133,24 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
           <h3 className="text-lg font-semibold text-foreground mb-1">
             {tour.title}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mb-2">
             by {guideInfo.displayName}
           </p>
+          
+          {/* Reviews */}
+          {tour.rating > 0 && (
+            <div className="flex items-center gap-1.5">
+              <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <span className="text-sm font-medium text-gray-900">
+                {tour.rating.toFixed(1)}
+              </span>
+              {tour.reviews_count > 0 && (
+                <span className="text-xs text-gray-500">
+                  ({tour.reviews_count} reviews)
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Stats */}
