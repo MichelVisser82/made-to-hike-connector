@@ -159,6 +159,29 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             Back to Search
           </Button>
 
+          {/* Share Button - Icon Only */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-32 text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+            onClick={() => {
+              const tourUrl = window.location.href;
+              if (navigator.share) {
+                navigator.share({
+                  title: tour.title,
+                  text: `Check out this hiking tour: ${tour.title}`,
+                  url: tourUrl
+                }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(tourUrl);
+                // Could add a toast notification here
+              }
+            }}
+            aria-label="Share tour"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+
           {/* Save Tour Button - Top Right */}
           <Button
             variant="ghost"
