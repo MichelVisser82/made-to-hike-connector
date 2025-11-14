@@ -2,37 +2,67 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar } from '../ui/calendar';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Badge } from '../ui/badge';
+import { Skeleton } from '../ui/skeleton';
+import type { CalendarDateView } from '@/types/tourDateSlot';
+import { isSameDay } from 'date-fns';
 
 interface EnhancedCalendarWidgetProps {
-  availableDates?: Date[];
-  bookedDates?: Date[];
-  limitedDates?: Date[];
+  guideId?: string;
+  calendarData?: CalendarDateView[];
+  isLoading?: boolean;
 }
 
 export function EnhancedCalendarWidget({ 
-  availableDates = [], 
-  bookedDates = [],
-  limitedDates = []
+  guideId,
+  calendarData = [],
+  isLoading = false
 }: EnhancedCalendarWidgetProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
+  // Process calendar data to get booked dates (dates with any bookings)
+  const { bookedDates, availableDates } = useMemo(() => {
+    const booked: Date[] = [];
+    const available: Date[] = [];
+    
+    calendarData.forEach(slot => {
+      // Dates where the guide is on tour (has bookings)
+      if (slot.spotsBooked > 0) {
+        // Add all days covered by this tour
+        let currentDate = new Date(slot.date);
+        for (let i = 0; i < slot.durationDays; i++) {
+          booked.push(new Date(currentDate));
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      } else {
+        // Available dates (no bookings yet)
+        available.push(new Date(slot.date));
+      }
+    });
+    
+    return { bookedDates: booked, availableDates: available };
+  }, [calendarData]);
+
   const isDateBooked = (date: Date) => {
-    return bookedDates.some(d => 
-      d.getDate() === date.getDate() && 
-      d.getMonth() === date.getMonth() && 
-      d.getFullYear() === date.getFullYear()
-    );
+    return bookedDates.some(d => isSameDay(d, date));
   };
 
-  const isDateLimited = (date: Date) => {
-    return limitedDates.some(d => 
-      d.getDate() === date.getDate() && 
-      d.getMonth() === date.getMonth() && 
-      d.getFullYear() === date.getFullYear()
+  if (isLoading) {
+    return (
+      <Card className="border-burgundy/20 shadow-lg bg-cream">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CalendarIcon className="h-5 w-5 text-burgundy" />
+            <h4 className="font-semibold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+              Availability Calendar
+            </h4>
+          </div>
+          <Skeleton className="h-[280px] w-full" />
+        </CardContent>
+      </Card>
     );
-  };
+  }
 
   return (
     <Card className="border-burgundy/20 shadow-lg bg-cream">
@@ -49,20 +79,21 @@ export function EnhancedCalendarWidget({
           selected={selectedDate}
           onSelect={setSelectedDate}
           className="rounded-md border-burgundy/20 pointer-events-auto"
-          disabled={(date) => date < new Date() || isDateBooked(date)}
+          disabled={(date) => date < new Date()}
           modifiers={{
-            booked: bookedDates,
-            limited: limitedDates,
+            onTour: bookedDates,
+            available: availableDates,
           }}
           modifiersStyles={{
-            booked: { 
+            onTour: { 
               backgroundColor: 'hsl(var(--burgundy))',
               color: 'white',
-              opacity: 0.5
+              fontWeight: '600'
             },
-            limited: {
-              backgroundColor: 'hsl(var(--accent))',
-              color: 'white'
+            available: {
+              backgroundColor: 'hsl(var(--primary) / 0.2)',
+              color: 'hsl(var(--charcoal))',
+              fontWeight: '500'
             }
           }}
         />
@@ -70,16 +101,12 @@ export function EnhancedCalendarWidget({
         {/* Legend */}
         <div className="mt-4 space-y-2 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm bg-primary" />
+            <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: 'hsl(var(--primary) / 0.2)' }} />
             <span className="text-charcoal/70">Available</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm bg-accent" />
-            <span className="text-charcoal/70">Limited Spots</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm bg-burgundy opacity-50" />
-            <span className="text-charcoal/70">Fully Booked</span>
+            <div className="w-4 h-4 rounded-sm bg-burgundy" />
+            <span className="text-charcoal/70">On Tour</span>
           </div>
         </div>
 

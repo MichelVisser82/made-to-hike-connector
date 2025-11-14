@@ -19,6 +19,7 @@ import { SafetyInformationCard } from '../guide/SafetyInformationCard';
 import { FAQAccordion } from '../guide/FAQAccordion';
 import { TrustIndicatorsCard } from '../guide/TrustIndicatorsCard';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
+import { useGuideCalendarView } from '@/hooks/useGuideCalendarView';
 import type { GuideProfile, GuideStats } from '@/types/guide';
 import type { Tour } from '@/types';
 import type { GuideReview } from '@/hooks/useGuideReviews';
@@ -33,6 +34,9 @@ interface GuideProfileContentProps {
 
 export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfileContentProps) {
   const { getImagesByGuide, getImageUrl } = useWebsiteImages();
+  const { data: calendarData, isLoading: calendarLoading } = useGuideCalendarView({ 
+    guideId: guide.user_id 
+  });
   const [galleryPhotos, setGalleryPhotos] = useState<Photo[]>([]);
   const [loadingGallery, setLoadingGallery] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
@@ -247,7 +251,11 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
 
             {/* Calendar Widget & Trust Indicators - sticky container */}
             <div className="sticky top-24 space-y-6">
-              <EnhancedCalendarWidget />
+              <EnhancedCalendarWidget 
+                guideId={guide.user_id}
+                calendarData={calendarData}
+                isLoading={calendarLoading}
+              />
               
               <TrustIndicatorsCard 
                 guideName={guide.display_name}
