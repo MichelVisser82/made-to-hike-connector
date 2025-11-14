@@ -37,25 +37,35 @@ export function EnhancedCalendarWidget({
     const booked: Date[] = [];
     const available: Date[] = [];
     
+    if (!calendarData || calendarData.length === 0) {
+      return { bookedDates: [], availableDates: [] };
+    }
+    
     calendarData.forEach(slot => {
       console.log('[EnhancedCalendarWidget] Processing slot:', slot);
+      const slotDate = new Date(slot.date);
+      
       // Dates where the guide is on tour (has bookings)
-      if (slot.spotsBooked > 0) {
+      if (slot.spotsBooked && slot.spotsBooked > 0) {
         // Add all days covered by this tour
-        let currentDate = new Date(slot.date);
-        for (let i = 0; i < slot.durationDays; i++) {
-          booked.push(new Date(currentDate));
-          currentDate.setDate(currentDate.getDate() + 1);
+        for (let i = 0; i < (slot.durationDays || 1); i++) {
+          const dateToAdd = new Date(slotDate);
+          dateToAdd.setDate(slotDate.getDate() + i);
+          booked.push(dateToAdd);
+          console.log('[EnhancedCalendarWidget] Added booked date:', dateToAdd);
         }
       } else {
         // Available dates (no bookings yet)
-        available.push(new Date(slot.date));
+        available.push(new Date(slotDate));
+        console.log('[EnhancedCalendarWidget] Added available date:', slotDate);
       }
     });
     
     console.log('[EnhancedCalendarWidget] Processed dates:', { 
       bookedCount: booked.length, 
-      availableCount: available.length 
+      availableCount: available.length,
+      booked,
+      available
     });
     return { bookedDates: booked, availableDates: available };
   }, [calendarData]);
@@ -94,23 +104,15 @@ export function EnhancedCalendarWidget({
           mode="single"
           selected={selectedDate}
           onSelect={setSelectedDate}
-          className="rounded-md border-burgundy/20 pointer-events-auto"
+          className="rounded-md border-burgundy/20"
           disabled={(date) => date < new Date()}
           modifiers={{
             onTour: bookedDates,
             available: availableDates,
           }}
-          modifiersStyles={{
-            onTour: { 
-              backgroundColor: 'hsl(var(--burgundy))',
-              color: 'white',
-              fontWeight: '600'
-            },
-            available: {
-              backgroundColor: 'hsl(var(--primary) / 0.2)',
-              color: 'hsl(var(--charcoal))',
-              fontWeight: '500'
-            }
+          modifiersClassNames={{
+            onTour: 'bg-burgundy text-white font-semibold',
+            available: 'bg-primary/20 text-charcoal font-medium',
           }}
         />
 
