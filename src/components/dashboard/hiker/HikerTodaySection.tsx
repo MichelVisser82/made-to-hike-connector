@@ -88,7 +88,7 @@ export function HikerTodaySection({
             className={`hover:shadow-md transition-shadow border-burgundy/10 bg-white ${
               metric.label === 'Saved Tours' ? 'cursor-pointer' : ''
             }`}
-            onClick={metric.label === 'Saved Tours' ? () => onNavigateToSection('trips') : undefined}
+            onClick={metric.label === 'Saved Tours' ? () => onNavigateToSection('my-trips') : undefined}
           >
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
