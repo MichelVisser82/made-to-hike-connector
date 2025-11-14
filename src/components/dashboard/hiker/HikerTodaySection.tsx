@@ -86,9 +86,15 @@ export function HikerTodaySection({
           <Card 
             key={index} 
             className={`hover:shadow-md transition-shadow border-burgundy/10 bg-white ${
-              metric.label === 'Saved Tours' ? 'cursor-pointer' : ''
+              metric.label === 'Saved Tours' || metric.label === 'Trips Completed' ? 'cursor-pointer' : ''
             }`}
-            onClick={metric.label === 'Saved Tours' ? () => onNavigateToSection('my-trips', 'wishlist') : undefined}
+            onClick={
+              metric.label === 'Saved Tours' 
+                ? () => onNavigateToSection('my-trips', 'wishlist')
+                : metric.label === 'Trips Completed'
+                ? () => onNavigateToSection('my-trips', 'past')
+                : undefined
+            }
           >
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
