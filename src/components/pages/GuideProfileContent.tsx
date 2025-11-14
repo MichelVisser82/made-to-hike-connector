@@ -34,12 +34,22 @@ interface GuideProfileContentProps {
 
 export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfileContentProps) {
   const { getImagesByGuide, getImageUrl } = useWebsiteImages();
-  const { data: calendarData, isLoading: calendarLoading } = useGuideCalendarView({ 
+  const { data: calendarData, isLoading: calendarLoading, error: calendarError } = useGuideCalendarView({ 
     guideId: guide.user_id 
   });
   const [galleryPhotos, setGalleryPhotos] = useState<Photo[]>([]);
   const [loadingGallery, setLoadingGallery] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
+
+  // Debug calendar data
+  useEffect(() => {
+    console.log('[GuideProfileContent] Calendar data:', { 
+      calendarData, 
+      calendarLoading, 
+      calendarError,
+      guideId: guide.user_id 
+    });
+  }, [calendarData, calendarLoading, calendarError, guide.user_id]);
 
   // Stable fetch function wrapped in useCallback
   const fetchGalleryImages = useCallback(async () => {
