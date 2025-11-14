@@ -62,11 +62,11 @@ export function GuideCard({ guide }: GuideCardProps) {
           size="sm"
           variant={isFollowing ? "default" : "ghost"}
           onClick={handleFollowClick}
-          className={`absolute top-3 right-3 z-10 shadow-sm
+          className={`absolute top-3 right-3 z-10 shadow-sm transition-all
             ${isFollowing 
               ? "bg-burgundy text-white hover:bg-burgundy-dark" 
               : "bg-white/90 backdrop-blur-sm text-charcoal/70 hover:text-burgundy hover:bg-burgundy/5"
-            } opacity-0 group-hover:opacity-100 transition-opacity`}
+            }`}
           aria-label={isFollowing ? 'Unfollow guide' : 'Follow guide'}
         >
           {isFollowing ? (
