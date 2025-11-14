@@ -23,12 +23,13 @@ interface HikerTripsSectionProps {
   userId: string;
   onViewTour: (tourId: string) => void;
   onMessageGuide: (guideId: string) => void;
+  defaultTab?: string;
 }
 
-export function HikerTripsSection({ userId, onViewTour, onMessageGuide }: HikerTripsSectionProps) {
+export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultTab }: HikerTripsSectionProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [activeTab, setActiveTab] = useState(defaultTab || 'upcoming');
   const { bookings, loading, error } = useHikerBookings(userId);
   const { savedTours, isLoading: loadingSavedTours, toggleSaveTour } = useSavedTours(userId);
   const { followedGuides, isLoading: loadingFollowedGuides, toggleFollowGuide } = useFollowedGuides(userId);

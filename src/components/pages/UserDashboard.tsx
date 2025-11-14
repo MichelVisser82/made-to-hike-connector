@@ -24,6 +24,7 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
   const [activeSection, setActiveSection] = useState<DashboardSection>(
     (searchParams.get('section') as DashboardSection) || 'today'
   );
+  const [defaultTab, setDefaultTab] = useState<string | undefined>(undefined);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   
@@ -71,12 +72,17 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
     navigate(`/dashboard/trip/${trip.id}`);
   };
 
+  const handleNavigateToSection = (section: string, tab?: string) => {
+    setDefaultTab(tab);
+    setActiveSection(section as DashboardSection);
+  };
+
   const renderSection = () => {
     switch (activeSection) {
       case 'today':
-        return <HikerTodaySection userId={user.id} upcomingTrips={upcomingTrips} completedTrips={completedTrips} badgesEarned={8} savedTours={savedTours.length} onViewTrip={handleViewTrip} onMessageGuide={(id) => setActiveSection('inbox')} onNavigateToSection={(section) => setActiveSection(section as DashboardSection)} />;
+        return <HikerTodaySection userId={user.id} upcomingTrips={upcomingTrips} completedTrips={completedTrips} badgesEarned={8} savedTours={savedTours.length} onViewTrip={handleViewTrip} onMessageGuide={(id) => setActiveSection('inbox')} onNavigateToSection={handleNavigateToSection} />;
       case 'my-trips':
-        return <HikerTripsSection userId={user.id} onViewTour={(id) => navigate(`/tours/${id}`)} onMessageGuide={(id) => setActiveSection('inbox')} />;
+        return <HikerTripsSection userId={user.id} onViewTour={(id) => navigate(`/tours/${id}`)} onMessageGuide={(id) => setActiveSection('inbox')} defaultTab={defaultTab} />;
       case 'bookings':
         return <HikerBookingsSection userId={user.id} onViewBooking={(id) => navigate(`/dashboard/trip/${id}`)} onContactGuide={(id) => setActiveSection('inbox')} />;
       case 'reviews':
