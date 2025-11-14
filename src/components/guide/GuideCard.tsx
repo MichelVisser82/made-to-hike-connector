@@ -101,18 +101,6 @@ export function GuideCard({ guide }: GuideCardProps) {
           )}
         </div>
 
-        {/* Rating - Top Right */}
-        {guide.reviews_count > 0 && (
-          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
-            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-            <span className="text-sm font-medium text-gray-900">
-              {guide.average_rating.toFixed(1)}
-            </span>
-            <span className="text-xs text-gray-500">
-              ({guide.reviews_count})
-            </span>
-          </div>
-        )}
 
         {/* Guide Avatar - Bottom Left */}
         <div className="absolute bottom-3 left-3">
@@ -131,6 +119,18 @@ export function GuideCard({ guide }: GuideCardProps) {
           <h3 className="text-lg font-semibold text-foreground mb-1">
             {guide.display_name}
           </h3>
+          {/* Rating */}
+          {guide.reviews_count > 0 && (
+            <div className="flex items-center gap-1.5 mb-2">
+              <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <span className="text-sm font-medium text-foreground">
+                {guide.average_rating.toFixed(1)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                ({guide.reviews_count} reviews)
+              </span>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground">
             {guide.location || 'Location not specified'}
           </p>
