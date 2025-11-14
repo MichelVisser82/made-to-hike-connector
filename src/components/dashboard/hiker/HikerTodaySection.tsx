@@ -86,13 +86,15 @@ export function HikerTodaySection({
           <Card 
             key={index} 
             className={`hover:shadow-md transition-shadow border-burgundy/10 bg-white ${
-              metric.label === 'Saved Tours' || metric.label === 'Trips Completed' ? 'cursor-pointer' : ''
+              metric.label === 'Saved Tours' || metric.label === 'Trips Completed' || metric.label === 'Next Adventure' ? 'cursor-pointer' : ''
             }`}
             onClick={
               metric.label === 'Saved Tours' 
                 ? () => onNavigateToSection('my-trips', 'wishlist')
                 : metric.label === 'Trips Completed'
                 ? () => onNavigateToSection('my-trips', 'past')
+                : metric.label === 'Next Adventure'
+                ? () => onNavigateToSection('my-trips', 'upcoming')
                 : undefined
             }
           >
