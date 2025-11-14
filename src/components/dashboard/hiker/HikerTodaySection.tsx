@@ -13,6 +13,7 @@ interface HikerTodaySectionProps {
   savedTours: number;
   onViewTrip: (trip: any) => void;
   onMessageGuide: (guideId: string) => void;
+  onNavigateToSection: (section: string) => void;
 }
 
 export function HikerTodaySection({
@@ -22,7 +23,8 @@ export function HikerTodaySection({
   badgesEarned,
   savedTours,
   onViewTrip,
-  onMessageGuide
+  onMessageGuide,
+  onNavigateToSection
 }: HikerTodaySectionProps) {
   const { profile } = useProfile();
   const nextTrip = upcomingTrips[0];
@@ -81,7 +83,13 @@ export function HikerTodaySection({
       {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow border-burgundy/10 bg-white">
+          <Card 
+            key={index} 
+            className={`hover:shadow-md transition-shadow border-burgundy/10 bg-white ${
+              metric.label === 'Saved Tours' ? 'cursor-pointer' : ''
+            }`}
+            onClick={metric.label === 'Saved Tours' ? () => onNavigateToSection('trips') : undefined}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 rounded-lg bg-gradient-to-br ${metric.gradient}`}>

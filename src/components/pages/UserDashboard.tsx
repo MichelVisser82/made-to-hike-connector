@@ -74,7 +74,7 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
   const renderSection = () => {
     switch (activeSection) {
       case 'today':
-        return <HikerTodaySection userId={user.id} upcomingTrips={upcomingTrips} completedTrips={completedTrips} badgesEarned={8} savedTours={savedTours.length} onViewTrip={handleViewTrip} onMessageGuide={(id) => setActiveSection('inbox')} />;
+        return <HikerTodaySection userId={user.id} upcomingTrips={upcomingTrips} completedTrips={completedTrips} badgesEarned={8} savedTours={savedTours.length} onViewTrip={handleViewTrip} onMessageGuide={(id) => setActiveSection('inbox')} onNavigateToSection={(section) => setActiveSection(section as DashboardSection)} />;
       case 'my-trips':
         return <HikerTripsSection userId={user.id} onViewTour={(id) => navigate(`/tours/${id}`)} onMessageGuide={(id) => setActiveSection('inbox')} />;
       case 'bookings':
