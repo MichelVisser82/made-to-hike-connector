@@ -3,13 +3,14 @@ export interface Conversation {
   tour_id: string | null;
   hiker_id: string | null;
   guide_id: string;
-  conversation_type: 'tour_inquiry' | 'booking_chat' | 'admin_support' | 'guide_admin';
+  conversation_type: 'tour_inquiry' | 'booking_chat' | 'admin_support' | 'guide_admin' | 'custom_tour_request';
   status: 'active' | 'closed' | 'archived';
   anonymous_email: string | null;
   anonymous_name: string | null;
   last_message_at: string;
   created_at: string;
   updated_at: string;
+  metadata?: any;
   tours?: {
     title: string;
     hero_image: string | null;

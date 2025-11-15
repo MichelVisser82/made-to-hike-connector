@@ -60,8 +60,13 @@ export function ConversationItem({
           </p>
 
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant="outline" className="text-xs">
-              {conversation.conversation_type.replace('_', ' ')}
+            <Badge 
+              variant={conversation.conversation_type === 'custom_tour_request' ? 'default' : 'outline'} 
+              className="text-xs"
+            >
+              {conversation.conversation_type === 'custom_tour_request' 
+                ? 'Custom Tour Request' 
+                : conversation.conversation_type.replace('_', ' ')}
             </Badge>
             {conversation.unread_count && conversation.unread_count > 0 && (
               <Badge variant="default" className="text-xs">
