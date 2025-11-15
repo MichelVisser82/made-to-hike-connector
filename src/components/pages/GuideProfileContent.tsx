@@ -24,6 +24,7 @@ import type { GuideProfile, GuideStats } from '@/types/guide';
 import type { Tour } from '@/types';
 import type { GuideReview } from '@/hooks/useGuideReviews';
 import type { Photo } from '../guide/PhotoGalleryWithFilters';
+import { CANCELLATION_POLICIES } from '@/types/policySettings';
 
 interface GuideProfileContentProps {
   guide: GuideProfile;
@@ -97,10 +98,34 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
     proficiency: 'Fluent' as const
   })) || [];
 
+  // Generate cancellation policy text based on guide's actual settings
+  const getCancellationPolicyText = () => {
+    const policyType = guide.cancellation_policy_type || 'flexible';
+    const approach = guide.cancellation_approach || 'single';
+    
+    if (approach === 'customer_choice') {
+      return 'I offer flexible cancellation options - you can choose your preferred policy at booking time, with pricing that reflects your choice. Options range from ultra-flexible (full refund up to 3 days before) to discounted non-refundable rates.';
+    }
+    
+    const policy = CANCELLATION_POLICIES[policyType as keyof typeof CANCELLATION_POLICIES];
+    if (!policy) return 'Please contact me for cancellation policy details.';
+    
+    const tierDescriptions = policy.tiers
+      .filter(tier => tier.refundPercent > 0)
+      .map(tier => {
+        const days = tier.daysOrMore;
+        const refund = tier.refundPercent;
+        if (days === 0) return `No refund for cancellations within 24 hours.`;
+        return `${refund}% refund for cancellations ${days}+ days before the tour.`;
+      });
+    
+    return tierDescriptions.join(' ') || 'Non-refundable - no refunds available for cancellations.';
+  };
+
   const mockFAQs = [
     {
       question: 'What is your cancellation policy?',
-      answer: 'Cancellations made 7+ days before the tour receive a full refund. Cancellations made 3-6 days before receive 50% refund. No refund for cancellations within 48 hours.'
+      answer: getCancellationPolicyText()
     },
     {
       question: 'What fitness level is required?',
