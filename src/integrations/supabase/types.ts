@@ -334,6 +334,7 @@ export type Database = {
           hiker_id: string | null
           id: string
           last_message_at: string | null
+          metadata: Json | null
           status: string | null
           tour_id: string | null
           updated_at: string | null
@@ -348,6 +349,7 @@ export type Database = {
           hiker_id?: string | null
           id?: string
           last_message_at?: string | null
+          metadata?: Json | null
           status?: string | null
           tour_id?: string | null
           updated_at?: string | null
@@ -362,6 +364,7 @@ export type Database = {
           hiker_id?: string | null
           id?: string
           last_message_at?: string | null
+          metadata?: Json | null
           status?: string | null
           tour_id?: string | null
           updated_at?: string | null

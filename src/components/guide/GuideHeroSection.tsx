@@ -9,6 +9,8 @@ import type { GuideProfile, GuideStats } from '@/types/guide';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { useFollowedGuides } from '@/hooks/useFollowedGuides';
 import { supabase } from '@/integrations/supabase/client';
+import { CustomTourRequestModal } from './CustomTourRequestModal';
+import { useGuideTours } from '@/hooks/useGuideTours';
 
 interface GuideHeroSectionProps {
   guide: GuideProfile;
@@ -19,10 +21,12 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
   const [fallbackHeroUrl, setFallbackHeroUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | undefined>();
   const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [customTourModalOpen, setCustomTourModalOpen] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const { fetchImages, getImageUrl } = useWebsiteImages();
   const { toast } = useToast();
+  const { data: guideTours } = useGuideTours(guide.user_id);
 
   // Get current user
   useEffect(() => {
@@ -228,14 +232,16 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
             <div className="space-y-2">
               <Button 
                 className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm py-2"
-                onClick={() => setMessageModalOpen(true)}
+                onClick={() => setCustomTourModalOpen(true)}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
-                Send Message
-              </Button>
-              <Button variant="outline" className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 text-sm py-2">
-                <Mail className="w-4 h-4 mr-2" />
                 Request Custom Tour
+              </Button>
+              <Button variant="outline" className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 text-sm py-2"
+                onClick={() => setMessageModalOpen(true)}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Quick Message
               </Button>
             </div>
           </Card>
@@ -261,14 +267,16 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           <div className="space-y-2 sm:space-y-3">
             <Button 
               className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-sm sm:text-base py-2.5 sm:py-3"
-              onClick={() => setMessageModalOpen(true)}
+              onClick={() => setCustomTourModalOpen(true)}
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              Send Message
-            </Button>
-            <Button variant="outline" className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 text-sm sm:text-base py-2.5 sm:py-3">
-              <Mail className="w-4 h-4 mr-2" />
               Request Custom Tour
+            </Button>
+            <Button variant="outline" className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 text-sm sm:text-base py-2.5 sm:py-3"
+              onClick={() => setMessageModalOpen(true)}
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Quick Message
             </Button>
           </div>
         </Card>
@@ -373,6 +381,15 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Custom Tour Request Modal */}
+      <CustomTourRequestModal
+        open={customTourModalOpen}
+        onOpenChange={setCustomTourModalOpen}
+        guideId={guide.user_id}
+        guideName={guide.display_name}
+        tours={guideTours || []}
+      />
     </section>
   );
 }
