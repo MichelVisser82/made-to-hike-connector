@@ -14,15 +14,18 @@ export function useGuideCalendarView({
   startDate = new Date(),
   endDate = addDays(new Date(), 90)
 }: UseGuideCalendarViewOptions) {
+  const startDateStr = startDate.toISOString().split('T')[0];
+  const endDateStr = endDate.toISOString().split('T')[0];
+  
   return useQuery({
-    queryKey: ['guide-calendar-view', guideId, startDate, endDate],
+    queryKey: ['guide-calendar-view', guideId, startDateStr, endDateStr],
     queryFn: async () => {
       if (!guideId) throw new Error('Guide ID is required');
 
       const { data, error } = await supabase.rpc('get_guide_all_date_slots', {
         p_guide_id: guideId,
-        p_start_date: startDate.toISOString().split('T')[0],
-        p_end_date: endDate.toISOString().split('T')[0]
+        p_start_date: startDateStr,
+        p_end_date: endDateStr
       });
 
       if (error) throw error;
