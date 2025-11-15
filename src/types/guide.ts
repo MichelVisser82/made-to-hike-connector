@@ -71,6 +71,9 @@ export interface GuideProfile {
   address_state?: string;
   address_postal_code?: string;
   date_of_birth?: string;
+  // Policy settings
+  cancellation_approach?: 'single' | 'customer_choice';
+  cancellation_policy_type?: 'flexible' | 'moderate' | 'strict' | 'non_refundable' | 'ultra_flexible';
 }
 
 export interface GuideSignupData {
