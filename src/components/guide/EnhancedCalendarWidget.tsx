@@ -21,24 +21,12 @@ export function EnhancedCalendarWidget({
 }: EnhancedCalendarWidgetProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
-  // Debug calendar data
-  useEffect(() => {
-    console.log('[EnhancedCalendarWidget] Props received:', { 
-      guideId, 
-      calendarData, 
-      isLoading,
-      dataLength: calendarData?.length 
-    });
-  }, [guideId, calendarData, isLoading]);
-
   // Process calendar data to get booked dates (dates with any bookings)
   const { bookedDates, availableDates } = useMemo(() => {
-    console.log('[EnhancedCalendarWidget] Processing calendar data...', calendarData);
     const booked: Date[] = [];
     const available: Date[] = [];
     
     calendarData.forEach(slot => {
-      console.log('[EnhancedCalendarWidget] Processing slot:', slot);
       // Dates where the guide is on tour (has bookings)
       if (slot.spotsBooked > 0) {
         // Add all days covered by this tour
@@ -53,10 +41,6 @@ export function EnhancedCalendarWidget({
       }
     });
     
-    console.log('[EnhancedCalendarWidget] Processed dates:', { 
-      bookedCount: booked.length, 
-      availableCount: available.length 
-    });
     return { bookedDates: booked, availableDates: available };
   }, [calendarData]);
 

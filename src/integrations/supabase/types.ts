@@ -565,6 +565,42 @@ export type Database = {
         }
         Relationships: []
       }
+      followed_guides: {
+        Row: {
+          followed_at: string
+          follower_id: string
+          guide_id: string
+          id: string
+        }
+        Insert: {
+          followed_at?: string
+          follower_id: string
+          guide_id: string
+          id?: string
+        }
+        Update: {
+          followed_at?: string
+          follower_id?: string
+          guide_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followed_guides_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "followed_guides_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_profiles_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       guide_profiles: {
         Row: {
           account_link_expires_at: string | null
@@ -1424,6 +1460,35 @@ export type Database = {
           },
           {
             foreignKeyName: "reviews_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_tours: {
+        Row: {
+          id: string
+          saved_at: string
+          tour_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          saved_at?: string
+          tour_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          saved_at?: string
+          tour_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_tours_tour_id_fkey"
             columns: ["tour_id"]
             isOneToOne: false
             referencedRelation: "tours"
