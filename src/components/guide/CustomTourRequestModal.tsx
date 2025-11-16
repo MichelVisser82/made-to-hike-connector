@@ -131,7 +131,7 @@ export function CustomTourRequestModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-serif text-primary">
+          <DialogTitle className="text-2xl text-burgundy" style={{ fontFamily: 'Playfair Display, serif' }}>
             Request Custom Tour
           </DialogTitle>
           <DialogDescription>
@@ -144,7 +144,7 @@ export function CustomTourRequestModal({
           {!user && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">
+                <Label htmlFor="name" className="text-charcoal/80">
                   Your Name *
                 </Label>
                 <Input
@@ -152,13 +152,14 @@ export function CustomTourRequestModal({
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="John Smith"
+                  className="border-burgundy/20 focus:border-burgundy"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center">
-                  <Mail className="h-3.5 w-3.5 mr-1.5" />
+                <Label htmlFor="email" className="flex items-center text-charcoal/80">
+                  <Mail className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                   Email *
                 </Label>
                 <Input
@@ -167,6 +168,7 @@ export function CustomTourRequestModal({
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="john@example.com"
+                  className="border-burgundy/20 focus:border-burgundy"
                   required
                 />
               </div>
@@ -175,11 +177,11 @@ export function CustomTourRequestModal({
 
           {/* Tour Details */}
           <div className="space-y-4 border-t pt-4">
-            <h3 className="font-semibold">Tour Details</h3>
+            <h3 className="font-semibold text-lg text-charcoal">Tour Details</h3>
             
             <div className="space-y-2">
-              <Label htmlFor="tour" className="flex items-center">
-                <Mountain className="h-3.5 w-3.5 mr-1.5 text-primary" />
+              <Label htmlFor="tour" className="flex items-center text-charcoal/80">
+                <Mountain className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                 Select Tour *
               </Label>
               <Select
@@ -187,7 +189,7 @@ export function CustomTourRequestModal({
                 onValueChange={(value) => setFormData({ ...formData, selectedTour: value })}
                 required
               >
-                <SelectTrigger id="tour">
+                <SelectTrigger id="tour" className="border-burgundy/20 focus:border-burgundy">
                   <SelectValue placeholder="Choose a tour or custom request" />
                 </SelectTrigger>
                 <SelectContent>
@@ -203,8 +205,8 @@ export function CustomTourRequestModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date" className="flex items-center">
-                  <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                <Label htmlFor="date" className="flex items-center text-charcoal/80">
+                  <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                   Preferred Date *
                 </Label>
                 <Popover>
@@ -212,7 +214,7 @@ export function CustomTourRequestModal({
                     <Button
                       id="date"
                       variant="outline"
-                      className="w-full justify-start text-left font-normal"
+                      className="w-full justify-start text-left font-normal border-burgundy/20 hover:border-burgundy"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.preferredDate ? (
@@ -235,8 +237,8 @@ export function CustomTourRequestModal({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="groupSize" className="flex items-center">
-                  <Users className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                <Label htmlFor="groupSize" className="flex items-center text-charcoal/80">
+                  <Users className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                   Group Size *
                 </Label>
                 <Select
@@ -244,7 +246,7 @@ export function CustomTourRequestModal({
                   onValueChange={(value) => setFormData({ ...formData, groupSize: value })}
                   required
                 >
-                  <SelectTrigger id="groupSize">
+                  <SelectTrigger id="groupSize" className="border-burgundy/20 focus:border-burgundy">
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
@@ -260,8 +262,8 @@ export function CustomTourRequestModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hikerLevel" className="flex items-center">
-                <TrendingUp className="h-3.5 w-3.5 mr-1.5 text-primary" />
+              <Label htmlFor="hikerLevel" className="flex items-center text-charcoal/80">
+                <TrendingUp className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                 Hiker Level *
               </Label>
               <Select
@@ -269,7 +271,7 @@ export function CustomTourRequestModal({
                 onValueChange={(value) => setFormData({ ...formData, hikerLevel: value })}
                 required
               >
-                <SelectTrigger id="hikerLevel">
+                <SelectTrigger id="hikerLevel" className="border-burgundy/20 focus:border-burgundy">
                   <SelectValue placeholder="Select your experience level" />
                 </SelectTrigger>
                 <SelectContent>
@@ -287,7 +289,7 @@ export function CustomTourRequestModal({
 
           {/* Message */}
           <div className="space-y-2">
-            <Label htmlFor="message">Tell us about your ideal tour *</Label>
+            <Label htmlFor="message" className="text-charcoal/80">Tell us about your ideal tour *</Label>
             <Textarea
               id="message"
               value={formData.message}
