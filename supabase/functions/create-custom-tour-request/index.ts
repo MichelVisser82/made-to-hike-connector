@@ -17,6 +17,8 @@ interface CustomTourRequest {
     hiker_level: string;
     preferred_date?: string;
     initial_message: string;
+    tour_type?: string;
+    region?: string;
   };
 }
 
@@ -81,9 +83,13 @@ serve(async (req) => {
 
     // Format the initial message with all request details
     const tourInfo = tour_id ? `\n**Selected Tour**: ${tour_id}` : '\n**Request Type**: Custom Tour';
+    const customTourDetails = !tour_id && (metadata.tour_type || metadata.region)
+      ? `\n**Tour Type**: ${metadata.tour_type || 'Not specified'}\n**Preferred Region**: ${metadata.region || 'Not specified'}`
+      : '';
+    
     const messageContent = `**Custom Tour Request**
 
-${tourInfo}
+${tourInfo}${customTourDetails}
 **Preferred Date**: ${metadata.preferred_date ? new Date(metadata.preferred_date).toLocaleDateString() : 'Flexible'}
 **Group Size**: ${metadata.group_size}
 **Experience Level**: ${metadata.hiker_level}
