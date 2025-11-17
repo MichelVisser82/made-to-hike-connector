@@ -23,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Users, Mountain, Mail, TrendingUp } from "lucide-react";
+import { CalendarIcon, Users, Mountain, Mail, TrendingUp, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,6 +61,8 @@ export function CustomTourRequestModal({
     name: "",
     email: "",
     selectedTour: "",
+    tourType: "",
+    region: "",
     groupSize: "",
     hikerLevel: "",
     preferredDate: preSelectedDate || undefined as Date | undefined,
@@ -84,12 +86,14 @@ export function CustomTourRequestModal({
           hiker_id: user?.id,
           anonymous_name: !isAuthenticated ? formData.name : undefined,
           anonymous_email: !isAuthenticated ? formData.email : undefined,
-          tour_id: formData.selectedTour || null,
+          tour_id: formData.selectedTour === "other" ? null : formData.selectedTour || null,
           metadata: {
             group_size: formData.groupSize,
             hiker_level: formData.hikerLevel,
             preferred_date: formData.preferredDate?.toISOString(),
             initial_message: formData.message,
+            tour_type: formData.tourType || undefined,
+            region: formData.region || undefined,
           },
         }
       });
@@ -110,6 +114,8 @@ export function CustomTourRequestModal({
         name: "",
         email: "",
         selectedTour: "",
+        tourType: "",
+        region: "",
         groupSize: "",
         hikerLevel: "",
         preferredDate: undefined,
@@ -186,22 +192,87 @@ export function CustomTourRequestModal({
               </Label>
               <Select
                 value={formData.selectedTour}
-                onValueChange={(value) => setFormData({ ...formData, selectedTour: value })}
+                onValueChange={(value) => {
+                  setFormData({ 
+                    ...formData, 
+                    selectedTour: value,
+                    // Reset conditional fields when switching away from "other"
+                    tourType: value === "other" ? formData.tourType : "",
+                    region: value === "other" ? formData.region : "",
+                  });
+                }}
                 required
               >
                 <SelectTrigger id="tour" className="border-burgundy/20 focus:border-burgundy">
                   <SelectValue placeholder="Choose a tour or custom request" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="custom">Custom Tour Request</SelectItem>
                   {tours.map((tour) => (
                     <SelectItem key={tour.id} value={tour.id}>
                       {tour.title}
                     </SelectItem>
                   ))}
+                  <SelectItem value="other">Other - Custom Tour Request</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Conditional fields for custom tour request */}
+            {formData.selectedTour === "other" && (
+              <div className="space-y-4 pl-4 border-l-2 border-burgundy/20">
+                <div className="space-y-2">
+                  <Label htmlFor="tourType" className="flex items-center text-charcoal/80">
+                    <Mountain className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
+                    Tour Type / Interest *
+                  </Label>
+                  <Select
+                    value={formData.tourType}
+                    onValueChange={(value) => setFormData({ ...formData, tourType: value })}
+                    required
+                  >
+                    <SelectTrigger id="tourType" className="border-burgundy/20 focus:border-burgundy">
+                      <SelectValue placeholder="Select tour type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="day_hike">Day Hike</SelectItem>
+                      <SelectItem value="multi_day_trek">Multi-Day Trek</SelectItem>
+                      <SelectItem value="summit_expedition">Summit Expedition</SelectItem>
+                      <SelectItem value="winter_mountaineering">Winter Mountaineering</SelectItem>
+                      <SelectItem value="photography_tour">Photography Tour</SelectItem>
+                      <SelectItem value="family_friendly">Family-Friendly</SelectItem>
+                      <SelectItem value="wildlife_nature">Wildlife & Nature</SelectItem>
+                      <SelectItem value="custom_experience">Custom Experience</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="region" className="flex items-center text-charcoal/80">
+                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
+                    Preferred Region *
+                  </Label>
+                  <Select
+                    value={formData.region}
+                    onValueChange={(value) => setFormData({ ...formData, region: value })}
+                    required
+                  >
+                    <SelectTrigger id="region" className="border-burgundy/20 focus:border-burgundy">
+                      <SelectValue placeholder="Select preferred region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="scottish_highlands">Scottish Highlands</SelectItem>
+                      <SelectItem value="cairngorms">Cairngorms</SelectItem>
+                      <SelectItem value="lake_district">Lake District</SelectItem>
+                      <SelectItem value="snowdonia">Snowdonia</SelectItem>
+                      <SelectItem value="alps">Alps</SelectItem>
+                      <SelectItem value="pyrenees">Pyrenees</SelectItem>
+                      <SelectItem value="dolomites">Dolomites</SelectItem>
+                      <SelectItem value="other_flexible">Other / Flexible</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
