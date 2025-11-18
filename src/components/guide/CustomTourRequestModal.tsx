@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CalendarIcon, Users, Mountain, Mail, TrendingUp, MapPin, ChevronsUpDown, Plus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -64,6 +65,7 @@ export function CustomTourRequestModal({
   const [showCustomRegionInput, setShowCustomRegionInput] = useState(false);
   const [customRegionText, setCustomRegionText] = useState("");
   const [regionPopoverOpen, setRegionPopoverOpen] = useState(false);
+  const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -354,10 +356,11 @@ export function CustomTourRequestModal({
                   <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                   Preferred Date *
                 </Label>
-                <Popover modal={false}>
-                  <PopoverTrigger asChild>
+                <Collapsible open={dateCalendarOpen} onOpenChange={setDateCalendarOpen}>
+                  <CollapsibleTrigger asChild>
                     <Button
                       id="date"
+                      type="button"
                       variant="outline"
                       className="w-full justify-start text-left font-normal border-burgundy/20 hover:border-burgundy"
                     >
@@ -368,17 +371,22 @@ export function CustomTourRequestModal({
                         <span>Pick a date</span>
                       )}
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.preferredDate}
-                      onSelect={(date) => setFormData({ ...formData, preferredDate: date })}
-                      disabled={(date) => date < new Date()}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    <div className="border rounded-md bg-background shadow-lg">
+                      <Calendar
+                        mode="single"
+                        selected={formData.preferredDate}
+                        onSelect={(date) => {
+                          setFormData({ ...formData, preferredDate: date });
+                          setDateCalendarOpen(false);
+                        }}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
 
               <div className="space-y-2">
