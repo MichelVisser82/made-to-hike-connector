@@ -373,7 +373,7 @@ export function CustomTourRequestModal({
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2">
-                    <div className="border rounded-md bg-popover shadow-lg pointer-events-auto relative z-50">
+                    <div className="border rounded-md bg-popover shadow-lg pointer-events-auto relative z-50 w-fit">
                       <Calendar
                         mode="single"
                         selected={formData.preferredDate}
