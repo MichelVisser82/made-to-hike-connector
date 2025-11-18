@@ -354,7 +354,7 @@ export function CustomTourRequestModal({
                   <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                   Preferred Date *
                 </Label>
-                <Popover>
+                <Popover modal={false}>
                   <PopoverTrigger asChild>
                     <Button
                       id="date"
