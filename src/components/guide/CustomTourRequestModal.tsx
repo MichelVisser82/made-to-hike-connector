@@ -395,23 +395,17 @@ export function CustomTourRequestModal({
                   <Users className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                   Group Size *
                 </Label>
-                <Select
+                <Input
+                  id="groupSize"
+                  type="number"
+                  min="1"
+                  max="50"
+                  placeholder="Enter number of people"
                   value={formData.groupSize}
-                  onValueChange={(value) => setFormData({ ...formData, groupSize: value })}
+                  onChange={(e) => setFormData({ ...formData, groupSize: e.target.value })}
+                  className="border-burgundy/20 focus:border-burgundy"
                   required
-                >
-                  <SelectTrigger id="groupSize" className="border-burgundy/20 focus:border-burgundy">
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Solo (1 person)</SelectItem>
-                    <SelectItem value="2">2 people</SelectItem>
-                    <SelectItem value="3-4">3-4 people</SelectItem>
-                    <SelectItem value="5-6">5-6 people</SelectItem>
-                    <SelectItem value="7-8">7-8 people</SelectItem>
-                    <SelectItem value="8+">8+ people</SelectItem>
-                  </SelectContent>
-                </Select>
+                />
               </div>
             </div>
 
