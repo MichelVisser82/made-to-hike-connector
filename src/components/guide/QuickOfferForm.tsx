@@ -26,18 +26,21 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
   const [step, setStep] = useState(0); // Start at 0 for request review
   const [loading, setLoading] = useState(false);
   
-  // Extract data from conversation metadata
+  // Extract data from conversation metadata - support both snake_case and camelCase
   const requestData = conversation.metadata as any || {};
-  const groupSize = parseInt(requestData.group_size) || 1;
-  const hikerLevel = requestData.hiker_level || '';
-  const requestedDate = requestData.preferred_date;
-  const tourType = requestData.tour_type || '';
+  const groupSize = parseInt(requestData.group_size || requestData.groupSize) || 1;
+  const hikerLevel = requestData.hiker_level || requestData.hikerLevel || '';
+  const requestedDate = requestData.preferred_date || requestData.preferredDate;
+  const tourType = requestData.tour_type || requestData.tourType || '';
   const region = requestData.region || '';
+  const initialMessage = requestData.initial_message || requestData.initialMessage || '';
   
   // Get client info
   const clientName = conversation.anonymous_name || conversation.hiker_profile?.name || 'Client';
   const clientEmail = conversation.anonymous_email || '';
-  const tourName = conversation.tours?.title || tourType || 'Custom Tour';
+  
+  // Get tour name - prioritize actual tour title from relationship
+  const tourName = conversation.tours?.title || tourType || 'Custom Tour Request';
   const requestCreatedAt = conversation.created_at;
   
   // Form state
