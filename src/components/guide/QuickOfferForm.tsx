@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, Euro, Clock, MapPin, FileText, Send, ChevronRight, ChevronLeft, Users, CheckCircle, X, Mail, Mountain, TrendingUp, Info } from "lucide-react";
+import { CalendarIcon, Euro, Clock, MapPin, FileText, Send, ChevronRight, ChevronLeft, Users, CheckCircle, X, Mail, Mountain, TrendingUp, Info, MessageCircle, Lightbulb } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -255,6 +255,51 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
             <Separator className="my-4" />
 
             <div className="space-y-4">
+              {/* Client's Message */}
+              {initialMessage && (
+                <div>
+                  <h3 className="flex items-center gap-2 text-lg font-semibold text-charcoal mb-3">
+                    <MessageCircle className="w-5 h-5 text-burgundy" />
+                    Client's Message
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-base text-charcoal leading-relaxed">{initialMessage}</p>
+                  </div>
+                  
+                  {/* Quick Assessment Tips */}
+                  <div className="mt-4 bg-rose-50 rounded-lg p-4 border border-rose-200">
+                    <div className="flex items-start gap-2 mb-3">
+                      <Lightbulb className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <h4 className="font-semibold text-burgundy">Quick Assessment Tips</h4>
+                    </div>
+                    <ul className="space-y-2 text-sm text-charcoal/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-burgundy mt-1">•</span>
+                        <span>Check your calendar availability for {requestedDate ? format(parseLocalDate(requestedDate)!, "MMMM d") : 'the requested date'}</span>
+                      </li>
+                      {hikerLevel && (
+                        <li className="flex items-start gap-2">
+                          <span className="text-burgundy mt-1">•</span>
+                          <span>Ensure tour difficulty matches {getHikerLevelLabel(hikerLevel).toLowerCase()} level</span>
+                        </li>
+                      )}
+                      <li className="flex items-start gap-2">
+                        <span className="text-burgundy mt-1">•</span>
+                        <span>Consider weather conditions for the preferred date</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-burgundy mt-1">•</span>
+                        <span>Review equipment requirements for group of {groupSize}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-burgundy mt-1">•</span>
+                        <span>Respond within 24 hours for best conversion rates</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {/* Client Information */}
               <div className="bg-cream/30 rounded-lg p-5 border border-burgundy/10">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-charcoal mb-4">
@@ -282,51 +327,58 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">Selected Tour</p>
-                    <Badge variant="outline" className="border-burgundy text-burgundy px-3 py-1">
+                    <Badge className="bg-burgundy text-white px-3 py-1 text-sm">
                       {tourName}
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <Separator className="bg-burgundy/10" />
+                  
+                  <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Preferred Date</p>
+                      <p className="text-sm text-muted-foreground mb-2">Preferred Date</p>
                       <div className="flex items-center gap-2 text-base font-medium text-charcoal">
                         <CalendarIcon className="w-4 h-4 text-burgundy" />
-                        {(() => {
-                          const parsedDate = parseLocalDate(requestedDate);
-                          return parsedDate ? format(parsedDate, "EEEE, MMMM d, yyyy") : 'Not specified';
-                        })()}
+                        <span>
+                          {(() => {
+                            const parsedDate = parseLocalDate(requestedDate);
+                            return parsedDate ? format(parsedDate, "EEEE, MMMM d, yyyy") : 'Not specified';
+                          })()}
+                        </span>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Group Size</p>
+                      <p className="text-sm text-muted-foreground mb-2">Group Size</p>
                       <div className="flex items-center gap-2 text-base font-medium text-charcoal">
                         <Users className="w-4 h-4 text-burgundy" />
-                        {groupSize === 1 ? 'Solo' : groupSize === 2 ? 'Couple (2 people)' : `${groupSize} people`}
+                        <span>{groupSize === 1 ? 'Solo' : groupSize === 2 ? 'Couple (2 people)' : `${groupSize} people`}</span>
                       </div>
                     </div>
                   </div>
                   
                   {hikerLevel && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Experience Level</p>
-                      <Badge variant="outline" className="border-blue-300 text-blue-700">
-                        {getHikerLevelLabel(hikerLevel)}
-                      </Badge>
-                    </div>
+                    <>
+                      <Separator className="bg-burgundy/10" />
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Hiker Experience Level</p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className="w-4 h-4 text-burgundy" />
+                          <Badge variant="outline" className="border-blue-300 text-blue-700">
+                            {getHikerLevelLabel(hikerLevel)}
+                          </Badge>
+                        </div>
+                        <p className="text-sm font-medium text-charcoal mt-2">Regular hiker</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Consider this when planning difficulty, pace, and safety requirements
+                        </p>
+                      </div>
+                    </>
                   )}
                   
                   {region && (
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Region</p>
                       <p className="text-base font-medium text-charcoal">{region}</p>
-                    </div>
-                  )}
-                  
-                  {initialMessage && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Additional Details</p>
-                      <p className="text-sm text-charcoal bg-white/50 p-3 rounded border border-burgundy/10">{initialMessage}</p>
                     </div>
                   )}
                 </div>
