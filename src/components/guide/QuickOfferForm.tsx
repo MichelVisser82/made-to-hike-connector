@@ -43,11 +43,18 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
   const tourName = conversation.tours?.title || tourType || 'Custom Tour Request';
   const requestCreatedAt = conversation.created_at;
   
+  // Parse date as local date to avoid timezone conversion issues
+  const parseLocalDate = (dateString: string | undefined) => {
+    if (!dateString) return undefined;
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+  
   // Form state
   const [formData, setFormData] = useState({
     pricePerPerson: '',
     duration: '',
-    preferredDate: requestedDate ? new Date(requestedDate) : undefined,
+    preferredDate: requestedDate ? parseLocalDate(requestedDate) : undefined,
     meetingPoint: '',
     meetingTime: '',
     itinerary: '',
@@ -103,7 +110,7 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
       setFormData({
         pricePerPerson: '',
         duration: '',
-        preferredDate: requestedDate ? new Date(requestedDate) : undefined,
+        preferredDate: requestedDate ? parseLocalDate(requestedDate) : undefined,
         meetingPoint: '',
         meetingTime: '',
         itinerary: '',
@@ -287,7 +294,7 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                   <div className="flex items-center gap-4 mt-2 text-sm">
                     <div className="flex items-center gap-1">
                       <CalendarIcon className="w-3 h-3 text-burgundy" />
-                      {requestedDate ? format(new Date(requestedDate), "MMM d") : 'TBD'}
+                      {requestedDate ? format(parseLocalDate(requestedDate)!, "MMM d") : 'TBD'}
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="w-3 h-3 text-burgundy" />
