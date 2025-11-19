@@ -1,11 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
-import { generateBookingConfirmationEmail, type BookingConfirmationData } from './templates.ts'
+import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail, type BookingConfirmationData, type GuideBookingNotificationData } from './templates.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder'
   to: string
   from?: string
   reply_to?: string
@@ -830,6 +830,64 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: 'Booking confirmation email sent successfully',
+          id: result.id,
+          type: emailRequest.type
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Handle guide-booking-notification email
+    if (emailRequest.type === 'guide-booking-notification') {
+      const html = generateGuideBookingNotificationEmail({
+        bookingReference: emailRequest.bookingReference || 'N/A',
+        tourTitle: emailRequest.tourTitle || 'Hiking Tour',
+        bookingDate: emailRequest.bookingDate || new Date().toISOString(),
+        hikerName: emailRequest.name,
+        hikerEmail: emailRequest.email || 'guest@madetohike.com',
+        meetingPoint: emailRequest.meetingPoint || 'Details will be shared',
+        totalPrice: emailRequest.totalPrice || 0,
+        currency: emailRequest.currency || 'EUR',
+        participants: emailRequest.participants || 1,
+      })
+
+      const emailPayload = {
+        from: 'MadeToHike <bookings@madetohike.com>',
+        to: emailRequest.to,
+        subject: `🎉 New Booking - ${emailRequest.tourTitle} (${emailRequest.bookingReference})`,
+        html,
+      }
+
+      console.log('Sending guide booking notification email via Resend...')
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailPayload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error('Resend API error:', result)
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to send email', 
+            details: result.message || 'Unknown error',
+            code: result.name || 'EMAIL_SEND_ERROR'
+          }),
+          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('Guide booking notification email sent successfully:', result.id)
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Guide booking notification email sent successfully',
           id: result.id,
           type: emailRequest.type
         }),
