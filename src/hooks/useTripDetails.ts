@@ -117,6 +117,50 @@ export function useTripDetails(bookingId: string | undefined) {
         .eq('booking_id', bookingId)
         .maybeSingle();
 
+      // Fetch guide profile for custom tour if offer exists
+      let offerGuideProfile = null;
+      if (tourOffer?.guide_id) {
+        // Try guide_profiles_public view first (better RLS for verified guides)
+        const { data: publicGuide } = await supabase
+          .from('guide_profiles_public')
+          .select(`
+            user_id,
+            display_name,
+            profile_image_url,
+            phone,
+            bio,
+            languages_spoken,
+            certifications,
+            experience_years
+          `)
+          .eq('user_id', tourOffer.guide_id)
+          .maybeSingle();
+
+        if (publicGuide) {
+          offerGuideProfile = publicGuide;
+        } else {
+          // Fallback to guide_profiles table
+          const { data: fullGuide } = await supabase
+            .from('guide_profiles')
+            .select(`
+              user_id,
+              display_name,
+              profile_image_url,
+              phone,
+              bio,
+              languages_spoken,
+              certifications,
+              experience_years
+            `)
+            .eq('user_id', tourOffer.guide_id)
+            .maybeSingle();
+          
+          if (fullGuide) {
+            offerGuideProfile = fullGuide;
+          }
+        }
+      }
+
       // Fetch checklist items
       const { data: checklistData } = await supabase
         .from('trip_checklist_items')
@@ -132,15 +176,19 @@ export function useTripDetails(bookingId: string | undefined) {
         .eq('id', user?.id)
         .single();
 
+      // Determine the effective guide ID (prioritize custom tour's guide)
+      const offerGuideId = tourOffer?.guide_id || null;
+      const tourGuideId = bookingData.tours?.guide_profiles?.user_id || bookingData.tours?.guide_id || null;
+      const effectiveGuideId = offerGuideId || tourGuideId;
+
       // Fetch guide stats (rating and review count)
-      const guideId = bookingData.tours?.guide_profiles?.user_id;
       let guideStats = { average_rating: 0, review_count: 0 };
       
-      if (guideId) {
+      if (effectiveGuideId) {
         const { data: reviews } = await supabase
           .from('reviews')
           .select('overall_rating')
-          .eq('guide_id', guideId)
+          .eq('guide_id', effectiveGuideId)
           .eq('review_type', 'hiker_to_guide')
           .eq('review_status', 'published');
 
@@ -222,6 +270,10 @@ export function useTripDetails(bookingId: string | undefined) {
         };
       }
 
+      // Determine best guide profile source (prioritize custom tour guide)
+      const tourGuideProfile = bookingData.tours?.guide_profiles || null;
+      const guideProfileSource = offerGuideProfile || tourGuideProfile || {};
+
       const tripDetails: TripDetails = {
         booking: {
           ...bookingData,
@@ -231,23 +283,23 @@ export function useTripDetails(bookingId: string | undefined) {
         } as any,
         tour: tourData,
         guide: {
-          // Prefer full guide profile when available, with solid fallbacks
-          ...(bookingData.tours?.guide_profiles || {}),
-          // Ensure display_name is always set
-          display_name: bookingData.tours?.guide_profiles?.display_name 
-            || bookingData.tours?.guide_display_name 
-            || 'Your Guide',
+          // Spread the guide profile data
+          ...guideProfileSource,
+          // Ensure user_id is always set
+          user_id: guideProfileSource.user_id || effectiveGuideId,
+          // Ensure display_name is always set with proper fallbacks
+          display_name: 
+            guideProfileSource.display_name ||
+            bookingData.tours?.guide_display_name ||
+            'Your Guide',
           // Ensure profile_image_url is always set
-          profile_image_url: bookingData.tours?.guide_profiles?.profile_image_url 
-            || bookingData.tours?.guide_avatar_url 
-            || null,
-          // Ensure user_id is set (needed for profile links)
-          user_id: bookingData.tours?.guide_profiles?.user_id 
-            || bookingData.tours?.guide_id 
-            || null,
+          profile_image_url: 
+            guideProfileSource.profile_image_url ||
+            bookingData.tours?.guide_avatar_url ||
+            null,
           // Ensure certifications is always an array
-          certifications: Array.isArray(bookingData.tours?.guide_profiles?.certifications)
-            ? bookingData.tours?.guide_profiles?.certifications
+          certifications: Array.isArray(guideProfileSource.certifications)
+            ? guideProfileSource.certifications
             : [],
           // Add review stats
           average_rating: guideStats.average_rating,
