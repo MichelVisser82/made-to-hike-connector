@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -247,9 +247,9 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
               <DialogTitle className="text-2xl font-bold text-charcoal">
                 Tour Request Details
               </DialogTitle>
-              <p className="text-sm text-muted-foreground">
+              <DialogDescription className="text-sm text-muted-foreground">
                 Received {requestCreatedAt ? format(new Date(requestCreatedAt), "MMMM d, yyyy 'at' h:mm a") : 'recently'}
-              </p>
+              </DialogDescription>
             </DialogHeader>
 
             <Separator className="my-4" />
@@ -520,9 +520,10 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                           <Calendar
                             mode="single"
                             selected={formData.preferredDate}
-                            onSelect={(date) => setFormData({ ...formData, preferredDate: date })}
+                            onSelect={(date) => setFormData({ ...formData, preferredDate: date || undefined })}
                             disabled={(date) => date < new Date()}
                             initialFocus
+                            className={cn("p-3 pointer-events-auto")}
                           />
                         </PopoverContent>
                       </Popover>
