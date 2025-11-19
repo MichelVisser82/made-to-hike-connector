@@ -49,10 +49,6 @@ export interface HikerBooking {
     preferred_date: string | null;
     itinerary: string | null;
     guide_id: string;
-    guide_profile?: {
-      name: string;
-      avatar_url: string | null;
-    } | null;
     tours: {
       id: string;
       title: string;
@@ -138,10 +134,6 @@ export function useHikerBookings(hikerId: string | undefined) {
             preferred_date,
             itinerary,
             guide_id,
-            guide_profile:profiles!tour_offers_guide_id_fkey (
-              name,
-              avatar_url
-            ),
             tours!tour_offers_tour_id_fkey (
               id,
               title,
