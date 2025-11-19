@@ -48,7 +48,35 @@ serve(async (req) => {
     const offerToken = crypto.randomUUID();
     logStep("Generated offer token");
     
-    // Insert offer
+    // Create a tour record for this custom offer
+    logStep("Creating tour record for custom offer");
+    const { data: tour, error: tourError } = await supabase
+      .from('tours')
+      .insert({
+        guide_id: offerData.guide_id,
+        title: `Custom Tour - ${offerData.duration}`,
+        description: offerData.itinerary,
+        duration: offerData.duration,
+        price: offerData.total_price,
+        currency: offerData.currency || 'EUR',
+        group_size: offerData.group_size,
+        difficulty: 'moderate',
+        meeting_point: offerData.meeting_point,
+        region: 'Custom',
+        is_active: false, // Custom tours are not publicly listed
+        itinerary: { days: [{ day: 1, description: offerData.itinerary }] },
+      })
+      .select()
+      .single();
+
+    if (tourError) {
+      logStep("Tour creation error", tourError);
+      throw tourError;
+    }
+
+    logStep("Tour created", { tour_id: tour.id });
+    
+    // Insert offer with tour_id
     const { data: offer, error: insertError } = await supabase
       .from('tour_offers')
       .insert({
@@ -56,6 +84,7 @@ serve(async (req) => {
         guide_id: offerData.guide_id,
         hiker_id: offerData.hiker_id,
         hiker_email: offerData.hiker_email,
+        tour_id: tour.id,
         offer_status: 'pending',
         price_per_person: offerData.price_per_person,
         total_price: offerData.total_price,

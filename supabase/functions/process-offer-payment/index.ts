@@ -119,7 +119,7 @@ serve(async (req) => {
       .insert({
         hiker_id: hikerId || offer.hiker_id,
         hiker_email: offer.hiker_email,
-        tour_id: null, // Custom offer, no regular tour
+        tour_id: offer.tour_id, // Use tour from custom offer
         booking_date: offer.preferred_date,
         participants: offer.group_size,
         total_price: offer.total_price,
