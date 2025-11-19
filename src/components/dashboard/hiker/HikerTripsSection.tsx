@@ -119,8 +119,8 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
         title: booking.tours?.title || 'Tour',
         dates: datesDisplay,
         guide: { 
-          name: booking.tours?.guide_profiles?.display_name || 'Guide', 
-          avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
+          name: offer?.tours?.guide_profiles?.display_name || booking.tours?.guide_profiles?.display_name || 'Guide', 
+          avatar: offer?.tours?.guide_profiles?.profile_image_url || booking.tours?.guide_profiles?.profile_image_url || '' 
         },
         location: meetingPoint,
         meeting_point_lat: booking.tours?.meeting_point_lat,
