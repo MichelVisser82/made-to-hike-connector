@@ -455,14 +455,14 @@ export function CustomTourRequestModal({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1"
+              className="flex-1 border-burgundy/20 hover:bg-burgundy/5"
               disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1"
+              className="flex-1 bg-burgundy hover:bg-burgundy/90 text-white"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Sending..." : "Send Request"}
