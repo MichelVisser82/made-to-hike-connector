@@ -45,17 +45,56 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
   
   // Parse date as local date to avoid timezone conversion issues
   const parseLocalDate = (dateString: string | undefined) => {
-    if (!dateString || typeof dateString !== 'string') return undefined;
+    if (!dateString || typeof dateString !== 'string') {
+      console.log('parseLocalDate: No valid date string', dateString);
+      return undefined;
+    }
+    
+    console.log('parseLocalDate: Parsing date string:', dateString);
+    
     try {
-      const parts = dateString.split('-');
-      if (parts.length !== 3) return undefined;
-      const [year, month, day] = parts.map(Number);
-      if (isNaN(year) || isNaN(month) || isNaN(day)) return undefined;
-      const date = new Date(year, month - 1, day);
-      // Check if the date is valid
-      if (isNaN(date.getTime())) return undefined;
-      return date;
-    } catch {
+      // Try different date formats
+      // Format 1: YYYY-MM-DD
+      if (dateString.includes('-')) {
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+          const [year, month, day] = parts.map(Number);
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            const date = new Date(year, month - 1, day);
+            if (!isNaN(date.getTime())) {
+              console.log('parseLocalDate: Successfully parsed as YYYY-MM-DD:', date);
+              return date;
+            }
+          }
+        }
+      }
+      
+      // Format 2: MM/DD/YYYY
+      if (dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          const [month, day, year] = parts.map(Number);
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            const date = new Date(year, month - 1, day);
+            if (!isNaN(date.getTime())) {
+              console.log('parseLocalDate: Successfully parsed as MM/DD/YYYY:', date);
+              return date;
+            }
+          }
+        }
+      }
+      
+      // Format 3: ISO string or fallback to Date constructor
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        console.log('parseLocalDate: Successfully parsed with Date constructor:', date);
+        return date;
+      }
+      
+      console.log('parseLocalDate: All parsing attempts failed');
+      return undefined;
+    } catch (error) {
+      console.log('parseLocalDate: Error parsing date:', error);
       return undefined;
     }
   };
