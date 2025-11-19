@@ -281,7 +281,7 @@ export function CustomTourRequestModal({
                     <PopoverContent className="w-[400px] p-0 z-[9999]" align="start" sideOffset={4}>
                       <Command>
                         <CommandInput placeholder="Search regions..." />
-                        <CommandList className="max-h-[300px]">
+                        <CommandList className="max-h-[300px] overflow-y-auto overscroll-contain">
                           <CommandEmpty>No region found.</CommandEmpty>
                           <CommandGroup>
                             {regionsLoading ? (
