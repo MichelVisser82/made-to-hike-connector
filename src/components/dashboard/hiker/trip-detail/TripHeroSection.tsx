@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Users, Mountain, Heart, TrendingUp } from 'lucide-react';
+import { Calendar, MapPin, Users, Mountain, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { TripDetails } from '@/hooks/useTripDetails';
 import { SmartImage } from '@/components/SmartImage';
@@ -80,14 +80,6 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
         <div className="absolute top-4 left-4">
           {getStatusBadge()}
         </div>
-        {/* Wishlist Heart - Top Right */}
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="absolute top-4 right-4 bg-white/90 hover:bg-white"
-        >
-          <Heart className="w-5 h-5 text-burgundy" />
-        </Button>
       </div>
 
       {/* Title Section */}
