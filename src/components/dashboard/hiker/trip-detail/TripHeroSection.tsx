@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, Mountain, Heart, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { TripDetails } from '@/hooks/useTripDetails';
+import { SmartImage } from '@/components/SmartImage';
 
 interface TripHeroSectionProps {
   tripDetails: TripDetails;
@@ -66,7 +67,14 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
             className="w-full h-96 object-cover"
           />
         ) : (
-          <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-50" />
+          <SmartImage
+            category="hero"
+            usageContext="tour"
+            tags={['mountain', 'hiking', 'adventure']}
+            className="w-full h-96 object-cover"
+            alt={tour.title}
+            priority="high"
+          />
         )}
         {/* Status Badge - Top Left */}
         <div className="absolute top-4 left-4">
