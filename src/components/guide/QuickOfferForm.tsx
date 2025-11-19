@@ -148,6 +148,8 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
           preferred_date: formData.preferredDate?.toISOString().split('T')[0],
           group_size: groupSize,
           meeting_point: formData.meetingPoint,
+          meeting_point_lat: formData.meetingPoint_lat,
+          meeting_point_lng: formData.meetingPoint_lng,
           meeting_time: formData.meetingTime,
           itinerary: formData.itinerary,
           included_items: formData.includedItems,
