@@ -812,28 +812,28 @@ export function TourDetailPage({
 
             {/* What's Included / Not Included */}
             <div className="grid md:grid-cols-2 gap-6">
-              <Card>
+              <Card className="border-border shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-lg">What's Included</CardTitle>
+                  <CardTitle className="text-lg text-foreground">What's Included</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
-                    {tour.includes.map((item, index) => <li key={index} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                  <ul className="space-y-3">
+                    {tour.includes.map((item, index) => <li key={index} className="flex items-center gap-3 text-sm text-foreground">
+                        <CheckCircle className="h-4 w-4 text-burgundy flex-shrink-0" />
                         <span>{item}</span>
                       </li>)}
                   </ul>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="border-border shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-lg">Not Included</CardTitle>
+                  <CardTitle className="text-lg text-foreground">Not Included</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {tour.excluded_items && tour.excluded_items.length > 0 ? <ul className="space-y-2 text-sm text-muted-foreground">
-                      {tour.excluded_items.map((item, index) => <li key={index} className="flex items-center gap-2">
-                          <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+                  {tour.excluded_items && tour.excluded_items.length > 0 ? <ul className="space-y-3">
+                      {tour.excluded_items.map((item, index) => <li key={index} className="flex items-center gap-3 text-sm text-muted-foreground">
+                          <XCircle className="w-4 h-4 text-burgundy/60 flex-shrink-0" />
                           <span>{item}</span>
                         </li>)}
                     </ul> : <p className="text-sm text-muted-foreground">All standard items are included.</p>}
