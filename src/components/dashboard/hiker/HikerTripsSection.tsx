@@ -125,8 +125,14 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
         title: booking.tours?.title || 'Tour',
         dates: datesDisplay,
         guide: { 
-          name: mainGuideProfile?.display_name || 'Guide', 
-          avatar: mainGuideProfile?.profile_image_url || '' 
+          name: mainGuideProfile?.display_name 
+            || offer?.tours?.guide_display_name 
+            || booking.tours?.guide_display_name 
+            || 'Guide', 
+          avatar: mainGuideProfile?.profile_image_url 
+            || offer?.tours?.guide_avatar_url 
+            || booking.tours?.guide_avatar_url 
+            || '' 
         },
         location: meetingPoint,
         meeting_point_lat: booking.tours?.meeting_point_lat,
@@ -160,8 +166,14 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
         title: booking.tours?.title || 'Tour',
         dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
         guide: { 
-          name: mainGuideProfile?.display_name || 'Guide', 
-          avatar: mainGuideProfile?.profile_image_url || '' 
+          name: mainGuideProfile?.display_name 
+            || offer?.tours?.guide_display_name 
+            || booking.tours?.guide_display_name 
+            || 'Guide', 
+          avatar: mainGuideProfile?.profile_image_url 
+            || offer?.tours?.guide_avatar_url 
+            || booking.tours?.guide_avatar_url 
+            || '' 
         },
         location: booking.tours?.meeting_point || 'Location',
         guests: booking.participants,
