@@ -2119,6 +2119,116 @@ export type Database = {
           },
         ]
       }
+      tour_offers: {
+        Row: {
+          accepted_at: string | null
+          booking_id: string | null
+          conversation_id: string
+          created_at: string | null
+          currency: string | null
+          declined_at: string | null
+          duration: string
+          expires_at: string | null
+          group_size: number
+          guide_id: string
+          hiker_email: string
+          hiker_id: string | null
+          id: string
+          included_items: string
+          itinerary: string
+          meeting_point: string
+          meeting_time: string
+          offer_status: string | null
+          offer_token: string
+          personal_note: string | null
+          preferred_date: string | null
+          price_per_person: number
+          total_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          booking_id?: string | null
+          conversation_id: string
+          created_at?: string | null
+          currency?: string | null
+          declined_at?: string | null
+          duration: string
+          expires_at?: string | null
+          group_size: number
+          guide_id: string
+          hiker_email: string
+          hiker_id?: string | null
+          id?: string
+          included_items: string
+          itinerary: string
+          meeting_point: string
+          meeting_time: string
+          offer_status?: string | null
+          offer_token: string
+          personal_note?: string | null
+          preferred_date?: string | null
+          price_per_person: number
+          total_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          booking_id?: string | null
+          conversation_id?: string
+          created_at?: string | null
+          currency?: string | null
+          declined_at?: string | null
+          duration?: string
+          expires_at?: string | null
+          group_size?: number
+          guide_id?: string
+          hiker_email?: string
+          hiker_id?: string | null
+          id?: string
+          included_items?: string
+          itinerary?: string
+          meeting_point?: string
+          meeting_time?: string
+          offer_status?: string | null
+          offer_token?: string
+          personal_note?: string | null
+          preferred_date?: string | null
+          price_per_person?: number
+          total_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_offers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_offers_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_offers_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_offers_hiker_id_fkey"
+            columns: ["hiker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tour_step_templates: {
         Row: {
           category: string

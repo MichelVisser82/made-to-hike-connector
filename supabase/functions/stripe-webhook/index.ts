@@ -68,6 +68,16 @@ serve(async (req) => {
 
     // Handle different event types
     switch (event.type) {
+      case 'checkout.session.completed':
+        // Check if this is an offer payment
+        const session = event.data.object as any;
+        if (session.metadata?.type === 'tour_offer') {
+          await supabaseClient.functions.invoke('process-offer-payment', {
+            body: { session_id: session.id, event_type: event.type },
+          });
+        }
+        break;
+      
       case 'payment_intent.processing':
         await handlePaymentProcessing(event, supabaseClient);
         break;
