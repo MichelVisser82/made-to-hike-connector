@@ -161,57 +161,57 @@ serve(async (req) => {
 
     // Send confirmation emails
     try {
-      // Email to hiker
+      // Fetch tour and guide details for proper email
+      const { data: tour } = await supabase
+        .from('tours')
+        .select('title, meeting_point_formatted')
+        .eq('id', offer.tour_id)
+        .single();
+
+      const { data: guideProfile } = await supabase
+        .from('guide_profiles')
+        .select('display_name')
+        .eq('user_id', offer.guide_id)
+        .single();
+
+      // Email to hiker with structured data
       await supabase.functions.invoke('send-email', {
         body: {
           type: 'booking-confirmation',
           to: offer.hiker_email,
-          subject: 'Booking Confirmed - Custom Tour',
-          html: `
-            <h1>Your Custom Tour is Confirmed!</h1>
-            <p>Great news! Your custom tour booking has been confirmed.</p>
-            <h2>Booking Details</h2>
-            <p><strong>Booking Reference:</strong> ${bookingReference}</p>
-            <p><strong>Date:</strong> ${new Date(offer.preferred_date).toLocaleDateString()}</p>
-            <p><strong>Group Size:</strong> ${offer.group_size} ${offer.group_size === 1 ? 'person' : 'people'}</p>
-            <p><strong>Total Price:</strong> €${offer.total_price}</p>
-            <h2>Tour Details</h2>
-            <p><strong>Duration:</strong> ${offer.duration}</p>
-            <p><strong>Itinerary:</strong> ${offer.itinerary}</p>
-            <p><strong>Included:</strong> ${offer.included_items}</p>
-            <p><strong>Meeting Point:</strong> ${offer.meeting_point}</p>
-            <p><strong>Meeting Time:</strong> ${offer.meeting_time}</p>
-            ${offer.personal_note ? `<p><strong>Guide's Note:</strong> ${offer.personal_note}</p>` : ''}
-            <p>You can view your booking details in your <a href="https://madetohike.com/dashboard">dashboard</a>.</p>
-            <p>We look forward to your adventure!</p>
-          `
+          bookingReference: bookingReference,
+          tourTitle: tour?.title || 'Custom Hiking Tour',
+          bookingDate: offer.preferred_date,
+          guideName: guideProfile?.display_name || 'Your Guide',
+          meetingPoint: offer.meeting_point || tour?.meeting_point_formatted || 'Details will be shared',
+          totalPrice: offer.total_price,
+          currency: offer.currency,
+          participants: offer.group_size,
+          isDeposit: false,
         }
       });
 
       // Email to guide
-      const { data: guideProfile } = await supabase
+      const { data: guideEmail } = await supabase
         .from('profiles')
-        .select('email, name')
+        .select('email')
         .eq('id', offer.guide_id)
         .single();
 
-      if (guideProfile?.email) {
+      if (guideEmail?.email) {
         await supabase.functions.invoke('send-email', {
           body: {
             type: 'booking-confirmation',
-            to: guideProfile.email,
-            subject: 'New Booking - Custom Tour Offer Accepted',
-            html: `
-              <h1>Your Custom Tour Offer Was Accepted!</h1>
-              <p>Good news! Your custom tour offer has been accepted and paid for.</p>
-              <h2>Booking Details</h2>
-              <p><strong>Booking Reference:</strong> ${bookingReference}</p>
-              <p><strong>Client:</strong> ${offer.hiker_email}</p>
-              <p><strong>Date:</strong> ${new Date(offer.preferred_date).toLocaleDateString()}</p>
-              <p><strong>Group Size:</strong> ${offer.group_size} ${offer.group_size === 1 ? 'person' : 'people'}</p>
-              <p><strong>Total Price:</strong> €${offer.total_price}</p>
-              <p>You can view the booking details in your <a href="https://madetohike.com/dashboard">dashboard</a>.</p>
-            `
+            to: guideEmail.email,
+            bookingReference: bookingReference,
+            tourTitle: tour?.title || 'Custom Hiking Tour',
+            bookingDate: offer.preferred_date,
+            guideName: guideProfile?.display_name || 'Your Guide',
+            meetingPoint: offer.meeting_point || tour?.meeting_point_formatted || 'Details will be shared',
+            totalPrice: offer.total_price,
+            currency: offer.currency,
+            participants: offer.group_size,
+            isDeposit: false,
           }
         });
       }
