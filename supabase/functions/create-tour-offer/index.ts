@@ -62,6 +62,8 @@ serve(async (req) => {
         group_size: offerData.group_size,
         difficulty: 'moderate',
         meeting_point: offerData.meeting_point,
+        meeting_point_lat: offerData.meeting_point_lat,
+        meeting_point_lng: offerData.meeting_point_lng,
         region: 'Custom',
         is_active: false, // Custom tours are not publicly listed
         itinerary: { days: [{ day: 1, description: offerData.itinerary }] },
