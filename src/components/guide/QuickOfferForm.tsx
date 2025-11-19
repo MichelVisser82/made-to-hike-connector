@@ -266,10 +266,6 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                     <p className="text-sm text-muted-foreground mb-1">Name</p>
                     <p className="text-base font-medium text-charcoal">{clientName}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Email</p>
-                    <p className="text-base font-medium text-burgundy">{clientEmail}</p>
-                  </div>
                 </div>
               </div>
 
