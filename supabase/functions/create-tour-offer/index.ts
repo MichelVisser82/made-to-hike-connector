@@ -54,7 +54,7 @@ serve(async (req) => {
     }
 
     // Verify user is the guide
-    if (user.id !== offerData.guide_id) {
+    if (userId !== offerData.guide_id) {
       throw new Error('Unauthorized: User is not the guide');
     }
 
