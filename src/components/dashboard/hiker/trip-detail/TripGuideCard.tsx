@@ -14,7 +14,8 @@ export function TripGuideCard({ tripDetails }: TripGuideCardProps) {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const { guide } = tripDetails;
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | undefined) => {
+    if (!name) return 'G';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 

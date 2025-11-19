@@ -10,6 +10,14 @@ interface TripHeroSectionProps {
 
 export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
   const { booking, tour } = tripDetails;
+  
+  if (!tour) {
+    return (
+      <div className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md">
+        <p className="text-charcoal/60">Tour information unavailable</p>
+      </div>
+    );
+  }
 
   const getStatusBadge = () => {
     if (booking.status === 'confirmed') {

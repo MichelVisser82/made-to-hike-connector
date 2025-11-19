@@ -14,7 +14,7 @@ export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
   // Handle itinerary data - it might be stored in different formats
   let itineraryDays: TripItineraryDay[] = [];
   
-  if (tour.itinerary) {
+  if (tour?.itinerary) {
     // If itinerary has a days array directly
     if (Array.isArray(tour.itinerary.days)) {
       itineraryDays = tour.itinerary.days;
