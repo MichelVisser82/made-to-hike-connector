@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -76,11 +76,21 @@ export function CustomTourRequestModal({
     region: "",
     groupSize: "",
     hikerLevel: "",
-    preferredDate: preSelectedDate || undefined as Date | undefined,
+    preferredDate: undefined as Date | undefined,
     message: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update preferred date when preSelectedDate changes or modal opens
+  useEffect(() => {
+    if (open && preSelectedDate) {
+      setFormData(prev => ({
+        ...prev,
+        preferredDate: preSelectedDate
+      }));
+    }
+  }, [open, preSelectedDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
