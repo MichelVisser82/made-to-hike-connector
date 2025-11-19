@@ -164,6 +164,7 @@ serve(async (req) => {
       // Email to hiker
       await supabase.functions.invoke('send-email', {
         body: {
+          type: 'booking-confirmation',
           to: offer.hiker_email,
           subject: 'Booking Confirmed - Custom Tour',
           html: `
@@ -197,6 +198,7 @@ serve(async (req) => {
       if (guideProfile?.email) {
         await supabase.functions.invoke('send-email', {
           body: {
+            type: 'booking-confirmation',
             to: guideProfile.email,
             subject: 'New Booking - Custom Tour Offer Accepted',
             html: `
