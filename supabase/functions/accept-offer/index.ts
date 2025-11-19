@@ -31,13 +31,28 @@ serve(async (req) => {
     // Fetch offer
     const { data: offer, error: offerError } = await supabase
       .from('tour_offers')
-      .select('*, guide:guide_id(stripe_account_id)')
+      .select('*')
       .eq('offer_token', token)
       .single();
 
     if (offerError || !offer) {
+      logStep("Offer fetch error", { offerError });
       throw new Error('Offer not found');
     }
+
+    // Fetch guide's Stripe account separately
+    const { data: guideProfile, error: guideError } = await supabase
+      .from('guide_profiles')
+      .select('stripe_account_id')
+      .eq('user_id', offer.guide_id)
+      .single();
+
+    if (guideError || !guideProfile) {
+      logStep("Guide profile fetch error", { guideError });
+      throw new Error('Guide profile not found');
+    }
+
+    logStep("Guide Stripe account", { stripe_account_id: guideProfile.stripe_account_id });
 
     // Check offer is still pending
     if (offer.offer_status !== 'pending') {
@@ -61,7 +76,7 @@ serve(async (req) => {
     });
 
     // Check guide has Stripe account
-    if (!offer.guide?.stripe_account_id) {
+    if (!guideProfile.stripe_account_id) {
       throw new Error('Guide does not have a Stripe account configured');
     }
 
@@ -89,7 +104,7 @@ serve(async (req) => {
       payment_intent_data: {
         application_fee_amount: platformFeeAmount,
         transfer_data: {
-          destination: offer.guide.stripe_account_id,
+          destination: guideProfile.stripe_account_id,
         },
         metadata: {
           offer_id: offer.id,
