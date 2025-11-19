@@ -262,9 +262,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
 
             {/* Right Side - Booking Card (Desktop) */}
-            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-24 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-3">
+            <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-24 bg-background/95 backdrop-blur-sm shadow-lg rounded-xl p-4 border-border">
               {/* Guide Info */}
-              <div className="mb-3 pb-3 border-b border-burgundy/10">
+              <div className="mb-4 pb-4 border-b border-border">
                 <GuideInfoDisplay 
                   guideInfo={guideInfo}
                   isLoadingProfessional={isLoadingProfessional}
@@ -277,36 +277,36 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               </div>
 
               {/* Price Display */}
-              <div className="text-center py-2 border-b mb-3">
-                <div className="text-xs text-charcoal/60 mb-0.5">From</div>
-                <div className="text-2xl font-bold text-charcoal">
+              <div className="text-center py-3 border-b border-border mb-4">
+                <div className="text-xs text-muted-foreground mb-1">From</div>
+                <div className="text-2xl font-bold text-foreground">
                   {tour.currency === 'EUR' ? '€' : '£'}{lowestPrice}
-                  <span className="text-sm font-normal text-charcoal/60"> / person</span>
+                  <span className="text-sm font-normal text-muted-foreground"> / person</span>
                 </div>
               </div>
               
               {/* Date Selection */}
-              <div className="relative mb-3">
-                <label className="block text-xs font-medium mb-1.5 text-charcoal">Select a Date</label>
+              <div className="relative mb-4">
+                <label className="block text-sm font-medium mb-2 text-foreground">Select a Date</label>
                 <button
                   type="button"
                   onClick={() => setShowDateDropdown(!showDateDropdown)}
-                  className="w-full px-3 py-2 border rounded-lg bg-card hover:border-primary transition-colors flex items-center justify-between text-left"
+                  className="w-full px-3 py-2.5 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left"
                 >
-                  <span className={selectedDate ? "text-charcoal" : "text-charcoal/60"}>
+                  <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
                     {selectedDate 
                       ? dateOptions.find(d => d.date === selectedDate)?.dateRange 
                       : "Choose available dates"}
                   </span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {showDateDropdown && (
-                  <div className="absolute z-[100] w-full mt-2 bg-card border rounded-lg shadow-lg max-h-80 overflow-auto">
+                  <div className="absolute z-[100] w-full mt-2 bg-background border border-border rounded-lg shadow-lg max-h-80 overflow-auto">
                     {isLoadingDates ? (
-                      <div className="p-4 text-center text-charcoal/60">Loading dates...</div>
+                      <div className="p-4 text-center text-muted-foreground">Loading dates...</div>
                     ) : dateOptions.length === 0 ? (
-                      <div className="p-4 text-center text-charcoal/60">No dates available</div>
+                      <div className="p-4 text-center text-muted-foreground">No dates available</div>
                     ) : dateOptions.map((option) => (
                       <button
                         key={option.date}
@@ -316,31 +316,31 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                           setSelectedSlotId(option.slotId);
                           setShowDateDropdown(false);
                         }}
-                        className="w-full px-4 py-3 hover:bg-cream-light transition-colors border-b last:border-b-0 text-left"
+                        className="w-full px-4 py-3 hover:bg-accent transition-colors border-b border-border last:border-b-0 text-left"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
-                            <div className="font-medium text-sm mb-1 text-charcoal">{option.dateRange}</div>
+                            <div className="font-medium text-sm mb-1 text-foreground">{option.dateRange}</div>
                             <div className="flex items-center gap-2">
-                              <Users className="h-3 w-3 text-charcoal/60" />
-                              <span className="text-xs text-charcoal/60">
+                              <Users className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">
                                 {option.spotsLeft} {option.spotsLeft === 1 ? 'spot' : 'spots'} left
                               </span>
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
                             {option.discount && (
-                              <Badge variant="secondary" className="mb-1 text-xs px-2 py-0 bg-primary/10 text-primary border-0">
+                              <Badge variant="secondary" className="mb-1 text-xs px-2 py-0 bg-burgundy/10 text-burgundy border-0">
                                 {option.discount}
                               </Badge>
                             )}
-                            <div className="flex flex-col">
+                             <div className="flex flex-col">
                               {option.originalPrice && (
-                                <span className="text-xs text-charcoal/60 line-through">
+                                <span className="text-xs text-muted-foreground line-through">
                                   {tour.currency === 'EUR' ? '€' : '£'}{option.originalPrice}
                                 </span>
                               )}
-                              <span className="font-bold text-base text-charcoal">
+                              <span className="font-bold text-base text-foreground">
                                 {tour.currency === 'EUR' ? '€' : '£'}{option.price}
                               </span>
                             </div>
@@ -354,7 +354,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
               {/* Available Spots */}
               {selectedDateOption && selectedDateOption.spotsLeft <= 3 && (
-                <div className="bg-burgundy/10 rounded-lg p-2 mb-3">
+                <div className="bg-burgundy/10 rounded-lg p-2.5 mb-4">
                   <div className="flex items-center justify-center gap-2">
                     <Users className="h-3.5 w-3.5 text-burgundy" />
                     <span className="text-xs font-medium text-burgundy">
@@ -365,33 +365,33 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               )}
               
               {/* Action Buttons */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Button 
                   onClick={() => onBookTour(tour, selectedSlotId || undefined)}
                   disabled={!selectedDate}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-2"
+                  className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium py-2.5"
                 >
                   Book Now
                 </Button>
                 <Button 
                   variant="outline"
-                  className="w-full border-primary text-primary hover:bg-primary/10 text-sm py-2"
+                  className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5 font-medium py-2.5"
                   onClick={() => setChatOpen(true)}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Ask the Guide
                 </Button>
                 {selectedDate && (
-                  <p className="text-xs text-center text-charcoal/60 mt-1">You won't be charged yet</p>
+                  <p className="text-xs text-center text-muted-foreground mt-2">You won't be charged yet</p>
                 )}
               </div>
             </Card>
           </div>
 
           {/* Mobile Booking Card */}
-          <Card className="lg:hidden mt-6 bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-5">
+          <Card className="lg:hidden mt-6 bg-background/95 backdrop-blur-sm shadow-lg rounded-xl p-5 border-border">
             {/* Guide Info */}
-            <div className="mb-4 pb-4 border-b">
+            <div className="mb-4 pb-4 border-b border-border">
               <GuideInfoDisplay 
                 guideInfo={guideInfo}
                 isLoadingProfessional={isLoadingProfessional}
@@ -404,28 +404,28 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </div>
 
             {/* Price Display */}
-            <div className="text-center py-3 border-b mb-4">
-              <div className="text-sm text-charcoal/60 mb-1">From</div>
-              <div className="text-3xl font-bold text-charcoal">
+            <div className="text-center py-3 border-b border-border mb-4">
+              <div className="text-sm text-muted-foreground mb-1">From</div>
+              <div className="text-3xl font-bold text-foreground">
                 {tour.currency === 'EUR' ? '€' : '£'}{lowestPrice}
-                <span className="text-base font-normal text-charcoal/60"> / person</span>
+                <span className="text-base font-normal text-muted-foreground"> / person</span>
               </div>
             </div>
             
             {/* Date Selection (same as desktop) */}
             <div className="relative mb-4">
-              <label className="block text-sm font-medium mb-2 text-charcoal">Select a Date</label>
+              <label className="block text-sm font-medium mb-2 text-foreground">Select a Date</label>
               <button
                 type="button"
                 onClick={() => setShowDateDropdown(!showDateDropdown)}
-                className="w-full px-4 py-3 border rounded-lg bg-card hover:border-primary transition-colors flex items-center justify-between text-left"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left"
               >
-                <span className={selectedDate ? "text-charcoal" : "text-charcoal/60"}>
+                <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
                   {selectedDate 
                     ? dateOptions.find(d => d.date === selectedDate)?.dateRange 
                     : "Choose available dates"}
                 </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
               </button>
             </div>
             
@@ -434,13 +434,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               <Button 
                 onClick={() => onBookTour(tour, selectedSlotId || undefined)}
                 disabled={!selectedDate}
-                className="w-full bg-burgundy hover:bg-burgundy/90 text-white text-base py-3"
+                className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium text-base py-3"
               >
                 {selectedDate ? 'Book Now' : 'Select a Date to Book'}
               </Button>
               <Button 
                 variant="outline"
-                className="w-full border-burgundy text-burgundy hover:bg-burgundy/10 text-base py-3"
+                className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5 font-medium text-base py-3"
                 onClick={() => setChatOpen(true)}
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
