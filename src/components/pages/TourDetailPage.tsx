@@ -859,7 +859,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
             {/* Meet Your Guide */}
             <div className="space-y-6">
-              <h2 className="text-4xl font-bold">Meet Your Guide</h2>
+              <h2 className="text-4xl font-bold text-foreground">Meet Your Guide</h2>
               
               <div className="bg-background border rounded-lg overflow-hidden">
                 <div className="grid md:grid-cols-[400px,1fr] gap-0">
@@ -909,9 +909,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                           {/* Rating */}
                           {guideInfo.averageRating > 0 && (
                             <div className="flex items-center gap-2">
-                              <Star className="h-4 w-4 fill-primary text-primary" />
+                              <Star className="h-4 w-4 fill-burgundy text-burgundy" />
                               <div>
-                                <div className="font-bold text-sm">{guideInfo.averageRating.toFixed(1)}</div>
+                                <div className="font-bold text-sm text-foreground">{guideInfo.averageRating.toFixed(1)}</div>
                                 <div className="text-xs text-muted-foreground">
                                   ({tourReviews.length || 1} reviews)
                                 </div>
@@ -981,15 +981,15 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
                     {/* Guide Owned Badge */}
                     <div className="mb-4">
-                      <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-lg">
+                      <div className="inline-flex items-center gap-2 bg-burgundy/10 text-burgundy px-4 py-2 rounded-lg">
                         <Shield className="h-5 w-5" />
                         <span className="font-semibold">Guide Owned</span>
                       </div>
                     </div>
 
                     {/* Profit Sharing Banner */}
-                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
-                      <p className="text-sm text-primary font-medium">
+                    <div className="bg-burgundy/10 border border-burgundy/20 rounded-lg p-4 mb-6">
+                      <p className="text-sm text-burgundy font-medium">
                         100% of profits go directly to your guide - we only charge a small platform fee to cover costs
                       </p>
                     </div>
@@ -998,7 +998,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     <Button 
                       variant="default" 
                       size="lg" 
-                      className="w-full mt-auto"
+                      className="w-full mt-auto bg-burgundy hover:bg-burgundy/90 text-white font-medium"
                       onClick={() => setChatOpen(true)}
                     >
                       <MessageCircle className="mr-2 h-5 w-5" />
