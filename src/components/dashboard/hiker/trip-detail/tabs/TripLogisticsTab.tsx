@@ -20,6 +20,10 @@ export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
   const { tour, guide, booking } = tripDetails;
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
+  if (!tour || !guide) {
+    return null;
+  }
+
   const handleOpenMaps = () => {
     if (tour.meeting_point_lat && tour.meeting_point_lng) {
       const url = `https://www.google.com/maps/search/?api=1&query=${tour.meeting_point_lat},${tour.meeting_point_lng}`;
@@ -28,11 +32,13 @@ export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
   };
 
   const guideInitials = guide.display_name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+    ? guide.display_name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'GU';
 
   return (
     <div className="space-y-6">
