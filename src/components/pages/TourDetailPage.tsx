@@ -4,8 +4,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
-import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, Heart, Share2, 
-         Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown, X, XCircle, Camera } from 'lucide-react';
+import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, Heart, Share2, Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown, X, XCircle, Camera } from 'lucide-react';
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
@@ -25,14 +24,16 @@ import { PublicTourMapSection } from '../tour/PublicTourMapSection';
 import { TourPolicyDisplay } from '../tour/TourPolicyDisplay';
 import { TourCard } from '../tour/TourCard';
 import { Skeleton } from '../ui/skeleton';
-
 interface TourDetailPageProps {
   tour: Tour;
   onBookTour: (tour: Tour, selectedSlotId?: string) => void;
   onBackToSearch: () => void;
 }
-
-export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailPageProps) {
+export function TourDetailPage({
+  tour,
+  onBookTour,
+  onBackToSearch
+}: TourDetailPageProps) {
   const navigate = useNavigate();
   const [expandedItinerary, setExpandedItinerary] = useState<Record<number, boolean>>({});
   const [showDateDropdown, setShowDateDropdown] = useState(false);
@@ -41,33 +42,53 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
   const [chatOpen, setChatOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [userId, setUserId] = useState<string | undefined>();
-  
+
   // Get current user
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
+    supabase.auth.getUser().then(({
+      data
+    }) => setUserId(data.user?.id));
   }, []);
-  
+
   // Use unified hook for consistent guide data
-  const { guideInfo, isLoadingProfessional, guideProfile } = useEnhancedGuideInfo(tour);
-  
+  const {
+    guideInfo,
+    isLoadingProfessional,
+    guideProfile
+  } = useEnhancedGuideInfo(tour);
+
   // Get primary certification for large badge display
   const primaryCert = guideProfile?.certifications ? getPrimaryCertification(guideProfile.certifications) : null;
 
   // Save tour functionality
-  const { isTourSaved, toggleSaveTour } = useSavedTours(userId);
+  const {
+    isTourSaved,
+    toggleSaveTour
+  } = useSavedTours(userId);
   const isSaved = isTourSaved(tour.id);
 
   // Fetch real date availability
-  const { data: dateSlots, isLoading: isLoadingDates } = useTourDateAvailability(tour.id);
-  
+  const {
+    data: dateSlots,
+    isLoading: isLoadingDates
+  } = useTourDateAvailability(tour.id);
+
   // Fetch tour map data (if exists)
-  const { data: tourMapData } = useTourMapData(tour.id);
-  
+  const {
+    data: tourMapData
+  } = useTourMapData(tour.id);
+
   // Fetch tour reviews
-  const { data: tourReviews = [], isLoading: isLoadingReviews } = useTourReviews(tour.id, 3);
+  const {
+    data: tourReviews = [],
+    isLoading: isLoadingReviews
+  } = useTourReviews(tour.id, 3);
 
   // Fetch related tours
-  const { data: relatedTours = [], isLoading: isLoadingRelated } = useRelatedTours(tour.id, tour.region);
+  const {
+    data: relatedTours = [],
+    isLoading: isLoadingRelated
+  } = useRelatedTours(tour.id, tour.region);
 
   // Helper to format date range based on tour duration
   const formatDateRange = (startDate: Date, duration: string) => {
@@ -79,11 +100,8 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
   // Transform real data to match UI format
   const dateOptions = dateSlots?.map(slot => {
-    const originalPrice = slot.discountPercentage 
-      ? slot.price / (1 - slot.discountPercentage / 100) 
-      : null;
+    const originalPrice = slot.discountPercentage ? slot.price / (1 - slot.discountPercentage / 100) : null;
     const savings = originalPrice ? originalPrice - slot.price : null;
-    
     return {
       date: slot.slotDate.toISOString().split('T')[0],
       dateRange: formatDateRange(slot.slotDate, tour.duration),
@@ -95,7 +113,6 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
       slotId: slot.slotId
     };
   }) || [];
-
   const toggleItinerary = (index: number) => {
     setExpandedItinerary(prev => ({
       ...prev,
@@ -105,12 +122,12 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
   // Rotate images: move current to end, show next as main
   const rotateImagesForward = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % tour.images.length);
+    setCurrentImageIndex(prev => (prev + 1) % tour.images.length);
   };
 
   // Rotate images: show previous as main
   const rotateImagesBackward = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + tour.images.length) % tour.images.length);
+    setCurrentImageIndex(prev => (prev - 1 + tour.images.length) % tour.images.length);
   };
 
   // Get ordered array of images starting from current index
@@ -119,30 +136,18 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
     const images = [...tour.images];
     return [...images.slice(currentImageIndex), ...images.slice(0, currentImageIndex)];
   };
-
   const selectedDateOption = dateOptions.find(d => d.date === selectedDate);
-  
-  // Calculate lowest available price from real data
-  const lowestPrice = dateOptions.length > 0 
-    ? Math.min(...dateOptions.map(d => d.price))
-    : tour.price;
 
-  return (
-    <div className="min-h-screen bg-white">
+  // Calculate lowest available price from real data
+  const lowestPrice = dateOptions.length > 0 ? Math.min(...dateOptions.map(d => d.price)) : tour.price;
+  return <div className="min-h-screen bg-white">
       {/* Hero Section - Guide-style */}
       <section className="relative w-full overflow-hidden lg:h-[520px]">
         {/* Hero Background */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: tour.hero_image 
-              ? `url(${tour.hero_image})` 
-              : tour.images[0]
-              ? `url(${tour.images[0]})`
-              : undefined,
-            backgroundColor: !tour.hero_image && !tour.images[0] ? '#1a4d2e' : undefined
-          }}
-        >
+        <div className="absolute inset-0 bg-cover bg-center" style={{
+        backgroundImage: tour.hero_image ? `url(${tour.hero_image})` : tour.images[0] ? `url(${tour.images[0]})` : undefined,
+        backgroundColor: !tour.hero_image && !tour.images[0] ? '#1a4d2e' : undefined
+      }}>
           {/* Lighter gradient overlays to show more of the image */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 h-32 md:h-40 bg-gradient-to-b from-transparent to-white" />
@@ -150,48 +155,30 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
 
         {/* Content - Positioned at bottom */}
         <div className="relative container mx-auto px-4 lg:h-full lg:flex lg:items-end lg:pb-8">
-          <Button
-            variant="ghost"
-            onClick={onBackToSearch}
-            className="absolute top-4 left-4 text-white hover:bg-white/20 backdrop-blur-sm"
-          >
+          <Button variant="ghost" onClick={onBackToSearch} className="absolute top-4 left-4 text-white hover:bg-white/20 backdrop-blur-sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Search
           </Button>
 
           {/* Share Button - Icon Only */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-4 right-40 text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
-            onClick={() => {
-              const tourUrl = window.location.href;
-              if (navigator.share) {
-                navigator.share({
-                  title: tour.title,
-                  text: `Check out this hiking tour: ${tour.title}`,
-                  url: tourUrl
-                }).catch(() => {});
-              } else {
-                navigator.clipboard.writeText(tourUrl);
-                // Could add a toast notification here
-              }
-            }}
-            aria-label="Share tour"
-          >
+          <Button variant="ghost" size="sm" className="absolute top-4 right-40 text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm" onClick={() => {
+          const tourUrl = window.location.href;
+          if (navigator.share) {
+            navigator.share({
+              title: tour.title,
+              text: `Check out this hiking tour: ${tour.title}`,
+              url: tourUrl
+            }).catch(() => {});
+          } else {
+            navigator.clipboard.writeText(tourUrl);
+            // Could add a toast notification here
+          }
+        }} aria-label="Share tour">
             <Share2 className="h-4 w-4" />
           </Button>
 
           {/* Save Tour Button - Top Right */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`absolute top-4 right-4 backdrop-blur-sm ${isSaved 
-              ? 'text-burgundy bg-white/90 hover:bg-white hover:text-burgundy-dark' 
-              : 'text-white bg-white/20 hover:bg-white/30'
-            }`}
-            onClick={() => toggleSaveTour(tour.id)}
-          >
+          <Button variant="ghost" size="sm" className={`absolute top-4 right-4 backdrop-blur-sm ${isSaved ? 'text-burgundy bg-white/90 hover:bg-white hover:text-burgundy-dark' : 'text-white bg-white/20 hover:bg-white/30'}`} onClick={() => toggleSaveTour(tour.id)}>
             <Heart className={`h-4 w-4 mr-2 ${isSaved ? 'fill-burgundy' : ''}`} />
             {isSaved ? 'Saved' : 'Save Tour'}
           </Button>
@@ -201,33 +188,22 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             <div className="flex-1 text-center lg:text-left pt-16 lg:pt-0">
               {/* Reviews */}
               <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
-                {tour.reviews_count > 0 ? (
-                  <>
+                {tour.reviews_count > 0 ? <>
                     <div className="flex items-center gap-1">
-                      {[1,2,3,4,5].map((star) => (
-                        <Star 
-                          key={star} 
-                          className={`h-4 w-4 ${
-                            star <= Math.round(tour.rating) 
-                              ? 'text-gold fill-gold' 
-                              : 'text-white/30'
-                          }`} 
-                        />
-                      ))}
+                      {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-4 w-4 ${star <= Math.round(tour.rating) ? 'text-gold fill-gold' : 'text-white/30'}`} />)}
                       <span className="text-sm text-white ml-1">{tour.rating.toFixed(1)}</span>
                     </div>
                     <span className="text-white/60">•</span>
                     <span className="text-sm text-white">
                       {tour.reviews_count} {tour.reviews_count === 1 ? 'review' : 'reviews'}
                     </span>
-                  </>
-                ) : (
-                  <span className="text-sm text-white/70">No reviews yet</span>
-                )}
+                  </> : <span className="text-sm text-white/70">No reviews yet</span>}
               </div>
               
               {/* Title */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif text-white mb-2 leading-tight" style={{fontFamily: 'Playfair Display, serif'}}>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif text-white mb-2 leading-tight" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                 {tour.title}
               </h1>
 
@@ -265,15 +241,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-24 bg-background/95 backdrop-blur-sm shadow-lg rounded-xl p-4 border-border">
               {/* Guide Info */}
               <div className="mb-4 pb-4 border-b border-border">
-                <GuideInfoDisplay 
-                  guideInfo={guideInfo}
-                  isLoadingProfessional={isLoadingProfessional}
-                  showBadge={true}
-                  size="lg"
-                  certifications={guideProfile?.certifications}
-                  isGuideVerified={guideProfile?.verified ?? false}
-                  guideSlug={guideProfile?.slug}
-                />
+                <GuideInfoDisplay guideInfo={guideInfo} isLoadingProfessional={isLoadingProfessional} showBadge={true} size="lg" certifications={guideProfile?.certifications} isGuideVerified={guideProfile?.verified ?? false} guideSlug={guideProfile?.slug} />
               </div>
 
               {/* Price Display */}
@@ -288,36 +256,19 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
               {/* Date Selection */}
               <div className="relative mb-4">
                 <label className="block text-sm font-medium mb-2 text-foreground">Select a Date</label>
-                <button
-                  type="button"
-                  onClick={() => setShowDateDropdown(!showDateDropdown)}
-                  className="w-full px-3 py-2.5 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left"
-                >
+                <button type="button" onClick={() => setShowDateDropdown(!showDateDropdown)} className="w-full px-3 py-2.5 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left">
                   <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
-                    {selectedDate 
-                      ? dateOptions.find(d => d.date === selectedDate)?.dateRange 
-                      : "Choose available dates"}
+                    {selectedDate ? dateOptions.find(d => d.date === selectedDate)?.dateRange : "Choose available dates"}
                   </span>
                   <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
                 </button>
                 
-                {showDateDropdown && (
-                  <div className="absolute z-[100] w-full mt-2 bg-background border border-border rounded-lg shadow-lg max-h-80 overflow-auto">
-                    {isLoadingDates ? (
-                      <div className="p-4 text-center text-muted-foreground">Loading dates...</div>
-                    ) : dateOptions.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">No dates available</div>
-                    ) : dateOptions.map((option) => (
-                      <button
-                        key={option.date}
-                        type="button"
-                        onClick={() => {
-                          setSelectedDate(option.date);
-                          setSelectedSlotId(option.slotId);
-                          setShowDateDropdown(false);
-                        }}
-                        className="w-full px-4 py-3 hover:bg-accent transition-colors border-b border-border last:border-b-0 text-left"
-                      >
+                {showDateDropdown && <div className="absolute z-[100] w-full mt-2 bg-background border border-border rounded-lg shadow-lg max-h-80 overflow-auto">
+                    {isLoadingDates ? <div className="p-4 text-center text-muted-foreground">Loading dates...</div> : dateOptions.length === 0 ? <div className="p-4 text-center text-muted-foreground">No dates available</div> : dateOptions.map(option => <button key={option.date} type="button" onClick={() => {
+                  setSelectedDate(option.date);
+                  setSelectedSlotId(option.slotId);
+                  setShowDateDropdown(false);
+                }} className="w-full px-4 py-3 hover:bg-accent transition-colors border-b border-border last:border-b-0 text-left">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
                             <div className="font-medium text-sm mb-1 text-foreground">{option.dateRange}</div>
@@ -329,61 +280,43 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            {option.discount && (
-                              <Badge variant="secondary" className="mb-1 text-xs px-2 py-0 bg-burgundy/10 text-burgundy border-0">
+                            {option.discount && <Badge variant="secondary" className="mb-1 text-xs px-2 py-0 bg-burgundy/10 text-burgundy border-0">
                                 {option.discount}
-                              </Badge>
-                            )}
+                              </Badge>}
                              <div className="flex flex-col">
-                              {option.originalPrice && (
-                                <span className="text-xs text-muted-foreground line-through">
+                              {option.originalPrice && <span className="text-xs text-muted-foreground line-through">
                                   {tour.currency === 'EUR' ? '€' : '£'}{option.originalPrice}
-                                </span>
-                              )}
+                                </span>}
                               <span className="font-bold text-base text-foreground">
                                 {tour.currency === 'EUR' ? '€' : '£'}{option.price}
                               </span>
                             </div>
                           </div>
                         </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                      </button>)}
+                  </div>}
               </div>
 
               {/* Available Spots */}
-              {selectedDateOption && selectedDateOption.spotsLeft <= 3 && (
-                <div className="bg-burgundy/10 rounded-lg p-2.5 mb-4">
+              {selectedDateOption && selectedDateOption.spotsLeft <= 3 && <div className="bg-burgundy/10 rounded-lg p-2.5 mb-4">
                   <div className="flex items-center justify-center gap-2">
                     <Users className="h-3.5 w-3.5 text-burgundy" />
                     <span className="text-xs font-medium text-burgundy">
                       Only {selectedDateOption.spotsLeft} spots left!
                     </span>
                   </div>
-                </div>
-              )}
+                </div>}
               
               {/* Action Buttons */}
               <div className="space-y-2">
-                <Button 
-                  onClick={() => onBookTour(tour, selectedSlotId || undefined)}
-                  disabled={!selectedDate}
-                  className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium py-2.5"
-                >
+                <Button onClick={() => onBookTour(tour, selectedSlotId || undefined)} disabled={!selectedDate} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium py-2.5">
                   Book Now
                 </Button>
-                <Button 
-                  variant="outline"
-                  className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5 font-medium py-2.5"
-                  onClick={() => setChatOpen(true)}
-                >
+                <Button variant="outline" className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5 font-medium py-2.5" onClick={() => setChatOpen(true)}>
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Ask the Guide
                 </Button>
-                {selectedDate && (
-                  <p className="text-xs text-center text-muted-foreground mt-2">You won't be charged yet</p>
-                )}
+                {selectedDate && <p className="text-xs text-center text-muted-foreground mt-2">You won't be charged yet</p>}
               </div>
             </Card>
           </div>
@@ -392,15 +325,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
           <Card className="lg:hidden mt-6 bg-background/95 backdrop-blur-sm shadow-lg rounded-xl p-5 border-border">
             {/* Guide Info */}
             <div className="mb-4 pb-4 border-b border-border">
-              <GuideInfoDisplay 
-                guideInfo={guideInfo}
-                isLoadingProfessional={isLoadingProfessional}
-                showBadge={true}
-                size="lg"
-                certifications={guideProfile?.certifications}
-                isGuideVerified={guideProfile?.verified ?? false}
-                guideSlug={guideProfile?.slug}
-              />
+              <GuideInfoDisplay guideInfo={guideInfo} isLoadingProfessional={isLoadingProfessional} showBadge={true} size="lg" certifications={guideProfile?.certifications} isGuideVerified={guideProfile?.verified ?? false} guideSlug={guideProfile?.slug} />
             </div>
 
             {/* Price Display */}
@@ -415,15 +340,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* Date Selection (same as desktop) */}
             <div className="relative mb-4">
               <label className="block text-sm font-medium mb-2 text-foreground">Select a Date</label>
-              <button
-                type="button"
-                onClick={() => setShowDateDropdown(!showDateDropdown)}
-                className="w-full px-4 py-3 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left"
-              >
+              <button type="button" onClick={() => setShowDateDropdown(!showDateDropdown)} className="w-full px-4 py-3 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left">
                 <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
-                  {selectedDate 
-                    ? dateOptions.find(d => d.date === selectedDate)?.dateRange 
-                    : "Choose available dates"}
+                  {selectedDate ? dateOptions.find(d => d.date === selectedDate)?.dateRange : "Choose available dates"}
                 </span>
                 <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
               </button>
@@ -431,18 +350,10 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             
             {/* Action Buttons */}
             <div className="space-y-2">
-              <Button 
-                onClick={() => onBookTour(tour, selectedSlotId || undefined)}
-                disabled={!selectedDate}
-                className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium text-base py-3"
-              >
+              <Button onClick={() => onBookTour(tour, selectedSlotId || undefined)} disabled={!selectedDate} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium text-base py-3">
                 {selectedDate ? 'Book Now' : 'Select a Date to Book'}
               </Button>
-              <Button 
-                variant="outline"
-                className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5 font-medium text-base py-3"
-                onClick={() => setChatOpen(true)}
-              >
+              <Button variant="outline" className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5 font-medium text-base py-3" onClick={() => setChatOpen(true)}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Ask the Guide
               </Button>
@@ -459,7 +370,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* About This Tour Section */}
             <Card className="shadow-lg">
               <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4" style={{fontFamily: 'Playfair Display, serif'}}>
+                <h2 className="text-2xl font-bold mb-4" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                   About This Tour
                 </h2>
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
@@ -475,32 +388,23 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-charcoal/80 mb-4">Tour Highlights</h3>
                   <div className="space-y-3">
-                    {tour.highlights.map((highlight, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 border border-burgundy/10 rounded-lg">
+                    {tour.highlights.map((highlight, index) => <div key={index} className="flex items-start gap-3 p-3 border border-burgundy/10 rounded-lg">
                         <Mountain className="h-5 w-5 text-burgundy mt-0.5 flex-shrink-0" />
                         <div className="font-medium text-sm text-charcoal/80">{highlight}</div>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Meeting Location Map */}
-              {tour.meeting_point_lat && tour.meeting_point_lng && (
-                <Card className="shadow-lg flex flex-col">
+              {tour.meeting_point_lat && tour.meeting_point_lng && <Card className="shadow-lg flex flex-col">
                   <CardContent className="p-6 flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-4">
                       <MapPin className="h-5 w-5 text-burgundy" />
                       <h3 className="text-lg font-semibold text-charcoal/80">Meeting Location</h3>
                     </div>
                     <div className="flex-1 min-h-[240px] rounded-lg overflow-hidden">
-                      <HikingLocationMap
-                        latitude={tour.meeting_point_lat}
-                        longitude={tour.meeting_point_lng}
-                        title={tour.meeting_point_formatted || tour.meeting_point}
-                        height="100%"
-                        zoom={13}
-                      />
+                      <HikingLocationMap latitude={tour.meeting_point_lat} longitude={tour.meeting_point_lng} title={tour.meeting_point_formatted || tour.meeting_point} height="100%" zoom={13} />
                     </div>
                     <div className="mt-4 p-3 bg-burgundy/5 rounded-lg border border-burgundy/10">
                       <div className="flex items-start gap-3">
@@ -514,39 +418,30 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              )}
+                </Card>}
             </div>
           </div>
       </div>
 
       {/* Photo Gallery - Full Width Section */}
-      {tour.images && tour.images.length > 0 && (
-        <div className="w-full py-8 bg-white">
+      {tour.images && tour.images.length > 0 && <div className="w-full py-8 bg-white">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 mb-6">
               <Camera className="h-6 w-6 text-burgundy" />
-              <h2 className="text-3xl font-bold text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+              <h2 className="text-3xl font-bold text-charcoal" style={{
+            fontFamily: 'Playfair Display, serif'
+          }}>
                 Tour Photos
               </h2>
             </div>
             <div className="flex gap-4">
               {/* Main Image with Interactive Overlay */}
               <div className="flex-1 aspect-video rounded-lg overflow-hidden bg-muted shadow-lg relative group">
-                <img
-                  src={getOrderedImages()[0]}
-                  className="w-full h-full object-cover transition-transform duration-300"
-                  alt={`${tour.title} - Main view`}
-                />
+                <img src={getOrderedImages()[0]} className="w-full h-full object-cover transition-transform duration-300" alt={`${tour.title} - Main view`} />
                 {/* Semi-transparent Interactive Overlay */}
-                {tour.images.length > 1 && (
-                  <>
+                {tour.images.length > 1 && <>
                     {/* Left half - rotate backward */}
-                    <button
-                      onClick={rotateImagesBackward}
-                      className="absolute left-0 top-0 bottom-0 w-1/2 transition-colors cursor-pointer group/left"
-                      aria-label="Previous image"
-                    >
+                    <button onClick={rotateImagesBackward} className="absolute left-0 top-0 bottom-0 w-1/2 transition-colors cursor-pointer group/left" aria-label="Previous image">
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/left:opacity-100 transition-opacity">
                         <div className="w-12 h-12 rounded-full bg-card/90 flex items-center justify-center shadow-lg">
                           <svg className="w-6 h-6 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -556,11 +451,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       </div>
                     </button>
                     {/* Right half - rotate forward */}
-                    <button
-                      onClick={rotateImagesForward}
-                      className="absolute right-0 top-0 bottom-0 w-1/2 transition-colors cursor-pointer group/right"
-                      aria-label="Next image"
-                    >
+                    <button onClick={rotateImagesForward} className="absolute right-0 top-0 bottom-0 w-1/2 transition-colors cursor-pointer group/right" aria-label="Next image">
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/right:opacity-100 transition-opacity">
                         <div className="w-12 h-12 rounded-full bg-card/90 flex items-center justify-center shadow-lg">
                           <svg className="w-6 h-6 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -573,36 +464,20 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
                       {currentImageIndex + 1} / {tour.images.length}
                     </div>
-                  </>
-                )}
+                  </>}
               </div>
               {/* Thumbnail Stack */}
-              {tour.images.length > 1 && (
-                <div className="flex flex-col gap-3 w-48">
-                  {getOrderedImages().slice(1, 4).map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex((currentImageIndex + index + 1) % tour.images.length)}
-                      className="aspect-square rounded-lg overflow-hidden bg-muted shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                    >
-                      <img
-                        src={image}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        alt={`${tour.title} - Photo ${index + 2}`}
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
+              {tour.images.length > 1 && <div className="flex flex-col gap-3 w-48">
+                  {getOrderedImages().slice(1, 4).map((image, index) => <button key={index} onClick={() => setCurrentImageIndex((currentImageIndex + index + 1) % tour.images.length)} className="aspect-square rounded-lg overflow-hidden bg-muted shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                      <img src={image} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" alt={`${tour.title} - Photo ${index + 2}`} />
+                    </button>)}
+                </div>}
             </div>
-            {tour.images.length > 4 && (
-              <p className="text-sm text-charcoal/60 mt-4 text-center">
+            {tour.images.length > 4 && <p className="text-sm text-charcoal/60 mt-4 text-center">
                 +{tour.images.length - 4} more photos
-              </p>
-            )}
+              </p>}
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* Continue Main Content Area */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
@@ -611,7 +486,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             {/* Fitness Requirements */}
             <Card className="shadow-lg">
               <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-charcoal mb-6" style={{fontFamily: 'Playfair Display, serif'}}>
+                <h2 className="text-2xl font-bold text-charcoal mb-6" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                   Fitness Requirements
                 </h2>
                 
@@ -758,58 +635,35 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             </Card>
 
             {/* Full Tour Route Map - Shows when map data exists */}
-            {tourMapData && (
-              <PublicTourMapSection
-                mapSettings={tourMapData.mapSettings}
-                featuredHighlights={tourMapData.featuredHighlights}
-                meetingPoint={tour.meeting_point_lat && tour.meeting_point_lng ? {
-                  lat: tour.meeting_point_lat,
-                  lng: tour.meeting_point_lng
-                } : undefined}
-              />
-            )}
+            {tourMapData && <PublicTourMapSection mapSettings={tourMapData.mapSettings} featuredHighlights={tourMapData.featuredHighlights} meetingPoint={tour.meeting_point_lat && tour.meeting_point_lng ? {
+          lat: tour.meeting_point_lat,
+          lng: tour.meeting_point_lng
+        } : undefined} />}
 
             {/* Detailed Itinerary */}
             <Card className="shadow-lg">
               <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-charcoal mb-6" style={{fontFamily: 'Playfair Display, serif'}}>
+                <h2 className="text-2xl font-bold text-charcoal mb-6" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                   Detailed Itinerary
                 </h2>
                 <div className="space-y-6">
-                  {(tour.itinerary && Array.isArray(tour.itinerary) && tour.itinerary.length > 0 ? tour.itinerary : [
-                    {
-                      day: 1,
-                      title: "Meeting Point",
-                      description: "Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead",
-                      activities: ["Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead"],
-                      accommodation: null,
-                      meals: null
-                    }
-                  ]).map((item: any, index: number) => {
-                    // Handle both old format (activities array) and new format (description string)
-                    const dayDescription = item.description || (item.activities ? item.activities.join('. ') : '');
-                    
-                    return (
-                    <div key={index} className="group">
+                  {(tour.itinerary && Array.isArray(tour.itinerary) && tour.itinerary.length > 0 ? tour.itinerary : [{
+                day: 1,
+                title: "Meeting Point",
+                description: "Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead",
+                activities: ["Start your journey with a comprehensive safety briefing and professional equipment check at the trailhead"],
+                accommodation: null,
+                meals: null
+              }]).map((item: any, index: number) => {
+                // Handle both old format (activities array) and new format (description string)
+                const dayDescription = item.description || (item.activities ? item.activities.join('. ') : '');
+                return <div key={index} className="group">
                       <div className="flex flex-col md:flex-row gap-4">
                         <div className="md:w-64 w-full flex-shrink-0">
                           <div className="aspect-[3/2] rounded-lg overflow-hidden">
-                            {item.image_url ? (
-                              <img 
-                                src={item.image_url} 
-                                alt={item.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <SmartImage
-                                category="tour"
-                                usageContext={tour.region}
-                                tags={[tour.region, 'hiking', 'trail']}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                fallbackSrc={tour.images[Math.min(index, tour.images.length - 1)]}
-                                alt={item.title}
-                              />
-                            )}
+                            {item.image_url ? <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <SmartImage category="tour" usageContext={tour.region} tags={[tour.region, 'hiking', 'trail']} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" fallbackSrc={tour.images[Math.min(index, tour.images.length - 1)]} alt={item.title} />}
                           </div>
                         </div>
                         <div className="flex-1">
@@ -819,40 +673,26 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                           </div>
                           <div className="space-y-2">
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                              {expandedItinerary[index] 
-                                ? dayDescription
-                                : dayDescription.length > 120 ? `${dayDescription.substring(0, 120)}...` : dayDescription
-                              }
+                              {expandedItinerary[index] ? dayDescription : dayDescription.length > 120 ? `${dayDescription.substring(0, 120)}...` : dayDescription}
                             </p>
                           </div>
                           
-                          {dayDescription.length > 120 && (
-                            <button
-                              onClick={() => toggleItinerary(index)}
-                              className="text-sm text-primary hover:underline mt-2 font-medium transition-colors"
-                            >
+                          {dayDescription.length > 120 && <button onClick={() => toggleItinerary(index)} className="text-sm text-primary hover:underline mt-2 font-medium transition-colors">
                               {expandedItinerary[index] ? "Show less" : "Read more"}
-                            </button>
-                          )}
+                            </button>}
                           
-                          {(item.accommodation || item.meals) && expandedItinerary[index] && (
-                            <div className="mt-3 pt-3 border-t space-y-1">
-                              {item.accommodation && (
-                                <p className="text-xs text-muted-foreground">
+                          {(item.accommodation || item.meals) && expandedItinerary[index] && <div className="mt-3 pt-3 border-t space-y-1">
+                              {item.accommodation && <p className="text-xs text-muted-foreground">
                                   <span className="font-medium">Accommodation:</span> {item.accommodation}
-                                </p>
-                              )}
-                              {item.meals && (
-                                <p className="text-xs text-muted-foreground">
+                                </p>}
+                              {item.meals && <p className="text-xs text-muted-foreground">
                                   <span className="font-medium">Meals:</span> {item.meals}
-                                </p>
-                              )}
-                            </div>
-                          )}
+                                </p>}
+                            </div>}
                         </div>
                       </div>
-                    </div>
-                  )})}
+                    </div>;
+              })}
                 </div>
               </CardContent>
             </Card>
@@ -865,21 +705,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 <div className="grid md:grid-cols-[400px,1fr] gap-0">
                   {/* Guide Image - Left Side with Overlapping Stats Box */}
                   <div className="relative h-[500px]">
-                    {guideInfo.avatarUrl ? (
-                      <img 
-                        src={guideInfo.avatarUrl} 
-                        alt={`${guideInfo.displayName} - Professional hiking guide`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <SmartImage
-                        category="guide"
-                        usageContext="professional"
-                        tags={['portrait', 'guide', 'professional', 'certified', 'hiking']}
-                        className="w-full h-full object-cover"
-                        alt="Professional hiking guide"
-                      />
-                    )}
+                    {guideInfo.avatarUrl ? <img src={guideInfo.avatarUrl} alt={`${guideInfo.displayName} - Professional hiking guide`} className="w-full h-full object-cover" /> : <SmartImage category="guide" usageContext="professional" tags={['portrait', 'guide', 'professional', 'certified', 'hiking']} className="w-full h-full object-cover" alt="Professional hiking guide" />}
                     {/* Gradient overlay - matching hero style */}
                     <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/15 to-transparent z-[1]" />
                     <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background z-[1]" />
@@ -889,17 +715,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <h3 className="text-3xl font-bold mb-2 drop-shadow-lg">
                         {guideInfo.displayName}
                       </h3>
-                      {guideInfo.location && (
-                        <p className="flex items-center gap-1 text-sm mb-1 drop-shadow-md">
+                      {guideInfo.location && <p className="flex items-center gap-1 text-sm mb-1 drop-shadow-md">
                           <MapPin className="h-4 w-4" />
                           {guideInfo.location}
-                        </p>
-                      )}
-                      {primaryCert && (
-                        <p className="text-sm drop-shadow-md">
+                        </p>}
+                      {primaryCert && <p className="text-sm drop-shadow-md">
                           {primaryCert.title} - {guideInfo.experienceYears}+ Years Experience
-                        </p>
-                      )}
+                        </p>}
                     </div>
 
                     {/* Stats Box - Overlapping bottom 10% of image */}
@@ -907,8 +729,7 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       <div className="bg-background border border-border rounded-lg shadow-xl p-4">
                         <div className="grid grid-cols-2 gap-3">
                           {/* Rating */}
-                          {guideInfo.averageRating > 0 && (
-                            <div className="flex items-center gap-2">
+                          {guideInfo.averageRating > 0 && <div className="flex items-center gap-2">
                               <Star className="h-4 w-4 fill-burgundy text-burgundy" />
                               <div>
                                 <div className="font-bold text-sm text-foreground">{guideInfo.averageRating.toFixed(1)}</div>
@@ -916,19 +737,16 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                                   ({tourReviews.length || 1} reviews)
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            </div>}
 
                           {/* Tours */}
-                          {guideInfo.toursCompleted > 0 && (
-                            <div className="flex items-center gap-2">
+                          {guideInfo.toursCompleted > 0 && <div className="flex items-center gap-2">
                               <Users className="h-4 w-4 text-muted-foreground" />
                               <div>
                                 <div className="font-bold text-sm">{guideInfo.toursCompleted}+</div>
                                 <div className="text-xs text-muted-foreground">tours</div>
                               </div>
-                            </div>
-                          )}
+                            </div>}
 
                           {/* Response Time */}
                           <div className="flex items-center gap-2">
@@ -940,15 +758,13 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                           </div>
 
                           {/* Experience */}
-                          {guideInfo.experienceYears && (
-                            <div className="flex items-center gap-2">
+                          {guideInfo.experienceYears && <div className="flex items-center gap-2">
                               <Award className="h-4 w-4 text-muted-foreground" />
                               <div>
                                 <div className="font-bold text-sm">{guideInfo.experienceYears}</div>
                                 <div className="text-xs text-muted-foreground">years experience</div>
                               </div>
-                            </div>
-                          )}
+                            </div>}
                         </div>
                       </div>
                     </div>
@@ -957,19 +773,9 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   {/* Guide Info - Right Side */}
                   <div className="p-8 flex flex-col pt-16">
                     {/* Certification Badges */}
-                    {guideProfile?.certifications && guideProfile.certifications.length > 0 && (
-                      <div className="flex flex-wrap gap-3 mb-6">
-                        {guideProfile.certifications.map((cert, index) => (
-                          <CertificationBadge
-                            key={index}
-                            certification={cert}
-                            displayMode="detailed"
-                            showTooltip
-                            isGuideVerified={guideProfile?.verified ?? false}
-                          />
-                        ))}
-                      </div>
-                    )}
+                    {guideProfile?.certifications && guideProfile.certifications.length > 0 && <div className="flex flex-wrap gap-3 mb-6">
+                        {guideProfile.certifications.map((cert, index) => <CertificationBadge key={index} certification={cert} displayMode="detailed" showTooltip isGuideVerified={guideProfile?.verified ?? false} />)}
+                      </div>}
 
                     {/* Bio */}
                     <div className="mb-6">
@@ -990,17 +796,12 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                     {/* Profit Sharing Banner */}
                     <div className="bg-burgundy/10 border border-burgundy/20 rounded-lg p-4 mb-6">
                       <p className="text-sm text-burgundy font-medium">
-                        100% of profits go directly to your guide - we only charge a small platform fee to cover costs
+                        95% of profits go directly to your guide - we only charge a small platform fee to cover costs
                       </p>
                     </div>
 
                     {/* Ask Question Button */}
-                    <Button 
-                      variant="default" 
-                      size="lg" 
-                      className="w-full mt-auto bg-burgundy hover:bg-burgundy/90 text-white font-medium"
-                      onClick={() => setChatOpen(true)}
-                    >
+                    <Button variant="default" size="lg" className="w-full mt-auto bg-burgundy hover:bg-burgundy/90 text-white font-medium" onClick={() => setChatOpen(true)}>
                       <MessageCircle className="mr-2 h-5 w-5" />
                       Ask {guideInfo.displayName.split(' ')[0]} a question
                     </Button>
@@ -1017,12 +818,10 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {tour.includes.map((item, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm">
+                    {tour.includes.map((item, index) => <li key={index} className="flex items-center gap-2 text-sm">
                         <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
                         <span>{item}</span>
-                      </li>
-                    ))}
+                      </li>)}
                   </ul>
                 </CardContent>
               </Card>
@@ -1032,30 +831,19 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                   <CardTitle className="text-lg">Not Included</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {tour.excluded_items && tour.excluded_items.length > 0 ? (
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      {tour.excluded_items.map((item, index) => (
-                        <li key={index} className="flex items-center gap-2">
+                  {tour.excluded_items && tour.excluded_items.length > 0 ? <ul className="space-y-2 text-sm text-muted-foreground">
+                      {tour.excluded_items.map((item, index) => <li key={index} className="flex items-center gap-2">
                           <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />
                           <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">All standard items are included.</p>
-                  )}
+                        </li>)}
+                    </ul> : <p className="text-sm text-muted-foreground">All standard items are included.</p>}
                 </CardContent>
               </Card>
             </div>
 
             {/* Cancellation Policy & Payment Terms */}
             <div className="mt-6">
-              <TourPolicyDisplay
-                guideId={tour.guide_id}
-                policyOverrides={tour.policy_overrides as any}
-                tourPrice={tour.price}
-                currency={tour.currency}
-              />
+              <TourPolicyDisplay guideId={tour.guide_id} policyOverrides={tour.policy_overrides as any} tourPrice={tour.price} currency={tour.currency} />
             </div>
           </div>
       </div>
@@ -1065,63 +853,29 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-2">Reviews & Testimonials</h2>
-            {tour.reviews_count > 0 && (
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            {tour.reviews_count > 0 && <div className="flex items-center justify-center gap-2 text-muted-foreground">
                 <div className="flex items-center gap-1">
-                  {[1,2,3,4,5].map((star) => (
-                    <Star 
-                      key={star} 
-                      className={`h-4 w-4 ${
-                        star <= Math.round(tour.rating) 
-                          ? 'text-accent fill-current' 
-                          : 'text-muted-foreground/30'
-                      }`} 
-                    />
-                  ))}
+                  {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-4 w-4 ${star <= Math.round(tour.rating) ? 'text-accent fill-current' : 'text-muted-foreground/30'}`} />)}
                 </div>
                 <span>{tour.rating.toFixed(1)} • {tour.reviews_count} {tour.reviews_count === 1 ? 'review' : 'reviews'}</span>
-              </div>
-            )}
+              </div>}
           </div>
           
-          {isLoadingReviews ? (
-            <div className="text-center text-muted-foreground">Loading reviews...</div>
-          ) : tourReviews.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-6">
-              {tourReviews.map((review) => (
-                <Card key={review.id} className="bg-background">
+          {isLoadingReviews ? <div className="text-center text-muted-foreground">Loading reviews...</div> : tourReviews.length > 0 ? <div className="grid md:grid-cols-3 gap-6">
+              {tourReviews.map(review => <Card key={review.id} className="bg-background">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-1 mb-3">
-                      {[1,2,3,4,5].map((star) => (
-                        <Star 
-                          key={star} 
-                          className={`h-4 w-4 ${
-                            star <= review.rating 
-                              ? 'text-accent fill-current' 
-                              : 'text-muted-foreground/30'
-                          }`} 
-                        />
-                      ))}
+                      {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-4 w-4 ${star <= review.rating ? 'text-accent fill-current' : 'text-muted-foreground/30'}`} />)}
                     </div>
-                    {review.comment && (
-                      <p className="text-sm italic mb-4 line-clamp-4">
+                    {review.comment && <p className="text-sm italic mb-4 line-clamp-4">
                         "{review.comment}"
-                      </p>
-                    )}
+                      </p>}
                     <div className="flex items-center gap-3">
-                      {review.hiker_avatar ? (
-                        <img 
-                          src={review.hiker_avatar}
-                          className="w-8 h-8 rounded-full object-cover"
-                          alt={`${review.hiker_name || 'Reviewer'} profile`}
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      {review.hiker_avatar ? <img src={review.hiker_avatar} className="w-8 h-8 rounded-full object-cover" alt={`${review.hiker_name || 'Reviewer'} profile`} /> : <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <span className="text-sm font-medium text-primary">
                             {review.hiker_name?.[0]?.toUpperCase() || '?'}
                           </span>
-                        </div>
-                      )}
+                        </div>}
                       <div>
                         <div className="text-sm font-medium">
                           {review.hiker_name || 'Anonymous'}
@@ -1132,14 +886,10 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-muted-foreground">
+                </Card>)}
+            </div> : <div className="text-center text-muted-foreground">
               No reviews yet. Be the first to book and review this tour!
-            </div>
-          )}
+            </div>}
         </div>
       </section>
 
@@ -1150,48 +900,26 @@ export function TourDetailPage({ tour, onBookTour, onBackToSearch }: TourDetailP
             Other Tours in the Area
           </h2>
           
-          {isLoadingRelated ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="overflow-hidden border-burgundy/10">
+          {isLoadingRelated ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => <Card key={i} className="overflow-hidden border-burgundy/10">
                   <Skeleton className="aspect-[4/3] w-full bg-cream" />
                   <CardContent className="p-6">
                     <Skeleton className="h-6 w-3/4 mb-4 bg-cream" />
                     <Skeleton className="h-4 w-1/2 mb-2 bg-cream" />
                     <Skeleton className="h-4 w-2/3 bg-cream" />
                   </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : relatedTours.length === 0 ? (
-            <div className="text-center py-12">
+                </Card>)}
+            </div> : relatedTours.length === 0 ? <div className="text-center py-12">
               <p className="text-charcoal/60 text-lg">
                 No other tours available in this area yet. Check back soon!
               </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedTours.map((relatedTour) => (
-                <TourCard
-                  key={relatedTour.id}
-                  tour={relatedTour}
-                  onTourClick={(tour) => navigate(`/tours/${tour.slug}`)}
-                  onBookTour={(tour) => navigate(`/tours/${tour.slug}`)}
-                />
-              ))}
-            </div>
-          )}
+            </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedTours.map(relatedTour => <TourCard key={relatedTour.id} tour={relatedTour} onTourClick={tour => navigate(`/tours/${tour.slug}`)} onBookTour={tour => navigate(`/tours/${tour.slug}`)} />)}
+            </div>}
         </div>
       </section>
       
       {/* Anonymous Chat Modal */}
-      <AnonymousChat
-        isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
-        tourId={tour.id}
-        guideId={tour.guide_id}
-        tourTitle={tour.title}
-      />
-    </div>
-  );
+      <AnonymousChat isOpen={chatOpen} onClose={() => setChatOpen(false)} tourId={tour.id} guideId={tour.guide_id} tourTitle={tour.title} />
+    </div>;
 }
