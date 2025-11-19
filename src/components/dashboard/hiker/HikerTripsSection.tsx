@@ -114,9 +114,10 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
       const dateStr = format(new Date(booking.booking_date), 'MMMM d, yyyy');
       const datesDisplay = meetingTime ? `${dateStr} • ${meetingTime}` : dateStr;
 
-      // For custom tours, prioritize guide data from the offer's tour
+      // For custom tours, prioritize guide data from the offer's tour or offer guide profile
+      const offerGuideProfile = offer?.offer_guide_profile;
       const offerTourGuideProfile = offer?.tours?.guide_profiles;
-      const mainGuideProfile = offerTourGuideProfile || booking.tours?.guide_profiles;
+      const mainGuideProfile = offerGuideProfile || offerTourGuideProfile || booking.tours?.guide_profiles;
       const offerTourGuideId = offer?.tours?.guide_id;
       const mainGuideId = offer?.guide_id || offerTourGuideId || booking.tours?.guide_id;
       
@@ -139,11 +140,13 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
         title: booking.tours?.title || 'Tour',
         dates: datesDisplay,
         guide: { 
-          name: mainGuideProfile?.display_name 
+          name: offerGuideProfile?.display_name
+            || mainGuideProfile?.display_name 
             || offer?.tours?.guide_display_name 
             || booking.tours?.guide_display_name 
             || 'Guide', 
-          avatar: mainGuideProfile?.profile_image_url 
+          avatar: offerGuideProfile?.profile_image_url
+            || mainGuideProfile?.profile_image_url 
             || offer?.tours?.guide_avatar_url 
             || booking.tours?.guide_avatar_url 
             || '' 
@@ -168,10 +171,11 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
   const pastTrips = bookings
     .filter(booking => booking.status.toLowerCase() === 'completed')
     .map(booking => {
-      // For custom tours, prioritize guide data from the offer's tour
+      // For custom tours, prioritize guide data from the offer's tour or offer guide profile
       const offer = booking.tour_offers?.[0];
+      const offerGuideProfile = offer?.offer_guide_profile;
       const offerTourGuideProfile = offer?.tours?.guide_profiles;
-      const mainGuideProfile = offerTourGuideProfile || booking.tours?.guide_profiles;
+      const mainGuideProfile = offerGuideProfile || offerTourGuideProfile || booking.tours?.guide_profiles;
       const offerTourGuideId = offer?.tours?.guide_id;
       const mainGuideId = offer?.guide_id || offerTourGuideId || booking.tours?.guide_id;
       
@@ -194,11 +198,13 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
         title: booking.tours?.title || 'Tour',
         dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
         guide: { 
-          name: mainGuideProfile?.display_name 
+          name: offerGuideProfile?.display_name
+            || mainGuideProfile?.display_name 
             || offer?.tours?.guide_display_name 
             || booking.tours?.guide_display_name 
             || 'Guide', 
-          avatar: mainGuideProfile?.profile_image_url 
+          avatar: offerGuideProfile?.profile_image_url
+            || mainGuideProfile?.profile_image_url 
             || offer?.tours?.guide_avatar_url 
             || booking.tours?.guide_avatar_url 
             || '' 
