@@ -101,7 +101,7 @@ export type Database = {
           stripe_refund_id: string | null
           subtotal: number | null
           total_price: number
-          tour_id: string
+          tour_id: string | null
           updated_at: string
           waiver_uploaded_at: string | null
         }
@@ -140,7 +140,7 @@ export type Database = {
           stripe_refund_id?: string | null
           subtotal?: number | null
           total_price: number
-          tour_id: string
+          tour_id?: string | null
           updated_at?: string
           waiver_uploaded_at?: string | null
         }
@@ -179,7 +179,7 @@ export type Database = {
           stripe_refund_id?: string | null
           subtotal?: number | null
           total_price?: number
-          tour_id?: string
+          tour_id?: string | null
           updated_at?: string
           waiver_uploaded_at?: string | null
         }
