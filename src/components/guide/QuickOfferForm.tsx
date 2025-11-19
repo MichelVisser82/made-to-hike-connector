@@ -112,6 +112,32 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
     personalNote: '',
   });
 
+  const formatItineraryText = (rawItinerary: unknown, fallback: string): string => {
+    if (!rawItinerary) return fallback;
+    if (typeof rawItinerary === 'string') return rawItinerary;
+
+    try {
+      const value = Array.isArray(rawItinerary)
+        ? rawItinerary
+        : (typeof rawItinerary === 'object' && rawItinerary !== null && (rawItinerary as any).days
+            ? (rawItinerary as any).days
+            : []);
+
+      if (!Array.isArray(value) || value.length === 0) return fallback;
+
+      const lines = value.map((day: any) => {
+        const dayLabel = day.day ? `Day ${day.day}` : day.title || 'Day';
+        const title = day.title && day.title !== dayLabel ? ` - ${day.title}` : '';
+        const description = day.description ? `: ${day.description}` : '';
+        return `${dayLabel}${title}${description}`.trim();
+      });
+
+      return lines.join('\n');
+    } catch {
+      return fallback;
+    }
+  };
+
   // Pre-load tour data if this is based on an existing tour
   useEffect(() => {
     const loadTourData = async () => {
@@ -134,7 +160,7 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
           meetingPoint_lat: tour.meeting_point_lat || prev.meetingPoint_lat,
           meetingPoint_lng: tour.meeting_point_lng || prev.meetingPoint_lng,
           meetingPoint_formatted: tour.meeting_point_formatted || prev.meetingPoint_formatted,
-          itinerary: tour.itinerary ? (typeof tour.itinerary === 'string' ? tour.itinerary : JSON.stringify(tour.itinerary, null, 2)) : prev.itinerary,
+          itinerary: formatItineraryText(tour.itinerary, prev.itinerary),
           includedItems: tour.includes?.length ? tour.includes.join('\n') : prev.includedItems,
         }));
       } catch (error) {
