@@ -119,7 +119,7 @@ serve(async (req) => {
         conversation_id: offer.conversation_id,
         type: 'tour_offer',
       },
-      success_url: `${req.headers.get("origin")}/booking-success?offer_id=${offer.id}`,
+      success_url: `${req.headers.get("origin")}/booking-success?offer_id=${offer.id}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/offer/decline?token=${token}`,
     });
 

@@ -13,37 +13,46 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Webhook received");
+    logStep("Function invoked");
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2025-08-27.basil',
     });
 
-    const signature = req.headers.get('stripe-signature');
-    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
-
-    if (!signature || !webhookSecret) {
-      throw new Error('Missing signature or webhook secret');
+    // This function is called internally from the main stripe-webhook handler
+    // via supabase.functions.invoke, so we don't verify the Stripe signature here.
+    const { session_id } = await req.json();
+    if (!session_id) {
+      throw new Error('session_id is required');
     }
 
-    const body = await req.text();
-    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    logStep("Retrieving checkout session", { session_id });
 
-    logStep("Event verified", { type: event.type });
+    const session = await stripe.checkout.sessions.retrieve(session_id as string, {
+      expand: ['payment_intent'],
+    });
 
-    // Only process checkout.session.completed for offers
-    if (event.type !== 'checkout.session.completed') {
+    logStep("Session retrieved", {
+      id: session.id,
+      status: session.status,
+      payment_status: session.payment_status,
+      metadata: session.metadata,
+    });
+
+    const offerId = session.metadata?.offer_id;
+    const type = session.metadata?.type;
+
+    if (type !== 'tour_offer' || !offerId) {
+      logStep("Not an offer payment, skipping", { type, offerId });
       return new Response(JSON.stringify({ received: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const session = event.data.object as any;
-    const offerId = session.metadata?.offer_id;
-    const type = session.metadata?.type;
-
-    if (type !== 'tour_offer' || !offerId) {
-      logStep("Not an offer payment, skipping");
+    if (session.payment_status !== 'paid') {
+      logStep("Payment not completed, skipping", {
+        payment_status: session.payment_status,
+      });
       return new Response(JSON.stringify({ received: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -56,6 +65,29 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Check if a booking already exists for this payment intent (idempotency)
+    const { data: existingBooking } = await supabase
+      .from('bookings')
+      .select('id, booking_reference')
+      .eq('stripe_payment_intent_id', session.payment_intent as string)
+      .maybeSingle();
+
+    if (existingBooking) {
+      logStep("Booking already exists, skipping creation", {
+        booking_id: existingBooking.id,
+      });
+      return new Response(
+        JSON.stringify({
+          received: true,
+          booking: existingBooking,
+          message: 'Booking already created',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     // Fetch offer details
     const { data: offer, error: offerError } = await supabase
       .from('tour_offers')
@@ -67,14 +99,14 @@ serve(async (req) => {
       throw new Error('Offer not found');
     }
 
-    // Fetch or create hiker profile
+    // Fetch or get hiker profile
     let hikerId = offer.hiker_id;
     if (!hikerId) {
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', offer.hiker_email)
-        .single();
+        .maybeSingle();
 
       hikerId = existingProfile?.id;
     }
@@ -96,7 +128,7 @@ serve(async (req) => {
         payment_type: 'full',
         status: 'confirmed',
         booking_reference: bookingReference,
-        stripe_payment_intent_id: session.payment_intent,
+        stripe_payment_intent_id: session.payment_intent as string,
         special_requests: `Custom tour offer: ${offer.itinerary}`,
       })
       .select()
@@ -117,7 +149,7 @@ serve(async (req) => {
         accepted_at: new Date().toISOString(),
         booking_id: booking.id,
       })
-      .eq('id', offerId);
+      .eq('id', offerId as string);
 
     // Create system message
     await supabase.from('messages').insert({
@@ -131,14 +163,11 @@ serve(async (req) => {
 
     logStep("Process completed successfully");
 
-    // TODO: Send confirmation emails
-    // This can be added later
-
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    logStep("ERROR", error);
+  } catch (error: any) {
+    logStep("ERROR", error?.message || error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
