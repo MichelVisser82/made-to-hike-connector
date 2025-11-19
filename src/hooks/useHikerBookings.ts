@@ -47,6 +47,7 @@ export interface HikerBooking {
     duration: string;
     group_size: number;
     preferred_date: string | null;
+    itinerary: string | null;
     tours: {
       id: string;
       title: string;
@@ -130,6 +131,7 @@ export function useHikerBookings(hikerId: string | undefined) {
             duration,
             group_size,
             preferred_date,
+            itinerary,
             tours!tour_offers_tour_id_fkey (
               id,
               title,
