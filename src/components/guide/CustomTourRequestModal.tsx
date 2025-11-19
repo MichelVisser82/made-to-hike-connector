@@ -278,11 +278,12 @@ export function CustomTourRequestModal({
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0 z-[9999]" align="start" sideOffset={4}>
+                    <PopoverContent className="w-[400px] max-h-[340px] p-0 z-[9999] overflow-hidden" align="start" sideOffset={4}>
                       <Command>
                         <CommandInput placeholder="Search regions..." />
-                        <CommandList className="max-h-[300px] overflow-y-auto overscroll-contain">
-                          <CommandEmpty>No region found.</CommandEmpty>
+                        <div className="max-h-[300px] overflow-y-auto overscroll-contain">
+                          <CommandList>
+                            <CommandEmpty>No region found.</CommandEmpty>
                           <CommandGroup>
                             {regionsLoading ? (
                               <CommandItem disabled>Loading regions...</CommandItem>
@@ -330,6 +331,7 @@ export function CustomTourRequestModal({
                             )}
                           </CommandGroup>
                         </CommandList>
+                      </div>
                       </Command>
                     </PopoverContent>
                   </Popover>
