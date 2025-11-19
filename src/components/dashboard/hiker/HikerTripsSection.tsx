@@ -114,13 +114,19 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
       const dateStr = format(new Date(booking.booking_date), 'MMMM d, yyyy');
       const datesDisplay = meetingTime ? `${dateStr} • ${meetingTime}` : dateStr;
       
+      // Prefer tour_offer guide data for custom tours
+      const offerGuideProfile = offer?.tours?.guide_profiles;
+      const mainGuideProfile = offerGuideProfile || booking.tours?.guide_profiles;
+      const offerGuideId = offer?.tours?.guide_id;
+      const mainGuideId = offerGuideId || booking.tours?.guide_id;
+
       return {
         id: booking.id,
         title: booking.tours?.title || 'Tour',
         dates: datesDisplay,
         guide: { 
-          name: offer?.tours?.guide_profiles?.display_name || booking.tours?.guide_profiles?.display_name || 'Guide', 
-          avatar: offer?.tours?.guide_profiles?.profile_image_url || booking.tours?.guide_profiles?.profile_image_url || '' 
+          name: mainGuideProfile?.display_name || 'Guide', 
+          avatar: mainGuideProfile?.profile_image_url || '' 
         },
         location: meetingPoint,
         meeting_point_lat: booking.tours?.meeting_point_lat,
@@ -129,7 +135,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
         guests: offer?.group_size || booking.participants,
         difficulty: booking.tours?.difficulty || 'Intermediate',
         tourId: booking.tour_id,
-        guideId: booking.tours?.guide_id,
+        guideId: mainGuideId,
         status: booking.status,
         duration: duration,
         image: booking.tours?.hero_image,
@@ -141,25 +147,34 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
 
   const pastTrips = bookings
     .filter(booking => booking.status.toLowerCase() === 'completed')
-    .map(booking => ({
-      id: booking.id,
-      title: booking.tours?.title || 'Tour',
-      dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
-      guide: { 
-        name: booking.tours?.guide_profiles?.display_name || 'Guide', 
-        avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
-      },
-      location: booking.tours?.meeting_point || 'Location',
-      guests: booking.participants,
-      difficulty: booking.tours?.difficulty || 'Intermediate',
-      tourId: booking.tour_id,
-      guideId: booking.tours?.guide_id,
-      status: booking.status,
-      duration: booking.tours?.duration,
-      image: booking.tours?.hero_image,
-      reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
-      booking_date: booking.booking_date,
-    }))
+    .map(booking => {
+      // Prefer tour_offer guide data for custom tours
+      const offer = booking.tour_offers?.[0];
+      const offerGuideProfile = offer?.tours?.guide_profiles;
+      const mainGuideProfile = offerGuideProfile || booking.tours?.guide_profiles;
+      const offerGuideId = offer?.tours?.guide_id;
+      const mainGuideId = offerGuideId || booking.tours?.guide_id;
+
+      return {
+        id: booking.id,
+        title: booking.tours?.title || 'Tour',
+        dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
+        guide: { 
+          name: mainGuideProfile?.display_name || 'Guide', 
+          avatar: mainGuideProfile?.profile_image_url || '' 
+        },
+        location: booking.tours?.meeting_point || 'Location',
+        guests: booking.participants,
+        difficulty: booking.tours?.difficulty || 'Intermediate',
+        tourId: booking.tour_id,
+        guideId: mainGuideId,
+        status: booking.status,
+        duration: booking.tours?.duration,
+        image: booking.tours?.hero_image,
+        reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
+        booking_date: booking.booking_date,
+      };
+    })
     .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime());
 
   const savedToursData = savedTours.map(saved => ({
