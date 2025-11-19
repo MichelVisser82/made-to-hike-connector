@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from "@/types/chat";
 import { cn } from "@/lib/utils";
+import { LocationAutocomplete } from "@/components/tour-creation/LocationAutocomplete";
 
 interface QuickOfferFormProps {
   conversation: Conversation;
@@ -102,6 +103,9 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
     duration: '',
     preferredDate: undefined as Date | undefined,
     meetingPoint: '',
+    meetingPoint_lat: 0,
+    meetingPoint_lng: 0,
+    meetingPoint_formatted: '',
     meetingTime: '',
     itinerary: '',
     includedItems: 'Professional certified guide\nAll safety equipment\nFirst aid kit\nPhotos from the tour',
@@ -168,6 +172,9 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
         duration: '',
         preferredDate: requestedDate ? parseLocalDate(requestedDate) : undefined,
         meetingPoint: '',
+        meetingPoint_lat: 0,
+        meetingPoint_lng: 0,
+        meetingPoint_formatted: '',
         meetingTime: '',
         itinerary: '',
         includedItems: 'Professional certified guide\nAll safety equipment\nFirst aid kit\nPhotos from the tour',
@@ -549,15 +556,25 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                         <MapPin className="w-4 h-4" />
                         Meeting Point *
                       </Label>
-                      <Input
-                        id="meetingPoint"
-                        type="text"
-                        placeholder="e.g., Village parking lot"
-                        value={formData.meetingPoint}
-                        onChange={(e) => setFormData({ ...formData, meetingPoint: e.target.value })}
-                        className="mt-1.5 border-burgundy/30 focus:border-burgundy"
-                        required
-                      />
+                      <div className="mt-1.5">
+                        <LocationAutocomplete
+                          value={formData.meetingPoint_formatted || formData.meetingPoint}
+                          coordinates={{
+                            lat: formData.meetingPoint_lat,
+                            lng: formData.meetingPoint_lng
+                          }}
+                          onLocationSelect={(data) => {
+                            setFormData({
+                              ...formData,
+                              meetingPoint: data.address,
+                              meetingPoint_lat: data.lat,
+                              meetingPoint_lng: data.lng,
+                              meetingPoint_formatted: data.formatted
+                            });
+                          }}
+                          placeholder="Search for meeting point location..."
+                        />
+                      </div>
                     </div>
 
                     <div>
