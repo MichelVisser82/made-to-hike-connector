@@ -254,14 +254,14 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
 
             <Separator className="my-4" />
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Client Information */}
-              <div>
+              <div className="bg-cream/30 rounded-lg p-5 border border-burgundy/10">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-charcoal mb-4">
                   <Mail className="w-5 h-5 text-burgundy" />
                   Client Information
                 </h3>
-                <div className="space-y-3 pl-7">
+                <div className="space-y-3">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Name</p>
                     <p className="text-base font-medium text-charcoal">{clientName}</p>
@@ -273,15 +273,13 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                 </div>
               </div>
 
-              <Separator />
-
               {/* Tour Details */}
-              <div>
+              <div className="bg-cream/30 rounded-lg p-5 border border-burgundy/10">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-charcoal mb-4">
                   <Mountain className="w-5 h-5 text-burgundy" />
                   Tour Details
                 </h3>
-                <div className="space-y-3 pl-7">
+                <div className="space-y-4">
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">Selected Tour</p>
                     <Badge variant="outline" className="border-burgundy text-burgundy px-3 py-1">
@@ -289,7 +287,7 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Preferred Date</p>
                       <div className="flex items-center gap-2 text-base font-medium text-charcoal">
@@ -308,6 +306,29 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                       </div>
                     </div>
                   </div>
+                  
+                  {hikerLevel && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Experience Level</p>
+                      <Badge variant="outline" className="border-blue-300 text-blue-700">
+                        {getHikerLevelLabel(hikerLevel)}
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {region && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Region</p>
+                      <p className="text-base font-medium text-charcoal">{region}</p>
+                    </div>
+                  )}
+                  
+                  {initialMessage && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Additional Details</p>
+                      <p className="text-sm text-charcoal bg-white/50 p-3 rounded border border-burgundy/10">{initialMessage}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
