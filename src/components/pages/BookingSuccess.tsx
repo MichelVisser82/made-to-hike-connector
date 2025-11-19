@@ -12,6 +12,7 @@ export const BookingSuccess = () => {
   const [isProcessing, setIsProcessing] = useState(true);
   const [bookingReference, setBookingReference] = useState<string>('');
   const sessionId = searchParams.get('session_id');
+  const offerId = searchParams.get('offer_id');
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -22,8 +23,14 @@ export const BookingSuccess = () => {
       }
 
       try {
-        // Verify payment session - this now creates the booking
-        const { data: verificationData, error: verificationError } = await supabase.functions.invoke('verify-payment-session', {
+        // Determine if this is an offer payment or regular booking
+        const isOfferPayment = offerId !== null;
+        const functionName = isOfferPayment ? 'verify-offer-payment' : 'verify-payment-session';
+        
+        console.log(`Verifying ${isOfferPayment ? 'offer' : 'regular'} payment with session:`, sessionId);
+
+        // Verify payment session - this creates the booking
+        const { data: verificationData, error: verificationError } = await supabase.functions.invoke(functionName, {
           body: { session_id: sessionId }
         });
 
@@ -63,7 +70,7 @@ export const BookingSuccess = () => {
     };
 
     verifyPayment();
-  }, [sessionId, navigate]);
+  }, [sessionId, offerId, navigate]);
 
   if (isProcessing) {
     return (
