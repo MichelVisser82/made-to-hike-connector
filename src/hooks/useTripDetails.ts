@@ -62,6 +62,9 @@ export interface TripDetails {
     } | any;
     is_custom_tour?: boolean;
     offer_id?: string;
+    offer_price_per_person?: number | null;
+    offer_group_size?: number | null;
+    offer_duration?: string | null;
   };
   guide: {
     user_id: string;
@@ -254,20 +257,24 @@ export function useTripDetails(bookingId: string | undefined) {
         }
 
         // Merge custom tour data
-        tourData = {
-          ...tourData,
-          // Override with tour_offer specific data
-          meeting_point: tourOffer.meeting_point || tourData.meeting_point,
-          meeting_time: tourOffer.meeting_time || tourData.meeting_time,
-          group_size: tourOffer.group_size || tourData.group_size,
-          itinerary: parsedItinerary,
-          includes: includedItems,
-          duration: tourOffer.duration || tourData.duration,
-          preferred_date: tourOffer.preferred_date || tourData.preferred_date,
-          // Mark as custom tour
-          is_custom_tour: true,
-          offer_id: tourOffer.id,
-        };
+      tourData = {
+        ...tourData,
+        // Override with tour_offer specific data
+        meeting_point: tourOffer.meeting_point || tourData.meeting_point,
+        meeting_time: tourOffer.meeting_time || tourData.meeting_time,
+        group_size: tourOffer.group_size || tourData.group_size,
+        itinerary: parsedItinerary,
+        includes: includedItems,
+        duration: tourOffer.duration || tourData.duration,
+        preferred_date: tourOffer.preferred_date || tourData.preferred_date,
+        // Mark as custom tour
+        is_custom_tour: true,
+        offer_id: tourOffer.id,
+        // Expose offer-specific fields for the hero
+        offer_price_per_person: tourOffer.price_per_person ?? null,
+        offer_group_size: tourOffer.group_size ?? null,
+        offer_duration: tourOffer.duration ?? null,
+      };
       }
 
       // Determine best guide profile source (prioritize custom tour guide)
