@@ -191,27 +191,27 @@ serve(async (req) => {
         }
       });
 
-      // Email to guide
+      // Email to guide with guide-specific notification
       const { data: guideEmail } = await supabase
         .from('profiles')
-        .select('email')
+        .select('email, name')
         .eq('id', offer.guide_id)
         .single();
 
       if (guideEmail?.email) {
         await supabase.functions.invoke('send-email', {
           body: {
-            type: 'booking-confirmation',
+            type: 'guide-booking-notification',
             to: guideEmail.email,
             bookingReference: bookingReference,
             tourTitle: tour?.title || 'Custom Hiking Tour',
             bookingDate: offer.preferred_date,
-            guideName: guideProfile?.display_name || 'Your Guide',
+            name: guideEmail.name || 'Guest',
+            email: offer.hiker_email,
             meetingPoint: offer.meeting_point || tour?.meeting_point_formatted || 'Details will be shared',
             totalPrice: offer.total_price,
             currency: offer.currency,
             participants: offer.group_size,
-            isDeposit: false,
           }
         });
       }
