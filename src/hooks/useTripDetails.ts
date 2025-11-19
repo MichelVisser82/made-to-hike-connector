@@ -3,23 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tour } from '@/types';
 
 export interface TripItineraryDay {
-  day_number: number;
+  day: number;
   title: string;
-  date?: string;
-  start_time?: string;
-  end_time?: string;
-  overview: string;
-  activities?: Array<{
-    time?: string;
-    title: string;
-    description: string;
-  }>;
-  stats?: {
-    distance_km?: number;
-    elevation_gain_m?: number;
-    hiking_time_hours?: number;
-  };
-  photo_opportunities?: string;
+  description: string;
+  accommodation?: string;
+  meals?: string;
+  activities?: string[];
+  image_url?: string;
 }
 
 export interface TripChecklistItem {

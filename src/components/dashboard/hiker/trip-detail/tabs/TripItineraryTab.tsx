@@ -38,96 +38,74 @@ export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
       ) : (
         <div className="space-y-4">
           {itineraryDays.map((day) => (
-            <div key={day.day_number} className="border border-burgundy/10 rounded-lg overflow-hidden">
+            <div key={day.day} className="border border-burgundy/10 rounded-lg overflow-hidden">
               <button
-                onClick={() => setExpandedDay(expandedDay === day.day_number ? null : day.day_number)}
+                onClick={() => setExpandedDay(expandedDay === day.day ? null : day.day)}
                 className="w-full flex items-center justify-between p-4 bg-cream hover:bg-cream/70 transition-colors"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-burgundy text-white flex items-center justify-center text-lg font-playfair">
-                    {day.day_number}
+                    {day.day}
                   </div>
                   <div className="text-left">
                     <h3 className="font-medium text-charcoal">{day.title}</h3>
-                    {day.date && day.start_time && day.end_time && (
-                      <div className="text-sm text-charcoal/60">
-                        {day.date} • {day.start_time} - {day.end_time}
-                      </div>
-                    )}
                   </div>
                 </div>
-                {expandedDay === day.day_number ? (
+                {expandedDay === day.day ? (
                   <ChevronUp className="w-5 h-5 text-burgundy" />
                 ) : (
                   <ChevronDown className="w-5 h-5 text-burgundy" />
                 )}
               </button>
               
-              {expandedDay === day.day_number && (
+              {expandedDay === day.day && (
                 <div className="p-6 border-t border-burgundy/10">
                   <div className="space-y-6">
-                    {/* Overview */}
+                    {/* Image */}
+                    {day.image_url && (
+                      <div className="rounded-lg overflow-hidden">
+                        <img 
+                          src={day.image_url} 
+                          alt={day.title}
+                          className="w-full h-48 object-cover"
+                        />
+                      </div>
+                    )}
+
+                    {/* Description */}
                     <div>
                       <h4 className="font-medium text-charcoal mb-2">Overview</h4>
-                      <p className="text-charcoal/70">{day.overview}</p>
+                      <p className="text-charcoal/70">{day.description}</p>
                     </div>
 
-                    {/* Detailed Schedule */}
+                    {/* Activities */}
                     {day.activities && day.activities.length > 0 && (
                       <div>
-                        <h4 className="font-medium text-charcoal mb-3">Detailed Schedule</h4>
-                        <div className="space-y-4">
+                        <h4 className="font-medium text-charcoal mb-3">Activities</h4>
+                        <ul className="space-y-2">
                           {day.activities.map((activity, idx) => (
-                            <div key={idx} className="flex gap-3">
-                              {activity.time && (
-                                <div className="w-20 flex-shrink-0 text-sm text-burgundy font-medium">
-                                  {activity.time}
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                <div className="font-medium text-charcoal text-sm mb-1">
-                                  {activity.title}
-                                </div>
-                                <p className="text-sm text-charcoal/70">{activity.description}</p>
-                              </div>
-                            </div>
+                            <li key={idx} className="flex gap-2 text-charcoal/70">
+                              <span className="text-burgundy">•</span>
+                              <span>{activity}</span>
+                            </li>
                           ))}
-                        </div>
+                        </ul>
                       </div>
                     )}
 
-                    {/* Stats */}
-                    {day.stats && (day.stats.distance_km || day.stats.elevation_gain_m || day.stats.hiking_time_hours) && (
-                      <div className="grid grid-cols-3 gap-4 p-4 bg-cream rounded-lg">
-                        {day.stats.distance_km && (
-                          <div>
-                            <div className="text-xs text-charcoal/60 mb-1">Distance</div>
-                            <div className="font-medium text-charcoal">{day.stats.distance_km} km</div>
-                          </div>
-                        )}
-                        {day.stats.elevation_gain_m && (
-                          <div>
-                            <div className="text-xs text-charcoal/60 mb-1">Elevation Gain</div>
-                            <div className="font-medium text-charcoal">+{day.stats.elevation_gain_m}m</div>
-                          </div>
-                        )}
-                        {day.stats.hiking_time_hours && (
-                          <div>
-                            <div className="text-xs text-charcoal/60 mb-1">Hiking Time</div>
-                            <div className="font-medium text-charcoal">{day.stats.hiking_time_hours} hours</div>
-                          </div>
-                        )}
+                    {/* Accommodation */}
+                    {day.accommodation && (
+                      <div className="p-4 bg-cream rounded-lg">
+                        <h4 className="font-medium text-charcoal mb-2">Accommodation</h4>
+                        <p className="text-sm text-charcoal/70">{day.accommodation}</p>
                       </div>
                     )}
 
-                    {/* Photo Opportunities */}
-                    {day.photo_opportunities && (
-                      <div className="bg-sage/10 border border-sage/20 rounded-lg p-4">
-                        <div className="flex items-start gap-2 mb-2">
-                          <Camera className="w-4 h-4 text-sage mt-0.5" />
-                          <h4 className="font-medium text-charcoal text-sm">Photo Opportunities</h4>
-                        </div>
-                        <p className="text-sm text-charcoal/70">{day.photo_opportunities}</p>
+                    {/* Meals */}
+                    {day.meals && (
+                      <div className="p-4 bg-sage/10 border border-sage/20 rounded-lg">
+                        <h4 className="font-medium text-charcoal mb-2">Meals Included</h4>
+                        <p className="text-sm text-charcoal/70">{day.meals}</p>
                       </div>
                     )}
                   </div>
