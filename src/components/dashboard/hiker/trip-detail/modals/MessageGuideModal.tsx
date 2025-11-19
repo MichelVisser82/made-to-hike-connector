@@ -19,6 +19,10 @@ export function MessageGuideModal({ isOpen, onClose, tripDetails }: MessageGuide
   const { toast } = useToast();
   const { guide, booking, tour } = tripDetails;
 
+  if (!tour || !guide) {
+    return null;
+  }
+
   const handleSendMessage = async () => {
     if (!message.trim()) {
       toast({
