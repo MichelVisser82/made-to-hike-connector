@@ -109,16 +109,17 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
       const meetingPoint = offer?.meeting_point || booking.tours?.meeting_point || 'TBD';
       const meetingTime = offer?.meeting_time || null;
       const duration = offer?.duration || booking.tours?.duration;
-      
+
       // Format dates with meeting time if available
       const dateStr = format(new Date(booking.booking_date), 'MMMM d, yyyy');
       const datesDisplay = meetingTime ? `${dateStr} • ${meetingTime}` : dateStr;
-      
-      // Prefer tour_offer guide data for custom tours
-      const offerGuideProfile = offer?.tours?.guide_profiles;
-      const mainGuideProfile = offerGuideProfile || booking.tours?.guide_profiles;
-      const offerGuideId = offer?.tours?.guide_id;
-      const mainGuideId = offerGuideId || booking.tours?.guide_id;
+
+      // Prefer guide data from the guide who created the custom offer
+      const offerTourGuideProfile = offer?.tours?.guide_profiles;
+      const offerGuideProfile = offer?.guide_profile;
+      const mainGuideProfile = offerTourGuideProfile || booking.tours?.guide_profiles;
+      const offerTourGuideId = offer?.tours?.guide_id;
+      const mainGuideId = offer?.guide_id || offerTourGuideId || booking.tours?.guide_id;
       
       // Parse itinerary from offer if available (custom tours)
       let itinerary = booking.tours?.itinerary;
@@ -133,17 +134,19 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
           itinerary = offer.itinerary;
         }
       }
-
+ 
       return {
         id: booking.id,
         title: booking.tours?.title || 'Tour',
         dates: datesDisplay,
         guide: { 
-          name: mainGuideProfile?.display_name 
+          name: offerGuideProfile?.name
+            || mainGuideProfile?.display_name 
             || offer?.tours?.guide_display_name 
             || booking.tours?.guide_display_name 
             || 'Guide', 
-          avatar: mainGuideProfile?.profile_image_url 
+          avatar: offerGuideProfile?.avatar_url 
+            || mainGuideProfile?.profile_image_url 
             || offer?.tours?.guide_avatar_url 
             || booking.tours?.guide_avatar_url 
             || '' 
@@ -168,12 +171,13 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
   const pastTrips = bookings
     .filter(booking => booking.status.toLowerCase() === 'completed')
     .map(booking => {
-      // Prefer tour_offer guide data for custom tours
+      // Prefer guide data from the guide who created the custom offer
       const offer = booking.tour_offers?.[0];
-      const offerGuideProfile = offer?.tours?.guide_profiles;
-      const mainGuideProfile = offerGuideProfile || booking.tours?.guide_profiles;
-      const offerGuideId = offer?.tours?.guide_id;
-      const mainGuideId = offerGuideId || booking.tours?.guide_id;
+      const offerTourGuideProfile = offer?.tours?.guide_profiles;
+      const offerGuideProfile = offer?.guide_profile;
+      const mainGuideProfile = offerTourGuideProfile || booking.tours?.guide_profiles;
+      const offerTourGuideId = offer?.tours?.guide_id;
+      const mainGuideId = offer?.guide_id || offerTourGuideId || booking.tours?.guide_id;
       
       // Parse itinerary from offer if available (custom tours)
       let itinerary = booking.tours?.itinerary;
@@ -188,17 +192,19 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
           itinerary = offer.itinerary;
         }
       }
-
+ 
       return {
         id: booking.id,
         title: booking.tours?.title || 'Tour',
         dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
         guide: { 
-          name: mainGuideProfile?.display_name 
+          name: offerGuideProfile?.name
+            || mainGuideProfile?.display_name 
             || offer?.tours?.guide_display_name 
             || booking.tours?.guide_display_name 
             || 'Guide', 
-          avatar: mainGuideProfile?.profile_image_url 
+          avatar: offerGuideProfile?.avatar_url 
+            || mainGuideProfile?.profile_image_url 
             || offer?.tours?.guide_avatar_url 
             || booking.tours?.guide_avatar_url 
             || '' 
