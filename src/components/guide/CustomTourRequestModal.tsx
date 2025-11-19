@@ -282,57 +282,55 @@ export function CustomTourRequestModal({
                     <PopoverContent className="w-[400px] p-0 z-[9999]" align="start" sideOffset={4}>
                       <Command>
                         <CommandInput placeholder="Search regions..." />
-                        <ScrollArea className="h-[300px]">
-                          <CommandList className="max-h-none">
-                            <CommandEmpty>No region found.</CommandEmpty>
-                            <CommandGroup>
-                              {regionsLoading ? (
-                                <CommandItem disabled>Loading regions...</CommandItem>
-                              ) : (
-                                <>
-                                  {hikingRegions?.map((region) => {
-                                    const displayValue = region.region
-                                      ? `${region.country} - ${region.region} - ${region.subregion}`
-                                      : `${region.country} - ${region.subregion}`;
+                        <CommandList>
+                          <CommandEmpty>No region found.</CommandEmpty>
+                          <CommandGroup>
+                            {regionsLoading ? (
+                              <CommandItem disabled>Loading regions...</CommandItem>
+                            ) : (
+                              <>
+                                {hikingRegions?.map((region) => {
+                                  const displayValue = region.region
+                                    ? `${region.country} - ${region.region} - ${region.subregion}`
+                                    : `${region.country} - ${region.subregion}`;
 
-                                    return (
-                                      <CommandItem
-                                        key={region.id}
-                                        value={displayValue.toLowerCase()}
-                                        onSelect={() => {
-                                          setFormData((prev) => ({ ...prev, region: displayValue }));
-                                          setShowCustomRegionInput(false);
-                                          setCustomRegionText("");
-                                          setRegionPopoverOpen(false);
-                                        }}
-                                      >
-                                        <Check
-                                          className={cn(
-                                            "mr-2 h-4 w-4",
-                                            formData.region === displayValue ? "opacity-100" : "opacity-0",
-                                          )}
-                                        />
-                                        {displayValue}
-                                      </CommandItem>
-                                    );
-                                  })}
-                                  <CommandItem
-                                    value="other"
-                                    onSelect={() => {
-                                      setFormData((prev) => ({ ...prev, region: "Other / Not Listed / Flexible" }));
-                                      setShowCustomRegionInput(true);
-                                      setRegionPopoverOpen(false);
-                                    }}
-                                    className="border-t mt-2 pt-2"
-                                  >
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Other / Not Listed / Flexible
-                                  </CommandItem>
-                                </>
-                              )}
-                            </CommandGroup>
-                          </CommandList>
-                        </ScrollArea>
+                                  return (
+                                    <CommandItem
+                                      key={region.id}
+                                      value={displayValue.toLowerCase()}
+                                      onSelect={() => {
+                                        setFormData((prev) => ({ ...prev, region: displayValue }));
+                                        setShowCustomRegionInput(false);
+                                        setCustomRegionText("");
+                                        setRegionPopoverOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          formData.region === displayValue ? "opacity-100" : "opacity-0",
+                                        )}
+                                      />
+                                      {displayValue}
+                                    </CommandItem>
+                                  );
+                                })}
+                                <CommandItem
+                                  value="other"
+                                  onSelect={() => {
+                                    setFormData((prev) => ({ ...prev, region: "Other / Not Listed / Flexible" }));
+                                    setShowCustomRegionInput(true);
+                                    setRegionPopoverOpen(false);
+                                  }}
+                                  className="border-t mt-2 pt-2"
+                                >
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  Other / Not Listed / Flexible
+                                </CommandItem>
+                              </>
+                            )}
+                          </CommandGroup>
+                        </CommandList>
                       </Command>
                     </PopoverContent>
                   </Popover>
