@@ -119,6 +119,20 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
       const mainGuideProfile = offerGuideProfile || booking.tours?.guide_profiles;
       const offerGuideId = offer?.tours?.guide_id;
       const mainGuideId = offerGuideId || booking.tours?.guide_id;
+      
+      // Parse itinerary from offer if available (custom tours)
+      let itinerary = booking.tours?.itinerary;
+      if (offer?.itinerary) {
+        try {
+          // If tour_offer itinerary is JSON string, parse it
+          itinerary = typeof offer.itinerary === 'string' 
+            ? JSON.parse(offer.itinerary)
+            : offer.itinerary;
+        } catch {
+          // If not valid JSON, use as plain text
+          itinerary = offer.itinerary;
+        }
+      }
 
       return {
         id: booking.id,
@@ -137,7 +151,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
         location: meetingPoint,
         meeting_point_lat: booking.tours?.meeting_point_lat,
         meeting_point_lng: booking.tours?.meeting_point_lng,
-        itinerary: booking.tours?.itinerary,
+        itinerary: itinerary,
         guests: offer?.group_size || booking.participants,
         difficulty: booking.tours?.difficulty || 'Intermediate',
         tourId: booking.tour_id,
@@ -160,6 +174,20 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
       const mainGuideProfile = offerGuideProfile || booking.tours?.guide_profiles;
       const offerGuideId = offer?.tours?.guide_id;
       const mainGuideId = offerGuideId || booking.tours?.guide_id;
+      
+      // Parse itinerary from offer if available (custom tours)
+      let itinerary = booking.tours?.itinerary;
+      if (offer?.itinerary) {
+        try {
+          // If tour_offer itinerary is JSON string, parse it
+          itinerary = typeof offer.itinerary === 'string' 
+            ? JSON.parse(offer.itinerary)
+            : offer.itinerary;
+        } catch {
+          // If not valid JSON, use as plain text
+          itinerary = offer.itinerary;
+        }
+      }
 
       return {
         id: booking.id,
@@ -183,6 +211,7 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
         status: booking.status,
         duration: booking.tours?.duration,
         image: booking.tours?.hero_image,
+        itinerary: itinerary,
         reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
         booking_date: booking.booking_date,
       };
