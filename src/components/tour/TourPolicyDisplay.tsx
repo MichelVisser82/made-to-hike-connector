@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Gift, CreditCard, Info } from 'lucide-react';
+import { Shield, Gift, CreditCard, Info, ChevronDown } from 'lucide-react';
 import { useGuidePolicyDefaults } from '@/hooks/useGuidePolicyDefaults';
 import { TourPolicyOverrides, CANCELLATION_POLICIES } from '@/types/policySettings';
 
@@ -13,6 +14,7 @@ interface TourPolicyDisplayProps {
 
 export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currency = 'EUR' }: TourPolicyDisplayProps) {
   const { defaults, isLoading } = useGuidePolicyDefaults(guideId);
+  const [isCancellationOpen, setIsCancellationOpen] = useState(false);
 
   if (isLoading) {
     return null;
@@ -91,13 +93,22 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
     <div className="space-y-4">
       {/* Cancellation Policy */}
       <Card className="border-border shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg text-foreground">
-            <Shield className="w-5 h-5 text-burgundy" />
-            Cancellation Policy
+        <CardHeader 
+          className="cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => setIsCancellationOpen(!isCancellationOpen)}
+        >
+          <CardTitle className="flex items-center justify-between text-lg text-foreground">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-burgundy" />
+              Cancellation Policy
+            </div>
+            <ChevronDown 
+              className={`w-5 h-5 text-muted-foreground transition-transform ${isCancellationOpen ? 'rotate-180' : ''}`}
+            />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        {isCancellationOpen && (
+          <CardContent className="space-y-3">
           {isCustomerChoice ? (
             <>
               <div className="flex items-start gap-2 p-3 bg-muted rounded-lg mb-3">
@@ -164,7 +175,8 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
               </div>
             </>
           )}
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
 
       {/* Discounts */}
