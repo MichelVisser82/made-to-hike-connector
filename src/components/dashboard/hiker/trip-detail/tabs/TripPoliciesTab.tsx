@@ -13,6 +13,20 @@ interface TripPoliciesTabProps {
 
 export function TripPoliciesTab({ tripDetails }: TripPoliciesTabProps) {
   const { tour } = tripDetails;
+
+  if (!tour) {
+    return (
+      <Card className="p-6 bg-white border-burgundy/10 shadow-md">
+        <h2 className="text-2xl mb-6 text-charcoal font-playfair">
+          Important Policies & Information
+        </h2>
+        <p className="text-sm text-charcoal/70">
+          Tour policy information is not available right now. Please contact your guide if you have questions about cancellation policies, weather contingencies, or other important information.
+        </p>
+      </Card>
+    );
+  }
+
   const difficulty = tour.difficulty || 'moderate';
 
   return (
