@@ -49,8 +49,8 @@ serve(async (req) => {
 
     logStep("Offer fetched", { hiker_email: offer.hiker_email });
 
-    // Generate accept/decline URLs
-    const baseUrl = Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '') || 'http://localhost:5173';
+    // Generate accept/decline URLs - use the production URL
+    const baseUrl = 'https://madetohike.com';
     const acceptUrl = `${baseUrl}/offer/accept?token=${offer.offer_token}`;
     const declineUrl = `${baseUrl}/offer/decline?token=${offer.offer_token}`;
 

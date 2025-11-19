@@ -124,6 +124,22 @@ verify_jwt = false
 verify_jwt = false
 
 # Cron jobs configuration
+[functions.create-tour-offer]
+verify_jwt = false
+
+[functions.send-offer-email]
+verify_jwt = false
+
+[functions.accept-offer]
+verify_jwt = false
+
+[functions.decline-offer]
+verify_jwt = false
+
+[functions.process-offer-payment]
+verify_jwt = false
+
+# Cron jobs configuration
 [cron]
 enabled = true
 
