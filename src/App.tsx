@@ -26,6 +26,8 @@ import { BookingFlowNew } from "./components/pages/BookingFlowNew";
 import { BookingSuccess } from "./components/pages/BookingSuccess";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
+import OfferAccept from "./pages/OfferAccept";
+import OfferDecline from "./pages/OfferDecline";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +73,8 @@ const App: React.FC = () => {
             <Route path="/booking-success" element={<BookingSuccess />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
+            <Route path="/offer/accept" element={<OfferAccept />} />
+            <Route path="/offer/decline" element={<OfferDecline />} />
             <Route path="/help" element={<HelpPage />} />
                 <Route 
                   path="/dashboard" 

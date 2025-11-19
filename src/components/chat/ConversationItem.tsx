@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { FileQuestion, MapPin } from 'lucide-react';
 import type { Conversation } from '@/types/chat';
 
 interface ConversationItemProps {
@@ -60,14 +61,18 @@ export function ConversationItem({
           </p>
 
           <div className="flex items-center gap-2 mt-1">
-            <Badge 
-              variant={conversation.conversation_type === 'custom_tour_request' ? 'default' : 'outline'} 
-              className="text-xs"
-            >
-              {conversation.conversation_type === 'custom_tour_request' 
-                ? 'Custom Tour Request' 
-                : conversation.conversation_type.replace('_', ' ')}
-            </Badge>
+            {conversation.conversation_type === 'tour_inquiry' && conversation.tours?.title && (
+              <Badge variant="outline" className="text-xs">
+                <MapPin className="w-3 h-3 mr-1" />
+                Tour Inquiry
+              </Badge>
+            )}
+            {conversation.conversation_type === 'custom_tour_request' && (
+              <Badge variant="outline" className="border-primary text-primary text-xs">
+                <FileQuestion className="w-3 h-3 mr-1" />
+                Custom Request
+              </Badge>
+            )}
             {conversation.unread_count && conversation.unread_count > 0 && (
               <Badge variant="default" className="text-xs">
                 {conversation.unread_count}

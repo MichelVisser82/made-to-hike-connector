@@ -9,11 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Send, MessageSquare, MapPin } from 'lucide-react';
+import { Loader2, Send, MessageSquare, MapPin, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Conversation } from '@/types/chat';
 import { format } from 'date-fns';
+import { QuickOfferForm } from '@/components/guide/QuickOfferForm';
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -29,6 +30,7 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
   const [sending, setSending] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [offerModalOpen, setOfferModalOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -236,7 +238,34 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-2">
+        {/* Create Offer button for custom tour requests */}
+        {conversation.conversation_type === 'custom_tour_request' && 
+         user?.id === conversation.guide_id && (
+          <>
+            <QuickOfferForm
+              conversation={conversation}
+              open={offerModalOpen}
+              onOpenChange={setOfferModalOpen}
+              onOfferSent={() => {
+                toast({
+                  title: "Offer Sent",
+                  description: "Your tour offer has been sent to the client via email.",
+                });
+                setOfferModalOpen(false);
+              }}
+            />
+            <Button
+              variant="outline"
+              onClick={() => setOfferModalOpen(true)}
+              className="w-full border-primary text-primary hover:bg-primary/10"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Create Offer
+            </Button>
+          </>
+        )}
+
         <div className="flex gap-2 items-end">
           {chatTemplates.length > 0 && (
             <Popover open={templatesOpen} onOpenChange={setTemplatesOpen}>
