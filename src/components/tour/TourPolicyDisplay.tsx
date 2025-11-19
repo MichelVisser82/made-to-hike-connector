@@ -90,10 +90,10 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
   return (
     <div className="space-y-4">
       {/* Cancellation Policy */}
-      <Card>
+      <Card className="border-border shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Shield className="w-5 h-5 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+            <Shield className="w-5 h-5 text-burgundy" />
             Cancellation Policy
           </CardTitle>
         </CardHeader>
@@ -108,17 +108,17 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
               </div>
               
               {customerChoiceOptions.map((option, idx) => (
-                <div key={idx} className={`${idx > 0 ? 'mt-4 pt-4 border-t' : ''} space-y-2`}>
+                <div key={idx} className={`${idx > 0 ? 'mt-4 pt-4 border-t border-border' : ''} space-y-2`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="font-semibold">
+                      <Badge variant="secondary" className="font-semibold bg-burgundy/10 text-burgundy border-0">
                         {option.policy.name}
                       </Badge>
-                      <span className="text-sm font-medium text-primary">
+                      <span className="text-sm font-medium text-burgundy">
                         {option.priceAdjustment}
                       </span>
                     </div>
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm font-semibold text-foreground">
                       {currencySymbol}{option.adjustedPrice.toFixed(0)}
                     </span>
                   </div>
@@ -131,7 +131,7 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
                             ? 'Less than ' + option.policy.tiers[tierIdx - 1]?.daysOrMore + ' days'
                             : tier.daysOrMore + '+ days before'}
                         </span>
-                        <span className={tier.refundPercent > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
+                        <span className={tier.refundPercent > 0 ? 'text-burgundy font-medium' : 'text-burgundy/60'}>
                           {tier.refundPercent}% refund
                         </span>
                       </div>
@@ -143,7 +143,7 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
           ) : (
             <>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="font-semibold">
+                <Badge variant="secondary" className="font-semibold bg-burgundy/10 text-burgundy border-0">
                   {cancellationPolicy.name}
                 </Badge>
                 <p className="text-sm text-muted-foreground">{cancellationPolicy.description}</p>
@@ -156,7 +156,7 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
                         ? 'Less than ' + cancellationPolicy.tiers[idx - 1]?.daysOrMore + ' days'
                         : tier.daysOrMore + '+ days before'}
                     </span>
-                    <span className={tier.refundPercent > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
+                    <span className={tier.refundPercent > 0 ? 'text-burgundy font-medium' : 'text-burgundy/60'}>
                       {tier.refundPercent}% refund
                     </span>
                   </div>
@@ -169,18 +169,18 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
 
       {/* Discounts */}
       {!discountsDisabled && (earlyBirdSettings?.enabled || groupSettings?.enabled || lastMinuteSettings?.enabled) && (
-        <Card>
+        <Card className="border-border shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Gift className="w-5 h-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+              <Gift className="w-5 h-5 text-burgundy" />
               Available Discounts
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {earlyBirdSettings?.enabled && (
               <div className="flex items-start gap-2">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700">Early Bird</Badge>
-                <div className="flex-1 text-sm">
+                <Badge variant="secondary" className="bg-burgundy/10 text-burgundy border-0">Early Bird</Badge>
+                <div className="flex-1 text-sm text-foreground">
                   <p className="text-muted-foreground">Book early and save:</p>
                   <ul className="mt-1 space-y-1">
                     {earlyBirdSettings.tier1_days > 0 && (
@@ -199,8 +199,8 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
 
             {groupSettings?.enabled && (
               <div className="flex items-start gap-2">
-                <Badge variant="secondary" className="bg-green-100 text-green-700">Group Discount</Badge>
-                <div className="flex-1 text-sm">
+                <Badge variant="secondary" className="bg-burgundy/10 text-burgundy border-0">Group Discount</Badge>
+                <div className="flex-1 text-sm text-foreground">
                   <p className="text-muted-foreground">Larger groups save more:</p>
                   <ul className="mt-1 space-y-1">
                     {groupSettings.tier1_min > 0 && (
@@ -219,8 +219,8 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
 
             {lastMinuteSettings?.enabled && (
               <div className="flex items-start gap-2">
-                <Badge variant="secondary" className="bg-orange-100 text-orange-700">Last Minute</Badge>
-                <div className="flex-1 text-sm">
+                <Badge variant="secondary" className="bg-burgundy/10 text-burgundy border-0">Last Minute</Badge>
+                <div className="flex-1 text-sm text-foreground">
                   <p className="text-muted-foreground">
                     {lastMinuteSettings.percent}% off when booking within {lastMinuteSettings.hours} hours of tour start
                   </p>
@@ -232,17 +232,17 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
       )}
 
       {/* Payment Schedule */}
-      <Card>
+      <Card className="border-border shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <CreditCard className="w-5 h-5 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+            <CreditCard className="w-5 h-5 text-burgundy" />
             Payment Schedule
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground font-medium">Booking Date:</span>
-            <span className="font-medium">
+            <span className="font-medium text-foreground">
               {depositType === 'none'
                 ? 'Full payment charged'
                 : depositType === 'percentage'
@@ -254,7 +254,7 @@ export function TourPolicyDisplay({ guideId, policyOverrides, tourPrice, currenc
           {depositType !== 'none' && (
             <div className="flex justify-between items-center text-sm">
               <span className="text-muted-foreground font-medium">{finalPaymentDays} days before tour:</span>
-              <span className="font-medium">Remaining balance auto-charged</span>
+              <span className="font-medium text-foreground">Remaining balance auto-charged</span>
             </div>
           )}
           <div className="flex items-start gap-2 mt-3 p-3 bg-muted rounded-lg">
