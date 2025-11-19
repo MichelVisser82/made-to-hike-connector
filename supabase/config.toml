@@ -139,6 +139,9 @@ verify_jwt = false
 [functions.process-offer-payment]
 verify_jwt = false
 
+[functions.verify-offer-payment]
+verify_jwt = false
+
 # Cron jobs configuration
 [cron]
 enabled = true
