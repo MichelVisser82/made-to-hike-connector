@@ -112,6 +112,39 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
     personalNote: '',
   });
 
+  // Pre-load tour data if this is based on an existing tour
+  useEffect(() => {
+    const loadTourData = async () => {
+      if (!conversation.tour_id) return;
+      
+      try {
+        const { data: tour, error } = await supabase
+          .from('tours')
+          .select('*')
+          .eq('id', conversation.tour_id)
+          .single();
+        
+        if (error || !tour) return;
+        
+        // Pre-load relevant fields from the tour
+        setFormData(prev => ({
+          ...prev,
+          duration: tour.duration || prev.duration,
+          meetingPoint: tour.meeting_point || prev.meetingPoint,
+          meetingPoint_lat: tour.meeting_point_lat || prev.meetingPoint_lat,
+          meetingPoint_lng: tour.meeting_point_lng || prev.meetingPoint_lng,
+          meetingPoint_formatted: tour.meeting_point_formatted || prev.meetingPoint_formatted,
+          itinerary: tour.itinerary ? (typeof tour.itinerary === 'string' ? tour.itinerary : JSON.stringify(tour.itinerary, null, 2)) : prev.itinerary,
+          includedItems: tour.includes?.length ? tour.includes.join('\n') : prev.includedItems,
+        }));
+      } catch (error) {
+        console.error('Error loading tour data:', error);
+      }
+    };
+    
+    loadTourData();
+  }, [conversation.tour_id]);
+
   // Set initial date from request when component mounts
   useEffect(() => {
     if (requestedDate && !formData.preferredDate) {
