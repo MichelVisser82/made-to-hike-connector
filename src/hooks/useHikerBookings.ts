@@ -49,6 +49,10 @@ export interface HikerBooking {
     preferred_date: string | null;
     itinerary: string | null;
     guide_id: string;
+    offer_guide_profile?: {
+      display_name: string;
+      profile_image_url: string | null;
+    } | null;
     tours: {
       id: string;
       title: string;
@@ -152,7 +156,48 @@ export function useHikerBookings(hikerId: string | undefined) {
 
       if (fetchError) throw fetchError;
 
-      setBookings(data || []);
+      const rawData = (data || []) as any[];
+
+      // Collect all unique guide IDs from tour offers
+      const guideIds = Array.from(new Set(
+        rawData.flatMap((booking) =>
+          (booking.tour_offers || [])
+            .map((offer: any) => offer.guide_id)
+            .filter((id: string | null) => !!id)
+        )
+      )) as string[];
+
+      let guideProfilesMap = new Map<string, { display_name: string; profile_image_url: string | null }>();
+
+      if (guideIds.length > 0) {
+        const { data: guideProfiles, error: guideError } = await supabase
+          .from('guide_profiles_public')
+          .select('user_id, display_name, profile_image_url')
+          .in('user_id', guideIds);
+
+        if (!guideError && guideProfiles) {
+          guideProfilesMap = new Map(
+            (guideProfiles as any[]).map((g) => [g.user_id, {
+              display_name: g.display_name,
+              profile_image_url: g.profile_image_url,
+            }])
+          );
+        }
+      }
+
+      const bookingsWithGuides: HikerBooking[] = rawData.map((booking) => {
+        const enrichedOffers = (booking.tour_offers || []).map((offer: any) => ({
+          ...offer,
+          offer_guide_profile: guideProfilesMap.get(offer.guide_id) || null,
+        }));
+
+        return {
+          ...booking,
+          tour_offers: enrichedOffers,
+        } as HikerBooking;
+      });
+
+      setBookings(bookingsWithGuides);
     } catch (err) {
       console.error('Error fetching hiker bookings:', err);
       setError(err as Error);
