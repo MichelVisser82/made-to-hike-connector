@@ -255,51 +255,6 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
             <Separator className="my-4" />
 
             <div className="space-y-4">
-              {/* Client's Message */}
-              {initialMessage && (
-                <div>
-                  <h3 className="flex items-center gap-2 text-lg font-semibold text-charcoal mb-3">
-                    <MessageCircle className="w-5 h-5 text-burgundy" />
-                    Client's Message
-                  </h3>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-base text-charcoal leading-relaxed">{initialMessage}</p>
-                  </div>
-                  
-                  {/* Quick Assessment Tips */}
-                  <div className="mt-4 bg-rose-50 rounded-lg p-4 border border-rose-200">
-                    <div className="flex items-start gap-2 mb-3">
-                      <Lightbulb className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <h4 className="font-semibold text-burgundy">Quick Assessment Tips</h4>
-                    </div>
-                    <ul className="space-y-2 text-sm text-charcoal/80">
-                      <li className="flex items-start gap-2">
-                        <span className="text-burgundy mt-1">•</span>
-                        <span>Check your calendar availability for {requestedDate ? format(parseLocalDate(requestedDate)!, "MMMM d") : 'the requested date'}</span>
-                      </li>
-                      {hikerLevel && (
-                        <li className="flex items-start gap-2">
-                          <span className="text-burgundy mt-1">•</span>
-                          <span>Ensure tour difficulty matches {getHikerLevelLabel(hikerLevel).toLowerCase()} level</span>
-                        </li>
-                      )}
-                      <li className="flex items-start gap-2">
-                        <span className="text-burgundy mt-1">•</span>
-                        <span>Consider weather conditions for the preferred date</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-burgundy mt-1">•</span>
-                        <span>Review equipment requirements for group of {groupSize}</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-burgundy mt-1">•</span>
-                        <span>Respond within 24 hours for best conversion rates</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-
               {/* Client Information */}
               <div className="bg-cream/30 rounded-lg p-5 border border-burgundy/10">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-charcoal mb-4">
@@ -383,6 +338,51 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                   )}
                 </div>
               </div>
+
+              {/* Client's Message */}
+              {initialMessage && (
+                <div>
+                  <h3 className="flex items-center gap-2 text-lg font-semibold text-charcoal mb-3">
+                    <MessageCircle className="w-5 h-5 text-burgundy" />
+                    Client's Message
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-base text-charcoal leading-relaxed">{initialMessage}</p>
+                  </div>
+                  
+                  {/* Quick Assessment Tips */}
+                  <div className="mt-4 bg-rose-50 rounded-lg p-4 border border-rose-200">
+                    <div className="flex items-start gap-2 mb-3">
+                      <Lightbulb className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <h4 className="font-semibold text-burgundy">Quick Assessment Tips</h4>
+                    </div>
+                    <ul className="space-y-2 text-sm text-charcoal/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-burgundy mt-1">•</span>
+                        <span>Check your calendar availability for {requestedDate ? format(parseLocalDate(requestedDate)!, "MMMM d") : 'the requested date'}</span>
+                      </li>
+                      {hikerLevel && (
+                        <li className="flex items-start gap-2">
+                          <span className="text-burgundy mt-1">•</span>
+                          <span>Ensure tour difficulty matches {getHikerLevelLabel(hikerLevel).toLowerCase()} level</span>
+                        </li>
+                      )}
+                      <li className="flex items-start gap-2">
+                        <span className="text-burgundy mt-1">•</span>
+                        <span>Consider weather conditions for the preferred date</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-burgundy mt-1">•</span>
+                        <span>Review equipment requirements for group of {groupSize}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-burgundy mt-1">•</span>
+                        <span>Respond within 24 hours for best conversion rates</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 mt-6 pt-4 border-t">
