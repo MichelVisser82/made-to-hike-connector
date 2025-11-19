@@ -101,7 +101,7 @@ export type Database = {
           stripe_refund_id: string | null
           subtotal: number | null
           total_price: number
-          tour_id: string | null
+          tour_id: string
           updated_at: string
           waiver_uploaded_at: string | null
         }
@@ -140,7 +140,7 @@ export type Database = {
           stripe_refund_id?: string | null
           subtotal?: number | null
           total_price: number
-          tour_id?: string | null
+          tour_id: string
           updated_at?: string
           waiver_uploaded_at?: string | null
         }
@@ -179,7 +179,7 @@ export type Database = {
           stripe_refund_id?: string | null
           subtotal?: number | null
           total_price?: number
-          tour_id?: string | null
+          tour_id?: string
           updated_at?: string
           waiver_uploaded_at?: string | null
         }
@@ -2144,6 +2144,7 @@ export type Database = {
           preferred_date: string | null
           price_per_person: number
           total_price: number
+          tour_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2170,6 +2171,7 @@ export type Database = {
           preferred_date?: string | null
           price_per_person: number
           total_price: number
+          tour_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2196,6 +2198,7 @@ export type Database = {
           preferred_date?: string | null
           price_per_person?: number
           total_price?: number
+          tour_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2225,6 +2228,13 @@ export type Database = {
             columns: ["hiker_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_offers_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
             referencedColumns: ["id"]
           },
         ]
