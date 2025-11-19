@@ -38,6 +38,14 @@ export interface HikerBooking {
       profile_image_url: string | null;
     } | null;
   } | null;
+  tour_offers: Array<{
+    id: string;
+    meeting_point: string;
+    meeting_time: string;
+    duration: string;
+    group_size: number;
+    preferred_date: string | null;
+  }>;
 }
 
 export function useHikerBookings(hikerId: string | undefined) {
@@ -99,6 +107,14 @@ export function useHikerBookings(hikerId: string | undefined) {
               display_name,
               profile_image_url
             )
+          ),
+          tour_offers!tour_offers_booking_id_fkey (
+            id,
+            meeting_point,
+            meeting_time,
+            duration,
+            group_size,
+            preferred_date
           )
         `)
         .eq('hiker_id', hikerId)

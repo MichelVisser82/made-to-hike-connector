@@ -103,28 +103,40 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
 
   const upcomingTrips = bookings
     .filter(booking => ['confirmed', 'pending', 'pending_confirmation'].includes(booking.status.toLowerCase()))
-    .map(booking => ({
-      id: booking.id,
-      title: booking.tours?.title || 'Tour',
-      dates: format(new Date(booking.booking_date), 'MMMM d, yyyy'),
-      guide: { 
-        name: booking.tours?.guide_profiles?.display_name || 'Guide', 
-        avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
-      },
-      location: booking.tours?.meeting_point || 'TBD',
-      meeting_point_lat: booking.tours?.meeting_point_lat,
-      meeting_point_lng: booking.tours?.meeting_point_lng,
-      itinerary: booking.tours?.itinerary,
-      guests: booking.participants,
-      difficulty: booking.tours?.difficulty || 'Intermediate',
-      tourId: booking.tour_id,
-      guideId: booking.tours?.guide_id,
-      status: booking.status,
-      duration: booking.tours?.duration,
-      image: booking.tours?.hero_image,
-      reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
-      booking_date: booking.booking_date,
-    }))
+    .map(booking => {
+      // Use tour_offer data if available (custom tours), otherwise use tour data
+      const offer = booking.tour_offers?.[0];
+      const meetingPoint = offer?.meeting_point || booking.tours?.meeting_point || 'TBD';
+      const meetingTime = offer?.meeting_time || null;
+      const duration = offer?.duration || booking.tours?.duration;
+      
+      // Format dates with meeting time if available
+      const dateStr = format(new Date(booking.booking_date), 'MMMM d, yyyy');
+      const datesDisplay = meetingTime ? `${dateStr} • ${meetingTime}` : dateStr;
+      
+      return {
+        id: booking.id,
+        title: booking.tours?.title || 'Tour',
+        dates: datesDisplay,
+        guide: { 
+          name: booking.tours?.guide_profiles?.display_name || 'Guide', 
+          avatar: booking.tours?.guide_profiles?.profile_image_url || '' 
+        },
+        location: meetingPoint,
+        meeting_point_lat: booking.tours?.meeting_point_lat,
+        meeting_point_lng: booking.tours?.meeting_point_lng,
+        itinerary: booking.tours?.itinerary,
+        guests: offer?.group_size || booking.participants,
+        difficulty: booking.tours?.difficulty || 'Intermediate',
+        tourId: booking.tour_id,
+        guideId: booking.tours?.guide_id,
+        status: booking.status,
+        duration: duration,
+        image: booking.tours?.hero_image,
+        reviewSubmitted: reviews.some(r => r.booking_id === booking.id),
+        booking_date: booking.booking_date,
+      };
+    })
     .sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime());
 
   const pastTrips = bookings
