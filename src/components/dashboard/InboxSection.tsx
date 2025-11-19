@@ -348,9 +348,18 @@ Best regards,
                               <p className="text-xs text-charcoal/60 truncate mb-1">
                                 {subtitle}
                               </p>
-                              {conv.unread_count && conv.unread_count > 0 && <Badge className="bg-burgundy text-white text-xs px-2 py-0.5">
-                                  {conv.unread_count} new
-                                </Badge>}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {conv.conversation_type === 'custom_tour_request' && (
+                                  <Badge variant="outline" className="border-burgundy/30 text-burgundy text-xs px-2 py-0.5">
+                                    Custom Tour Request
+                                  </Badge>
+                                )}
+                                {conv.unread_count && conv.unread_count > 0 && (
+                                  <Badge className="bg-burgundy text-white text-xs px-2 py-0.5">
+                                    {conv.unread_count} new
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>;
