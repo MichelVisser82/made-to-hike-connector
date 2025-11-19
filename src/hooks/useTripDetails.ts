@@ -59,7 +59,9 @@ export interface TripDetails {
   tour: Tour & {
     itinerary?: {
       days: TripItineraryDay[];
-    };
+    } | any;
+    is_custom_tour?: boolean;
+    offer_id?: string;
   };
   guide: {
     user_id: string;
@@ -107,6 +109,13 @@ export function useTripDetails(bookingId: string | undefined) {
 
       if (bookingError) throw bookingError;
       if (!bookingData) throw new Error('Booking not found');
+
+      // Check if this booking is from a custom tour offer
+      const { data: tourOffer } = await supabase
+        .from('tour_offers')
+        .select('*')
+        .eq('booking_id', bookingId)
+        .maybeSingle();
 
       // Fetch checklist items
       const { data: checklistData } = await supabase
@@ -169,6 +178,47 @@ export function useTripDetails(bookingId: string | undefined) {
       
       preparationStatus.overall_percentage = Math.round((completedMainItems / 5) * 100);
 
+      // Merge tour_offer data if this is a custom tour
+      let tourData = bookingData.tours as any;
+      if (tourOffer && tourData) {
+        // Parse tour_offer itinerary if it's a string
+        let parsedItinerary = tourData.itinerary;
+        if (tourOffer.itinerary) {
+          try {
+            // If tour_offer itinerary is JSON string, parse it
+            parsedItinerary = typeof tourOffer.itinerary === 'string' 
+              ? JSON.parse(tourOffer.itinerary)
+              : tourOffer.itinerary;
+          } catch {
+            // If not valid JSON, treat as plain text description
+            parsedItinerary = { description: tourOffer.itinerary };
+          }
+        }
+
+        // Parse included items from tour_offer
+        let includedItems = tourData.includes || [];
+        if (tourOffer.included_items) {
+          // Split by newlines and filter empty lines
+          includedItems = tourOffer.included_items
+            .split('\n')
+            .map((item: string) => item.trim())
+            .filter((item: string) => item.length > 0);
+        }
+
+        // Merge custom tour data
+        tourData = {
+          ...tourData,
+          // Override with tour_offer specific data
+          meeting_point: tourOffer.meeting_point || tourData.meeting_point,
+          itinerary: parsedItinerary,
+          includes: includedItems,
+          duration: tourOffer.duration || tourData.duration,
+          // Mark as custom tour
+          is_custom_tour: true,
+          offer_id: tourOffer.id,
+        };
+      }
+
       const tripDetails: TripDetails = {
         booking: {
           ...bookingData,
@@ -176,20 +226,27 @@ export function useTripDetails(bookingId: string | undefined) {
             ? bookingData.participants_details 
             : []
         } as any,
-        tour: bookingData.tours as any,
+        tour: tourData,
         guide: {
-          // Prefer full guide profile when available
+          // Prefer full guide profile when available, with solid fallbacks
           ...(bookingData.tours?.guide_profiles || {}),
-          // Fallbacks from the tour snapshot to ensure we always show the correct guide
+          // Ensure display_name is always set
           display_name: bookingData.tours?.guide_profiles?.display_name 
-            ?? bookingData.tours?.guide_display_name 
-            ?? 'Your guide',
+            || bookingData.tours?.guide_display_name 
+            || 'Your Guide',
+          // Ensure profile_image_url is always set
           profile_image_url: bookingData.tours?.guide_profiles?.profile_image_url 
-            ?? bookingData.tours?.guide_avatar_url 
-            ?? null,
+            || bookingData.tours?.guide_avatar_url 
+            || null,
+          // Ensure user_id is set (needed for profile links)
+          user_id: bookingData.tours?.guide_profiles?.user_id 
+            || bookingData.tours?.guide_id 
+            || null,
+          // Ensure certifications is always an array
           certifications: Array.isArray(bookingData.tours?.guide_profiles?.certifications)
             ? bookingData.tours?.guide_profiles?.certifications
             : [],
+          // Add review stats
           average_rating: guideStats.average_rating,
           review_count: guideStats.review_count,
         } as any,
