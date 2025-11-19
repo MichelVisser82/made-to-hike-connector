@@ -84,13 +84,11 @@ export function useTripDetails(bookingId: string | undefined) {
       if (!bookingId) throw new Error('Booking ID is required');
 
       // Fetch booking with tour and guide data
-      // Note: Don't filter by is_active here because custom tours (from offers) 
-      // are intentionally inactive but should still be viewable by the hiker who booked them
       const { data: bookingData, error: bookingError } = await supabase
         .from('bookings')
         .select(`
           *,
-          tours!inner (
+          tours (
             *,
             guide_profiles!tours_guide_id_fkey (
               user_id,
