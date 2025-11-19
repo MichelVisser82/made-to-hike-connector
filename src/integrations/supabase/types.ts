@@ -2988,6 +2988,10 @@ export type Database = {
             }
             Returns: boolean
           }
+      hiker_has_booking_for_tour: {
+        Args: { _hiker_id: string; _tour_id: string }
+        Returns: boolean
+      }
       migrate_tour_dates_to_slots: { Args: never; Returns: undefined }
       validate_discount_code: {
         Args: {
