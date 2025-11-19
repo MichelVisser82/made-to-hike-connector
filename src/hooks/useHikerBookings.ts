@@ -33,6 +33,8 @@ export interface HikerBooking {
     hero_image: string | null;
     images: string[];
     itinerary: any;
+    guide_display_name?: string | null;
+    guide_avatar_url?: string | null;
     guide_profiles: {
       display_name: string;
       profile_image_url: string | null;
@@ -49,6 +51,8 @@ export interface HikerBooking {
       id: string;
       title: string;
       guide_id: string;
+      guide_display_name?: string | null;
+      guide_avatar_url?: string | null;
       guide_profiles: {
         display_name: string;
         profile_image_url: string | null;
@@ -108,6 +112,8 @@ export function useHikerBookings(hikerId: string | undefined) {
             meeting_point_lat,
             meeting_point_lng,
             guide_id,
+            guide_display_name,
+            guide_avatar_url,
             difficulty,
             hero_image,
             images,
@@ -128,6 +134,8 @@ export function useHikerBookings(hikerId: string | undefined) {
               id,
               title,
               guide_id,
+              guide_display_name,
+              guide_avatar_url,
               guide_profiles!tours_guide_id_fkey (
                 display_name,
                 profile_image_url
