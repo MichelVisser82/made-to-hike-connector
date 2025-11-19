@@ -20,11 +20,18 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Create client for auth verification using the authorization header
     const token = authHeader.replace('Bearer ', '');
+
+    // Use service role client configured for server-side auth
     const supabaseAuth = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
     );
 
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
