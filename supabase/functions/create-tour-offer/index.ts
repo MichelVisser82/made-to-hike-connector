@@ -22,26 +22,22 @@ serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '');
 
-    // Use service role client configured for server-side auth
-    const supabaseAuth = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
-    
-    if (authError || !user) {
-      logStep("Auth error", authError);
+    // Decode JWT payload (Supabase already verified JWT before invoking function)
+    let userId: string | null = null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1] ?? '')) as { sub?: string };
+      userId = payload.sub ?? null;
+    } catch (err) {
+      logStep('JWT decode error', err);
       throw new Error('Unauthorized');
     }
 
-    logStep("User authenticated", { user_id: user.id });
+    if (!userId) {
+      logStep('No user id in JWT payload');
+      throw new Error('Unauthorized');
+    }
+
+    logStep('User authenticated', { user_id: userId });
 
     // Create client with service role key for database operations
     const supabase = createClient(
