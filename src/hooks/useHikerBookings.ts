@@ -45,6 +45,12 @@ export interface HikerBooking {
     duration: string;
     group_size: number;
     preferred_date: string | null;
+    tours: {
+      guide_profiles: {
+        display_name: string;
+        profile_image_url: string | null;
+      } | null;
+    } | null;
   }>;
 }
 
@@ -114,7 +120,13 @@ export function useHikerBookings(hikerId: string | undefined) {
             meeting_time,
             duration,
             group_size,
-            preferred_date
+            preferred_date,
+            tours!tour_offers_tour_id_fkey (
+              guide_profiles!tours_guide_id_fkey (
+                display_name,
+                profile_image_url
+              )
+            )
           )
         `)
         .eq('hiker_id', hikerId)
