@@ -210,9 +210,12 @@ export function useTripDetails(bookingId: string | undefined) {
           ...tourData,
           // Override with tour_offer specific data
           meeting_point: tourOffer.meeting_point || tourData.meeting_point,
+          meeting_time: tourOffer.meeting_time || tourData.meeting_time,
+          group_size: tourOffer.group_size || tourData.group_size,
           itinerary: parsedItinerary,
           includes: includedItems,
           duration: tourOffer.duration || tourData.duration,
+          preferred_date: tourOffer.preferred_date || tourData.preferred_date,
           // Mark as custom tour
           is_custom_tour: true,
           offer_id: tourOffer.id,

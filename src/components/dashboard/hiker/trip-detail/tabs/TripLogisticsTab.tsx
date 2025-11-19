@@ -88,12 +88,22 @@ export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
 
             <div>
               <h4 className="font-medium text-charcoal mb-2">Meeting Time</h4>
-              <p className="text-lg text-burgundy mb-1 font-playfair">
-                {format(new Date(booking.booking_date), 'EEEE, MMMM d, yyyy')}
-              </p>
-              <p className="text-sm text-charcoal/60">
-                Please arrive 15 minutes early for check-in
-              </p>
+              {(() => {
+                const meetingTime = (tour as any)?.meeting_time as string | undefined;
+                return (
+                  <>
+                    <p className="text-lg text-burgundy mb-1 font-playfair">
+                      {format(new Date(booking.booking_date), 'EEEE, MMMM d, yyyy')}
+                      {meetingTime ? ` • ${meetingTime}` : ''}
+                    </p>
+                    <p className="text-sm text-charcoal/60">
+                      {meetingTime
+                        ? 'Please arrive 15 minutes early for check-in.'
+                        : 'Exact meeting time will be confirmed by your guide.'}
+                    </p>
+                  </>
+                );
+              })()}
             </div>
 
             <Separator />
