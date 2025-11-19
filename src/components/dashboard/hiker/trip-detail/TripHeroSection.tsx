@@ -38,6 +38,23 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
     return symbols[currency] || currency;
   };
 
+  // Derive effective values using offer data when present
+  const offerPricePerPerson = (tour as any).offer_price_per_person as number | null | undefined;
+  const computedFallbackPerPerson = booking.participants > 0 
+    ? booking.total_price / booking.participants 
+    : booking.total_price;
+  const displayPrice = offerPricePerPerson ?? computedFallbackPerPerson;
+  const priceLabel = offerPricePerPerson ? 'per person' : (booking.participants > 1 ? 'total' : 'per person');
+
+  const offerGroupSize = (tour as any).offer_group_size as number | null | undefined;
+  const effectiveGroupSize = offerGroupSize ?? booking.participants;
+
+  const offerDuration = (tour as any).offer_duration as string | null | undefined;
+  const effectiveDuration = offerDuration || tour.duration || '3 Days';
+
+  const effectiveDifficulty = tour.difficulty || 'Advanced';
+  const distanceLabel = tour.distance_km ? `${tour.distance_km} km` : 'Multi-day';
+
   return (
     <div className="space-y-6">
       {/* Hero Image */}
@@ -85,9 +102,9 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
           </div>
           <div className="text-right">
             <div className="text-3xl text-burgundy mb-1 font-playfair">
-              {getCurrencySymbol(booking.currency)}{booking.total_price}
+              {getCurrencySymbol(booking.currency)}{displayPrice.toFixed(0)}
             </div>
-            <div className="text-sm text-charcoal/60">per person</div>
+            <div className="text-sm text-charcoal/60">{priceLabel}</div>
           </div>
         </div>
 
@@ -96,24 +113,24 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
           <div className="p-4 bg-white border border-burgundy/10 rounded-lg shadow-sm">
             <TrendingUp className="w-5 h-5 text-burgundy mb-2" />
             <div className="text-sm text-charcoal/60 mb-1">Difficulty</div>
-            <div className="font-medium text-charcoal capitalize">{tour.difficulty || 'Advanced'}</div>
+            <div className="font-medium text-charcoal capitalize">{effectiveDifficulty}</div>
           </div>
           <div className="p-4 bg-white border border-burgundy/10 rounded-lg shadow-sm">
             <Calendar className="w-5 h-5 text-burgundy mb-2" />
             <div className="text-sm text-charcoal/60 mb-1">Duration</div>
-            <div className="font-medium text-charcoal">{tour.duration || '3 Days'}</div>
+            <div className="font-medium text-charcoal">{effectiveDuration}</div>
           </div>
           <div className="p-4 bg-white border border-burgundy/10 rounded-lg shadow-sm">
             <Users className="w-5 h-5 text-burgundy mb-2" />
             <div className="text-sm text-charcoal/60 mb-1">Group Size</div>
-            <div className="font-medium text-charcoal">{booking.participants} {booking.participants === 1 ? 'Guest' : 'Guests'}</div>
+            <div className="font-medium text-charcoal">
+              {effectiveGroupSize} {effectiveGroupSize === 1 ? 'Guest' : 'Guests'}
+            </div>
           </div>
           <div className="p-4 bg-white border border-burgundy/10 rounded-lg shadow-sm">
             <Mountain className="w-5 h-5 text-burgundy mb-2" />
             <div className="text-sm text-charcoal/60 mb-1">Distance</div>
-            <div className="font-medium text-charcoal">
-              {tour.distance_km ? `${tour.distance_km} km` : 'Multi-day'}
-            </div>
+            <div className="font-medium text-charcoal">{distanceLabel}</div>
           </div>
         </div>
       </div>
