@@ -45,9 +45,19 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
   
   // Parse date as local date to avoid timezone conversion issues
   const parseLocalDate = (dateString: string | undefined) => {
-    if (!dateString) return undefined;
-    const [year, month, day] = dateString.split('-').map(Number);
-    return new Date(year, month - 1, day);
+    if (!dateString || typeof dateString !== 'string') return undefined;
+    try {
+      const parts = dateString.split('-');
+      if (parts.length !== 3) return undefined;
+      const [year, month, day] = parts.map(Number);
+      if (isNaN(year) || isNaN(month) || isNaN(day)) return undefined;
+      const date = new Date(year, month - 1, day);
+      // Check if the date is valid
+      if (isNaN(date.getTime())) return undefined;
+      return date;
+    } catch {
+      return undefined;
+    }
   };
   
   // Form state
@@ -238,7 +248,10 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                       <p className="text-sm text-muted-foreground mb-1">Preferred Date</p>
                       <div className="flex items-center gap-2 text-base font-medium text-charcoal">
                         <CalendarIcon className="w-4 h-4 text-burgundy" />
-                        {requestedDate ? format(new Date(requestedDate), "EEEE, MMMM d, yyyy") : 'Not specified'}
+                        {(() => {
+                          const parsedDate = parseLocalDate(requestedDate);
+                          return parsedDate ? format(parsedDate, "EEEE, MMMM d, yyyy") : 'Not specified';
+                        })()}
                       </div>
                     </div>
                     <div>
@@ -294,7 +307,10 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
                   <div className="flex items-center gap-4 mt-2 text-sm">
                     <div className="flex items-center gap-1">
                       <CalendarIcon className="w-3 h-3 text-burgundy" />
-                      {requestedDate ? format(parseLocalDate(requestedDate)!, "MMM d") : 'TBD'}
+                      {(() => {
+                        const parsedDate = parseLocalDate(requestedDate);
+                        return parsedDate ? format(parsedDate, "MMM d") : 'TBD';
+                      })()}
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="w-3 h-3 text-burgundy" />
