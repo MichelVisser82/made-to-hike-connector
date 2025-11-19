@@ -178,12 +178,20 @@ export function useTripDetails(bookingId: string | undefined) {
         } as any,
         tour: bookingData.tours as any,
         guide: {
-          ...bookingData.tours?.guide_profiles,
+          // Prefer full guide profile when available
+          ...(bookingData.tours?.guide_profiles || {}),
+          // Fallbacks from the tour snapshot to ensure we always show the correct guide
+          display_name: bookingData.tours?.guide_profiles?.display_name 
+            ?? bookingData.tours?.guide_display_name 
+            ?? 'Your guide',
+          profile_image_url: bookingData.tours?.guide_profiles?.profile_image_url 
+            ?? bookingData.tours?.guide_avatar_url 
+            ?? null,
           certifications: Array.isArray(bookingData.tours?.guide_profiles?.certifications)
             ? bookingData.tours?.guide_profiles?.certifications
             : [],
           average_rating: guideStats.average_rating,
-          review_count: guideStats.review_count
+          review_count: guideStats.review_count,
         } as any,
         checklist: (checklist || []) as TripChecklistItem[],
         preparationStatus
