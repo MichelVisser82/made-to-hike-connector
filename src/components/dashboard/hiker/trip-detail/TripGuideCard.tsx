@@ -48,19 +48,23 @@ export function TripGuideCard({ tripDetails }: TripGuideCardProps) {
         </div>
 
         {/* Certification Badges */}
-        {guide.certifications && guide.certifications.length > 0 && (
+        {Array.isArray(guide.certifications) && guide.certifications.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
-            {guide.certifications.slice(0, 2).map((cert: any, index: number) => (
-              <CertificationBadge
-                key={index}
-                certification={cert}
-                displayMode="simple"
-                showTooltip={true}
-                size="compact"
-              />
-            ))}
+            {guide.certifications
+              .filter((cert: any) => cert && typeof cert === 'object' && typeof cert.certificationId === 'string')
+              .slice(0, 2)
+              .map((cert: any, index: number) => (
+                <CertificationBadge
+                  key={cert.certificationId || index}
+                  certification={cert}
+                  displayMode="simple"
+                  showTooltip={true}
+                  size="compact"
+                />
+              ))}
           </div>
         )}
+
 
         <div className="border-t border-burgundy/10 my-4" />
 
