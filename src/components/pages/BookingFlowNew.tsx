@@ -171,6 +171,7 @@ export const BookingFlowNew = () => {
         .from('tours')
         .select('id, title, slug, guide_id, price, currency, duration, difficulty, description, region, hero_image, group_size, min_group_size, max_group_size, images, guide_profiles!tours_guide_id_fkey(*)')
         .eq('slug', tourSlug)
+        .eq('is_active', true)
         .maybeSingle();
 
         if (tourError) throw tourError;
