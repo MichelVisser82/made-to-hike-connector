@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
+
+// Fix for default marker icon
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 interface HikingLocationMapProps {
   latitude: number;
@@ -22,10 +30,10 @@ export const HikingLocationMap = ({
   showControls = true
 }: HikingLocationMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
+  const map = useRef<L.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mapId = useRef(`map-${Math.random().toString(36).substr(2, 9)}`).current;
 
   useEffect(() => {
     console.log('[HikingLocationMap] Component mounted with:', { latitude, longitude, title });
@@ -36,72 +44,72 @@ export const HikingLocationMap = ({
       setIsLoading(false);
       return;
     }
-
-    if (!mapContainer.current) return;
+    
+    console.log('[HikingLocationMap] Setting up map initialization...');
+    
+    // Cleanup any existing map
+    if (map.current) {
+      console.log('[HikingLocationMap] Cleaning up existing map');
+      map.current.remove();
+      map.current = null;
+    }
 
     const initMap = async () => {
       try {
-        console.log('[HikingLocationMap] Fetching Mapbox token...');
+        console.log('[HikingLocationMap] Creating Leaflet map with ID:', mapId);
         
-        // Fetch Mapbox token from edge function
-        const { data, error: functionError } = await supabase.functions.invoke('get-mapbox-token');
-        
-        if (functionError || !data?.token) {
-          console.error('[HikingLocationMap] Failed to fetch Mapbox token:', functionError);
-          setError('Unable to load map');
-          setIsLoading(false);
-          return;
-        }
-
-        console.log('[HikingLocationMap] Mapbox token retrieved, initializing map...');
-        mapboxgl.accessToken = data.token;
-
-        // Cleanup existing map and marker
-        if (marker.current) {
-          marker.current.remove();
-          marker.current = null;
-        }
-        if (map.current) {
-          map.current.remove();
-          map.current = null;
-        }
-
-        // Initialize map
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current!,
-          style: 'mapbox://styles/mapbox/outdoors-v12',
-          center: [longitude, latitude],
+        // Initialize map using the element ID
+        map.current = L.map(mapId, {
+          center: [latitude, longitude],
           zoom: zoom,
-          scrollZoom: false
+          zoomControl: showControls,
+          scrollWheelZoom: false
         });
 
-        // Add navigation controls if enabled
-        if (showControls) {
-          map.current.addControl(
-            new mapboxgl.NavigationControl({
-              visualizePitch: false,
-            }),
-            'top-right'
-          );
+        console.log('[HikingLocationMap] Map instance created, fetching tiles API key...');
+        
+        // Try to fetch Thunderforest API key
+        let apiKey: string | null = null;
+        try {
+          const { data, error: functionError } = await supabase.functions.invoke('get-thunderforest-key');
+          if (functionError) {
+            console.warn('[HikingLocationMap] Thunderforest key fetch error:', functionError);
+          } else if (data?.key) {
+            apiKey = data.key;
+            console.log('[HikingLocationMap] Thunderforest API key retrieved successfully');
+          } else {
+            console.warn('[HikingLocationMap] No API key in response');
+          }
+        } catch (keyError) {
+          console.warn('[HikingLocationMap] Failed to fetch Thunderforest key:', keyError);
         }
 
-        // Add marker
-        marker.current = new mapboxgl.Marker({
-          color: '#7C2D12'
-        })
-          .setLngLat([longitude, latitude])
-          .addTo(map.current);
+        // Add tile layer
+        if (apiKey) {
+          console.log('[HikingLocationMap] Adding Thunderforest Landscape tiles');
+          L.tileLayer(
+            `https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${apiKey}`,
+            {
+              attribution: 'Maps © <a href="https://www.thunderforest.com">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+              maxZoom: 18,
+              subdomains: ['a', 'b', 'c']
+            }
+          ).addTo(map.current);
+        } else {
+          console.log('[HikingLocationMap] Using OpenStreetMap fallback');
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+          }).addTo(map.current);
+        }
 
-        // Add popup if title is provided
+        console.log('[HikingLocationMap] Tiles added, creating marker...');
+        
+        // Add marker
+        const marker = L.marker([latitude, longitude]).addTo(map.current);
+        
         if (title) {
-          const popup = new mapboxgl.Popup({
-            offset: 25,
-            closeButton: false,
-            closeOnClick: false
-          }).setHTML(`<div class="font-medium text-sm">${title}</div>`);
-          
-          marker.current.setPopup(popup);
-          popup.addTo(map.current);
+          marker.bindPopup(title);
         }
 
         console.log('[HikingLocationMap] Map initialization complete!');
@@ -113,15 +121,15 @@ export const HikingLocationMap = ({
       }
     };
 
-    initMap();
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(initMap, 100);
 
-    // Cleanup
     return () => {
-      if (marker.current) {
-        marker.current.remove();
-      }
+      clearTimeout(timer);
       if (map.current) {
+        console.log('[HikingLocationMap] Cleaning up map on unmount');
         map.current.remove();
+        map.current = null;
       }
     };
   }, [latitude, longitude, title, zoom, showControls]);
@@ -129,23 +137,24 @@ export const HikingLocationMap = ({
   if (error) {
     return (
       <div 
-        style={{ height }} 
-        className="flex items-center justify-center bg-cream rounded-lg border border-burgundy/10"
+        style={{ height, width: '100%' }}
+        className="rounded-lg shadow-sm bg-muted flex items-center justify-center text-muted-foreground"
       >
-        <p className="text-sm text-charcoal/60">{error}</p>
+        {error}
       </div>
     );
   }
 
   return (
-    <div style={{ height }} className="relative">
+    <div style={{ position: 'relative', height, width: '100%' }}>
       {isLoading && (
-        <Skeleton className="absolute inset-0 rounded-lg" />
+        <Skeleton style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' }} className="rounded-lg" />
       )}
       <div 
+        id={mapId}
         ref={mapContainer} 
-        className="absolute inset-0 rounded-lg"
-        style={{ opacity: isLoading ? 0 : 1, transition: 'opacity 0.3s' }}
+        style={{ height: '100%', width: '100%' }}
+        className="rounded-lg shadow-sm"
       />
     </div>
   );
