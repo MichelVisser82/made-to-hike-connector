@@ -104,8 +104,8 @@ serve(async (req) => {
         conversation_id: offer.conversation_id,
         type: 'tour_offer',
       },
-      success_url: `${req.headers.get('origin')}/booking-success?offer=${offer.id}`,
-      cancel_url: `${req.headers.get('origin')}/offer/decline?token=${token}`,
+      success_url: `https://madetohike.com/booking-success?offer=${offer.id}`,
+      cancel_url: `https://madetohike.com/offer/decline?token=${token}`,
     });
 
     logStep("Stripe session created", { session_id: session.id });
