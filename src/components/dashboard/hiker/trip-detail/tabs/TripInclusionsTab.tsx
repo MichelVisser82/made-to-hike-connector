@@ -8,8 +8,28 @@ interface TripInclusionsTabProps {
 
 export function TripInclusionsTab({ tripDetails }: TripInclusionsTabProps) {
   const { tour } = tripDetails;
-  const includes = tour.includes || [];
-  const excludes = tour.excluded_items || [];
+
+  if (!tour) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6 bg-white border-burgundy/10 shadow-md">
+          <h2 className="text-2xl mb-2 text-charcoal font-playfair">What's Included</h2>
+          <p className="text-sm text-charcoal/70">
+            Tour details are not available right now. Please contact your guide if you have any questions about what's included.
+          </p>
+        </Card>
+        <Card className="p-6 bg-white border-burgundy/10 shadow-md">
+          <h2 className="text-2xl mb-2 text-charcoal font-playfair">What's Not Included</h2>
+          <p className="text-sm text-charcoal/70">
+            Tour details are not available right now. Your guide will clarify exclusions closer to the trip date.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  const includes = Array.isArray(tour.includes) ? tour.includes : [];
+  const excludes = Array.isArray(tour.excluded_items) ? tour.excluded_items : [];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
