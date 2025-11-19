@@ -141,6 +141,43 @@ serve(async (req) => {
 
     logStep("Booking created", { booking_id: booking.id });
 
+    // Send confirmation email
+    try {
+      const { data: tour } = await supabase
+        .from('tours')
+        .select('title, meeting_point')
+        .eq('id', offer.tour_id)
+        .single();
+
+      const { data: guideProfile } = await supabase
+        .from('guide_profiles')
+        .select('display_name')
+        .eq('user_id', offer.guide_id)
+        .single();
+
+      if (offer.hiker_email) {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'booking-confirmation',
+            to: offer.hiker_email,
+            bookingReference: bookingReference,
+            tourTitle: tour?.title || 'Hiking Tour',
+            bookingDate: offer.preferred_date,
+            guideName: guideProfile?.display_name || 'Your Guide',
+            meetingPoint: tour?.meeting_point || 'Details will be shared',
+            totalPrice: offer.total_price,
+            currency: offer.currency,
+            participants: offer.group_size,
+            isDeposit: false,
+          }
+        });
+        logStep("Confirmation email sent successfully");
+      }
+    } catch (emailError) {
+      logStep("Error sending confirmation email", emailError);
+      // Don't fail the booking if email fails
+    }
+
     // Update offer
     await supabase
       .from('tour_offers')
