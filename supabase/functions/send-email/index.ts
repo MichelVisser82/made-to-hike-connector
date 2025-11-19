@@ -724,7 +724,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
