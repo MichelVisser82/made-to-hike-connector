@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -100,13 +100,23 @@ export function QuickOfferForm({ conversation, open, onOpenChange, onOfferSent }
   const [formData, setFormData] = useState({
     pricePerPerson: '',
     duration: '',
-    preferredDate: requestedDate ? parseLocalDate(requestedDate) : undefined,
+    preferredDate: undefined as Date | undefined,
     meetingPoint: '',
     meetingTime: '',
     itinerary: '',
     includedItems: 'Professional certified guide\nAll safety equipment\nFirst aid kit\nPhotos from the tour',
     personalNote: '',
   });
+
+  // Set initial date from request when component mounts
+  useEffect(() => {
+    if (requestedDate && !formData.preferredDate) {
+      const parsedDate = parseLocalDate(requestedDate);
+      if (parsedDate) {
+        setFormData(prev => ({ ...prev, preferredDate: parsedDate }));
+      }
+    }
+  }, [requestedDate]);
 
   const totalPrice = formData.pricePerPerson ? (parseFloat(formData.pricePerPerson) * groupSize).toFixed(2) : '0.00';
 
