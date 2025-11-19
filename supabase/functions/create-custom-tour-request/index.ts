@@ -81,8 +81,21 @@ serve(async (req) => {
 
     console.log('Conversation created:', conversation.id);
 
+    // Fetch tour name if tour_id is provided
+    let tourName = null;
+    if (tour_id) {
+      const { data: tourData } = await supabase
+        .from('tours')
+        .select('title')
+        .eq('id', tour_id)
+        .single();
+      tourName = tourData?.title;
+    }
+
     // Format the initial message with all request details
-    const tourInfo = tour_id ? `\n**Selected Tour**: ${tour_id}` : '\n**Request Type**: Custom Tour';
+    const tourInfo = tour_id 
+      ? `\n**Selected Tour**: ${tourName || 'Unknown Tour'}` 
+      : '\n**Request Type**: Custom Tour';
     const customTourDetails = !tour_id && (metadata.tour_type || metadata.region)
       ? `\n**Tour Type**: ${metadata.tour_type || 'Not specified'}\n**Preferred Region**: ${metadata.region || 'Not specified'}`
       : '';
