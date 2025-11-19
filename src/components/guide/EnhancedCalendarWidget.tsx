@@ -2,24 +2,31 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar } from '../ui/calendar';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 import type { CalendarDateView } from '@/types/tourDateSlot';
+import type { Tour } from '@/types';
 import { isSameDay } from 'date-fns';
+import { CustomTourRequestModal } from './CustomTourRequestModal';
 
 interface EnhancedCalendarWidgetProps {
   guideId?: string;
+  guideName?: string;
+  tours?: Tour[];
   calendarData?: CalendarDateView[];
   isLoading?: boolean;
 }
 
 export function EnhancedCalendarWidget({ 
   guideId,
+  guideName = '',
+  tours = [],
   calendarData = [],
   isLoading = false
 }: EnhancedCalendarWidgetProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [customTourModalOpen, setCustomTourModalOpen] = useState(false);
 
   // Process calendar data to get booked dates (dates with any bookings)
   const { bookedDates, availableDates } = useMemo(() => {
@@ -110,10 +117,29 @@ export function EnhancedCalendarWidget({
           </div>
         </div>
 
-        <Button className="w-full mt-6 bg-burgundy hover:bg-burgundy/90 text-white">
-          Check Tour Availability
+        <Button 
+          className="w-full mt-6 bg-burgundy hover:bg-burgundy/90 text-white"
+          onClick={() => setCustomTourModalOpen(true)}
+        >
+          Request Custom Tour
         </Button>
       </CardContent>
+
+      {/* Custom Tour Request Modal */}
+      <CustomTourRequestModal
+        open={customTourModalOpen}
+        onOpenChange={setCustomTourModalOpen}
+        guideId={guideId || ''}
+        guideName={guideName}
+        tours={tours.map(tour => ({
+          id: tour.id,
+          title: tour.title,
+          duration: tour.duration || '',
+          difficulty: tour.difficulty || '',
+          price_per_person: tour.price || 0
+        }))}
+        preSelectedDate={selectedDate}
+      />
     </Card>
   );
 }

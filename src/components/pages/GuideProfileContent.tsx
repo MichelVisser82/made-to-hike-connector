@@ -278,6 +278,8 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
             <div className="sticky top-24 space-y-6">
               <EnhancedCalendarWidget 
                 guideId={guide.user_id}
+                guideName={guide.display_name}
+                tours={tours}
                 calendarData={calendarData}
                 isLoading={calendarLoading}
               />
