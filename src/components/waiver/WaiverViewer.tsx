@@ -28,8 +28,8 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
   }
 
   // If it has a nested formData key, prefer that
-  if (data && typeof data === 'object' && data.formData && typeof data.formData === 'object') {
-    data = data.formData;
+  if (data && typeof data === 'object' && (data as any).formData && typeof (data as any).formData === 'object') {
+    data = (data as any).formData;
   }
 
   // If it's a wrapper object with a single nested object, unwrap it
@@ -41,6 +41,8 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
   }
 
   if (!data || typeof data !== 'object') return null;
+
+  console.log('WaiverViewer data:', data);
 
   const hasAnyData = Object.keys(data || {}).length > 0;
   if (!hasAnyData) return null;
