@@ -13,7 +13,8 @@ interface WaiverViewerProps {
 }
 
 export function WaiverViewer({ open, onOpenChange, waiverData, tourName, bookingReference }: WaiverViewerProps) {
-  if (!waiverData) return null;
+  // Defensive check: ensure waiverData is a valid object
+  if (!waiverData || typeof waiverData !== 'object' || waiverData === null) return null;
 
   const hasAnyData = Object.keys(waiverData || {}).length > 0;
   if (!hasAnyData) return null;

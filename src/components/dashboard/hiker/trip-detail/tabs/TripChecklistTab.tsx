@@ -218,6 +218,33 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
     }
   };
 
+  // Helper to parse and normalize waiver data from various storage formats
+  const getParsedWaiverData = () => {
+    const raw = booking.waiver_data;
+    if (!raw) return undefined;
+
+    let data: any = raw;
+    
+    // If it's a string, try to parse it
+    if (typeof raw === 'string') {
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        return undefined;
+      }
+    }
+    
+    // If it has a nested formData key, use that
+    if (data && typeof data === 'object' && data.formData && typeof data.formData === 'object') {
+      return data.formData;
+    }
+    
+    // Otherwise return the object if valid
+    return data && typeof data === 'object' ? data : undefined;
+  };
+
+  const parsedWaiverData = getParsedWaiverData();
+
   // Calculate progress
   const calculateProgress = () => {
     if (useMockData) {
@@ -417,19 +444,19 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             onSubmit={handleWaiverSubmit}
             onSaveDraft={handleWaiverDraftSave}
             prefilledData={{
-              ...(booking.waiver_data || {}),
+              ...(parsedWaiverData || {}),
               ...loadWaiverDraft(),
               fullName: booking.participants_details?.[0] 
                 ? `${booking.participants_details[0].firstName || ''} ${booking.participants_details[0].surname || ''}`.trim()
-                : (booking.waiver_data?.fullName || ''),
-              email: userProfile?.email || booking.waiver_data?.email || '',
-              phone: userProfile?.phone || booking.waiver_data?.phone || '',
-              country: userProfile?.country || booking.waiver_data?.country || '',
-              emergencyName: userProfile?.emergency_contact_name || booking.waiver_data?.emergencyName || '',
-              emergencyPhone: userProfile?.emergency_contact_phone || booking.waiver_data?.emergencyPhone || '',
-              emergencyRelationship: userProfile?.emergency_contact_relationship || booking.waiver_data?.emergencyRelationship || '',
-              hasInsurance: typeof booking.waiver_data?.hasInsurance === 'boolean'
-                ? booking.waiver_data.hasInsurance
+                : (parsedWaiverData?.fullName || ''),
+              email: userProfile?.email || parsedWaiverData?.email || '',
+              phone: userProfile?.phone || parsedWaiverData?.phone || '',
+              country: userProfile?.country || parsedWaiverData?.country || '',
+              emergencyName: userProfile?.emergency_contact_name || parsedWaiverData?.emergencyName || '',
+              emergencyPhone: userProfile?.emergency_contact_phone || parsedWaiverData?.emergencyPhone || '',
+              emergencyRelationship: userProfile?.emergency_contact_relationship || parsedWaiverData?.emergencyRelationship || '',
+              hasInsurance: typeof parsedWaiverData?.hasInsurance === 'boolean'
+                ? parsedWaiverData.hasInsurance
                 : !!booking.insurance_uploaded_at,
             }}
           />
@@ -440,7 +467,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
       <WaiverViewer
         open={waiverViewerOpen}
         onOpenChange={setWaiverViewerOpen}
-        waiverData={booking.waiver_data || loadWaiverDraft()}
+        waiverData={parsedWaiverData || loadWaiverDraft()}
         tourName={tour.title}
         bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
       />
