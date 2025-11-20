@@ -103,6 +103,7 @@ export type Database = {
           total_price: number
           tour_id: string
           updated_at: string
+          waiver_data: Json | null
           waiver_uploaded_at: string | null
         }
         Insert: {
@@ -142,6 +143,7 @@ export type Database = {
           total_price: number
           tour_id: string
           updated_at?: string
+          waiver_data?: Json | null
           waiver_uploaded_at?: string | null
         }
         Update: {
@@ -181,6 +183,7 @@ export type Database = {
           total_price?: number
           tour_id?: string
           updated_at?: string
+          waiver_data?: Json | null
           waiver_uploaded_at?: string | null
         }
         Relationships: [
