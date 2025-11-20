@@ -5,10 +5,16 @@ import { TourCard } from '../tour/TourCard';
 import { type Tour } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
 
+interface GuideOption {
+  user_id: string;
+  display_name: string;
+}
+
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [tours, setTours] = useState<Tour[]>([]);
+  const [guides, setGuides] = useState<GuideOption[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Read filters from URL
@@ -16,9 +22,11 @@ export function SearchPage() {
   const difficulty = searchParams.get('difficulty') || '';
   const dateRange = searchParams.get('dateRange') || '';
   const maxPrice = searchParams.get('maxPrice') || '';
+  const guideId = searchParams.get('guide') || '';
 
   useEffect(() => {
     fetchTours();
+    fetchGuides();
   }, []);
 
   const fetchTours = async () => {
@@ -42,9 +50,28 @@ export function SearchPage() {
     }
   };
 
+  const fetchGuides = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('guide_profiles')
+        .select('user_id, display_name')
+        .eq('verified', true)
+        .order('display_name', { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        setGuides(data as GuideOption[]);
+      }
+    } catch (error) {
+      console.error('Error fetching guides:', error);
+    }
+  };
+
   const filteredTours = tours.filter(tour => {
     if (region && tour.region !== region.toLowerCase()) return false;
     if (difficulty && tour.difficulty !== difficulty.toLowerCase()) return false;
+    if (guideId && tour.guide_id !== guideId) return false;
     return true;
   });
   
@@ -83,7 +110,7 @@ export function SearchPage() {
 
         {/* Filters */}
         <div className="mb-8 p-6 bg-card rounded-lg border">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Region</label>
               <select
@@ -109,6 +136,21 @@ export function SearchPage() {
                 <option value="moderate">Moderate</option>
                 <option value="challenging">Challenging</option>
                 <option value="expert">Expert</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Guide</label>
+              <select
+                value={guideId}
+                onChange={(e) => updateFilter('guide', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md bg-background"
+              >
+                <option value="">All Guides</option>
+                {guides.map((guide) => (
+                  <option key={guide.user_id} value={guide.user_id}>
+                    {guide.display_name}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -138,6 +180,17 @@ export function SearchPage() {
               </select>
             </div>
           </div>
+          {(region || difficulty || guideId || dateRange || maxPrice) && (
+            <div className="mt-4">
+              <Button 
+                variant="outline" 
+                onClick={clearFilters}
+                className="w-full md:w-auto"
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Results */}
