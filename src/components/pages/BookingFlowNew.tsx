@@ -15,6 +15,7 @@ import { ReviewStep } from '@/components/booking/ReviewStep';
 import { PaymentStep } from '@/components/booking/PaymentStep';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { RegionBadge } from '@/components/common/RegionBadge';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Calendar, MapPin, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -504,10 +505,14 @@ export const BookingFlowNew = () => {
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">{tourData.title}</h1>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span className="capitalize">{tourData.region?.replace('-', ' ')}</span>
-                  </div>
+                  <RegionBadge 
+                    country={tourData.region_country}
+                    region={tourData.region_region}
+                    subregion={tourData.region_subregion}
+                    variant="secondary"
+                    size="sm"
+                    clickable={false}
+                  />
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     <span>{tourData.duration}</span>

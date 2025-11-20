@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useHikingRegions, formatRegionPath } from '@/hooks/useHikingRegions';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { supabase } from '@/integrations/supabase/client';
 import { Search, Filter, Eye, Edit2, Trash2, User, Calendar, CheckSquare, Square } from 'lucide-react';
@@ -61,6 +62,7 @@ export const ImageOverview = () => {
     const cleanTags = removeLocationFromTags(tags);
     return location && location !== 'none' ? [...cleanTags, `location:${location}`] : cleanTags;
   };
+  const { data: regions } = useHikingRegions();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
@@ -863,11 +865,16 @@ export const ImageOverview = () => {
                               <SelectTrigger>
                                 <SelectValue placeholder="Select location" />
                               </SelectTrigger>
-                               <SelectContent>
+                               <SelectContent className="max-h-[300px]">
                                  <SelectItem value="none">No location</SelectItem>
-                                 <SelectItem value="dolomites">Dolomites</SelectItem>
-                                <SelectItem value="scotland">Scotland</SelectItem>
-                                <SelectItem value="pyrenees">Pyrenees</SelectItem>
+                                 {regions?.map((region) => (
+                                   <SelectItem 
+                                     key={region.id} 
+                                     value={formatRegionPath({ country: region.country, region: region.region, subregion: region.subregion })}
+                                   >
+                                     {region.country} - {region.region ? `${region.region} - ` : ''}{region.subregion}
+                                   </SelectItem>
+                                 ))}
                               </SelectContent>
                             </Select>
                             <div className="flex gap-2">

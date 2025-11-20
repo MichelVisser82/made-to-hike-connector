@@ -142,3 +142,13 @@ export const useSubregionsByRegion = (country: string | null, region: string | n
 
   return { subregions: uniqueSubregions };
 };
+
+/**
+ * Helper function to format region path for display
+ */
+export const formatRegionPath = ({ country, region, subregion }: { country: string; region?: string | null; subregion: string }): string => {
+  if (region) {
+    return `${country}-${region}-${subregion}`;
+  }
+  return `${country}-${subregion}`;
+};

@@ -394,6 +394,48 @@ export function LandingPage({
                 <div className="text-sm text-muted-foreground">Pyrenees Wilderness - 7 days</div>
               </div>
             </Card>
+
+            <Card className="relative overflow-hidden">
+              <SmartImage category="hiker" usageContext="testimonial" tags={['hiker', 'portrait', 'swiss', 'alps']} className="w-full h-48 object-cover" alt="Happy hiker in Swiss Alps" />
+              <div className="p-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map(star => <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />)}
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  "The Swiss Alps trek was breathtaking! Our guide's local knowledge brought the mountains to life with stories and hidden gems."
+                </p>
+                <div className="font-semibold">Anna K.</div>
+                <div className="text-sm text-muted-foreground">Swiss Alps Discovery - 4 days</div>
+              </div>
+            </Card>
+
+            <Card className="relative overflow-hidden">
+              <SmartImage category="hiker" usageContext="testimonial" tags={['hiker', 'portrait', 'iceland', 'nordic']} className="w-full h-48 object-cover" alt="Adventurer in Iceland highlands" />
+              <div className="p-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map(star => <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />)}
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  "Iceland's raw beauty was incredible! The guide expertly navigated us through volcanic landscapes and glaciers we'll never forget."
+                </p>
+                <div className="font-semibold">Erik N.</div>
+                <div className="text-sm text-muted-foreground">Iceland Highlands - 6 days</div>
+              </div>
+            </Card>
+
+            <Card className="relative overflow-hidden">
+              <SmartImage category="hiker" usageContext="testimonial" tags={['hiker', 'portrait', 'norway', 'lofoten']} className="w-full h-48 object-cover" alt="Couple enjoying Lofoten Islands" />
+              <div className="p-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map(star => <Star key={star} className="h-4 w-4 text-yellow-500 fill-current" />)}
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  "Lofoten exceeded all expectations! Dramatic peaks, midnight sun, and our guide's passion made this truly magical."
+                </p>
+                <div className="font-semibold">Lisa & Tom</div>
+                <div className="text-sm text-muted-foreground">Lofoten Islands - 5 days</div>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
