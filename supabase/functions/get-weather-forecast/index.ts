@@ -86,27 +86,80 @@ Then include:
 
 Be specific to this location and month. Keep it concise and practical for hikers planning their trip.`;
 
-    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1024,
-        messages: [{
-          role: 'user',
-          content: claudePrompt
-        }]
-      })
-    });
+    // Retry logic for Claude API with exponential backoff
+    let claudeResponse;
+    let lastError;
+    const maxRetries = 3;
+    const baseDelay = 1000; // 1 second
 
-    if (!claudeResponse.ok) {
-      const errorText = await claudeResponse.text();
-      console.error('Claude API error:', claudeResponse.status, errorText);
-      throw new Error('Unable to generate seasonal weather outlook');
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-5',
+            max_tokens: 1024,
+            messages: [{
+              role: 'user',
+              content: claudePrompt
+            }]
+          })
+        });
+
+        if (claudeResponse.ok) {
+          break; // Success, exit retry loop
+        }
+
+        const errorText = await claudeResponse.text();
+        console.error(`Claude API error (attempt ${attempt + 1}/${maxRetries}):`, claudeResponse.status, errorText);
+        
+        // If overloaded (529) or rate limited (429), retry with exponential backoff
+        if ((claudeResponse.status === 529 || claudeResponse.status === 429) && attempt < maxRetries - 1) {
+          const delay = baseDelay * Math.pow(2, attempt);
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        lastError = errorText;
+        break; // Non-retryable error or max retries reached
+      } catch (fetchError) {
+        console.error(`Claude API fetch error (attempt ${attempt + 1}/${maxRetries}):`, fetchError);
+        lastError = fetchError;
+        
+        if (attempt < maxRetries - 1) {
+          const delay = baseDelay * Math.pow(2, attempt);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    // If Claude API failed after retries, return a helpful fallback message
+    if (!claudeResponse || !claudeResponse.ok) {
+      console.error('Claude API unavailable after retries, returning generic seasonal outlook');
+      
+      return new Response(JSON.stringify({
+        success: true,
+        source: 'fallback',
+        isForecast: false,
+        weather: {
+          location: location || 'Selected location',
+          date: date,
+          high: null,
+          low: null,
+          condition: 'Seasonal Outlook',
+          description: `**Seasonal Weather Information**\n\nWeather forecasts are available up to 16 days in advance. For your selected date in ${month} ${year}, please check back closer to your trip date for accurate conditions.\n\n**Planning Tips:**\n- Check the forecast 2 weeks before your trip\n- Research typical conditions for ${location} in ${month}\n- Prepare for variable mountain weather\n- Pack layers and rain gear as a precaution\n\nFor the most accurate forecast, we recommend checking again 10-14 days before your adventure.`,
+          icon: 'cloud',
+          source: 'fallback'
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const claudeData = await claudeResponse.json();
