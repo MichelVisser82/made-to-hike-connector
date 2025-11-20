@@ -36,6 +36,7 @@ export function SearchPage() {
         .from('tours')
         .select('*')
         .eq('is_active', true)
+        .eq('is_custom_tour', false) // Exclude custom tours from public search
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -69,6 +70,8 @@ export function SearchPage() {
   };
 
   const filteredTours = tours.filter(tour => {
+    // Safety check: exclude custom tours
+    if (tour.is_custom_tour) return false;
     if (region && tour.region !== region.toLowerCase()) return false;
     if (difficulty && tour.difficulty !== difficulty.toLowerCase()) return false;
     if (guideId && tour.guide_id !== guideId) return false;

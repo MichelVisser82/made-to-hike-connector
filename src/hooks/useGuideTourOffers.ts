@@ -27,6 +27,10 @@ export interface TourOffer {
   tours?: {
     title: string;
   } | null;
+  // Computed fields
+  daysUntilExpiry?: number;
+  isExpired?: boolean;
+  expiryStatus?: 'valid' | 'expiring_soon' | 'expired';
 }
 
 export function useGuideTourOffers(guideId: string | undefined) {
@@ -51,7 +55,29 @@ export function useGuideTourOffers(guideId: string | undefined) {
         throw error;
       }
 
-      return (data || []) as TourOffer[];
+      // Add computed expiry fields
+      const now = new Date();
+      return (data || []).map((offer) => {
+        const expiresAt = offer.expires_at ? new Date(offer.expires_at) : null;
+        const daysUntilExpiry = expiresAt 
+          ? Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          : 0;
+        const isExpired = expiresAt ? expiresAt < now : false;
+        
+        let expiryStatus: 'valid' | 'expiring_soon' | 'expired' = 'valid';
+        if (isExpired) {
+          expiryStatus = 'expired';
+        } else if (daysUntilExpiry <= 3) {
+          expiryStatus = 'expiring_soon';
+        }
+
+        return {
+          ...offer,
+          daysUntilExpiry,
+          isExpired,
+          expiryStatus,
+        } as TourOffer;
+      });
     },
     enabled: !!guideId,
     staleTime: 1000 * 60 * 5, // 5 minutes

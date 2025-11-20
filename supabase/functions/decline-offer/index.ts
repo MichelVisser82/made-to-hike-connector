@@ -54,10 +54,20 @@ serve(async (req) => {
       })
       .eq('id', offer.id);
 
+    // Archive the associated tour immediately
+    if (offer.tour_id) {
+      await supabase
+        .from('tours')
+        .update({ archived: true })
+        .eq('id', offer.tour_id);
+      
+      logStep("Tour archived due to offer decline");
+    }
+
     // Create system message
     const declineMessage = reason 
-      ? `Client declined the offer. Reason: ${reason}`
-      : 'Client declined the offer.';
+      ? `Client declined the offer. Reason: ${reason}. The custom tour has been archived.`
+      : 'Client declined the offer. The custom tour has been archived.';
 
     await supabase.from('messages').insert({
       conversation_id: offer.conversation_id,

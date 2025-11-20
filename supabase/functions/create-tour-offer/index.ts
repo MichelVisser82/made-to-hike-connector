@@ -80,6 +80,7 @@ serve(async (req) => {
         meeting_point_lng: offerData.meeting_point_lng,
         region: 'Custom',
         is_active: false, // Custom tours are not publicly listed
+        is_custom_tour: true, // Mark as custom tour
         itinerary: { days: [{ day: 1, description: offerData.itinerary }] },
       })
       .select()
@@ -114,6 +115,7 @@ serve(async (req) => {
         included_items: offerData.included_items,
         personal_note: offerData.personal_note,
         offer_token: offerToken,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
       })
       .select()
       .single();

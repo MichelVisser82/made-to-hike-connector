@@ -142,6 +142,9 @@ verify_jwt = false
 [functions.verify-offer-payment]
 verify_jwt = false
 
+[functions.archive-expired-offers]
+verify_jwt = false
+
 # Cron jobs configuration
 [cron]
 enabled = true
@@ -149,3 +152,7 @@ enabled = true
 [cron.jobs.collect-final-payments]
 schedule = "0 9 * * *"  # Run daily at 9:00 AM UTC
 function_name = "collect-final-payments"
+
+[cron.jobs.archive-expired-offers]
+schedule = "0 */6 * * *"  # Run every 6 hours
+function_name = "archive-expired-offers"
