@@ -183,14 +183,14 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
             <div className="w-full">
               {/* Main Tabs */}
               <Tabs value={activeMainTab} onValueChange={handleMainTabChange}>
-                <TabsList className="bg-card border border-border rounded-lg p-1 mb-6 w-full justify-start">
+                <TabsList className="bg-cream border border-burgundy/20 rounded-lg p-1 mb-6 w-full justify-start">
                   {Object.entries(mainTabsConfig).map(([key, config]) => {
                     const Icon = config.icon;
                     return (
                       <TabsTrigger 
                         key={key}
                         value={key}
-                        className="flex items-center gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white transition-all"
+                        className="flex items-center gap-2 data-[state=active]:bg-burgundy data-[state=active]:text-white text-charcoal transition-all"
                       >
                         <Icon className="h-4 w-4" />
                         <span>{config.label}</span>
@@ -202,12 +202,12 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
                 {/* Sub-Tabs (conditional) */}
                 {mainTabsConfig[activeMainTab].subTabs.length > 0 && (
                   <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
-                    <TabsList className="bg-muted/50 rounded-lg p-1 mb-4 w-full justify-start">
+                    <TabsList className="bg-cream/50 rounded-lg p-1 mb-4 w-full justify-start">
                       {mainTabsConfig[activeMainTab].subTabs.map((subTab) => (
                         <TabsTrigger
                           key={subTab.value}
                           value={subTab.value}
-                          className="data-[state=active]:bg-background data-[state=active]:text-foreground"
+                          className="data-[state=active]:bg-burgundy data-[state=active]:text-white text-charcoal"
                         >
                           {subTab.label}
                         </TabsTrigger>

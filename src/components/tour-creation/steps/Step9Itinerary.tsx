@@ -59,9 +59,10 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
 
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-burgundy shadow-elegant">
       <CardHeader>
-        <CardTitle>Daily Itinerary</CardTitle>
+        <CardTitle className="text-2xl font-playfair text-charcoal">Daily Itinerary</CardTitle>
+        <p className="text-sm text-charcoal/60 mt-2">Plan out each day of your tour</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <FormField
@@ -71,7 +72,7 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
             <FormItem>
               <div className="space-y-6">
                 {itinerary.map((day, index) => (
-                  <div key={index} className="group relative border rounded-lg p-6">
+                  <div key={index} className="group relative border border-burgundy/20 rounded-lg p-6 bg-card hover:shadow-md transition-shadow">
                     {/* Delete button - positioned absolutely */}
                     <Button
                       type="button"

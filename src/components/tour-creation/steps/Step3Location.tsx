@@ -50,9 +50,10 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
   };
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-burgundy shadow-elegant">
       <CardHeader>
-        <CardTitle>Where is your tour?</CardTitle>
+        <CardTitle className="text-2xl font-playfair text-charcoal">Where is your tour?</CardTitle>
+        <p className="text-sm text-charcoal/60 mt-2">Select the region and meeting point for your tour</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <FormField
@@ -60,7 +61,7 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
           name="region"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Hiking Region *</FormLabel>
+              <FormLabel className="text-charcoal font-medium">Hiking Region *</FormLabel>
               <FormControl>
                 <RegionSelector value={field.value} onChange={field.onChange} />
               </FormControl>
@@ -74,7 +75,7 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
           name="meeting_point"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Meeting Point</FormLabel>
+              <FormLabel className="text-charcoal font-medium">Meeting Point</FormLabel>
               <FormControl>
                 <LocationAutocomplete
                   value={meetingPoint || ''}
@@ -92,7 +93,7 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
                 />
               </FormControl>
               <FormMessage />
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-charcoal/60 mt-2">
                 You can search above or drop a pin on the map below
               </p>
             </FormItem>
@@ -114,9 +115,9 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
           />
         </div>
 
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-4 border-t border-burgundy/10">
           {onPrev && (
-            <Button type="button" variant="outline" onClick={onPrev}>
+            <Button type="button" variant="outline" onClick={onPrev} className="border-burgundy/20">
               Previous
             </Button>
           )}
