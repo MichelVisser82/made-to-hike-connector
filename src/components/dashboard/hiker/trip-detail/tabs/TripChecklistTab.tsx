@@ -4,25 +4,28 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileText, Package, User, Upload, Info, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { TripDetails, TripChecklistItem } from '@/hooks/useTripDetails';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import SmartWaiverForm from '@/components/waiver/SmartWaiverForm';
+import { format, addDays } from 'date-fns';
 
 interface TripChecklistTabProps {
   tripDetails: TripDetails;
 }
 
-// Mock data structure for comprehensive checklist
-const mockDocuments = [
+// Mock data structure - updated dynamically based on database
+const getMockDocuments = (waiverUploaded: boolean) => [
   {
     id: 'doc-1',
     name: 'Liability Waiver',
-    description: 'Sign and upload the liability waiver form',
+    description: 'Sign and submit the digital liability waiver',
     required: true,
-    uploadable: true,
-    checked: false,
+    uploadable: false,
+    checked: waiverUploaded,
   },
   {
     id: 'doc-2',
@@ -75,14 +78,33 @@ const mockPersonalItems = [
 ];
 
 export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
-  const { checklist, booking } = tripDetails;
+  const { checklist, booking, tour, guide } = tripDetails;
   const [loading, setLoading] = useState<string | null>(null);
   const [localCheckedItems, setLocalCheckedItems] = useState<Set<string>>(new Set());
+  const [waiverDialogOpen, setWaiverDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch user profile for pre-filling waiver
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('email, phone, country, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship')
+        .eq('id', user.id)
+        .single();
+      
+      return data;
+    }
+  });
+
   // Determine whether to use database checklist or mock data
   const useMockData = checklist.length === 0;
+  const mockDocuments = getMockDocuments(!!booking.waiver_uploaded_at);
 
   const handleCheckItem = async (itemId: string, currentlyChecked: boolean) => {
     if (useMockData) {
@@ -130,11 +152,52 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
     }
   };
 
-  const handleUpload = (docType: string) => {
-    toast({
-      title: 'Upload feature',
-      description: `Upload functionality for ${docType} will be implemented soon.`,
-    });
+  const handleWaiverSubmit = async (waiverData: any) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({
+          waiver_uploaded_at: new Date().toISOString(),
+        })
+        .eq('id', booking.id);
+      
+      if (error) throw error;
+      
+      setWaiverDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['trip-details', booking.id] });
+      
+      toast({
+        title: 'Waiver Submitted Successfully',
+        description: 'Your liability waiver has been saved. A copy will be sent to your email.',
+      });
+    } catch (error) {
+      console.error('Error submitting waiver:', error);
+      toast({
+        title: 'Submission Failed',
+        description: 'Failed to submit waiver. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleWaiverDraftSave = async (draftData: any) => {
+    try {
+      localStorage.setItem(
+        `waiver-draft-${booking.id}`,
+        JSON.stringify(draftData)
+      );
+    } catch (error) {
+      console.error('Error saving draft:', error);
+    }
+  };
+
+  const loadWaiverDraft = () => {
+    try {
+      const draft = localStorage.getItem(`waiver-draft-${booking.id}`);
+      return draft ? JSON.parse(draft) : null;
+    } catch {
+      return null;
+    }
   };
 
   // Calculate progress
@@ -205,15 +268,15 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                         <Badge className="bg-burgundy/10 text-burgundy border-burgundy/20 text-xs">Reminder</Badge>
                       )}
                     </div>
-                    {doc.uploadable && !isChecked && (
+                    {doc.name === 'Liability Waiver' && !isChecked && (
                       <Button 
                         variant="outline" 
                         size="sm" 
                         className="w-full mt-3 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                        onClick={() => handleUpload(doc.name)}
+                        onClick={() => setWaiverDialogOpen(true)}
                       >
-                        <Upload className="w-3.5 h-3.5 mr-2" />
-                        Upload {doc.name}
+                        <FileText className="w-3.5 h-3.5 mr-2" />
+                        Submit Liability Waiver
                       </Button>
                     )}
                   </div>
@@ -307,6 +370,38 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           </div>
         </div>
       </Card>
+
+      {/* Waiver Dialog */}
+      <Dialog open={waiverDialogOpen} onOpenChange={setWaiverDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          <SmartWaiverForm
+            tourName={tour.title}
+            bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
+            tourDates={{
+              from: format(new Date(booking.booking_date), 'MMM dd, yyyy'),
+              to: format(addDays(new Date(booking.booking_date), parseInt(tour.duration) || 3), 'MMM dd, yyyy')
+            }}
+            location={`${tour.region}, ${tour.country}`}
+            guideName={guide.display_name}
+            guideContact={guide.phone || 'Contact via platform'}
+            onSubmit={handleWaiverSubmit}
+            onSaveDraft={handleWaiverDraftSave}
+            prefilledData={{
+              ...loadWaiverDraft(),
+              fullName: booking.participants_details?.[0] 
+                ? `${booking.participants_details[0].firstName || ''} ${booking.participants_details[0].surname || ''}`.trim()
+                : '',
+              email: userProfile?.email || '',
+              phone: userProfile?.phone || '',
+              country: userProfile?.country || '',
+              emergencyName: userProfile?.emergency_contact_name || '',
+              emergencyPhone: userProfile?.emergency_contact_phone || '',
+              emergencyRelationship: userProfile?.emergency_contact_relationship || '',
+              hasInsurance: !!booking.insurance_uploaded_at,
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
