@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
+import { useRegionGPS, getLocationFromGPS } from '@/hooks/useRegionGPS';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Trash2, Image as ImageIcon, Edit3, Sparkles, Loader2, MapPin, Tag, X, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -46,6 +47,7 @@ export function GuideImageLibrary() {
   const [guideImages, setGuideImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { fetchImages, getImageUrl, uploadImage } = useWebsiteImages();
+  const { data: regionsWithGPS } = useRegionGPS();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [pendingImages, setPendingImages] = useState<ImageWithMetadata[]>([]);
@@ -83,48 +85,6 @@ export function GuideImageLibrary() {
     fetchGuideImages();
   }, []);
 
-  const getLocationFromGPS = (latitude: number, longitude: number): string => {
-    const locations = [
-      {
-        name: 'scotland',
-        bounds: { latMin: 56.0, latMax: 58.7, lngMin: -8.0, lngMax: -2.0 },
-        center: { lat: 57.35, lng: -5.0 }
-      },
-      {
-        name: 'dolomites',
-        bounds: { latMin: 46.0, latMax: 47.0, lngMin: 10.5, lngMax: 12.5 },
-        center: { lat: 46.5, lng: 11.5 }
-      },
-      {
-        name: 'pyrenees',
-        bounds: { latMin: 42.0, latMax: 43.5, lngMin: -2.0, lngMax: 3.5 },
-        center: { lat: 42.75, lng: 0.75 }
-      }
-    ];
-
-    for (const location of locations) {
-      const { latMin, latMax, lngMin, lngMax } = location.bounds;
-      if (latitude >= latMin && latitude <= latMax && longitude >= lngMin && longitude <= lngMax) {
-        return location.name;
-      }
-    }
-
-    let closestLocation = locations[0];
-    let minDistance = Number.MAX_VALUE;
-
-    for (const location of locations) {
-      const distance = Math.sqrt(
-        Math.pow(latitude - location.center.lat, 2) + 
-        Math.pow(longitude - location.center.lng, 2)
-      );
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestLocation = location;
-      }
-    }
-
-    return closestLocation.name;
-  };
 
   const extractGPSData = async (file: File) => {
     try {
@@ -252,7 +212,7 @@ export function GuideImageLibrary() {
       const suggestions = data.suggestions;
       const aiLocation = suggestions.location || 
                          (suggestions.gps?.location) || 
-                         (gpsData && getLocationFromGPS(gpsData.latitude, gpsData.longitude));
+                         (gpsData && regionsWithGPS && getLocationFromGPS(gpsData.latitude, gpsData.longitude, regionsWithGPS));
       
       const cleanTags = suggestions.tags.filter((tag: string) => !tag.startsWith('location:'));
       
@@ -321,9 +281,9 @@ export function GuideImageLibrary() {
       const gpsData = await extractGPSData(file);
       let detectedLocation = '';
       
-      if (gpsData) {
+      if (gpsData && regionsWithGPS) {
         console.log(`GPS found for ${file.name}:`, gpsData);
-        detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+        detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude, regionsWithGPS) || '';
         console.log(`Detected location for ${file.name}:`, detectedLocation);
       } else {
         console.log(`No GPS data found for ${file.name}`);
@@ -571,7 +531,7 @@ export function GuideImageLibrary() {
       const suggestions = data.suggestions;
       const aiLocation = suggestions.location || 
                          (suggestions.gps?.location) || 
-                         (gpsData && getLocationFromGPS(gpsData.latitude, gpsData.longitude));
+                         (gpsData && regionsWithGPS && getLocationFromGPS(gpsData.latitude, gpsData.longitude, regionsWithGPS));
       
       const cleanTags = suggestions.tags.filter((tag: string) => !tag.startsWith('location:'));
       

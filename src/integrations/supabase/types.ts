@@ -912,6 +912,7 @@ export type Database = {
           created_at: string
           description: string
           display_order: number | null
+          gps_bounds: Json | null
           id: string
           is_active: boolean
           is_featured: boolean | null
@@ -925,6 +926,7 @@ export type Database = {
           created_at?: string
           description: string
           display_order?: number | null
+          gps_bounds?: Json | null
           id?: string
           is_active?: boolean
           is_featured?: boolean | null
@@ -938,6 +940,7 @@ export type Database = {
           created_at?: string
           description?: string
           display_order?: number | null
+          gps_bounds?: Json | null
           id?: string
           is_active?: boolean
           is_featured?: boolean | null

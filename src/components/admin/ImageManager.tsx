@@ -9,6 +9,7 @@ import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
+import { useRegionGPS, getLocationFromGPS } from '@/hooks/useRegionGPS';
 import { ImageSizeGuide } from './ImageSizeGuide';
 import { BulkImageUpload } from './BulkImageUpload';
 import { toast } from 'sonner';
@@ -17,6 +18,7 @@ import { parse } from 'exifr';
 
 export function ImageManager() {
   const { images, loading, uploadImage, getImageUrl, fetchImages } = useWebsiteImages();
+  const { data: regionsWithGPS } = useRegionGPS();
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -61,24 +63,6 @@ export function ImageManager() {
     return null;
   };
 
-  const getLocationFromGPS = (latitude: number, longitude: number): string | null => {
-    // Scotland Highlands boundaries (approximate)
-    if (latitude >= 56.0 && latitude <= 58.7 && longitude >= -8.0 && longitude <= -2.0) {
-      return 'scotland';
-    }
-    
-    // Dolomites boundaries (approximate)
-    if (latitude >= 46.0 && latitude <= 47.0 && longitude >= 10.5 && longitude <= 12.5) {
-      return 'dolomites';
-    }
-    
-    // Pyrenees boundaries (approximate)
-    if (latitude >= 42.0 && latitude <= 43.5 && longitude >= -2.0 && longitude <= 3.5) {
-      return 'pyrenees';
-    }
-    
-    return null;
-  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
@@ -244,8 +228,8 @@ export function ImageManager() {
         
         // Add location tag based on GPS data
         let finalMetadata = { ...metadata };
-        if (gpsData) {
-          const location = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+        if (gpsData && regionsWithGPS) {
+          const location = getLocationFromGPS(gpsData.latitude, gpsData.longitude, regionsWithGPS);
           if (location) {
             finalMetadata.tags.push(`location:${location}`);
           }

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
+import { useRegionGPS, getLocationFromGPS } from '@/hooks/useRegionGPS';
 import { toast } from 'sonner';
 import { Upload, Sparkles, Image as ImageIcon, Edit3, Check, X, Loader2, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,56 +52,11 @@ interface ImageWithMetadata {
 
 export function BulkImageUpload() {
   const { uploadImage } = useWebsiteImages();
+  const { data: regionsWithGPS } = useRegionGPS();
   const [images, setImages] = useState<ImageWithMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
   const [optimize, setOptimize] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  // Function to determine location based on GPS coordinates
-  const getLocationFromGPS = (latitude: number, longitude: number): string => {
-    const locations = [
-      {
-        name: 'scotland',
-        bounds: { latMin: 56.0, latMax: 58.7, lngMin: -8.0, lngMax: -2.0 },
-        center: { lat: 57.35, lng: -5.0 }
-      },
-      {
-        name: 'dolomites',
-        bounds: { latMin: 46.0, latMax: 47.0, lngMin: 10.5, lngMax: 12.5 },
-        center: { lat: 46.5, lng: 11.5 }
-      },
-      {
-        name: 'pyrenees',
-        bounds: { latMin: 42.0, latMax: 43.5, lngMin: -2.0, lngMax: 3.5 },
-        center: { lat: 42.75, lng: 0.75 }
-      }
-    ];
-
-    // Check if coordinates are within any location boundaries
-    for (const location of locations) {
-      const { latMin, latMax, lngMin, lngMax } = location.bounds;
-      if (latitude >= latMin && latitude <= latMax && longitude >= lngMin && longitude <= lngMax) {
-        return location.name;
-      }
-    }
-
-    // If not within any boundaries, find the closest location
-    let closestLocation = locations[0];
-    let minDistance = Number.MAX_VALUE;
-
-    for (const location of locations) {
-      const distance = Math.sqrt(
-        Math.pow(latitude - location.center.lat, 2) + 
-        Math.pow(longitude - location.center.lng, 2)
-      );
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestLocation = location;
-      }
-    }
-
-    return closestLocation.name;
-  };
 
   const categories = [
     'hero', 'landscape', 'hiking', 'portrait', 'detail', 
@@ -276,7 +232,7 @@ export function BulkImageUpload() {
       // Extract location from AI suggestions or GPS data
       const aiLocation = suggestions.location || 
                          (suggestions.gps?.location) || 
-                         (gpsData && getLocationFromGPS(gpsData.latitude, gpsData.longitude));
+                         (gpsData && regionsWithGPS && getLocationFromGPS(gpsData.latitude, gpsData.longitude, regionsWithGPS));
       
       // Remove location tags from AI suggestions
       const cleanTags = suggestions.tags.filter(tag => !tag.startsWith('location:'));
@@ -344,9 +300,9 @@ export function BulkImageUpload() {
       const gpsData = await extractGPSData(file);
       let detectedLocation = '';
       
-      if (gpsData) {
+      if (gpsData && regionsWithGPS) {
         console.log(`GPS found for ${file.name}:`, gpsData);
-        detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+        detectedLocation = getLocationFromGPS(gpsData.latitude, gpsData.longitude, regionsWithGPS) || '';
         console.log(`Detected location for ${file.name}:`, detectedLocation);
       } else {
         console.log(`No GPS data found for ${file.name}`);

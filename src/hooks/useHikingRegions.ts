@@ -83,18 +83,21 @@ export const useCountries = () => {
 };
 
 export const useRegionsByCountry = (country: string | null) => {
-  const { data: regions } = useHikingRegions();
+  const { data: allRegions } = useHikingRegions();
 
-  if (!country || !regions) {
+  if (!country || !allRegions) {
     return { regions: [], hasRegions: false };
   }
 
-  const countryRegions = regions.filter(r => r.country === country);
+  const countryRegions = allRegions.filter(r => r.country === country);
   
   // Check if this country has parent regions
   const hasRegions = countryRegions.some(r => r.region !== null && r.region !== '');
+  
+  // Extract unique region names
+  const uniqueRegions = Array.from(new Set(countryRegions.map(r => r.region).filter(Boolean))) as string[];
 
-  return { regions: countryRegions, hasRegions };
+  return { regions: uniqueRegions, hasRegions };
 };
 
 export const useSubregionsByRegion = (country: string | null, region: string | null) => {
@@ -104,19 +107,22 @@ export const useSubregionsByRegion = (country: string | null, region: string | n
     return { subregions: [] };
   }
 
-  let subregions: HikingRegion[];
+  let filteredRegions: HikingRegion[];
 
   if (region) {
     // Filter by both country and region
-    subregions = allRegions.filter(
+    filteredRegions = allRegions.filter(
       r => r.country === country && r.region === region
     );
   } else {
     // Show subregions without parent region (region is null or empty)
-    subregions = allRegions.filter(
+    filteredRegions = allRegions.filter(
       r => r.country === country && (!r.region || r.region === '')
     );
   }
 
-  return { subregions };
+  // Extract unique subregion names
+  const uniqueSubregions = Array.from(new Set(filteredRegions.map(r => r.subregion)));
+
+  return { subregions: uniqueSubregions };
 };
