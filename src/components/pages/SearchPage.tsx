@@ -112,21 +112,21 @@ export function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-cream-light">
         <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Find Your Perfect Hiking Adventure</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-4xl font-playfair text-charcoal mb-2">Find Your Perfect Hiking Adventure</h1>
+          <p className="text-charcoal/60">
             Discover expertly guided tours across Europe's most stunning mountain ranges
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8 p-6 bg-card rounded-lg border">
+        <div className="mb-8 p-6 bg-card rounded-lg border-l-4 border-l-burgundy border border-burgundy/10 shadow-elegant">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Country</label>
+              <label className="block text-sm text-charcoal font-medium mb-2">Country</label>
               <select
                 value={country}
                 onChange={(e) => {
@@ -147,7 +147,7 @@ export function SearchPage() {
                   
                   setSearchParams(newParams);
                 }}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="w-full px-3 py-2 border border-burgundy/20 rounded-md bg-background focus:border-burgundy focus:outline-none"
               >
                 <option value="">All Countries</option>
                 {countries?.map((c) => (
@@ -157,7 +157,7 @@ export function SearchPage() {
             </div>
             {country && hasRegions && (
               <div>
-                <label className="block text-sm font-medium mb-2">Region</label>
+                <label className="block text-sm text-charcoal font-medium mb-2">Region</label>
                 <select
                   value={region}
                   onChange={(e) => {
@@ -167,7 +167,7 @@ export function SearchPage() {
                       updateFilter('subregion', '');
                     }
                   }}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className="w-full px-3 py-2 border border-burgundy/20 rounded-md bg-background focus:border-burgundy focus:outline-none"
                 >
                   <option value="">All Regions</option>
                   {regions?.map((r) => (
@@ -178,11 +178,11 @@ export function SearchPage() {
             )}
             {country && (hasRegions ? region : true) && (
               <div>
-                <label className="block text-sm font-medium mb-2">Subregion</label>
+                <label className="block text-sm text-charcoal font-medium mb-2">Subregion</label>
                 <select
                   value={subregion}
                   onChange={(e) => updateFilter('subregion', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className="w-full px-3 py-2 border border-burgundy/20 rounded-md bg-background focus:border-burgundy focus:outline-none"
                 >
                   <option value="">All Subregions</option>
                   {subregions?.map((s) => (
@@ -192,11 +192,11 @@ export function SearchPage() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium mb-2">Difficulty</label>
+              <label className="block text-sm text-charcoal font-medium mb-2">Difficulty</label>
               <select
                 value={difficulty}
                 onChange={(e) => updateFilter('difficulty', e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="w-full px-3 py-2 border border-burgundy/20 rounded-md bg-background focus:border-burgundy focus:outline-none"
               >
                 <option value="">All Levels</option>
                 <option value="easy">Easy</option>
@@ -206,11 +206,11 @@ export function SearchPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Guide</label>
+              <label className="block text-sm text-charcoal font-medium mb-2">Guide</label>
               <select
                 value={guideId}
                 onChange={(e) => updateFilter('guide', e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="w-full px-3 py-2 border border-burgundy/20 rounded-md bg-background focus:border-burgundy focus:outline-none"
               >
                 <option value="">All Guides</option>
                 {guides.map((guide) => (
@@ -221,11 +221,11 @@ export function SearchPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Date Range</label>
+              <label className="block text-sm text-charcoal font-medium mb-2">Date Range</label>
               <select
                 value={dateRange}
                 onChange={(e) => updateFilter('dateRange', e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="w-full px-3 py-2 border border-burgundy/20 rounded-md bg-background focus:border-burgundy focus:outline-none"
               >
                 <option value="">Any Time</option>
                 <option value="next-month">Next Month</option>
@@ -234,11 +234,11 @@ export function SearchPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Max Price</label>
+              <label className="block text-sm text-charcoal font-medium mb-2">Max Price</label>
               <select
                 value={maxPrice}
                 onChange={(e) => updateFilter('maxPrice', e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="w-full px-3 py-2 border border-burgundy/20 rounded-md bg-background focus:border-burgundy focus:outline-none"
               >
                 <option value="">Any Price</option>
                 <option value="500">Under €500</option>
@@ -252,7 +252,7 @@ export function SearchPage() {
               <Button 
                 variant="outline" 
                 onClick={clearFilters}
-                className="w-full md:w-auto"
+                className="w-full md:w-auto border-burgundy/20"
               >
                 Clear All Filters
               </Button>
@@ -262,7 +262,7 @@ export function SearchPage() {
 
         {/* Results */}
         <div className="mb-6">
-          <p className="text-muted-foreground">
+          <p className="text-charcoal/60">
             {loading ? 'Loading tours...' : `Showing ${filteredTours.length} tour${filteredTours.length !== 1 ? 's' : ''}`}
           </p>
         </div>
@@ -281,12 +281,13 @@ export function SearchPage() {
 
         {filteredTours.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-lg text-muted-foreground mb-4">
+            <p className="text-lg text-charcoal/60 mb-4">
               No tours found matching your criteria
             </p>
             <Button
               variant="outline"
               onClick={clearFilters}
+              className="border-burgundy/20"
             >
               Clear Filters
             </Button>
