@@ -5,13 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FileText, Package, User, Upload, Info, AlertCircle } from 'lucide-react';
+import { FileText, Package, User, Upload, Info, AlertCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { TripDetails, TripChecklistItem } from '@/hooks/useTripDetails';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import SmartWaiverForm from '@/components/waiver/SmartWaiverForm';
+import { WaiverViewer } from '@/components/waiver/WaiverViewer';
 import { format, addDays } from 'date-fns';
+import { useEmail } from '@/hooks/useEmail';
 
 interface TripChecklistTabProps {
   tripDetails: TripDetails;
@@ -82,8 +84,10 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [localCheckedItems, setLocalCheckedItems] = useState<Set<string>>(new Set());
   const [waiverDialogOpen, setWaiverDialogOpen] = useState(false);
+  const [waiverViewerOpen, setWaiverViewerOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { sendEmail } = useEmail();
 
   // Fetch user profile for pre-filling waiver
   const { data: userProfile } = useQuery({
@@ -158,18 +162,31 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
         .from('bookings')
         .update({
           waiver_uploaded_at: new Date().toISOString(),
-          waiver_data: waiverData, // Save complete waiver data for legal records and future use
+          waiver_data: waiverData,
         })
         .eq('id', booking.id);
       
       if (error) throw error;
+      
+      // Send confirmation email with waiver copy
+      try {
+        await sendEmail({
+          type: 'custom_verification',
+          to: userProfile?.email || booking.hiker_email,
+          subject: `Waiver Confirmation - ${tour.title}`,
+          name: waiverData.participantInfo?.fullName || userProfile?.email,
+          message: `Your liability waiver for ${tour.title} (${booking.booking_reference}) has been successfully submitted and saved. You can view your signed waiver anytime in your trip details.`,
+        });
+      } catch (emailError) {
+        console.error('Error sending confirmation email:', emailError);
+      }
       
       setWaiverDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['trip-details', booking.id] });
       
       toast({
         title: 'Waiver Submitted Successfully',
-        description: 'Your liability waiver has been saved. A copy will be sent to your email.',
+        description: 'Your liability waiver has been saved. A confirmation email has been sent.',
       });
     } catch (error) {
       console.error('Error submitting waiver:', error);
@@ -403,6 +420,15 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Waiver Viewer */}
+      <WaiverViewer
+        open={waiverViewerOpen}
+        onOpenChange={setWaiverViewerOpen}
+        waiverData={booking.waiver_data}
+        tourName={tour.title}
+        bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
+      />
     </div>
   );
 }
