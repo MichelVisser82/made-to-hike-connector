@@ -47,7 +47,7 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false,
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="text-sm text-muted-foreground">Region</div>
-              <div className="font-medium capitalize">{data.region}</div>
+              <div className="font-medium">{data.region}</div>
             </div>
             <div>
               <div className="text-sm text-muted-foreground">Duration</div>

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
+import { useHikingRegions, formatRegionPath } from '@/hooks/useHikingRegions';
 import { useRegionGPS, getLocationFromGPS } from '@/hooks/useRegionGPS';
 import { toast } from 'sonner';
 import { Upload, Sparkles, Image as ImageIcon, Edit3, Check, X, Loader2, MapPin } from 'lucide-react';
@@ -53,6 +54,7 @@ interface ImageWithMetadata {
 export function BulkImageUpload() {
   const { uploadImage } = useWebsiteImages();
   const { data: regionsWithGPS } = useRegionGPS();
+  const { data: regions } = useHikingRegions();
   const [images, setImages] = useState<ImageWithMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
   const [optimize, setOptimize] = useState(true);
@@ -621,11 +623,16 @@ export function BulkImageUpload() {
                     <SelectTrigger className="h-8">
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px]">
                       <SelectItem value="none">No location</SelectItem>
-                      <SelectItem value="dolomites">Dolomites</SelectItem>
-                      <SelectItem value="scotland">Scotland</SelectItem>
-                      <SelectItem value="pyrenees">Pyrenees</SelectItem>
+                      {regions?.map((region) => (
+                        <SelectItem 
+                          key={region.id} 
+                          value={formatRegionPath({ country: region.country, region: region.region, subregion: region.subregion })}
+                        >
+                          {region.country} - {region.region ? `${region.region} - ` : ''}{region.subregion}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
