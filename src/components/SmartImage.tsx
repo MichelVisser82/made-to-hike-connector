@@ -32,50 +32,63 @@ export function SmartImage({
         
         let image = null;
         
-        // Check if we have location tags
-        const locationTag = tags?.find(tag => 
-          tag.toLowerCase().startsWith('location:') || 
-          tag.includes('-') // Could be "Country - Region - Subregion" format
-        );
+        // Extract region keywords from tags for better matching
+        const regionKeywords = tags?.filter(tag => 
+          !['landscape', 'mountain', 'mountains'].includes(tag.toLowerCase())
+        ).map(tag => tag.toLowerCase().replace(/\s+/g, '-')) || [];
         
-        if (locationTag) {
-          console.log('Looking for images with location:', locationTag);
-          
-          // Search for images with the location tag
+        console.log('Looking for images with region keywords:', regionKeywords);
+        
+        if (regionKeywords.length > 0) {
+          // Search for images with matching location tags
           const allImages = await fetchImages({ limit: 100 });
           
-          const locationImages = allImages.filter(img => 
-            img.tags.some(imgTag => {
-              const normalizedImgTag = imgTag.toLowerCase();
-              const normalizedLocationTag = locationTag.toLowerCase();
+          // Filter images that match ANY of our region keywords
+          const matchingImages = allImages.filter(img => {
+            // Check if image has any tags matching our region keywords
+            const hasMatchingRegion = img.tags.some(imgTag => {
+              const normalizedImgTag = imgTag.toLowerCase().replace(/\s+/g, '-');
               
-              return normalizedImgTag === normalizedLocationTag ||
-                     normalizedImgTag === `location:${normalizedLocationTag}` ||
-                     normalizedImgTag.includes(normalizedLocationTag);
-            })
-          );
+              // Check for exact matches or location: prefix matches
+              return regionKeywords.some(keyword => 
+                normalizedImgTag === keyword ||
+                normalizedImgTag === `location:${keyword}` ||
+                normalizedImgTag.includes(keyword)
+              );
+            });
+            
+            // Also ensure we're not getting images from wrong regions
+            const hasWrongRegion = img.tags.some(imgTag => {
+              const tag = imgTag.toLowerCase();
+              // List of known region tags that shouldn't mix
+              const knownRegions = ['scotland', 'scottish', 'pyrenees', 'dolomites', 'switzerland', 'norway', 'iceland', 'lofoten', 'appenzell'];
+              return knownRegions.some(region => 
+                tag.includes(region) && !regionKeywords.some(kw => kw.includes(region))
+              );
+            });
+            
+            return hasMatchingRegion && !hasWrongRegion;
+          });
           
-          console.log(`Found ${locationImages.length} images for location:${locationTag}`);
+          console.log(`Found ${matchingImages.length} images matching region keywords`);
           
-          if (locationImages.length > 0) {
-            image = locationImages[Math.floor(Math.random() * locationImages.length)];
-            console.log('Selected location image:', image.file_name);
+          if (matchingImages.length > 0) {
+            image = matchingImages[Math.floor(Math.random() * matchingImages.length)];
+            console.log('Selected region-matched image:', image.file_name, 'with tags:', image.tags);
           }
         }
         
-        // Multiple fallback levels to ensure we always get an image from database
-        if (!image) {
-          // First fallback: try category/context based selection
+        // Only use category/context fallbacks if no region matching was attempted
+        if (!image && regionKeywords.length === 0) {
           image = await getRandomImage({ category, usage_context: usageContext });
         }
         
-        if (!image) {
-          // Second fallback: try just category
+        if (!image && regionKeywords.length === 0) {
           image = await getRandomImage({ category });
         }
         
-        if (!image) {
-          // Third fallback: get any random image from database
+        // Final fallback only if we have no region constraints
+        if (!image && regionKeywords.length === 0) {
           image = await getRandomImage({});
         }
         
