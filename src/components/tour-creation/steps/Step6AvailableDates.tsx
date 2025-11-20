@@ -48,19 +48,19 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
     endDate: addDays(new Date(), 365)
   });
 
-  // Calculate blocked dates based on tour duration
-  const getBlockedDates = () => {
-    const blocked: Date[] = [];
+  // Calculate all dates for current tour slots (including full duration)
+  const getCurrentTourDates = () => {
+    const allDates: Date[] = [];
     dateSlots.forEach(slot => {
-      // For each start date, block the subsequent days (duration - 1)
-      for (let i = 1; i < Math.ceil(tourDuration); i++) {
-        blocked.push(addDays(slot.date, i));
+      // Add all days for this tour (start date + duration)
+      for (let i = 0; i < Math.ceil(tourDuration); i++) {
+        allDates.push(addDays(slot.date, i));
       }
     });
-    return blocked;
+    return allDates;
   };
 
-  const blockedDates = getBlockedDates();
+  const currentTourDates = getCurrentTourDates();
 
   // Process existing calendar data
   const getExistingTourDates = () => {
@@ -89,8 +89,8 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
 
   // Check if a date is blocked (falls within any tour period or existing tours)
   const isDateBlocked = (date: Date) => {
-    const isInCurrentTour = blockedDates.some(blockedDate => 
-      isSameDay(blockedDate, date)
+    const isInCurrentTour = currentTourDates.some(tourDate => 
+      isSameDay(tourDate, date)
     );
     const isInExistingTour = [...existingBooked, ...existingAvailable].some(existingDate =>
       isSameDay(existingDate, date)
@@ -174,14 +174,12 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
                 disabled={(date) => date < new Date() || isDateBlocked(date)}
                 className="rounded-md border"
                 modifiers={{
-                  booked: dateSlots.map(slot => slot.date),
-                  blocked: blockedDates,
+                  currentTour: currentTourDates,
                   existingBooked: existingBooked,
                   existingAvailable: existingAvailable
                 }}
                 modifiersStyles={{
-                  booked: { backgroundColor: 'hsl(var(--primary))', color: 'white' },
-                  blocked: { backgroundColor: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--muted-foreground))', textDecoration: 'line-through' },
+                  currentTour: { backgroundColor: 'hsl(var(--primary))', color: 'white', fontWeight: '600' },
                   existingBooked: { backgroundColor: 'hsl(var(--gold) / 0.4)', color: 'hsl(var(--charcoal))', fontWeight: '600' },
                   existingAvailable: { backgroundColor: 'hsl(var(--sage) / 0.3)', color: 'hsl(var(--charcoal))' }
                 }}
@@ -189,12 +187,12 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
             </div>
             <div className="space-y-2 mt-3">
               <p className="text-sm text-charcoal/60">
-                Click dates to add start dates. Days during the tour ({Math.ceil(tourDuration)} day{Math.ceil(tourDuration) !== 1 ? 's' : ''}) are automatically blocked.
+                Click dates to add start dates. All {Math.ceil(tourDuration)} day{Math.ceil(tourDuration) !== 1 ? 's' : ''} of the tour will be automatically highlighted and blocked.
               </p>
               <div className="flex flex-wrap gap-3 text-xs text-charcoal/70 bg-cream/30 p-3 rounded-md border border-burgundy/10">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--primary))' }}></div>
-                  <span>New tour dates</span>
+                  <span>New tour ({Math.ceil(tourDuration)} day{Math.ceil(tourDuration) !== 1 ? 's' : ''})</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--gold) / 0.4)' }}></div>
@@ -203,10 +201,6 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--sage) / 0.3)' }}></div>
                   <span>Existing (available)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-sm bg-muted" style={{ textDecoration: 'line-through' }}></div>
-                  <span>Blocked</span>
                 </div>
               </div>
             </div>
