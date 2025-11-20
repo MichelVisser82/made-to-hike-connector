@@ -28,23 +28,23 @@ export function useFeaturedRegions() {
 
       if (regionsError) throw regionsError;
 
-      // Then, get distinct region combinations from active tours
+      // Then, get distinct region combinations from active tours (Country + Region only)
       const { data: tours, error: toursError } = await supabase
         .from('tours')
-        .select('region_country, region_region, region_subregion')
+        .select('region_country, region_region')
         .eq('is_active', true)
         .eq('is_custom_tour', false);
 
       if (toursError) throw toursError;
 
-      // Create a set of regions that have tours
+      // Create a set of Country-Region combinations that have tours
       const regionsWithTours = new Set(
-        tours?.map(t => `${t.region_country}|${t.region_region}|${t.region_subregion}`).filter(Boolean) || []
+        tours?.map(t => `${t.region_country}|${t.region_region || ''}`).filter(Boolean) || []
       );
 
-      // Filter featured regions to only include those with tours
+      // Filter featured regions to only include those with tours (matching on Country + Region)
       const filteredRegions = (featuredRegions || []).filter(region => {
-        const key = `${region.country}|${region.region}|${region.subregion}`;
+        const key = `${region.country}|${region.region || ''}`;
         return regionsWithTours.has(key);
       });
 
