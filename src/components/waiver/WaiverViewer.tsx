@@ -12,13 +12,67 @@ interface WaiverViewerProps {
   bookingReference: string;
 }
 
-export function WaiverViewer({ open, onOpenChange, waiverData, tourName, bookingReference }: WaiverViewerProps) {
-  // Normalize waiver data from various possible storage formats
-  if (!waiverData) return null;
+type WaiverSignature =
+  | string
+  | {
+      _type?: string;
+      value?: string;
+      [key: string]: unknown;
+    };
 
-  let data: any = waiverData;
+interface WaiverData {
+  fullName?: string;
+  dateOfBirth?: string;
+  nationality?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  email?: string;
+  phone?: string;
 
-  // If it's a string, try to parse it
+  emergencyName?: string;
+  emergencyPhone?: string;
+  emergencyRelationship?: string;
+
+  medicalConditions?: string;
+  medicalDetails?: string;
+  currentMedications?: string;
+  allergies?: string;
+  lastTetanusShot?: string;
+
+  hasInsurance?: boolean;
+  insuranceProvider?: string;
+  policyNumber?: string;
+  insuranceEmergencyNumber?: string;
+
+  risksInitial?: string;
+  liabilityInitial?: string;
+  conductInitial?: string;
+  mediaConsent?: boolean;
+  mediaInitial?: string;
+
+  isUnder18?: boolean;
+  guardianName?: string;
+  guardianRelationship?: string;
+
+  signature?: WaiverSignature;
+  signatureDate?: string;
+  submittedAt?: string;
+  signatureLocation?: string;
+
+  location?: string;
+  tourName?: string;
+  guideName?: string;
+
+  [key: string]: unknown;
+}
+
+const normalizeWaiverData = (raw: any): WaiverData | null => {
+  if (!raw) return null;
+
+  let data = raw;
+
+  // 1) If it's a string, try to parse as JSON
   if (typeof data === 'string') {
     try {
       data = JSON.parse(data);
@@ -27,12 +81,12 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
     }
   }
 
-  // If it has a nested formData key, prefer that
-  if (data && typeof data === 'object' && (data as any).formData && typeof (data as any).formData === 'object') {
-    data = (data as any).formData;
+  // 2) If there's a nested formData object, prefer that
+  if (data && typeof data === 'object' && 'formData' in data && typeof data.formData === 'object') {
+    data = data.formData;
   }
 
-  // If it's a wrapper object with a single nested object, unwrap it
+  // 3) If it's a wrapper object with a single nested object
   if (data && typeof data === 'object' && !('fullName' in data)) {
     const values = Object.values(data);
     if (values.length === 1 && values[0] && typeof values[0] === 'object') {
@@ -40,7 +94,23 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
     }
   }
 
+  // Final guard
   if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  return data as WaiverData;
+};
+
+export function WaiverViewer({ open, onOpenChange, waiverData, tourName, bookingReference }: WaiverViewerProps) {
+  const data = normalizeWaiverData(waiverData);
+
+  console.log('WaiverViewer data (normalized):', data);
+
+  const hasAnyData = data && Object.keys(data).length > 0;
+
+  // If absolutely nothing is there, still show a friendly dialog
+  if (!hasAnyData) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl max-h-[90vh]">
@@ -53,20 +123,29 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
               {tourName} • {bookingReference}
             </p>
           </DialogHeader>
-          <pre className="text-xs text-muted-foreground break-all whitespace-pre-wrap">{JSON.stringify(waiverData, null, 2)}</pre>
+          <p className="text-sm text-muted-foreground">
+            No waiver details could be loaded for this booking.
+          </p>
+          {waiverData && (
+            <>
+              <Separator className="my-4" />
+              <p className="text-xs text-muted-foreground mb-2">Raw stored data (for debugging):</p>
+              <pre className="text-xs text-muted-foreground break-all whitespace-pre-wrap">
+                {typeof waiverData === 'string'
+                  ? waiverData
+                  : JSON.stringify(waiverData, null, 2)}
+              </pre>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     );
   }
 
-  console.log('WaiverViewer data:', data);
-
-  const hasAnyData = Object.keys(data || {}).length > 0;
-  // Even if empty, still render structure so we can debug
-
-
-  const renderRow = (label: string, value: any) => {
-    if (!value || (Array.isArray(value) && value.length === 0)) return null;
+  const renderRow = (label: string, value: unknown) => {
+    if (value === undefined || value === null || (Array.isArray(value) && value.length === 0)) {
+      return null;
+    }
     const display = Array.isArray(value) ? value.join(', ') : String(value);
     return (
       <div className="grid grid-cols-3 gap-2" key={label}>
@@ -75,6 +154,15 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
       </div>
     );
   };
+
+  const resolveSignatureImage = (sig?: WaiverSignature): string | null => {
+    if (!sig) return null;
+    if (typeof sig === 'string') return sig;
+    if (typeof sig === 'object' && typeof sig.value === 'string') return sig.value;
+    return null;
+  };
+
+  const signatureImage = resolveSignatureImage(data?.signature);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,18 +179,29 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
 
         <ScrollArea className="h-[calc(90vh-120px)] pr-4">
           <div className="space-y-6">
+            {/* Trip & Guide Info */}
+            <div>
+              <h3 className="font-semibold text-foreground mb-3">Trip &amp; Guide Information</h3>
+              <div className="space-y-2 text-sm">
+                {renderRow('Tour', data?.tourName)}
+                {renderRow('Location', data?.location)}
+                {renderRow('Guide', data?.guideName)}
+              </div>
+              <Separator className="mt-4" />
+            </div>
+
             {/* Participant Information */}
             <div>
               <h3 className="font-semibold text-foreground mb-3">Participant Information</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Full name', data.fullName)}
-                {renderRow('Date of birth', data.dateOfBirth)}
-                {renderRow('Nationality', data.nationality)}
-                {renderRow('Address', data.address)}
-                {renderRow('City', data.city)}
-                {renderRow('Country', data.country)}
-                {renderRow('Email', data.email)}
-                {renderRow('Phone', data.phone)}
+                {renderRow('Full name', data?.fullName)}
+                {renderRow('Date of birth', data?.dateOfBirth)}
+                {renderRow('Nationality', data?.nationality)}
+                {renderRow('Address', data?.address)}
+                {renderRow('City', data?.city)}
+                {renderRow('Country', data?.country)}
+                {renderRow('Email', data?.email)}
+                {renderRow('Phone', data?.phone)}
               </div>
               <Separator className="mt-4" />
             </div>
@@ -111,9 +210,9 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Emergency Contact</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Name', data.emergencyName)}
-                {renderRow('Phone', data.emergencyPhone)}
-                {renderRow('Relationship', data.emergencyRelationship)}
+                {renderRow('Name', data?.emergencyName)}
+                {renderRow('Phone', data?.emergencyPhone)}
+                {renderRow('Relationship', data?.emergencyRelationship)}
               </div>
               <Separator className="mt-4" />
             </div>
@@ -122,11 +221,11 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Medical Information</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Medical conditions', data.medicalConditions)}
-                {renderRow('Details', data.medicalDetails)}
-                {renderRow('Current medications', data.currentMedications)}
-                {renderRow('Allergies', data.allergies)}
-                {renderRow('Last tetanus shot', data.lastTetanusShot)}
+                {renderRow('Medical conditions', data?.medicalConditions)}
+                {renderRow('Details', data?.medicalDetails)}
+                {renderRow('Current medications', data?.currentMedications)}
+                {renderRow('Allergies', data?.allergies)}
+                {renderRow('Last tetanus shot', data?.lastTetanusShot)}
               </div>
               <Separator className="mt-4" />
             </div>
@@ -135,10 +234,15 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Insurance Information</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Has insurance', typeof data.hasInsurance === 'boolean' ? (data.hasInsurance ? 'Yes' : 'No') : undefined)}
-                {renderRow('Provider', data.insuranceProvider)}
-                {renderRow('Policy number', data.policyNumber)}
-                {renderRow('Emergency number', data.insuranceEmergencyNumber)}
+                {renderRow(
+                  'Has insurance',
+                  typeof data?.hasInsurance === 'boolean'
+                    ? data.hasInsurance ? 'Yes' : 'No'
+                    : undefined
+                )}
+                {renderRow('Provider', data?.insuranceProvider)}
+                {renderRow('Policy number', data?.policyNumber)}
+                {renderRow('Emergency number', data?.insuranceEmergencyNumber)}
               </div>
               <Separator className="mt-4" />
             </div>
@@ -147,38 +251,51 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Acknowledgments</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Risks initials', data.risksInitial)}
-                {renderRow('Liability initials', data.liabilityInitial)}
-                {renderRow('Conduct initials', data.conductInitial)}
-                {renderRow('Media consent', typeof data.mediaConsent === 'boolean' ? (data.mediaConsent ? 'Yes' : 'No') : undefined)}
-                {renderRow('Media initials', data.mediaInitial)}
+                {renderRow('Risks initials', data?.risksInitial)}
+                {renderRow('Liability initials', data?.liabilityInitial)}
+                {renderRow('Conduct initials', data?.conductInitial)}
+                {renderRow(
+                  'Media consent',
+                  typeof data?.mediaConsent === 'boolean'
+                    ? data.mediaConsent ? 'Yes' : 'No'
+                    : undefined
+                )}
+                {renderRow('Media initials', data?.mediaInitial)}
               </div>
               <Separator className="mt-4" />
             </div>
 
             {/* Digital Signature */}
-            {data.signature && (
+            {signatureImage && (
               <div>
                 <h3 className="font-semibold text-foreground mb-3">Digital Signature</h3>
-                <div className="border rounded-lg p-4 bg-background">
-                  {/* Signature is currently stored as a string (e.g. drawn signature or name) */}
-                  <p className="text-foreground font-medium">{data.fullName}</p>
-                  <p className="text-muted-foreground mt-1 break-words">Signature: {data.signature}</p>
-                  {(data.signatureDate || data.submittedAt) && (
-                    <p className="text-muted-foreground mt-1">
+                <div className="border rounded-lg p-4 bg-background space-y-2">
+                  <p className="text-foreground font-medium">
+                    {data?.fullName || 'Signed participant'}
+                  </p>
+                  <div className="mt-2">
+                    <img
+                      src={signatureImage}
+                      alt={`Digital signature of ${data?.fullName || 'participant'}`}
+                      className="border rounded bg-white max-h-32"
+                    />
+                  </div>
+                  {(data?.signatureDate || data?.submittedAt) && (
+                    <p className="text-muted-foreground">
                       Signed on{' '}
-                      {format(new Date(data.signatureDate || data.submittedAt), 'MMMM dd, yyyy')} at{' '}
-                      {format(new Date(data.signatureDate || data.submittedAt), 'h:mm a')}
+                      {format(new Date(data.signatureDate || data.submittedAt), 'MMMM dd, yyyy')}{' '}
+                      at {format(new Date(data.signatureDate || data.submittedAt), 'h:mm a')}
                     </p>
                   )}
-                  {data.signatureLocation && (
-                    <p className="text-muted-foreground mt-1">
+                  {data?.signatureLocation && (
+                    <p className="text-muted-foreground">
                       Location: {data.signatureLocation}
                     </p>
                   )}
-                  {data.isUnder18 && data.guardianName && (
-                    <p className="text-muted-foreground mt-2">
-                      Signed on behalf of minor by {data.guardianName} ({data.guardianRelationship})
+                  {data?.isUnder18 && data.guardianName && (
+                    <p className="text-muted-foreground">
+                      Signed on behalf of minor by {data.guardianName}
+                      {data.guardianRelationship ? ` (${data.guardianRelationship})` : ''}
                     </p>
                   )}
                 </div>
