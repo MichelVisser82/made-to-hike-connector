@@ -417,17 +417,20 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             onSubmit={handleWaiverSubmit}
             onSaveDraft={handleWaiverDraftSave}
             prefilledData={{
+              ...(booking.waiver_data || {}),
               ...loadWaiverDraft(),
               fullName: booking.participants_details?.[0] 
                 ? `${booking.participants_details[0].firstName || ''} ${booking.participants_details[0].surname || ''}`.trim()
-                : '',
-              email: userProfile?.email || '',
-              phone: userProfile?.phone || '',
-              country: userProfile?.country || '',
-              emergencyName: userProfile?.emergency_contact_name || '',
-              emergencyPhone: userProfile?.emergency_contact_phone || '',
-              emergencyRelationship: userProfile?.emergency_contact_relationship || '',
-              hasInsurance: !!booking.insurance_uploaded_at,
+                : (booking.waiver_data?.fullName || ''),
+              email: userProfile?.email || booking.waiver_data?.email || '',
+              phone: userProfile?.phone || booking.waiver_data?.phone || '',
+              country: userProfile?.country || booking.waiver_data?.country || '',
+              emergencyName: userProfile?.emergency_contact_name || booking.waiver_data?.emergencyName || '',
+              emergencyPhone: userProfile?.emergency_contact_phone || booking.waiver_data?.emergencyPhone || '',
+              emergencyRelationship: userProfile?.emergency_contact_relationship || booking.waiver_data?.emergencyRelationship || '',
+              hasInsurance: typeof booking.waiver_data?.hasInsurance === 'boolean'
+                ? booking.waiver_data.hasInsurance
+                : !!booking.insurance_uploaded_at,
             }}
           />
         </DialogContent>
@@ -437,7 +440,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
       <WaiverViewer
         open={waiverViewerOpen}
         onOpenChange={setWaiverViewerOpen}
-        waiverData={booking.waiver_data}
+        waiverData={booking.waiver_data || loadWaiverDraft()}
         tourName={tour.title}
         bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
       />
