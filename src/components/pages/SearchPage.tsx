@@ -130,12 +130,22 @@ export function SearchPage() {
               <select
                 value={country}
                 onChange={(e) => {
-                  updateFilter('country', e.target.value);
-                  // Clear region/subregion when country changes
-                  if (e.target.value !== country) {
-                    updateFilter('region', '');
-                    updateFilter('subregion', '');
+                  const newCountry = e.target.value;
+                  const newParams = new URLSearchParams(searchParams);
+                  
+                  if (newCountry) {
+                    newParams.set('country', newCountry);
+                  } else {
+                    newParams.delete('country');
                   }
+                  
+                  // Clear region/subregion when country changes
+                  if (newCountry !== country) {
+                    newParams.delete('region');
+                    newParams.delete('subregion');
+                  }
+                  
+                  setSearchParams(newParams);
                 }}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               >
