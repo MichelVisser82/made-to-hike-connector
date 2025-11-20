@@ -27,11 +27,14 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
   
   // Generate dynamic region text for SEO
   const regionText = featuredRegions && featuredRegions.length > 0
-    ? featuredRegions.slice(0, 3).map(r => r.subregion).join(', ')
+    ? featuredRegions.slice(0, 3).map(r => r.region ? `${r.country} - ${r.region}` : `${r.country} - ${r.subregion}`).join(', ')
     : 'the Alps, Pyrenees, and beyond';
   
   const regionKeywords = featuredRegions && featuredRegions.length > 0
-    ? featuredRegions.map(r => `${r.subregion} guided tours`).join(', ')
+    ? featuredRegions.map(r => {
+        const regionName = r.region ? `${r.country} - ${r.region}` : `${r.country} - ${r.subregion}`;
+        return `${regionName} guided tours`;
+      }).join(', ')
     : 'mountain guided tours, hiking adventures';
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -91,7 +94,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
                     className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                   >
                     <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                    {region.subregion}
+                    {region.region ? `${region.country} - ${region.region}` : `${region.country} - ${region.subregion}`}
                   </button>
                 </li>
               ))}
