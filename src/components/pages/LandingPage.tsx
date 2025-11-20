@@ -104,10 +104,14 @@ export function LandingPage({
                 <div className="aspect-[16/10] rounded-2xl overflow-hidden">
                   <SmartImage 
                     category="region" 
-                    usageContext={currentRegion.subregion} 
-                    tags={[currentRegion.country, currentRegion.subregion, 'landscape']} 
+                    usageContext={`${currentRegion.country}-${currentRegion.region || currentRegion.subregion}`}
+                    tags={[
+                      currentRegion.country.toLowerCase().replace(/\s+/g, '-'),
+                      currentRegion.region?.toLowerCase().replace(/\s+/g, '-') || currentRegion.subregion.toLowerCase().replace(/\s+/g, '-'),
+                      'landscape'
+                    ].filter(Boolean)} 
                     className="w-full h-full object-cover" 
-                    alt={`${currentRegion.subregion} mountain landscape - ${currentRegion.description}`} 
+                    alt={`${currentRegion.country} - ${currentRegion.region || currentRegion.subregion} mountain landscape - ${currentRegion.description}`} 
                     priority="high" 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
