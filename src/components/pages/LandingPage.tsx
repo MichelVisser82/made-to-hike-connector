@@ -106,10 +106,12 @@ export function LandingPage({
                     category="region" 
                     usageContext={`${currentRegion.country}-${currentRegion.region || currentRegion.subregion}`}
                     tags={[
+                      `location:${currentRegion.country.toLowerCase().replace(/\s+/g, '-')}-${(currentRegion.region || currentRegion.subregion).toLowerCase().replace(/\s+/g, '-')}`,
                       currentRegion.country.toLowerCase().replace(/\s+/g, '-'),
-                      currentRegion.region?.toLowerCase().replace(/\s+/g, '-') || currentRegion.subregion.toLowerCase().replace(/\s+/g, '-'),
-                      'landscape'
-                    ].filter(Boolean)} 
+                      (currentRegion.region || currentRegion.subregion).toLowerCase().replace(/\s+/g, '-'),
+                      'landscape',
+                      'mountain'
+                    ]} 
                     className="w-full h-full object-cover" 
                     alt={`${currentRegion.country} - ${currentRegion.region || currentRegion.subregion} mountain landscape - ${currentRegion.description}`} 
                     priority="high" 
