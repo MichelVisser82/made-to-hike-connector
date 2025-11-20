@@ -106,10 +106,10 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
   };
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-burgundy shadow-elegant">
       <CardHeader>
-        <CardTitle>Configure Available Dates</CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <CardTitle className="text-2xl font-playfair text-charcoal">Configure Available Dates</CardTitle>
+        <p className="text-sm text-charcoal/60">
           Select dates and customize pricing and capacity for each slot
         </p>
       </CardHeader>
@@ -234,9 +234,9 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
           )}
         />
 
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-4 border-t border-burgundy/10">
           {onPrev && (
-            <Button type="button" variant="outline" onClick={onPrev}>
+            <Button type="button" variant="outline" onClick={onPrev} className="border-burgundy/20">
               Previous
             </Button>
           )}

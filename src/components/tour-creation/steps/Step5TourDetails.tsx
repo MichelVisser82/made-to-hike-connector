@@ -54,9 +54,10 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
   };
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-burgundy shadow-elegant">
       <CardHeader>
-        <CardTitle>Tour Details</CardTitle>
+        <CardTitle className="text-2xl font-playfair text-charcoal">Tour Details</CardTitle>
+        <p className="text-sm text-charcoal/60 mt-2">Provide specific information about your tour</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
@@ -65,12 +66,13 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
             name="pack_weight"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Pack Weight (kg)</FormLabel>
+                <FormLabel className="text-charcoal font-medium">Pack Weight (kg)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
                     min="1"
                     max="50"
+                    className="border-burgundy/20 focus:border-burgundy"
                     {...field} 
                     onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                   />
@@ -85,12 +87,13 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
             name="elevation_gain_m"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Elevation Gain (m) (average per day)</FormLabel>
+                <FormLabel className="text-charcoal font-medium">Elevation Gain (m) (average per day)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
                     min="0"
                     placeholder="e.g., 850"
+                    className="border-burgundy/20 focus:border-burgundy"
                     {...field} 
                     onChange={e => field.onChange(parseInt(e.target.value) || undefined)}
                   />
@@ -106,10 +109,11 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
           name="daily_hours"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Daily Hours</FormLabel>
+              <FormLabel className="text-charcoal font-medium">Daily Hours</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="e.g., 6-8 hours" 
+                  className="border-burgundy/20 focus:border-burgundy"
                   {...field} 
                 />
               </FormControl>
@@ -124,13 +128,14 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
             name="total_distance_km"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Total Distance (km)</FormLabel>
+                <FormLabel className="text-charcoal font-medium">Total Distance (km)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
-                    min="0.1"
                     step="0.1"
-                    placeholder="e.g., 45.5"
+                    min="0"
+                    placeholder="e.g., 45"
+                    className="border-burgundy/20 focus:border-burgundy"
                     {...field} 
                     onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
                   />
@@ -145,13 +150,14 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
             name="average_distance_per_day_km"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Average Distance per Day (km)</FormLabel>
+                <FormLabel className="text-charcoal font-medium">Avg. Distance Per Day (km)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
-                    min="0.1"
                     step="0.1"
-                    placeholder="e.g., 12.5"
+                    min="0"
+                    placeholder="e.g., 15"
+                    className="border-burgundy/20 focus:border-burgundy"
                     {...field} 
                     onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
                   />
@@ -167,27 +173,24 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
           name="terrain_types"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Terrain Types</FormLabel>
+              <FormLabel className="text-charcoal font-medium">Terrain Types</FormLabel>
               <div className="space-y-3">
-                {/* Selected terrain */}
                 {field.value && field.value.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {field.value.map((terrain) => (
-                      <Badge key={terrain} variant="secondary" className="px-3 py-1">
+                      <Badge key={terrain} variant="secondary" className="gap-1">
                         {terrain}
                         <button
                           type="button"
                           onClick={() => removeTerrain(terrain)}
-                          className="ml-2 hover:text-destructive"
+                          className="ml-1 hover:text-burgundy"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="h-3 w-3" />
                         </button>
                       </Badge>
                     ))}
                   </div>
                 )}
-
-                {/* Common options */}
                 <div className="flex flex-wrap gap-2">
                   {commonTerrainTypes.map((terrain) => (
                     <Button
@@ -197,21 +200,28 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
                       size="sm"
                       onClick={() => addTerrain(terrain)}
                       disabled={field.value?.includes(terrain)}
+                      className="border-burgundy/20 text-charcoal hover:bg-cream"
                     >
                       {terrain}
                     </Button>
                   ))}
                 </div>
-
-                {/* Custom input */}
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Add custom terrain type"
+                    placeholder="Add custom terrain type..."
                     value={customTerrain}
                     onChange={(e) => setCustomTerrain(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTerrain())}
+                    className="border-burgundy/20 focus:border-burgundy"
                   />
-                  <Button type="button" onClick={addCustomTerrain}>Add</Button>
+                  <Button 
+                    type="button" 
+                    onClick={addCustomTerrain}
+                    variant="outline"
+                    className="border-burgundy/20"
+                  >
+                    Add
+                  </Button>
                 </div>
               </div>
               <FormMessage />
@@ -219,9 +229,9 @@ export default function Step5TourDetails({ onSave, onNext, onPrev, isSaving }: S
           )}
         />
 
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-4 border-t border-burgundy/10">
           {onPrev && (
-            <Button type="button" variant="outline" onClick={onPrev}>
+            <Button type="button" variant="outline" onClick={onPrev} className="border-burgundy/20">
               Previous
             </Button>
           )}

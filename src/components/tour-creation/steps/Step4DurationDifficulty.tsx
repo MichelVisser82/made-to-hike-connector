@@ -33,9 +33,10 @@ export default function Step4DurationDifficulty({ onSave, onNext, onPrev, isSavi
   };
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-burgundy shadow-elegant">
       <CardHeader>
-        <CardTitle>Duration & Difficulty</CardTitle>
+        <CardTitle className="text-2xl font-playfair text-charcoal">Duration & Difficulty</CardTitle>
+        <p className="text-sm text-charcoal/60 mt-2">Define how long your tour lasts and its difficulty level</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <FormField
@@ -43,7 +44,7 @@ export default function Step4DurationDifficulty({ onSave, onNext, onPrev, isSavi
           name="duration"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>How long is this tour?</FormLabel>
+              <FormLabel className="text-charcoal font-medium">How long is this tour?</FormLabel>
               <DurationSlider
                 value={field.value}
                 onChange={field.onChange}
@@ -58,8 +59,8 @@ export default function Step4DurationDifficulty({ onSave, onNext, onPrev, isSavi
           name="difficulty"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Difficulty Level</FormLabel>
-              <p className="text-sm text-muted-foreground mb-3">(Pick the most difficult terrain you will encounter)</p>
+              <FormLabel className="text-charcoal font-medium">Difficulty Level</FormLabel>
+              <p className="text-sm text-charcoal/60 mb-3">(Pick the most difficult terrain you will encounter)</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {difficultyLevels.map((level) => (
                   <button
@@ -68,12 +69,12 @@ export default function Step4DurationDifficulty({ onSave, onNext, onPrev, isSavi
                     onClick={() => field.onChange(level.value)}
                     className={`p-4 border-2 rounded-lg text-left transition-all ${
                       field.value === level.value
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
+                        ? 'border-burgundy bg-burgundy/5'
+                        : 'border-burgundy/20 hover:border-burgundy/50 hover:bg-cream'
                     }`}
                   >
-                    <div className="font-semibold mb-1">{level.label}</div>
-                    <div className="text-sm text-muted-foreground">{level.description}</div>
+                    <div className="font-semibold text-charcoal mb-1">{level.label}</div>
+                    <div className="text-sm text-charcoal/60">{level.description}</div>
                   </button>
                 ))}
               </div>
@@ -82,9 +83,9 @@ export default function Step4DurationDifficulty({ onSave, onNext, onPrev, isSavi
           )}
         />
 
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-4 border-t border-burgundy/10">
           {onPrev && (
-            <Button type="button" variant="outline" onClick={onPrev}>
+            <Button type="button" variant="outline" onClick={onPrev} className="border-burgundy/20">
               Previous
             </Button>
           )}

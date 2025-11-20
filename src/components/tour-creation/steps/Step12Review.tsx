@@ -18,9 +18,9 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false,
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-l-4 border-l-burgundy shadow-elegant">
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <CardTitle className="text-2xl font-playfair text-charcoal">Basic Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <div>
@@ -39,9 +39,9 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false,
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-l-4 border-l-burgundy shadow-elegant">
         <CardHeader>
-          <CardTitle>Location & Details</CardTitle>
+          <CardTitle className="text-2xl font-playfair text-charcoal">Location & Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="grid grid-cols-2 gap-4">
@@ -69,9 +69,9 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false,
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-l-4 border-l-burgundy shadow-elegant">
         <CardHeader>
-          <CardTitle>Pricing</CardTitle>
+          <CardTitle className="text-2xl font-playfair text-charcoal">Pricing</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
@@ -81,9 +81,9 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false,
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-l-4 border-l-burgundy shadow-elegant">
         <CardHeader>
-          <CardTitle>Highlights</CardTitle>
+          <CardTitle className="text-2xl font-playfair text-charcoal">Highlights</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-1">
@@ -94,9 +94,9 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false,
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-l-4 border-l-burgundy shadow-elegant">
         <CardHeader>
-          <CardTitle>Available Dates</CardTitle>
+          <CardTitle className="text-2xl font-playfair text-charcoal">Available Dates</CardTitle>
         </CardHeader>
         <CardContent>
           {data.date_slots && data.date_slots.length > 0 ? (
@@ -114,9 +114,9 @@ export default function Step12Review({ onSubmit, isSubmitting, editMode = false,
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-l-4 border-l-burgundy shadow-elegant">
         <CardHeader>
-          <CardTitle>Inclusions</CardTitle>
+          <CardTitle className="text-2xl font-playfair text-charcoal">Inclusions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-4">

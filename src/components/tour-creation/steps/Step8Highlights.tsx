@@ -62,9 +62,10 @@ export default function Step8Highlights({ onSave, onNext, onPrev, isSaving }: St
   };
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-burgundy shadow-elegant">
       <CardHeader>
-        <CardTitle>Tour Highlights</CardTitle>
+        <CardTitle className="text-2xl font-playfair text-charcoal">Tour Highlights</CardTitle>
+        <p className="text-sm text-charcoal/60 mt-2">What makes your tour special? (Maximum 10)</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <FormField
@@ -72,12 +73,12 @@ export default function Step8Highlights({ onSave, onNext, onPrev, isSaving }: St
           name="highlights"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>What makes your tour special?</FormLabel>
+              <FormLabel className="text-charcoal font-medium">What makes your tour special?</FormLabel>
               
               {/* Standard Items */}
               {standardHighlights.length > 0 && (
                 <div className="space-y-3 mb-4">
-                  <Label className="text-sm font-medium">Standard Highlights</Label>
+                  <Label className="text-sm font-medium text-charcoal">Standard Highlights</Label>
                   <div className="flex flex-wrap gap-2">
                     {standardHighlights.map((item) => {
                       const isSelected = highlights.includes(item.item_text);
@@ -85,7 +86,7 @@ export default function Step8Highlights({ onSave, onNext, onPrev, isSaving }: St
                       return (
                         <div
                           key={item.id}
-                          className="flex items-center gap-2 rounded-lg border bg-card p-3 hover:bg-accent/50 transition-colors"
+                          className="flex items-center gap-2 rounded-lg border border-burgundy/20 bg-card p-3 hover:bg-cream transition-colors"
                         >
                           <Checkbox
                             id={`highlight-${item.id}`}
@@ -171,9 +172,9 @@ export default function Step8Highlights({ onSave, onNext, onPrev, isSaving }: St
           )}
         />
 
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-4 border-t border-burgundy/10">
           {onPrev && (
-            <Button type="button" variant="outline" onClick={onPrev}>
+            <Button type="button" variant="outline" onClick={onPrev} className="border-burgundy/20">
               Previous
             </Button>
           )}

@@ -83,13 +83,13 @@ export default function Step10Inclusions({ onSave, onNext, onPrev, isSaving }: S
   return (
     <div className="space-y-6">
       {/* Included Section */}
-      <Card>
+      <Card className="border-l-4 border-l-burgundy shadow-elegant">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Check className="h-5 w-5 text-green-600" />
+          <CardTitle className="flex items-center gap-2 font-playfair text-charcoal">
+            <Check className="h-5 w-5 text-sage" />
             What's Included
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-charcoal/60">
             Select standard items or add custom ones that are included in your tour
           </CardDescription>
         </CardHeader>
@@ -97,14 +97,14 @@ export default function Step10Inclusions({ onSave, onNext, onPrev, isSaving }: S
           {/* Standard Items */}
           {standardInclusions.length > 0 && (
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Standard Items</Label>
+              <Label className="text-sm font-medium text-charcoal">Standard Items</Label>
               <div className="flex flex-wrap gap-2">
                 {standardInclusions.map((item) => {
                   const isSelected = includes.includes(item.item_text);
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center gap-2 rounded-lg border bg-card p-3 hover:bg-accent/50 transition-colors"
+                      className="flex items-center gap-2 rounded-lg border border-burgundy/20 bg-card p-3 hover:bg-cream transition-colors"
                     >
                       <Checkbox
                         id={`include-${item.id}`}
