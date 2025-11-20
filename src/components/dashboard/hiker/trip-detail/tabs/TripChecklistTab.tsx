@@ -158,6 +158,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
         .from('bookings')
         .update({
           waiver_uploaded_at: new Date().toISOString(),
+          waiver_data: waiverData, // Save complete waiver data for legal records and future use
         })
         .eq('id', booking.id);
       
