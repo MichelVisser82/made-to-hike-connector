@@ -576,16 +576,21 @@ export function ToursSection({
                             <Copy className="w-4 h-4 mr-2" />
                             Copy
                           </DropdownMenuItem>
-                          {tour.is_active ? (
-                            <DropdownMenuItem onClick={() => onUnpublishTour(tour)}>
-                              <EyeOff className="w-4 h-4 mr-2" />
-                              Unpublish
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => onPublishTour(tour)}>
-                              <Eye className="w-4 h-4 mr-2" />
-                              Publish
-                            </DropdownMenuItem>
+                          {/* Custom tours cannot be published */}
+                          {!tour.is_custom_tour && (
+                            <>
+                              {tour.is_active ? (
+                                <DropdownMenuItem onClick={() => onUnpublishTour(tour)}>
+                                  <EyeOff className="w-4 h-4 mr-2" />
+                                  Unpublish
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => onPublishTour(tour)}>
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Publish
+                                </DropdownMenuItem>
+                              )}
+                            </>
                           )}
                           {tour.archived ? (
                             <DropdownMenuItem onClick={() => onUnarchiveTour(tour)}>
