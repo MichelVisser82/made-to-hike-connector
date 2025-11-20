@@ -72,27 +72,38 @@ export const useHikingRegions = () => {
   });
 };
 
-export const useCountries = () => {
+export const useCountries = (onlyWithTours: boolean = false) => {
   const { data: regions } = useHikingRegions();
 
   return useQuery({
-    queryKey: ['countries-with-tours'],
+    queryKey: ['countries', onlyWithTours],
     queryFn: async () => {
-      // Get distinct countries from active tours
-      const { data: tours, error } = await supabase
-        .from('tours')
-        .select('region_country')
-        .eq('is_active', true)
-        .eq('is_custom_tour', false);
+      if (onlyWithTours) {
+        // Get distinct countries from active tours
+        const { data: tours, error } = await supabase
+          .from('tours')
+          .select('region_country')
+          .eq('is_active', true)
+          .eq('is_custom_tour', false);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Extract unique countries that have tours
-      const countriesWithTours = Array.from(
-        new Set(tours?.map(t => t.region_country).filter(Boolean) || [])
-      ).sort();
+        // Extract unique countries that have tours
+        const countriesWithTours = Array.from(
+          new Set(tours?.map(t => t.region_country).filter(Boolean) || [])
+        ).sort();
 
-      return countriesWithTours;
+        return countriesWithTours;
+      } else {
+        // Get all countries from hiking_regions
+        if (!regions) return [];
+        
+        const allCountries = Array.from(
+          new Set(regions.map(r => r.country))
+        ).sort();
+
+        return allCountries;
+      }
     },
     enabled: !!regions,
   });
