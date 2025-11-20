@@ -381,7 +381,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               from: format(new Date(booking.booking_date), 'MMM dd, yyyy'),
               to: format(addDays(new Date(booking.booking_date), parseInt(tour.duration) || 3), 'MMM dd, yyyy')
             }}
-            location={`${tour.region}, ${tour.country}`}
+            location={tour.region_region ? `${tour.region_subregion}, ${tour.region_region}, ${tour.region_country}` : `${tour.region_subregion}, ${tour.region_country}`}
             guideName={guide.display_name}
             guideContact={guide.phone || 'Contact via platform'}
             onSubmit={handleWaiverSubmit}
