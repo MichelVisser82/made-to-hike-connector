@@ -40,12 +40,30 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
     }
   }
 
-  if (!data || typeof data !== 'object') return null;
+  if (!data || typeof data !== 'object') {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <CheckCircle2 className="w-5 h-5 text-sage" />
+              Signed Liability Waiver
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {tourName} • {bookingReference}
+            </p>
+          </DialogHeader>
+          <pre className="text-xs text-muted-foreground break-all whitespace-pre-wrap">{JSON.stringify(waiverData, null, 2)}</pre>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   console.log('WaiverViewer data:', data);
 
   const hasAnyData = Object.keys(data || {}).length > 0;
-  if (!hasAnyData) return null;
+  // Even if empty, still render structure so we can debug
+
 
   const renderRow = (label: string, value: any) => {
     if (!value || (Array.isArray(value) && value.length === 0)) return null;
