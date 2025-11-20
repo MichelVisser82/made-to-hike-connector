@@ -29,8 +29,12 @@ export function SearchPage() {
 
   // Fetch hierarchical region data
   const { data: countries } = useCountries(true); // Only show countries with tours
-  const { regions, hasRegions } = useRegionsByCountry(country);
-  const { subregions } = useSubregionsByRegion(country, region);
+  const { data: regionData } = useRegionsByCountry(country, true); // Only show regions with tours
+  const { data: subregionData } = useSubregionsByRegion(country, region, true); // Only show subregions with tours
+  
+  const regions = regionData?.regions || [];
+  const hasRegions = regionData?.hasRegions || false;
+  const subregions = subregionData?.subregions || [];
 
   useEffect(() => {
     fetchTours();

@@ -109,49 +109,117 @@ export const useCountries = (onlyWithTours: boolean = false) => {
   });
 };
 
-export const useRegionsByCountry = (country: string | null) => {
+export const useRegionsByCountry = (country: string | null, onlyWithTours: boolean = false) => {
   const { data: allRegions } = useHikingRegions();
 
-  if (!country || !allRegions) {
-    return { regions: [], hasRegions: false };
-  }
+  return useQuery({
+    queryKey: ['regions-by-country', country, onlyWithTours],
+    queryFn: async () => {
+      if (!country) {
+        return { regions: [], hasRegions: false };
+      }
 
-  const countryRegions = allRegions.filter(r => r.country === country);
-  
-  // Check if this country has parent regions
-  const hasRegions = countryRegions.some(r => r.region !== null && r.region !== '');
-  
-  // Extract unique region names
-  const uniqueRegions = Array.from(new Set(countryRegions.map(r => r.region).filter(Boolean))) as string[];
+      if (onlyWithTours) {
+        // Get distinct regions from active tours for this country
+        const { data: tours, error } = await supabase
+          .from('tours')
+          .select('region_region')
+          .eq('region_country', country)
+          .eq('is_active', true)
+          .eq('is_custom_tour', false);
 
-  return { regions: uniqueRegions, hasRegions };
+        if (error) throw error;
+
+        const uniqueRegions = Array.from(
+          new Set(tours?.map(t => t.region_region).filter(Boolean) || [])
+        ).sort();
+
+        return { 
+          regions: uniqueRegions,
+          hasRegions: uniqueRegions.length > 0
+        };
+      } else {
+        // Use hiking_regions data
+        if (!allRegions) {
+          return { regions: [], hasRegions: false };
+        }
+
+        const countryRegions = allRegions.filter(r => r.country === country);
+        
+        // Check if this country has parent regions
+        const hasRegions = countryRegions.some(r => r.region !== null && r.region !== '');
+        
+        // Extract unique region names
+        const uniqueRegions = Array.from(new Set(countryRegions.map(r => r.region).filter(Boolean))) as string[];
+
+        return { regions: uniqueRegions, hasRegions };
+      }
+    },
+    enabled: !!country && (onlyWithTours || !!allRegions),
+  });
 };
 
-export const useSubregionsByRegion = (country: string | null, region: string | null) => {
+export const useSubregionsByRegion = (country: string | null, region: string | null, onlyWithTours: boolean = false) => {
   const { data: allRegions } = useHikingRegions();
 
-  if (!country || !allRegions) {
-    return { subregions: [] };
-  }
+  return useQuery({
+    queryKey: ['subregions-by-region', country, region, onlyWithTours],
+    queryFn: async () => {
+      if (!country) {
+        return { subregions: [] };
+      }
 
-  let filteredRegions: HikingRegion[];
+      if (onlyWithTours) {
+        // Get distinct subregions from active tours
+        let query = supabase
+          .from('tours')
+          .select('region_subregion')
+          .eq('region_country', country)
+          .eq('is_active', true)
+          .eq('is_custom_tour', false);
 
-  if (region) {
-    // Filter by both country and region
-    filteredRegions = allRegions.filter(
-      r => r.country === country && r.region === region
-    );
-  } else {
-    // Show subregions without parent region (region is null or empty)
-    filteredRegions = allRegions.filter(
-      r => r.country === country && (!r.region || r.region === '')
-    );
-  }
+        // If a region is specified, filter by it
+        if (region) {
+          query = query.eq('region_region', region);
+        }
 
-  // Extract unique subregion names
-  const uniqueSubregions = Array.from(new Set(filteredRegions.map(r => r.subregion)));
+        const { data: tours, error } = await query;
 
-  return { subregions: uniqueSubregions };
+        if (error) throw error;
+
+        const uniqueSubregions = Array.from(
+          new Set(tours?.map(t => t.region_subregion).filter(Boolean) || [])
+        ).sort();
+
+        return { subregions: uniqueSubregions };
+      } else {
+        // Use hiking_regions data
+        if (!allRegions) {
+          return { subregions: [] };
+        }
+
+        let filteredRegions: HikingRegion[];
+
+        if (region) {
+          // Filter by both country and region
+          filteredRegions = allRegions.filter(
+            r => r.country === country && r.region === region
+          );
+        } else {
+          // Show subregions without parent region (region is null or empty)
+          filteredRegions = allRegions.filter(
+            r => r.country === country && (!r.region || r.region === '')
+          );
+        }
+
+        // Extract unique subregion names
+        const uniqueSubregions = Array.from(new Set(filteredRegions.map(r => r.subregion)));
+
+        return { subregions: uniqueSubregions };
+      }
+    },
+    enabled: !!country && (onlyWithTours || !!allRegions),
+  });
 };
 
 /**

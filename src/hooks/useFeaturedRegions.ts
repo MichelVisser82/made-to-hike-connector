@@ -18,15 +18,37 @@ export function useFeaturedRegions() {
   return useQuery({
     queryKey: ['featured-regions'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First, get all featured regions
+      const { data: featuredRegions, error: regionsError } = await supabase
         .from('hiking_regions')
         .select('*')
         .eq('is_featured', true)
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
-      if (error) throw error;
-      return data as FeaturedRegion[];
+      if (regionsError) throw regionsError;
+
+      // Then, get distinct region combinations from active tours
+      const { data: tours, error: toursError } = await supabase
+        .from('tours')
+        .select('region_country, region_region, region_subregion')
+        .eq('is_active', true)
+        .eq('is_custom_tour', false);
+
+      if (toursError) throw toursError;
+
+      // Create a set of regions that have tours
+      const regionsWithTours = new Set(
+        tours?.map(t => `${t.region_country}|${t.region_region}|${t.region_subregion}`).filter(Boolean) || []
+      );
+
+      // Filter featured regions to only include those with tours
+      const filteredRegions = (featuredRegions || []).filter(region => {
+        const key = `${region.country}|${region.region}|${region.subregion}`;
+        return regionsWithTours.has(key);
+      });
+
+      return filteredRegions as FeaturedRegion[];
     },
     staleTime: 1000 * 60 * 30, // 30 minutes
   });

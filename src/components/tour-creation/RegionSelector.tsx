@@ -33,8 +33,12 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 
   const { data: countries } = useCountries();
-  const { regions: countryRegions, hasRegions } = useRegionsByCountry(selectedCountry);
-  const { subregions } = useSubregionsByRegion(selectedCountry, selectedRegion);
+  const { data: regionData } = useRegionsByCountry(selectedCountry);
+  const { data: subregionData } = useSubregionsByRegion(selectedCountry, selectedRegion);
+
+  const countryRegions = regionData?.regions || [];
+  const hasRegions = regionData?.hasRegions || false;
+  const subregions = subregionData?.subregions || [];
 
   // regions is now an array of strings
   const parentRegions = countryRegions.sort();
