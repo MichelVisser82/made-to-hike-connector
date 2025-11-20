@@ -44,6 +44,7 @@ export interface Tour {
   created_at: string;
   is_active: boolean;
   archived?: boolean;
+  is_custom_tour?: boolean;
   pack_weight?: number;
   daily_hours?: string;
   terrain_types?: string[];

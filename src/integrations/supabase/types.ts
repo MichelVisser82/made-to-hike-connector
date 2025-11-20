@@ -2304,6 +2304,7 @@ export type Database = {
           images: string[]
           includes: string[]
           is_active: boolean
+          is_custom_tour: boolean
           itinerary: Json | null
           max_group_size: number | null
           meeting_point: string
@@ -2362,6 +2363,7 @@ export type Database = {
           images?: string[]
           includes?: string[]
           is_active?: boolean
+          is_custom_tour?: boolean
           itinerary?: Json | null
           max_group_size?: number | null
           meeting_point: string
@@ -2420,6 +2422,7 @@ export type Database = {
           images?: string[]
           includes?: string[]
           is_active?: boolean
+          is_custom_tour?: boolean
           itinerary?: Json | null
           max_group_size?: number | null
           meeting_point?: string

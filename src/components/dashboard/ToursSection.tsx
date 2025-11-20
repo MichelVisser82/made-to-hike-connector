@@ -9,6 +9,7 @@ import { GuideImageLibrary } from '@/components/guide/GuideImageLibrary';
 import { AvailabilityManager } from './AvailabilityManager';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuideTourOffers } from '@/hooks/useGuideTourOffers';
+import { OfferExpiryBadge } from '@/components/tour-offer/OfferExpiryBadge';
 import { format } from 'date-fns';
 import {
   DropdownMenu,
@@ -96,14 +97,29 @@ export function ToursSection({
     return { active, draft, archived, total };
   }, [regularTours]);
 
-  // Calculate counts for custom tours
+  // Calculate counts for custom tours based on offer status
   const customCounts = useMemo(() => {
-    const active = customTours.filter(t => t.is_active && !t.archived).length;
-    const draft = customTours.filter(t => !t.is_active && !t.archived).length;
-    const archived = customTours.filter(t => t.archived).length;
+    const active = customTours.filter(tour => {
+      const linkedOffer = tourOffers.find(o => o.tour_id === tour.id);
+      return linkedOffer?.offer_status === 'accepted' && !tour.archived;
+    }).length;
+    
+    const draft = customTours.filter(tour => {
+      const linkedOffer = tourOffers.find(o => o.tour_id === tour.id);
+      const isExpired = linkedOffer?.isExpired ?? false;
+      return linkedOffer?.offer_status === 'pending' && !isExpired && !tour.archived;
+    }).length;
+    
+    const archived = customTours.filter(tour => {
+      const linkedOffer = tourOffers.find(o => o.tour_id === tour.id);
+      const isExpired = linkedOffer?.isExpired ?? false;
+      const isDeclined = linkedOffer?.offer_status === 'declined';
+      return tour.archived || isExpired || isDeclined;
+    }).length;
+    
     const total = customTours.length;
     return { active, draft, archived, total };
-  }, [customTours]);
+  }, [customTours, tourOffers]);
 
   // Filter regular tours for My Tours tab
   const filteredRegularTours = useMemo(() => {
@@ -122,13 +138,19 @@ export function ToursSection({
     });
   }, [regularTours, statusFilter, searchTerm]);
 
-  // Filter custom tours for Custom Tours tab
+  // Filter custom tours for Custom Tours tab based on offer status
   const filteredCustomTours = useMemo(() => {
     return customTours.filter(tour => {
-      // Status filter
-      if (statusFilter === 'active' && (!tour.is_active || tour.archived)) return false;
-      if (statusFilter === 'draft' && (tour.is_active || tour.archived)) return false;
-      if (statusFilter === 'archived' && !tour.archived) return false;
+      const linkedOffer = tourOffers.find(o => o.tour_id === tour.id);
+      const isExpired = linkedOffer?.isExpired ?? false;
+      const isDeclined = linkedOffer?.offer_status === 'declined';
+      const isPending = linkedOffer?.offer_status === 'pending';
+      const isAccepted = linkedOffer?.offer_status === 'accepted';
+      
+      // Status filter: active = accepted & not archived, draft = pending & not expired, archived = archived OR expired OR declined
+      if (statusFilter === 'active' && !(isAccepted && !tour.archived)) return false;
+      if (statusFilter === 'draft' && !(isPending && !isExpired && !tour.archived)) return false;
+      if (statusFilter === 'archived' && !(tour.archived || isExpired || isDeclined)) return false;
       
       // Search filter
       if (searchTerm && !tour.title.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -137,7 +159,7 @@ export function ToursSection({
       
       return true;
     });
-  }, [customTours, statusFilter, searchTerm]);
+  }, [customTours, statusFilter, searchTerm, tourOffers]);
 
   const getDifficultyBadgeClass = (difficulty: string) => {
     switch (difficulty) {
@@ -357,16 +379,20 @@ export function ToursSection({
                             <Copy className="w-4 h-4 mr-2" />
                             Copy
                           </DropdownMenuItem>
-                          {tour.is_active ? (
-                            <DropdownMenuItem onClick={() => onUnpublishTour(tour)}>
-                              <EyeOff className="w-4 h-4 mr-2" />
-                              Unpublish
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => onPublishTour(tour)}>
-                              <Eye className="w-4 h-4 mr-2" />
-                              Publish
-                            </DropdownMenuItem>
+                          {!tour.is_custom_tour && (
+                            <>
+                              {tour.is_active ? (
+                                <DropdownMenuItem onClick={() => onUnpublishTour(tour)}>
+                                  <EyeOff className="w-4 h-4 mr-2" />
+                                  Unpublish
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => onPublishTour(tour)}>
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Publish
+                                </DropdownMenuItem>
+                              )}
+                            </>
                           )}
                           {tour.archived ? (
                             <DropdownMenuItem onClick={() => onUnarchiveTour(tour)}>
@@ -500,6 +526,19 @@ export function ToursSection({
                         {getStatusText(tour)}
                       </Badge>
                     </div>
+
+                    {/* Offer Expiry Badge */}
+                    {(() => {
+                      const linkedOffer = tourOffers.find(o => o.tour_id === tour.id);
+                      return linkedOffer?.expires_at && (
+                        <div className="mb-3">
+                          <OfferExpiryBadge 
+                            expiresAt={linkedOffer.expires_at} 
+                            status={linkedOffer.offer_status || undefined}
+                          />
+                        </div>
+                      );
+                    })()}
 
                     {/* Row 2: Price & Bookings */}
                     <div className="flex justify-between text-sm text-charcoal/70 mb-4">
