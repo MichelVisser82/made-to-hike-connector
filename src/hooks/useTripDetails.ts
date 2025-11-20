@@ -42,9 +42,11 @@ export interface TripDetails {
     payment_type: string;
     special_requests: string | null;
     waiver_uploaded_at: string | null;
+    waiver_data: any | null;
     insurance_uploaded_at: string | null;
     insurance_file_url: string | null;
     participants_details: any[];
+    hiker_email: string | null;
   };
   tour: Tour & {
     itinerary?: {
