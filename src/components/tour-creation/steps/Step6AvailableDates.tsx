@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
-import { format, addDays, isWithinInterval, isSameDay } from 'date-fns';
+import { format, addDays, isSameDay } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { X, Calendar as CalendarIcon, Users } from 'lucide-react';
 import type { DateSlotFormData } from '@/types/tourDateSlot';
+import { supabase } from '@/integrations/supabase/client';
+import { useGuideCalendarView } from '@/hooks/useGuideCalendarView';
 
 interface Step6AvailableDatesProps {
   onSave?: () => Promise<void>;
@@ -22,12 +24,29 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
   const form = useFormContext<TourFormData>();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [editingSlotIndex, setEditingSlotIndex] = useState<number | null>(null);
+  const [guideId, setGuideId] = useState<string | undefined>();
 
   const dateSlots = form.watch('date_slots') || [];
   const basePrice = form.watch('price') || 0;
   const baseCurrency = form.watch('currency') || 'EUR';
   const baseGroupSize = form.watch('group_size') || 1;
   const tourDuration = form.watch('duration') || 1; // Duration in days
+  
+  // Fetch current guide ID
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setGuideId(user?.id);
+    };
+    getUser();
+  }, []);
+
+  // Fetch existing calendar data for the guide
+  const { data: existingCalendar, isLoading: calendarLoading } = useGuideCalendarView({
+    guideId,
+    startDate: new Date(),
+    endDate: addDays(new Date(), 365)
+  });
 
   // Calculate blocked dates based on tour duration
   const getBlockedDates = () => {
@@ -43,11 +62,40 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
 
   const blockedDates = getBlockedDates();
 
-  // Check if a date is blocked (falls within any tour period)
+  // Process existing calendar data
+  const getExistingTourDates = () => {
+    if (!existingCalendar) return { existingBooked: [], existingAvailable: [] };
+    
+    const existingBooked: Date[] = [];
+    const existingAvailable: Date[] = [];
+    
+    existingCalendar.forEach(slot => {
+      const startDate = slot.date;
+      // Add all dates in the tour duration
+      for (let i = 0; i < slot.durationDays; i++) {
+        const date = addDays(startDate, i);
+        if (slot.spotsBooked > 0) {
+          existingBooked.push(date);
+        } else {
+          existingAvailable.push(date);
+        }
+      }
+    });
+    
+    return { existingBooked, existingAvailable };
+  };
+
+  const { existingBooked, existingAvailable } = getExistingTourDates();
+
+  // Check if a date is blocked (falls within any tour period or existing tours)
   const isDateBlocked = (date: Date) => {
-    return blockedDates.some(blockedDate => 
+    const isInCurrentTour = blockedDates.some(blockedDate => 
       isSameDay(blockedDate, date)
     );
+    const isInExistingTour = [...existingBooked, ...existingAvailable].some(existingDate =>
+      isSameDay(existingDate, date)
+    );
+    return isInCurrentTour || isInExistingTour;
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -127,17 +175,41 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
                 className="rounded-md border"
                 modifiers={{
                   booked: dateSlots.map(slot => slot.date),
-                  blocked: blockedDates
+                  blocked: blockedDates,
+                  existingBooked: existingBooked,
+                  existingAvailable: existingAvailable
                 }}
                 modifiersStyles={{
                   booked: { backgroundColor: 'hsl(var(--primary))', color: 'white' },
-                  blocked: { backgroundColor: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--muted-foreground))', textDecoration: 'line-through' }
+                  blocked: { backgroundColor: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--muted-foreground))', textDecoration: 'line-through' },
+                  existingBooked: { backgroundColor: 'hsl(var(--gold) / 0.4)', color: 'hsl(var(--charcoal))', fontWeight: '600' },
+                  existingAvailable: { backgroundColor: 'hsl(var(--sage) / 0.3)', color: 'hsl(var(--charcoal))' }
                 }}
               />
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Click dates to add start dates. Days during the tour ({Math.ceil(tourDuration)} day{Math.ceil(tourDuration) !== 1 ? 's' : ''}) are automatically blocked.
-            </p>
+            <div className="space-y-2 mt-3">
+              <p className="text-sm text-charcoal/60">
+                Click dates to add start dates. Days during the tour ({Math.ceil(tourDuration)} day{Math.ceil(tourDuration) !== 1 ? 's' : ''}) are automatically blocked.
+              </p>
+              <div className="flex flex-wrap gap-3 text-xs text-charcoal/70 bg-cream/30 p-3 rounded-md border border-burgundy/10">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--primary))' }}></div>
+                  <span>New tour dates</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--gold) / 0.4)' }}></div>
+                  <span>Existing (booked)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--sage) / 0.3)' }}></div>
+                  <span>Existing (available)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-muted" style={{ textDecoration: 'line-through' }}></div>
+                  <span>Blocked</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Date Slot Configuration */}
