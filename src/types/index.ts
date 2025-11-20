@@ -22,9 +22,14 @@ export interface Tour {
   guide_id: string;
   guide_display_name?: string;
   guide_avatar_url?: string;
-  region: 'dolomites' | 'pyrenees' | 'scotland';
+  region: 'dolomites' | 'pyrenees' | 'scotland'; // Legacy field - kept for backward compatibility
+  region_country: string; // New structured region fields
+  region_region?: string | null;
+  region_subregion: string;
   difficulty: 'easy' | 'moderate' | 'challenging' | 'expert';
+  difficulty_level?: string; // Alternative field name
   duration: string;
+  duration_days?: number; // Alternative field name
   group_size: number;
   price: number;
   currency: 'EUR' | 'GBP';

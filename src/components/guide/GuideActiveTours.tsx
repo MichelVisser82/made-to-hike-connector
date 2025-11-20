@@ -4,6 +4,7 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { RegionBadge } from '@/components/common/RegionBadge';
 import type { Tour } from '@/types';
 
 interface EnrichedTour extends Tour {
@@ -101,10 +102,13 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
               <CardContent className="p-5 space-y-3">
                 {/* Metadata with icons - vertical stack */}
                 <div className="flex flex-col gap-1.5 text-sm text-charcoal/70">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-burgundy/70" />
-                    <span className="capitalize">{tour.region}</span>
-                  </div>
+                  <RegionBadge 
+                    country={tour.region_country}
+                    region={tour.region_region}
+                    subregion={tour.region_subregion}
+                    size="sm"
+                    clickable={false}
+                  />
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-burgundy/70" />
                     <span>{tour.duration}</span>

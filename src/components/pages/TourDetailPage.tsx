@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Star, MapPin, Users, Clock, ArrowLeft, Calendar, Shield, CheckCircle, Heart, Share2, Mountain, Navigation, Dumbbell, Activity, Route, Award, MessageCircle, ChevronDown, X, XCircle, Camera } from 'lucide-react';
+import { RegionBadge } from '@/components/common/RegionBadge';
 import { SmartImage } from '../SmartImage';
 import { type Tour } from '../../types';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
@@ -88,7 +89,11 @@ export function TourDetailPage({
   const {
     data: relatedTours = [],
     isLoading: isLoadingRelated
-  } = useRelatedTours(tour.id, tour.region);
+  } = useRelatedTours(tour.id, {
+    country: tour.region_country,
+    region: tour.region_region,
+    subregion: tour.region_subregion
+  });
 
   // Helper to format date range based on tour duration
   const formatDateRange = (startDate: Date, duration: string) => {
@@ -216,10 +221,14 @@ export function TourDetailPage({
               <Card className="bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-4 max-w-xl mx-auto lg:mx-0">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-burgundy flex-shrink-0" />
-                    <span className="font-medium text-charcoal text-sm capitalize">
-                      {tour.region.replace('-', ' ')}
-                    </span>
+                    <RegionBadge 
+                      country={tour.region_country}
+                      region={tour.region_region}
+                      subregion={tour.region_subregion}
+                      clickable={true}
+                      variant="secondary"
+                      size="default"
+                    />
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-burgundy flex-shrink-0" />
@@ -663,7 +672,7 @@ export function TourDetailPage({
                       <div className="flex flex-col md:flex-row gap-4">
                         <div className="md:w-64 w-full flex-shrink-0">
                           <div className="aspect-[3/2] rounded-lg overflow-hidden">
-                            {item.image_url ? <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <SmartImage category="tour" usageContext={tour.region} tags={[tour.region, 'hiking', 'trail']} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" fallbackSrc={tour.images[Math.min(index, tour.images.length - 1)]} alt={item.title} />}
+                            {item.image_url ? <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <SmartImage category="tour" usageContext={`${tour.region_country} ${tour.region_subregion}`} tags={[tour.region_country, tour.region_subregion, 'hiking', 'trail']} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" fallbackSrc={tour.images[Math.min(index, tour.images.length - 1)]} alt={item.title} />}
                           </div>
                         </div>
                         <div className="flex-1">

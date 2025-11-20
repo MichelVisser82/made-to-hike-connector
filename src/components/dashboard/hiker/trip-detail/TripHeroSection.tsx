@@ -4,6 +4,7 @@ import { Calendar, MapPin, Users, Mountain, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { TripDetails } from '@/hooks/useTripDetails';
 import { SmartImage } from '@/components/SmartImage';
+import { RegionBadge } from '@/components/common/RegionBadge';
 
 interface TripHeroSectionProps {
   tripDetails: TripDetails;
@@ -90,10 +91,20 @@ export function TripHeroSection({ tripDetails }: TripHeroSectionProps) {
               {tour.title}
             </h1>
             <div className="flex items-center gap-4 text-charcoal/70">
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4 text-burgundy" />
-                <span>{tour.meeting_point_formatted || tour.meeting_point || tour.region || 'Location TBD'}</span>
-              </div>
+              {tour.region_country && tour.region_subregion ? (
+                <RegionBadge 
+                  country={tour.region_country}
+                  region={tour.region_region}
+                  subregion={tour.region_subregion}
+                  size="sm"
+                  clickable={false}
+                />
+              ) : (
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4 text-burgundy" />
+                  <span>{tour.meeting_point_formatted || tour.meeting_point || 'Location TBD'}</span>
+                </div>
+              )}
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4 text-burgundy" />
                 <span>{format(new Date(booking.booking_date), 'MMMM d, yyyy')}</span>

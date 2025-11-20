@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, Phone, AlertCircle, Utensils, FileText, Edit } from 'lucide-react';
 import { format } from 'date-fns';
+import { RegionBadge } from '@/components/common/RegionBadge';
 interface ReviewStepProps {
   form: UseFormReturn<BookingFormData>;
   tourData: any;

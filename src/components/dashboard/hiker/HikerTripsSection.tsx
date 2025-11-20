@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { HikingLocationMap } from '@/components/tour/HikingLocationMap';
+import { formatRegionPath } from '@/hooks/useFeaturedRegions';
 
 interface HikerTripsSectionProps {
   userId: string;
