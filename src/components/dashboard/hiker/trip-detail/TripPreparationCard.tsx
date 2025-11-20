@@ -23,7 +23,7 @@ export function TripPreparationCard({ tripDetails }: TripPreparationCardProps) {
       completed: preparationStatus.emergency_contact_added,
     },
     {
-      label: 'Waiver pending',
+      label: preparationStatus.waiver_signed ? 'Waiver submitted' : 'Waiver pending',
       completed: preparationStatus.waiver_signed,
     },
     {
