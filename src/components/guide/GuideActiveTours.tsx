@@ -30,7 +30,7 @@ export function GuideActiveTours({ tours, guideId }: GuideActiveToursProps) {
           Active Tours
         </h2>
         <Link 
-          to={`/search?guide=${guideId}`} 
+          to={`/tours?guide=${guideId}`} 
           className="text-burgundy hover:underline flex items-center gap-1 font-medium"
         >
           See all tours <ArrowRight className="w-4 h-4" />
