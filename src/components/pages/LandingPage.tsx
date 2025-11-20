@@ -114,9 +114,8 @@ export function LandingPage({
                   <div className="absolute bottom-8 left-8 text-white max-w-2xl">
                     <Badge className="mb-3 bg-burgundy/90">Featured Region</Badge>
                     <h3 className="text-4xl font-serif mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-                      {currentRegion.subregion}
+                      {currentRegion.country} - {currentRegion.region || currentRegion.subregion}
                     </h3>
-                    <p className="text-lg text-white/90 mb-1">{formatRegionPath(currentRegion)}</p>
                     <p className="text-base text-white/90 mb-4">{currentRegion.description}</p>
                     <Button 
                       variant="secondary" 
@@ -129,7 +128,7 @@ export function LandingPage({
                       }} 
                       className="bg-white text-burgundy hover:bg-white/90"
                     >
-                      Explore {currentRegion.subregion}
+                      Explore Tours in {currentRegion.country} - {currentRegion.region || currentRegion.subregion}
                     </Button>
                   </div>
 
