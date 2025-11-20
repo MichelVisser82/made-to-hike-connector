@@ -68,7 +68,7 @@ export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Ste
               </FormControl>
               <FormMessage />
               <p className="text-sm text-charcoal/50">
-                {field.value.length}/140 characters
+                {field.value?.length || 0}/140 characters
               </p>
             </FormItem>
           )}
@@ -90,7 +90,7 @@ export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Ste
               </FormControl>
               <FormMessage />
               <p className="text-sm text-charcoal/50">
-                {field.value.length}/2000 characters
+                {field.value?.length || 0}/2000 characters
               </p>
             </FormItem>
           )}
