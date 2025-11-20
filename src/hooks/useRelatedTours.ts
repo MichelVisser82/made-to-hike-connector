@@ -2,28 +2,49 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tour } from '@/types';
 
+interface RegionParams {
+  country: string;
+  region?: string | null;
+  subregion: string;
+}
+
 /**
- * Hook to fetch related tours for a tour detail page
- * Prioritizes tours in the same region, then fills with popular tours from other regions
+ * Hook to fetch related tours for a tour detail page using structured region hierarchy
+ * Prioritizes tours in the same region hierarchy, then fills with popular tours from other regions
  * 
  * @param currentTourId - ID of the current tour to exclude from results
- * @param region - Region to find related tours in
+ * @param regionParams - Structured region parameters (country, region, subregion)
  * @returns Array of up to 3 related tours
  */
-export function useRelatedTours(currentTourId: string, region?: string) {
+export function useRelatedTours(currentTourId: string, regionParams?: RegionParams) {
   return useQuery({
-    queryKey: ['related-tours', currentTourId, region],
+    queryKey: ['related-tours', currentTourId, regionParams],
     queryFn: async () => {
-      const relatedTours: Tour[] = [];
+      let relatedTours: Tour[] = [];
 
-      // First, try to get tours from the same region
-      if (region) {
-        const { data: regionalTours, error: regionalError } = await supabase
+      // First, try to get tours from the same region hierarchy
+      if (regionParams) {
+        let query = supabase
           .from('tours')
           .select('*')
-          .eq('region', region)
           .eq('is_active', true)
-          .neq('id', currentTourId)
+          .eq('is_custom_tour', false)
+          .neq('id', currentTourId);
+
+        // Match country
+        query = query.eq('region_country', regionParams.country);
+
+        // If region exists, match it; otherwise match null
+        if (regionParams.region) {
+          query = query.eq('region_region', regionParams.region);
+        } else {
+          query = query.is('region_region', null);
+        }
+
+        // Match subregion
+        query = query.eq('region_subregion', regionParams.subregion);
+
+        const { data: regionalTours, error: regionalError } = await query
           .order('rating', { ascending: false })
           .order('reviews_count', { ascending: false })
           .limit(3);
@@ -44,6 +65,7 @@ export function useRelatedTours(currentTourId: string, region?: string) {
           .from('tours')
           .select('*')
           .eq('is_active', true)
+          .eq('is_custom_tour', false)
           .not('id', 'in', `(${existingTourIds.join(',')})`)
           .order('reviews_count', { ascending: false })
           .order('rating', { ascending: false })

@@ -2,7 +2,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
 import { useNavigate } from 'react-router-dom';
-import { useFeaturedRegions } from '@/hooks/useFeaturedRegions';
+import { useFeaturedRegions, formatRegionPath } from '@/hooks/useFeaturedRegions';
 import { 
   Mountain, 
   Mail, 
@@ -24,6 +24,15 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
   const navigate = useNavigate();
   const { data: featuredRegions } = useFeaturedRegions();
   const currentYear = new Date().getFullYear();
+  
+  // Generate dynamic region text for SEO
+  const regionText = featuredRegions && featuredRegions.length > 0
+    ? featuredRegions.slice(0, 3).map(r => r.subregion).join(', ')
+    : 'the Alps, Pyrenees, and beyond';
+  
+  const regionKeywords = featuredRegions && featuredRegions.length > 0
+    ? featuredRegions.map(r => `${r.subregion} guided tours`).join(', ')
+    : 'mountain guided tours, hiking adventures';
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +56,7 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Europe's premier marketplace for certified mountain guides and authentic hiking experiences. 
-              Connecting adventurers with expert guides across the Dolomites, Pyrenees, and Scottish Highlands.
+              Connecting adventurers with expert guides across {regionText}.
             </p>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
@@ -273,9 +282,9 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
         <div className="mt-4 text-xs text-muted-foreground/60 leading-relaxed">
           <p>
             Keywords: Mountain hiking tours, certified mountain guides, European hiking adventures, 
-            Dolomites guided tours, Pyrenees trekking, Scottish Highlands hiking, alpine climbing guides, 
-            mountain safety experts, hiking vacation packages, wilderness adventures, rock climbing instruction, 
-            mountain photography tours, multi-day hiking trips, hiking gear rental, adventure travel Europe.
+            {regionKeywords}, alpine climbing guides, 
+            multi-day trekking, guided mountain expeditions, professional outdoor guides, mountain safety, 
+            wilderness adventures, eco-tourism, sustainable tourism, adventure travel Europe
           </p>
         </div>
       </div>
