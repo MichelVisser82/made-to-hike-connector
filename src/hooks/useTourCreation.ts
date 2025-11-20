@@ -148,11 +148,18 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         hero_image: initialData.hero_image,
         images: initialData.images || [],
         highlights: initialData.highlights || [],
-        itinerary: initialData.itinerary?.map((day: any) => ({
-          ...day,
-          // Migrate activities array to description string if needed
-          description: day.description || (day.activities ? day.activities.join('. ') + '.' : '')
-        })) || [],
+        itinerary: (() => {
+          // Handle both array and object with days property
+          const itineraryData = Array.isArray(initialData.itinerary) 
+            ? initialData.itinerary 
+            : initialData.itinerary?.days || [];
+          
+          return itineraryData.map((day: any) => ({
+            ...day,
+            // Migrate activities array to description string if needed
+            description: day.description || (day.activities ? day.activities.join('. ') + '.' : '')
+          }));
+        })(),
         includes: initialData.includes || [],
         excluded_items: initialData.excluded_items || [],
         price: initialData.price,
