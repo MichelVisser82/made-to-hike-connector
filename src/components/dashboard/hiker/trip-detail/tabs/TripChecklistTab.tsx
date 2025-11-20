@@ -467,7 +467,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
       <WaiverViewer
         open={waiverViewerOpen}
         onOpenChange={setWaiverViewerOpen}
-        waiverData={parsedWaiverData || loadWaiverDraft()}
+        waiverData={booking.waiver_data || loadWaiverDraft()}
         tourName={tour.title}
         bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
       />

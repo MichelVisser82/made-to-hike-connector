@@ -13,10 +13,36 @@ interface WaiverViewerProps {
 }
 
 export function WaiverViewer({ open, onOpenChange, waiverData, tourName, bookingReference }: WaiverViewerProps) {
-  // Defensive check: ensure waiverData is a valid object
-  if (!waiverData || typeof waiverData !== 'object' || waiverData === null) return null;
+  // Normalize waiver data from various possible storage formats
+  if (!waiverData) return null;
 
-  const hasAnyData = Object.keys(waiverData || {}).length > 0;
+  let data: any = waiverData;
+
+  // If it's a string, try to parse it
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data);
+    } catch {
+      return null;
+    }
+  }
+
+  // If it has a nested formData key, prefer that
+  if (data && typeof data === 'object' && data.formData && typeof data.formData === 'object') {
+    data = data.formData;
+  }
+
+  // If it's a wrapper object with a single nested object, unwrap it
+  if (data && typeof data === 'object' && !('fullName' in data)) {
+    const values = Object.values(data);
+    if (values.length === 1 && values[0] && typeof values[0] === 'object') {
+      data = values[0];
+    }
+  }
+
+  if (!data || typeof data !== 'object') return null;
+
+  const hasAnyData = Object.keys(data || {}).length > 0;
   if (!hasAnyData) return null;
 
   const renderRow = (label: string, value: any) => {
@@ -49,14 +75,14 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Participant Information</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Full name', waiverData.fullName)}
-                {renderRow('Date of birth', waiverData.dateOfBirth)}
-                {renderRow('Nationality', waiverData.nationality)}
-                {renderRow('Address', waiverData.address)}
-                {renderRow('City', waiverData.city)}
-                {renderRow('Country', waiverData.country)}
-                {renderRow('Email', waiverData.email)}
-                {renderRow('Phone', waiverData.phone)}
+                {renderRow('Full name', data.fullName)}
+                {renderRow('Date of birth', data.dateOfBirth)}
+                {renderRow('Nationality', data.nationality)}
+                {renderRow('Address', data.address)}
+                {renderRow('City', data.city)}
+                {renderRow('Country', data.country)}
+                {renderRow('Email', data.email)}
+                {renderRow('Phone', data.phone)}
               </div>
               <Separator className="mt-4" />
             </div>
@@ -65,9 +91,9 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Emergency Contact</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Name', waiverData.emergencyName)}
-                {renderRow('Phone', waiverData.emergencyPhone)}
-                {renderRow('Relationship', waiverData.emergencyRelationship)}
+                {renderRow('Name', data.emergencyName)}
+                {renderRow('Phone', data.emergencyPhone)}
+                {renderRow('Relationship', data.emergencyRelationship)}
               </div>
               <Separator className="mt-4" />
             </div>
@@ -76,11 +102,11 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Medical Information</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Medical conditions', waiverData.medicalConditions)}
-                {renderRow('Details', waiverData.medicalDetails)}
-                {renderRow('Current medications', waiverData.currentMedications)}
-                {renderRow('Allergies', waiverData.allergies)}
-                {renderRow('Last tetanus shot', waiverData.lastTetanusShot)}
+                {renderRow('Medical conditions', data.medicalConditions)}
+                {renderRow('Details', data.medicalDetails)}
+                {renderRow('Current medications', data.currentMedications)}
+                {renderRow('Allergies', data.allergies)}
+                {renderRow('Last tetanus shot', data.lastTetanusShot)}
               </div>
               <Separator className="mt-4" />
             </div>
@@ -89,10 +115,10 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Insurance Information</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Has insurance', typeof waiverData.hasInsurance === 'boolean' ? (waiverData.hasInsurance ? 'Yes' : 'No') : undefined)}
-                {renderRow('Provider', waiverData.insuranceProvider)}
-                {renderRow('Policy number', waiverData.policyNumber)}
-                {renderRow('Emergency number', waiverData.insuranceEmergencyNumber)}
+                {renderRow('Has insurance', typeof data.hasInsurance === 'boolean' ? (data.hasInsurance ? 'Yes' : 'No') : undefined)}
+                {renderRow('Provider', data.insuranceProvider)}
+                {renderRow('Policy number', data.policyNumber)}
+                {renderRow('Emergency number', data.insuranceEmergencyNumber)}
               </div>
               <Separator className="mt-4" />
             </div>
@@ -101,38 +127,38 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
             <div>
               <h3 className="font-semibold text-foreground mb-3">Acknowledgments</h3>
               <div className="space-y-2 text-sm">
-                {renderRow('Risks initials', waiverData.risksInitial)}
-                {renderRow('Liability initials', waiverData.liabilityInitial)}
-                {renderRow('Conduct initials', waiverData.conductInitial)}
-                {renderRow('Media consent', typeof waiverData.mediaConsent === 'boolean' ? (waiverData.mediaConsent ? 'Yes' : 'No') : undefined)}
-                {renderRow('Media initials', waiverData.mediaInitial)}
+                {renderRow('Risks initials', data.risksInitial)}
+                {renderRow('Liability initials', data.liabilityInitial)}
+                {renderRow('Conduct initials', data.conductInitial)}
+                {renderRow('Media consent', typeof data.mediaConsent === 'boolean' ? (data.mediaConsent ? 'Yes' : 'No') : undefined)}
+                {renderRow('Media initials', data.mediaInitial)}
               </div>
               <Separator className="mt-4" />
             </div>
 
             {/* Digital Signature */}
-            {waiverData.signature && (
+            {data.signature && (
               <div>
                 <h3 className="font-semibold text-foreground mb-3">Digital Signature</h3>
                 <div className="border rounded-lg p-4 bg-background">
                   {/* Signature is currently stored as a string (e.g. drawn signature or name) */}
-                  <p className="text-foreground font-medium">{waiverData.fullName}</p>
-                  <p className="text-muted-foreground mt-1 break-words">Signature: {waiverData.signature}</p>
-                  {(waiverData.signatureDate || waiverData.submittedAt) && (
+                  <p className="text-foreground font-medium">{data.fullName}</p>
+                  <p className="text-muted-foreground mt-1 break-words">Signature: {data.signature}</p>
+                  {(data.signatureDate || data.submittedAt) && (
                     <p className="text-muted-foreground mt-1">
                       Signed on{' '}
-                      {format(new Date(waiverData.signatureDate || waiverData.submittedAt), 'MMMM dd, yyyy')} at{' '}
-                      {format(new Date(waiverData.signatureDate || waiverData.submittedAt), 'h:mm a')}
+                      {format(new Date(data.signatureDate || data.submittedAt), 'MMMM dd, yyyy')} at{' '}
+                      {format(new Date(data.signatureDate || data.submittedAt), 'h:mm a')}
                     </p>
                   )}
-                  {waiverData.signatureLocation && (
+                  {data.signatureLocation && (
                     <p className="text-muted-foreground mt-1">
-                      Location: {waiverData.signatureLocation}
+                      Location: {data.signatureLocation}
                     </p>
                   )}
-                  {waiverData.isUnder18 && waiverData.guardianName && (
+                  {data.isUnder18 && data.guardianName && (
                     <p className="text-muted-foreground mt-2">
-                      Signed on behalf of minor by {waiverData.guardianName} ({waiverData.guardianRelationship})
+                      Signed on behalf of minor by {data.guardianName} ({data.guardianRelationship})
                     </p>
                   )}
                 </div>
