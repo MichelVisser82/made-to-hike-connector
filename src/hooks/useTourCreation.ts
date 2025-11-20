@@ -15,6 +15,9 @@ const tourSchema = z.object({
   
   // Step 3: Location
   region: z.string().min(1, 'Region is required'),
+  region_country: z.string().optional(),
+  region_region: z.string().optional().nullable(),
+  region_subregion: z.string().optional(),
   meeting_point: z.string().min(1, 'Meeting point is required'),
   meeting_point_lat: z.number().optional(),
   meeting_point_lng: z.number().optional(),

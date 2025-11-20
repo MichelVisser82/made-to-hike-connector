@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFormContext } from 'react-hook-form';
+import { useEffect } from 'react';
 import { TourFormData } from '@/hooks/useTourCreation';
 import { LocationAutocomplete } from '../LocationAutocomplete';
 import { InteractiveLocationMap } from '../InteractiveLocationMap';
@@ -21,6 +22,22 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
   const meetingPointLat = form.watch('meeting_point_lat');
   const meetingPointLng = form.watch('meeting_point_lng');
   const selectedRegion = form.watch('region');
+
+  // Parse region into structured fields when it changes
+  useEffect(() => {
+    if (selectedRegion) {
+      const parts = selectedRegion.split(' - ');
+      if (parts.length === 3) {
+        form.setValue('region_country', parts[0]);
+        form.setValue('region_region', parts[1]);
+        form.setValue('region_subregion', parts[2]);
+      } else if (parts.length === 2) {
+        form.setValue('region_country', parts[0]);
+        form.setValue('region_region', null);
+        form.setValue('region_subregion', parts[1]);
+      }
+    }
+  }, [selectedRegion, form]);
 
   const handleSave = async () => {
     const isValid = await form.trigger(['region', 'meeting_point']);
