@@ -911,8 +911,10 @@ export type Database = {
           country: string
           created_at: string
           description: string
+          display_order: number | null
           id: string
           is_active: boolean
+          is_featured: boolean | null
           key_features: string[]
           region: string | null
           subregion: string
@@ -922,8 +924,10 @@ export type Database = {
           country: string
           created_at?: string
           description: string
+          display_order?: number | null
           id?: string
           is_active?: boolean
+          is_featured?: boolean | null
           key_features?: string[]
           region?: string | null
           subregion: string
@@ -933,8 +937,10 @@ export type Database = {
           country?: string
           created_at?: string
           description?: string
+          display_order?: number | null
           id?: string
           is_active?: boolean
+          is_featured?: boolean | null
           key_features?: string[]
           region?: string | null
           subregion?: string
@@ -2319,6 +2325,9 @@ export type Database = {
           price: number
           rating: number | null
           region: string
+          region_country: string | null
+          region_region: string | null
+          region_subregion: string | null
           reviews_count: number | null
           service_fee: number | null
           service_fee_percentage: number | null
@@ -2378,6 +2387,9 @@ export type Database = {
           price: number
           rating?: number | null
           region: string
+          region_country?: string | null
+          region_region?: string | null
+          region_subregion?: string | null
           reviews_count?: number | null
           service_fee?: number | null
           service_fee_percentage?: number | null
@@ -2437,6 +2449,9 @@ export type Database = {
           price?: number
           rating?: number | null
           region?: string
+          region_country?: string | null
+          region_region?: string | null
+          region_subregion?: string | null
           reviews_count?: number | null
           service_fee?: number | null
           service_fee_percentage?: number | null

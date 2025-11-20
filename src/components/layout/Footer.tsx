@@ -2,6 +2,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
 import { useNavigate } from 'react-router-dom';
+import { useFeaturedRegions } from '@/hooks/useFeaturedRegions';
 import { 
   Mountain, 
   Mail, 
@@ -21,6 +22,7 @@ interface FooterProps {
 
 export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
   const navigate = useNavigate();
+  const { data: featuredRegions } = useFeaturedRegions();
   const currentYear = new Date().getFullYear();
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -67,33 +69,23 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Explore</h3>
             <ul className="space-y-2 text-sm">
-              <li>
-                <button 
-                  onClick={() => navigate('/tours?region=dolomites')}
-                  className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
-                >
-                  <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                  Dolomites Tours
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => navigate('/tours?region=pyrenees')}
-                  className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
-                >
-                  <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                  Pyrenees Adventures
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => navigate('/tours?region=scottish-highlands')}
-                  className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
-                >
-                  <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                  Scottish Highlands
-                </button>
-              </li>
+              {featuredRegions?.slice(0, 6).map((region) => (
+                <li key={region.id}>
+                  <button 
+                    onClick={() => {
+                      const params = new URLSearchParams();
+                      params.set('country', region.country);
+                      if (region.region) params.set('region', region.region);
+                      params.set('subregion', region.subregion);
+                      navigate(`/tours?${params.toString()}`);
+                    }}
+                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
+                  >
+                    <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                    {region.subregion}
+                  </button>
+                </li>
+              ))}
               <li>
                 <button 
                   onClick={() => navigate('/tours?difficulty=easy')}

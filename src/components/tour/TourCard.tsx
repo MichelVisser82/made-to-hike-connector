@@ -4,11 +4,12 @@ import { Button } from '../ui/button';
 import { SmartImage } from '../SmartImage';
 import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { CertificationBadge } from '../ui/certification-badge';
+import { RegionBadge } from '../common/RegionBadge';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
 import { useGuideProfile } from '@/hooks/useGuideProfile';
 import { useSavedTours } from '@/hooks/useSavedTours';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Clock, Users, Star, Heart } from 'lucide-react';
+import { Clock, Users, Star, Heart, MapPin } from 'lucide-react';
 import type { Tour } from '@/types';
 
 interface TourCardProps {

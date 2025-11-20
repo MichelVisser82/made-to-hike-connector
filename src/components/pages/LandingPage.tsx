@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { Star, MapPin, Users, Shield, Calendar, Search, CheckCircle } from 'lucide-react';
+import { Star, MapPin, Users, Shield, Calendar, Search, CheckCircle, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { SmartImage } from "../SmartImage";
 import { useWebsiteImages } from "@/hooks/useWebsiteImages";
+import { useFeaturedRegions, formatRegionPath } from '@/hooks/useFeaturedRegions';
 import { supabase } from "@/integrations/supabase/client";
 import { imageRecommendations } from '@/lib/imageRecommendations';
 import { type User } from '../../types';
@@ -22,7 +23,8 @@ export function LandingPage({
   onNavigateToDashboard
 }: LandingPageProps) {
   const navigate = useNavigate();
-  const [selectedRegion, setSelectedRegion] = useState('dolomites');
+  const { data: featuredRegions, isLoading: regionsLoading } = useFeaturedRegions();
+  const [selectedRegionIndex, setSelectedRegionIndex] = useState(0);
   const {
     getRandomImage,
     getImagesByContext
@@ -31,32 +33,8 @@ export function LandingPage({
   const handleExploreTours = () => {
     navigate('/tours');
   };
-  const regions = [{
-    id: 'dolomites',
-    name: 'Dolomites',
-    country: 'Italy',
-    tours: 47,
-    difficulty: 'Easy - Expert',
-    bestSeason: 'May - October',
-    description: 'Dramatic limestone peaks and alpine meadows'
-  }, {
-    id: 'pyrenees',
-    name: 'Pyrenees',
-    country: 'France/Spain',
-    tours: 32,
-    difficulty: 'Moderate - Expert',
-    bestSeason: 'June - September',
-    description: 'Pristine wilderness between France and Spain'
-  }, {
-    id: 'scottish-highlands',
-    name: 'Scottish Highlands',
-    country: 'Scotland',
-    tours: 28,
-    difficulty: 'Easy - Challenging',
-    bestSeason: 'April - October',
-    description: 'Rugged landscapes and ancient castles'
-  }];
-  const currentRegion = regions.find(r => r.id === selectedRegion) || regions[0];
+
+  const currentRegion = featuredRegions?.[selectedRegionIndex];
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -119,63 +97,65 @@ export function LandingPage({
             </p>
           </div>
 
-          {/* Featured Region with Side Selection */}
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Main Featured Region */}
-              <div className="lg:col-span-3">
-                <div className="relative aspect-[16/10] rounded-2xl overflow-hidden">
-                   <SmartImage category="hero" usageContext="landing" tags={currentRegion.id === 'dolomites' ? ['dolomites'] : currentRegion.id === 'pyrenees' ? ['pyrenees'] : currentRegion.id === 'scottish-highlands' ? ['scotland'] : ['mountains']} className="w-full h-full object-cover" fallbackSrc="" alt={`${currentRegion.name} mountain landscape - ${currentRegion.description}`} priority="high" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-muted/30" />
-                  <div className="absolute bottom-8 left-8 text-white">
-                    <Badge className="mb-3 bg-burgundy/90">Most Popular</Badge>
-                    <h3 className="text-4xl font-serif mb-2" style={{
-                    fontFamily: 'Playfair Display, serif'
-                  }}>{currentRegion.name}</h3>
-                    <p className="text-base text-white mb-4">{currentRegion.description}</p>
-                    <Button variant="secondary" onClick={() => onNavigateToSearch({
-                    region: currentRegion.id
-                  })} className="bg-white text-burgundy hover:bg-white/90">
-                      Explore {currentRegion.name}
+          {/* Featured Region Carousel */}
+          {!regionsLoading && currentRegion && (
+            <div className="max-w-6xl mx-auto">
+              <div className="relative">
+                <div className="aspect-[16/10] rounded-2xl overflow-hidden">
+                  <SmartImage 
+                    category="region" 
+                    usageContext={currentRegion.subregion} 
+                    tags={[currentRegion.country, currentRegion.subregion, 'landscape']} 
+                    className="w-full h-full object-cover" 
+                    alt={`${currentRegion.subregion} mountain landscape - ${currentRegion.description}`} 
+                    priority="high" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute bottom-8 left-8 text-white max-w-2xl">
+                    <Badge className="mb-3 bg-burgundy/90">Featured Region</Badge>
+                    <h3 className="text-4xl font-serif mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      {currentRegion.subregion}
+                    </h3>
+                    <p className="text-lg text-white/90 mb-1">{formatRegionPath(currentRegion)}</p>
+                    <p className="text-base text-white/90 mb-4">{currentRegion.description}</p>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => {
+                        const params = new URLSearchParams();
+                        params.set('country', currentRegion.country);
+                        if (currentRegion.region) params.set('region', currentRegion.region);
+                        params.set('subregion', currentRegion.subregion);
+                        navigate(`/tours?${params.toString()}`);
+                      }} 
+                      className="bg-white text-burgundy hover:bg-white/90"
+                    >
+                      Explore {currentRegion.subregion}
                     </Button>
                   </div>
-                </div>
 
-                {/* Region Stats */}
-                <div className="grid grid-cols-3 gap-4 mt-6">
-                  <div className="text-center">
-                    <h4 className="font-semibold text-muted-foreground text-sm">Difficulty Range</h4>
-                    <p className="font-medium">{currentRegion.difficulty}</p>
-                  </div>
-                  <div className="text-center">
-                    <h4 className="font-semibold text-muted-foreground text-sm">Best Season</h4>
-                    <p className="font-medium">{currentRegion.bestSeason}</p>
-                  </div>
-                  <div className="text-center">
-                    <h4 className="font-semibold text-muted-foreground text-sm">Available Tours</h4>
-                    <p className="font-medium">{currentRegion.tours} guided experiences</p>
-                  </div>
+                  {/* Navigation arrows */}
+                  {featuredRegions && featuredRegions.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setSelectedRegionIndex((selectedRegionIndex - 1 + featuredRegions.length) % featuredRegions.length)}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/90 hover:bg-white transition-colors shadow-lg"
+                        aria-label="Previous region"
+                      >
+                        <ChevronLeft className="h-6 w-6 text-charcoal" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedRegionIndex((selectedRegionIndex + 1) % featuredRegions.length)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/90 hover:bg-white transition-colors shadow-lg"
+                        aria-label="Next region"
+                      >
+                        <ChevronRight className="h-6 w-6 text-charcoal" />
+                      </button>
+                    </>
+                  )}
                 </div>
-              </div>
-
-              {/* Region Selection */}
-              <div className="space-y-4">
-                {regions.map(region => <Button key={region.id} variant={selectedRegion === region.id ? "default" : "outline"} className="w-full justify-start h-auto p-4" onClick={() => {
-                setSelectedRegion(region.id);
-                const filterRegion = region.id === 'scottish-highlands' ? 'scotland' : region.id;
-                onNavigateToSearch({
-                  region: filterRegion
-                });
-              }}>
-                    <div className="text-left">
-                      <div className="font-semibold">{region.name}</div>
-                      <div className="text-sm opacity-70">{region.country}</div>
-                    </div>
-                  </Button>)}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
