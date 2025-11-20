@@ -149,14 +149,27 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         images: initialData.images || [],
         highlights: initialData.highlights || [],
         itinerary: (() => {
-          // Handle both array and object with days property
-          const itineraryData = Array.isArray(initialData.itinerary) 
-            ? initialData.itinerary 
-            : initialData.itinerary?.days || [];
+          // Handle multiple possible itinerary data structures
+          let itineraryData: any[] = [];
+          
+          if (!initialData.itinerary) {
+            return [];
+          }
+          
+          if (Array.isArray(initialData.itinerary)) {
+            itineraryData = initialData.itinerary;
+          } else if (typeof initialData.itinerary === 'object') {
+            // Check for days property
+            if (Array.isArray(initialData.itinerary.days)) {
+              itineraryData = initialData.itinerary.days;
+            } else if (initialData.itinerary.days && typeof initialData.itinerary.days === 'object') {
+              // Handle case where days is an object with numeric keys
+              itineraryData = Object.values(initialData.itinerary.days);
+            }
+          }
           
           return itineraryData.map((day: any) => ({
             ...day,
-            // Migrate activities array to description string if needed
             description: day.description || (day.activities ? day.activities.join('. ') + '.' : '')
           }));
         })(),
