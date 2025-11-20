@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Backpack, FileText, User, Wrench } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { FileText, Package, User, Upload, Info, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { TripDetails, TripChecklistItem } from '@/hooks/useTripDetails';
@@ -12,13 +14,91 @@ interface TripChecklistTabProps {
   tripDetails: TripDetails;
 }
 
+// Mock data structure for comprehensive checklist
+const mockDocuments = [
+  {
+    id: 'doc-1',
+    name: 'Liability Waiver',
+    description: 'Sign and upload the liability waiver form',
+    required: true,
+    uploadable: true,
+    checked: false,
+  },
+  {
+    id: 'doc-2',
+    name: 'Travel Insurance',
+    description: 'Proof of travel and mountain rescue insurance',
+    required: true,
+    uploadable: true,
+    checked: false,
+  },
+  {
+    id: 'doc-3',
+    name: 'Emergency Contact',
+    description: 'Contact information on file',
+    required: false,
+    uploadable: false,
+    checked: true,
+  },
+  {
+    id: 'doc-4',
+    name: 'Valid ID/Passport',
+    description: 'Bring your passport or national ID',
+    required: false,
+    uploadable: false,
+    checked: false,
+  },
+];
+
+const mockEssentialGear = [
+  { id: 'gear-1', name: 'Hiking boots (well broken-in)', checked: false },
+  { id: 'gear-2', name: '40-50L backpack', checked: false },
+  { id: 'gear-3', name: 'Sleeping bag (rated -5°C)', checked: false },
+  { id: 'gear-4', name: 'Layered clothing system', checked: false },
+  { id: 'gear-5', name: 'Waterproof jacket', checked: false },
+  { id: 'gear-6', name: 'Waterproof pants', checked: false },
+  { id: 'gear-7', name: 'Warm gloves', checked: false },
+  { id: 'gear-8', name: 'Warm hat/beanie', checked: false },
+  { id: 'gear-9', name: 'Headlamp with spare batteries', checked: false },
+  { id: 'gear-10', name: 'Trekking poles', checked: false },
+  { id: 'gear-11', name: 'Sunglasses (UV protection)', checked: false },
+  { id: 'gear-12', name: 'High SPF sunscreen', checked: false },
+];
+
+const mockPersonalItems = [
+  { id: 'personal-1', name: '2L water capacity (bottles/bladder)', checked: false },
+  { id: 'personal-2', name: 'High-energy snacks/bars', checked: false },
+  { id: 'personal-3', name: 'Personal first aid kit', checked: false },
+  { id: 'personal-4', name: 'Personal medications', checked: false },
+  { id: 'personal-5', name: 'Toiletries & towel', checked: false },
+  { id: 'personal-6', name: 'Camera/phone charger', checked: false },
+];
+
 export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
   const { checklist, booking } = tripDetails;
   const [loading, setLoading] = useState<string | null>(null);
+  const [localCheckedItems, setLocalCheckedItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Determine whether to use database checklist or mock data
+  const useMockData = checklist.length === 0;
+
   const handleCheckItem = async (itemId: string, currentlyChecked: boolean) => {
+    if (useMockData) {
+      // For mock data, just toggle locally
+      setLocalCheckedItems(prev => {
+        const newSet = new Set(prev);
+        if (currentlyChecked) {
+          newSet.delete(itemId);
+        } else {
+          newSet.add(itemId);
+        }
+        return newSet;
+      });
+      return;
+    }
+
     setLoading(itemId);
     try {
       const { error } = await supabase
@@ -50,116 +130,183 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
     }
   };
 
-  const getCategoryIcon = (type: string) => {
-    switch (type) {
-      case 'essential_gear':
-        return <Backpack className="w-5 h-5 text-primary" />;
-      case 'documents':
-        return <FileText className="w-5 h-5 text-primary" />;
-      case 'personal_items':
-        return <User className="w-5 h-5 text-primary" />;
-      case 'preparation':
-        return <Wrench className="w-5 h-5 text-primary" />;
-      default:
-        return <Backpack className="w-5 h-5 text-primary" />;
-    }
+  const handleUpload = (docType: string) => {
+    toast({
+      title: 'Upload feature',
+      description: `Upload functionality for ${docType} will be implemented soon.`,
+    });
   };
 
-  const getCategoryTitle = (type: string) => {
-    switch (type) {
-      case 'essential_gear':
-        return 'Essential Gear';
-      case 'documents':
-        return 'Documents';
-      case 'personal_items':
-        return 'Personal Items';
-      case 'preparation':
-        return 'Preparation';
-      default:
-        return type;
+  // Calculate progress
+  const calculateProgress = () => {
+    if (useMockData) {
+      const totalMock = mockDocuments.length + mockEssentialGear.length + mockPersonalItems.length;
+      const completedMock = 
+        mockDocuments.filter(d => d.checked || localCheckedItems.has(d.id)).length +
+        mockEssentialGear.filter(g => g.checked || localCheckedItems.has(g.id)).length +
+        mockPersonalItems.filter(p => p.checked || localCheckedItems.has(p.id)).length;
+      return { completed: completedMock, total: totalMock };
     }
+    const completedItems = checklist.filter(item => item.is_checked).length;
+    return { completed: completedItems, total: checklist.length };
   };
 
-  // Group checklist by category
-  const groupedChecklist = checklist.reduce((acc, item) => {
-    if (!acc[item.item_type]) {
-      acc[item.item_type] = [];
-    }
-    acc[item.item_type].push(item);
-    return acc;
-  }, {} as Record<string, TripChecklistItem[]>);
-
-  const categories = Object.keys(groupedChecklist);
-  const completedItems = checklist.filter(item => item.is_checked).length;
-  const totalItems = checklist.length;
-
-  if (checklist.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-12 text-center">
-          <Backpack className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">Checklist Coming Soon</h3>
-          <p className="text-muted-foreground">
-            Your guide will provide a packing checklist shortly.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const { completed, total } = calculateProgress();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-serif font-semibold mb-2">Pre-Trip Checklist</h2>
+          <h2 className="text-2xl font-semibold mb-2" style={{fontFamily: 'Playfair Display, serif'}}>Pre-Trip Checklist</h2>
           <p className="text-muted-foreground">
             Make sure you have everything you need
           </p>
         </div>
-        <Badge variant={completedItems === totalItems ? 'default' : 'secondary'} className="text-lg px-4 py-2">
-          {completedItems} / {totalItems}
+        <Badge variant={completed === total ? 'default' : 'secondary'} className="text-lg px-4 py-2">
+          {completed} / {total}
         </Badge>
       </div>
 
-      <div className="space-y-6">
-        {categories.map((category) => (
-          <Card key={category}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                {getCategoryIcon(category)}
-                <h3 className="text-lg font-semibold">{getCategoryTitle(category)}</h3>
-                <Badge variant="outline" className="ml-auto">
-                  {groupedChecklist[category].filter(item => item.is_checked).length} / {groupedChecklist[category].length}
-                </Badge>
-              </div>
+      <Card className="p-6 bg-background border-burgundy/10 shadow-sm">
+        <div className="space-y-6">
+          {/* Required Documents Section */}
+          <div>
+            <h3 className="text-lg mb-4 text-foreground flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+              <FileText className="w-5 h-5 text-burgundy" />
+              Required Documents
+            </h3>
+            <div className="space-y-3">
+              {mockDocuments.map((doc) => {
+                const isChecked = useMockData ? (doc.checked || localCheckedItems.has(doc.id)) : false;
+                return (
+                  <div key={doc.id} className={`border rounded-lg p-4 ${
+                    isChecked ? 'border-sage/30 bg-sage/5' : 'border-burgundy/20'
+                  }`}>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex gap-3 items-start">
+                        <Checkbox 
+                          id={doc.id}
+                          checked={isChecked}
+                          onCheckedChange={() => handleCheckItem(doc.id, isChecked)}
+                          disabled={loading === doc.id}
+                        />
+                        <div>
+                          <label htmlFor={doc.id} className="font-medium text-foreground cursor-pointer">
+                            {doc.name}
+                          </label>
+                          <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
+                        </div>
+                      </div>
+                      {doc.required ? (
+                        <Badge className="bg-gold text-white border-0 text-xs">Required</Badge>
+                      ) : isChecked ? (
+                        <Badge className="bg-sage text-white border-0 text-xs">Complete</Badge>
+                      ) : (
+                        <Badge className="bg-burgundy/10 text-burgundy border-burgundy/20 text-xs">Reminder</Badge>
+                      )}
+                    </div>
+                    {doc.uploadable && !isChecked && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full mt-3 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                        onClick={() => handleUpload(doc.name)}
+                      >
+                        <Upload className="w-3.5 h-3.5 mr-2" />
+                        Upload {doc.name}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-              <div className="space-y-3">
-                {groupedChecklist[category].map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <Checkbox
+          <Separator />
+
+          {/* Essential Gear Section */}
+          <div>
+            <h3 className="text-lg mb-4 text-foreground flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+              <Package className="w-5 h-5 text-burgundy" />
+              Essential Gear & Equipment
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {mockEssentialGear.map((item) => {
+                const isChecked = useMockData ? (item.checked || localCheckedItems.has(item.id)) : false;
+                return (
+                  <div key={item.id} className="flex items-center gap-3 p-3 bg-cream rounded-lg">
+                    <Checkbox 
                       id={item.id}
-                      checked={item.is_checked}
-                      onCheckedChange={() => handleCheckItem(item.id, item.is_checked)}
+                      checked={isChecked}
+                      onCheckedChange={() => handleCheckItem(item.id, isChecked)}
                       disabled={loading === item.id}
                     />
-                    <label
-                      htmlFor={item.id}
-                      className={`flex-1 cursor-pointer text-sm ${
-                        item.is_checked ? 'line-through text-muted-foreground' : ''
-                      }`}
-                    >
-                      {item.item_name}
+                    <label htmlFor={item.id} className="text-sm text-foreground cursor-pointer flex-1">
+                      {item.name}
                     </label>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Personal Items Section */}
+          <div>
+            <h3 className="text-lg mb-4 text-foreground flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+              <User className="w-5 h-5 text-burgundy" />
+              Personal Items
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {mockPersonalItems.map((item) => {
+                const isChecked = useMockData ? (item.checked || localCheckedItems.has(item.id)) : false;
+                return (
+                  <div key={item.id} className="flex items-center gap-3 p-3 bg-cream rounded-lg">
+                    <Checkbox 
+                      id={item.id}
+                      checked={isChecked}
+                      onCheckedChange={() => handleCheckItem(item.id, isChecked)}
+                      disabled={loading === item.id}
+                    />
+                    <label htmlFor={item.id} className="text-sm text-foreground cursor-pointer flex-1">
+                      {item.name}
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Equipment Rental Info Box */}
+          <div className="bg-sage/10 border border-sage/20 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <Info className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Equipment Rental Available</h4>
+                <p className="text-sm text-muted-foreground mb-2">Don't have all the gear? No problem! Your guide can arrange equipment rental for:</p>
+                <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                  <li>Backpacks, sleeping bags, and trekking poles</li>
+                  <li>Technical gear (crampons, ice axes if needed)</li>
+                  <li>Waterproof clothing</li>
+                </ul>
+                <p className="text-sm text-muted-foreground mt-2">Contact your guide at least 7 days before departure to arrange rentals.</p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          </div>
+
+          {/* Important Reminder Box */}
+          <div className="bg-burgundy/10 border border-burgundy/20 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-burgundy mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-foreground mb-1">Important Reminder</h4>
+                <p className="text-sm text-muted-foreground">All required documents must be submitted at least 48 hours before your trip start date.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
