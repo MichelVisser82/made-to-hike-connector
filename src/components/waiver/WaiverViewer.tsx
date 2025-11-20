@@ -90,10 +90,12 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
                   />
                   <div className="mt-3 space-y-1 text-sm">
                     <p className="text-foreground font-medium">{waiverData.signature.fullName}</p>
-                    <p className="text-muted-foreground">
-                      Signed on {format(new Date(waiverData.signature.signedAt), 'MMMM dd, yyyy')} at{' '}
-                      {format(new Date(waiverData.signature.signedAt), 'h:mm a')}
-                    </p>
+                    {waiverData.signature.signedAt && (
+                      <p className="text-muted-foreground">
+                        Signed on {format(new Date(waiverData.signature.signedAt), 'MMMM dd, yyyy')} at{' '}
+                        {format(new Date(waiverData.signature.signedAt), 'h:mm a')}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
