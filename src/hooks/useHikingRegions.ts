@@ -75,11 +75,27 @@ export const useHikingRegions = () => {
 export const useCountries = () => {
   const { data: regions } = useHikingRegions();
 
-  const countries = regions
-    ? Array.from(new Set(regions.map(r => r.country))).sort()
-    : [];
+  return useQuery({
+    queryKey: ['countries-with-tours'],
+    queryFn: async () => {
+      // Get distinct countries from active tours
+      const { data: tours, error } = await supabase
+        .from('tours')
+        .select('region_country')
+        .eq('is_active', true)
+        .eq('is_custom_tour', false);
 
-  return { countries };
+      if (error) throw error;
+
+      // Extract unique countries that have tours
+      const countriesWithTours = Array.from(
+        new Set(tours?.map(t => t.region_country).filter(Boolean) || [])
+      ).sort();
+
+      return countriesWithTours;
+    },
+    enabled: !!regions,
+  });
 };
 
 export const useRegionsByCountry = (country: string | null) => {

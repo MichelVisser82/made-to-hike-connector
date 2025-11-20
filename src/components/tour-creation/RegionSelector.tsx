@@ -32,7 +32,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 
-  const { countries } = useCountries();
+  const { data: countries } = useCountries();
   const { regions: countryRegions, hasRegions } = useRegionsByCountry(selectedCountry);
   const { subregions } = useSubregionsByRegion(selectedCountry, selectedRegion);
 
@@ -63,7 +63,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
 
   const handleCountrySelect = (selectedValue: string) => {
     // Find the original country name (case-sensitive) from the lowercased value
-    const country = countries.find(c => c.toLowerCase() === selectedValue.toLowerCase());
+    const country = countries?.find(c => c.toLowerCase() === selectedValue.toLowerCase());
     if (country) {
       setSelectedCountry(country);
       setSelectedRegion(null);
@@ -123,7 +123,7 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                 <CommandList>
                   <CommandEmpty>No country found.</CommandEmpty>
                   <CommandGroup>
-                    {countries.map((country) => (
+                    {countries?.map((country) => (
                       <CommandItem
                         key={country}
                         value={country}

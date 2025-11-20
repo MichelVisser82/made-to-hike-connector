@@ -28,7 +28,7 @@ export function SearchPage() {
   const guideId = searchParams.get('guide') || '';
 
   // Fetch hierarchical region data
-  const { countries } = useCountries();
+  const { data: countries } = useCountries();
   const { regions, hasRegions } = useRegionsByCountry(country);
   const { subregions } = useSubregionsByRegion(country, region);
 
