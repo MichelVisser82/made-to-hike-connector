@@ -252,49 +252,66 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               Required Documents
             </h3>
             <div className="space-y-3">
-              {mockDocuments.map((doc) => {
-                const isChecked = useMockData ? (doc.checked || localCheckedItems.has(doc.id)) : false;
-                return (
-                  <div key={doc.id} className={`border rounded-lg p-4 ${
-                    isChecked ? 'border-sage/30 bg-sage/5' : 'border-burgundy/20'
-                  }`}>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex gap-3 items-start">
-                        <Checkbox 
-                          id={doc.id}
-                          checked={isChecked}
-                          onCheckedChange={() => handleCheckItem(doc.id, isChecked)}
-                          disabled={loading === doc.id}
-                        />
-                        <div>
-                          <label htmlFor={doc.id} className="font-medium text-foreground cursor-pointer">
-                            {doc.name}
-                          </label>
-                          <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
-                        </div>
+            {mockDocuments.map((doc) => {
+              const isLiabilityWaiver = doc.name === 'Liability Waiver';
+              const isChecked = useMockData
+                ? (doc.checked || localCheckedItems.has(doc.id))
+                : isLiabilityWaiver
+                ? !!booking.waiver_uploaded_at
+                : false;
+
+              return (
+                <div key={doc.id} className={`border rounded-lg p-4 ${
+                  isChecked ? 'border-sage/30 bg-sage/5' : 'border-burgundy/20'
+                }`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex gap-3 items-start">
+                      <Checkbox 
+                        id={doc.id}
+                        checked={isChecked}
+                        onCheckedChange={() => handleCheckItem(doc.id, isChecked)}
+                        disabled={loading === doc.id || isLiabilityWaiver}
+                      />
+                      <div>
+                        <label htmlFor={doc.id} className="font-medium text-foreground cursor-pointer">
+                          {doc.name}
+                        </label>
+                        <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
                       </div>
-                      {doc.required ? (
-                        <Badge className="bg-gold text-white border-0 text-xs">Required</Badge>
-                      ) : isChecked ? (
-                        <Badge className="bg-sage text-white border-0 text-xs">Complete</Badge>
-                      ) : (
-                        <Badge className="bg-burgundy/10 text-burgundy border-burgundy/20 text-xs">Reminder</Badge>
-                      )}
                     </div>
-                    {doc.name === 'Liability Waiver' && !isChecked && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full mt-3 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                        onClick={() => setWaiverDialogOpen(true)}
-                      >
-                        <FileText className="w-3.5 h-3.5 mr-2" />
-                        Submit Liability Waiver
-                      </Button>
+                    {isChecked ? (
+                      <Badge className="bg-sage text-white border-0 text-xs">Complete</Badge>
+                    ) : doc.required ? (
+                      <Badge className="bg-gold text-white border-0 text-xs">Required</Badge>
+                    ) : (
+                      <Badge className="bg-burgundy/10 text-burgundy border-burgundy/20 text-xs">Reminder</Badge>
                     )}
                   </div>
-                );
-              })}
+                  {isLiabilityWaiver && !isChecked && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-3 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                      onClick={() => setWaiverDialogOpen(true)}
+                    >
+                      <FileText className="w-3.5 h-3.5 mr-2" />
+                      Submit Liability Waiver
+                    </Button>
+                  )}
+                  {isLiabilityWaiver && isChecked && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-3 border-sage/30 text-sage hover:bg-sage/5"
+                      onClick={() => setWaiverViewerOpen(true)}
+                    >
+                      <Eye className="w-3.5 h-3.5 mr-2" />
+                      View Signed Waiver
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
             </div>
           </div>
 
