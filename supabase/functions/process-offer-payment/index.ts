@@ -141,6 +141,29 @@ serve(async (req) => {
 
     logStep("Booking created", { booking_id: booking.id });
 
+    // Create date slot for calendar visibility
+    logStep("Creating date slot for calendar");
+
+    const { error: slotError } = await supabase
+      .from('tour_date_slots')
+      .insert({
+        tour_id: offer.tour_id,
+        slot_date: offer.preferred_date,
+        spots_total: offer.group_size,
+        spots_booked: offer.group_size, // All spots immediately booked for custom tour
+        is_available: true, // Make it visible in calendar
+        price_override: offer.price_per_person,
+        currency_override: offer.currency,
+        notes: `Custom tour booking ${bookingReference}`,
+      });
+
+    if (slotError) {
+      logStep("Warning: Date slot creation failed", slotError);
+      // Don't throw - booking already created, this is supplementary
+    }
+
+    logStep("Date slot created for calendar view");
+
     // Send confirmation email
     try {
       const { data: tour } = await supabase
