@@ -26,7 +26,12 @@ export function useFeaturedRegions() {
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
-      if (regionsError) throw regionsError;
+      if (regionsError) {
+        console.error('Error fetching featured regions:', regionsError);
+        throw regionsError;
+      }
+
+      console.log('Featured regions from DB:', featuredRegions);
 
       // Then, get distinct region combinations from active tours (Country + Region only)
       const { data: tours, error: toursError } = await supabase
@@ -35,18 +40,29 @@ export function useFeaturedRegions() {
         .eq('is_active', true)
         .eq('is_custom_tour', false);
 
-      if (toursError) throw toursError;
+      if (toursError) {
+        console.error('Error fetching tours for region filtering:', toursError);
+        throw toursError;
+      }
+
+      console.log('Tours for filtering:', tours);
 
       // Create a set of Country-Region combinations that have tours
       const regionsWithTours = new Set(
         tours?.map(t => `${t.region_country}|${t.region_region || ''}`).filter(Boolean) || []
       );
 
+      console.log('Regions with tours (keys):', Array.from(regionsWithTours));
+
       // Filter featured regions to only include those with tours (matching on Country + Region)
       const filteredRegions = (featuredRegions || []).filter(region => {
         const key = `${region.country}|${region.region || ''}`;
-        return regionsWithTours.has(key);
+        const hasMatch = regionsWithTours.has(key);
+        console.log(`Checking region: ${region.country} - ${region.region}, key: ${key}, match: ${hasMatch}`);
+        return hasMatch;
       });
+
+      console.log('Filtered featured regions:', filteredRegions);
 
       return filteredRegions as FeaturedRegion[];
     },
