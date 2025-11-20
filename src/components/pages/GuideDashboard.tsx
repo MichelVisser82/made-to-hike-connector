@@ -66,7 +66,7 @@ export function GuideDashboard({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [internalActiveSection, setInternalActiveSection] = useState<DashboardSection>('today');
-  const [toursActiveTab, setToursActiveTab] = useState<'my-tours' | 'calendar' | 'image-library'>('my-tours');
+  const [toursActiveTab, setToursActiveTab] = useState<'my-tours' | 'custom-tours' | 'calendar' | 'image-library'>('my-tours');
   
   // Use external state if provided, otherwise use internal state
   const activeSection = externalActiveSection ?? internalActiveSection;
