@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LaunchGate } from "@/components/pre-launch/LaunchGate";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import TourPage from "./pages/TourPage";
@@ -57,6 +58,7 @@ const App: React.FC = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <AuthProvider>
             <LaunchGate>
               <Routes>
