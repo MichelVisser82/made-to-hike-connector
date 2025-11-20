@@ -236,16 +236,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold mb-2" style={{fontFamily: 'Playfair Display, serif'}}>Pre-Trip Checklist</h2>
-          <p className="text-muted-foreground">
-            Make sure you have everything you need
-          </p>
-        </div>
-        <Badge variant={completed === total ? 'default' : 'secondary'} className="text-lg px-4 py-2">
-          {completed} / {total}
-        </Badge>
+      <div>
+        <h2 className="text-2xl font-semibold mb-2" style={{fontFamily: 'Playfair Display, serif'}}>Pre-Trip Checklist</h2>
+        <p className="text-muted-foreground">
+          Make sure you have everything you need
+        </p>
       </div>
 
       <Card className="p-6 bg-background border-burgundy/10 shadow-sm">
