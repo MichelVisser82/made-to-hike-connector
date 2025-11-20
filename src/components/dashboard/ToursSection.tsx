@@ -72,7 +72,7 @@ export function ToursSection({
     setActiveTab(tab);
     onTabChange?.(tab);
   };
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft' | 'archived'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft' | 'archived'>('active');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch custom tour offers to identify custom tours
