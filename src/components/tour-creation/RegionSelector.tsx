@@ -36,10 +36,8 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
   const { regions: countryRegions, hasRegions } = useRegionsByCountry(selectedCountry);
   const { subregions } = useSubregionsByRegion(selectedCountry, selectedRegion);
 
-  // Extract unique region names (parent regions)
-  const parentRegions = Array.from(
-    new Set(countryRegions.filter(r => r.region).map(r => r.region!))
-  ).sort();
+  // regions is now an array of strings
+  const parentRegions = countryRegions.sort();
 
   // Sync internal state with form value when it changes
   useEffect(() => {
@@ -84,11 +82,11 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
   };
 
   const handleSubregionSelect = (selectedValue: string) => {
-    const subregion = subregions.find(s => s.subregion.toLowerCase() === selectedValue.toLowerCase());
+    const subregion = subregions.find(s => s.toLowerCase() === selectedValue.toLowerCase());
     if (subregion) {
       const fullValue = selectedRegion 
-        ? `${selectedCountry} - ${selectedRegion} - ${subregion.subregion}`
-        : `${selectedCountry} - ${subregion.subregion}`;
+        ? `${selectedCountry} - ${selectedRegion} - ${subregion}`
+        : `${selectedCountry} - ${subregion}`;
       onChange(fullValue);
       setSubregionOpen(false);
     }
@@ -228,29 +226,17 @@ export const RegionSelector = ({ value, onChange }: RegionSelectorProps) => {
                     <CommandGroup>
                       {subregions.map((sub) => (
                          <CommandItem
-                          key={sub.id}
-                          value={sub.subregion}
+                          key={sub}
+                          value={sub}
                           onSelect={handleSubregionSelect}
                         >
                           <Check
                             className={cn(
                               'mr-2 h-4 w-4',
-                              value.endsWith(sub.subregion) ? 'opacity-100' : 'opacity-0'
+                              value.endsWith(sub) ? 'opacity-100' : 'opacity-0'
                             )}
                           />
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span>{sub.subregion}</span>
-                              {sub.isPendingApproval && (
-                                <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded">
-                                  Pending Review
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              {sub.description}
-                            </span>
-                          </div>
+                          <span>{sub}</span>
                         </CommandItem>
                       ))}
                     </CommandGroup>

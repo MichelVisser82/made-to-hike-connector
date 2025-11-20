@@ -30,29 +30,32 @@ export function SmartImage({
       try {
         setLoading(true);
         
-        // Check if this is a location-based request
-        const locationTag = tags?.find(tag => 
-          ['dolomites', 'pyrenees', 'scotland'].includes(tag.toLowerCase())
-        );
-        
         let image = null;
+        
+        // Check if we have location tags
+        const locationTag = tags?.find(tag => 
+          tag.toLowerCase().startsWith('location:') || 
+          tag.includes('-') // Could be "Country - Region - Subregion" format
+        );
         
         if (locationTag) {
           console.log('Looking for images with location:', locationTag);
           
-          // Search for images with the exact location tag
+          // Search for images with the location tag
           const allImages = await fetchImages({ limit: 100 });
           
           const locationImages = allImages.filter(img => 
-            img.tags.some(imgTag => 
-              imgTag.toLowerCase() === `location:${locationTag.toLowerCase()}` ||
-              (imgTag.toLowerCase() === locationTag.toLowerCase() && 
-               img.tags.some(t => t.toLowerCase().includes('location:')))
-            )
+            img.tags.some(imgTag => {
+              const normalizedImgTag = imgTag.toLowerCase();
+              const normalizedLocationTag = locationTag.toLowerCase();
+              
+              return normalizedImgTag === normalizedLocationTag ||
+                     normalizedImgTag === `location:${normalizedLocationTag}` ||
+                     normalizedImgTag.includes(normalizedLocationTag);
+            })
           );
           
           console.log(`Found ${locationImages.length} images for location:${locationTag}`);
-          locationImages.forEach(img => console.log('- ', img.file_name, img.tags));
           
           if (locationImages.length > 0) {
             image = locationImages[Math.floor(Math.random() * locationImages.length)];

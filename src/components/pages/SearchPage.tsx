@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { TourCard } from '../tour/TourCard';
 import { type Tour } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
+import { useCountries, useRegionsByCountry, useSubregionsByRegion } from '@/hooks/useHikingRegions';
 
 interface GuideOption {
   user_id: string;
@@ -18,11 +19,18 @@ export function SearchPage() {
   const [loading, setLoading] = useState(true);
   
   // Read filters from URL
+  const country = searchParams.get('country') || '';
   const region = searchParams.get('region') || '';
+  const subregion = searchParams.get('subregion') || '';
   const difficulty = searchParams.get('difficulty') || '';
   const dateRange = searchParams.get('dateRange') || '';
   const maxPrice = searchParams.get('maxPrice') || '';
   const guideId = searchParams.get('guide') || '';
+
+  // Fetch hierarchical region data
+  const { countries } = useCountries();
+  const { regions, hasRegions } = useRegionsByCountry(country);
+  const { subregions } = useSubregionsByRegion(country, region);
 
   useEffect(() => {
     fetchTours();
@@ -72,7 +80,10 @@ export function SearchPage() {
   const filteredTours = tours.filter(tour => {
     // Safety check: exclude custom tours
     if (tour.is_custom_tour) return false;
-    if (region && tour.region !== region.toLowerCase()) return false;
+    // Hierarchical region filtering using new structured columns
+    if (country && (tour as any).region_country !== country) return false;
+    if (region && (tour as any).region_region !== region) return false;
+    if (subregion && (tour as any).region_subregion !== subregion) return false;
     if (difficulty && tour.difficulty !== difficulty.toLowerCase()) return false;
     if (guideId && tour.guide_id !== guideId) return false;
     return true;
@@ -115,18 +126,61 @@ export function SearchPage() {
         <div className="mb-8 p-6 bg-card rounded-lg border">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Region</label>
+              <label className="block text-sm font-medium mb-2">Country</label>
               <select
-                value={region}
-                onChange={(e) => updateFilter('region', e.target.value)}
+                value={country}
+                onChange={(e) => {
+                  updateFilter('country', e.target.value);
+                  // Clear region/subregion when country changes
+                  if (e.target.value !== country) {
+                    updateFilter('region', '');
+                    updateFilter('subregion', '');
+                  }
+                }}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               >
-                <option value="">All Regions</option>
-                <option value="dolomites">Dolomites</option>
-                <option value="pyrenees">Pyrenees</option>
-                <option value="scotland">Scottish Highlands</option>
+                <option value="">All Countries</option>
+                {countries?.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
               </select>
             </div>
+            {country && hasRegions && (
+              <div>
+                <label className="block text-sm font-medium mb-2">Region</label>
+                <select
+                  value={region}
+                  onChange={(e) => {
+                    updateFilter('region', e.target.value);
+                    // Clear subregion when region changes
+                    if (e.target.value !== region) {
+                      updateFilter('subregion', '');
+                    }
+                  }}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                >
+                  <option value="">All Regions</option>
+                  {regions?.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {country && (hasRegions ? region : true) && (
+              <div>
+                <label className="block text-sm font-medium mb-2">Subregion</label>
+                <select
+                  value={subregion}
+                  onChange={(e) => updateFilter('subregion', e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                >
+                  <option value="">All Subregions</option>
+                  {subregions?.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium mb-2">Difficulty</label>
               <select
@@ -183,7 +237,7 @@ export function SearchPage() {
               </select>
             </div>
           </div>
-          {(region || difficulty || guideId || dateRange || maxPrice) && (
+          {(country || region || subregion || difficulty || guideId || dateRange || maxPrice) && (
             <div className="mt-4">
               <Button 
                 variant="outline" 

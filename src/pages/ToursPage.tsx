@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { SearchPage } from '@/components/pages/SearchPage';
+import { useFeaturedRegions, formatRegionPath } from '@/hooks/useFeaturedRegions';
 
 /**
  * ToursPage - Dedicated page for browsing and searching hiking tours
@@ -8,17 +9,23 @@ import { SearchPage } from '@/components/pages/SearchPage';
  * Includes proper SEO metadata and structured data
  */
 export default function ToursPage() {
+  const { data: featuredRegions } = useFeaturedRegions();
+  
+  const regionText = featuredRegions?.slice(0, 6)
+    .map(r => formatRegionPath(r))
+    .join(', ') || "Europe's premier mountain regions";
+
   return (
     <>
       <Helmet>
         <title>Hiking Tours Across Europe | MadeToHike - Certified Mountain Guides</title>
         <meta 
           name="description" 
-          content="Discover expertly guided hiking tours across the Dolomites, Pyrenees, and Scottish Highlands. Browse multi-day adventures, day hikes, and alpine expeditions with certified mountain guides." 
+          content={`Discover expertly guided hiking tours across ${regionText} and more. Browse multi-day adventures, day hikes, and alpine expeditions with certified mountain guides.`}
         />
         <meta 
           name="keywords" 
-          content="hiking tours, mountain tours Europe, guided hiking trips, Dolomites tours, Pyrenees hiking, Scottish Highlands tours, alpine adventures, multi-day hikes, certified mountain guides" 
+          content={`hiking tours, mountain tours Europe, guided hiking trips, ${regionText}, alpine adventures, multi-day hikes, certified mountain guides`}
         />
         <link rel="canonical" href={`${window.location.origin}/tours`} />
         
@@ -31,7 +38,7 @@ export default function ToursPage() {
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Hiking Tours Across Europe | MadeToHike" />
-        <meta name="twitter:description" content="Browse guided hiking tours across the Dolomites, Pyrenees, and Scottish Highlands." />
+        <meta name="twitter:description" content={`Browse guided hiking tours across ${regionText} and more.`} />
       </Helmet>
 
       {/* Structured Data for CollectionPage */}
