@@ -24,6 +24,8 @@ export default function ParticipantPage() {
 
   const validateToken = async () => {
     try {
+      console.log('Validating token:', token?.substring(0, 10) + '...');
+      
       // Call edge function to validate token and get participant data
       const { data, error } = await supabase.functions.invoke('manage-participant-tokens', {
         body: {
@@ -32,18 +34,24 @@ export default function ParticipantPage() {
         }
       });
 
-      if (error) throw error;
+      console.log('Validation response:', { data, error });
 
-      if (!data.valid) {
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (!data || !data.valid) {
         toast({
           title: 'Invalid or Expired Link',
-          description: data.error || 'This participant link is no longer valid.',
+          description: data?.error || 'This participant link is no longer valid.',
           variant: 'destructive'
         });
         navigate('/');
         return;
       }
 
+      console.log('Setting participant data:', data);
       setParticipantData(data);
       setLoading(false);
     } catch (error: any) {
