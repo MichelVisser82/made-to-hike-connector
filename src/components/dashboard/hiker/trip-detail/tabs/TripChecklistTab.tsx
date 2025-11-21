@@ -775,7 +775,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             if (error) throw error;
 
             // Invalidate queries to refresh UI
-            queryClient.invalidateQueries({ queryKey: ['booking', booking.id] });
+            queryClient.invalidateQueries({ queryKey: ['trip-details', booking.id] });
             queryClient.invalidateQueries({ queryKey: ['participant-statuses', booking.id] });
 
             toast({
@@ -889,7 +889,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             }
 
             // Invalidate queries to refresh UI
-            queryClient.invalidateQueries({ queryKey: ['booking', booking.id] });
+            queryClient.invalidateQueries({ queryKey: ['trip-details', booking.id] });
             queryClient.invalidateQueries({ queryKey: ['participant-statuses', booking.id] });
 
             toast({
