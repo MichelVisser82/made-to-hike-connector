@@ -12,6 +12,16 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Participant {
   id: string;
@@ -55,6 +65,7 @@ export default function ParticipantManagementModal({
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [confirmResendParticipant, setConfirmResendParticipant] = useState<{id: string, email: string} | null>(null);
 
   const handleAddParticipant = () => {
     if (newName && newEmail) {
@@ -69,6 +80,23 @@ export default function ParticipantManagementModal({
     navigator.clipboard.writeText(link);
     setCopiedLink(id);
     setTimeout(() => setCopiedLink(null), 2000);
+  };
+
+  const handleSendInviteClick = (participantId: string, email: string, status: string) => {
+    if (status === "invited") {
+      // Show confirmation for resends
+      setConfirmResendParticipant({ id: participantId, email });
+    } else {
+      // Send directly for first invites or reminders
+      onSendInvite(participantId, email);
+    }
+  };
+
+  const handleConfirmResend = () => {
+    if (confirmResendParticipant) {
+      onSendInvite(confirmResendParticipant.id, confirmResendParticipant.email);
+      setConfirmResendParticipant(null);
+    }
   };
 
   const completedCount = participants.filter(p => p.status === "complete").length;
@@ -181,9 +209,9 @@ export default function ParticipantManagementModal({
             {participants.map((participant) => (
               <ParticipantCard
                 key={participant.id}
-                participant={participant}
-                onSendInvite={(email) => onSendInvite(participant.id, email)}
-                onRemove={() => onRemoveParticipant(participant.id)}
+              participant={participant}
+              onSendInvite={(email) => handleSendInviteClick(participant.id, email || participant.email, participant.status)}
+              onRemove={() => onRemoveParticipant(participant.id)}
                 onCopyLink={(link) => copyToClipboard(link, participant.id)}
                 onUpdateEmail={(email) => onUpdateEmail(participant.id, email)}
                 isCopied={copiedLink === participant.id}
@@ -215,6 +243,28 @@ export default function ParticipantManagementModal({
           </Card>
         </div>
       </DialogContent>
+
+      {/* Confirmation Dialog for Resending Invitation */}
+      <AlertDialog open={!!confirmResendParticipant} onOpenChange={() => setConfirmResendParticipant(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resend Invitation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will send a new invitation email to {confirmResendParticipant?.email}. 
+              The participant will receive a fresh link to complete their tour documents.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmResend}
+              className="bg-burgundy hover:bg-burgundy/90 text-white"
+            >
+              Send Invitation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
