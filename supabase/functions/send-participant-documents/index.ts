@@ -175,6 +175,11 @@ serve(async (req) => {
 
         // Waiver Section
         if (waiver && Object.keys(waiver).length > 0) {
+          // Support both field name formats
+          const emergencyName = waiver.emergencyContactName || waiver.emergencyName;
+          const emergencyPhone = waiver.emergencyContactPhone || waiver.emergencyPhone;
+          const emergencyRelationship = waiver.emergencyContactRelationship || waiver.emergencyRelationship;
+          
           htmlContent += `
             <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">📋 Waiver Information</h4>
             <div style="background: white; padding: 10px; border-radius: 4px;">
@@ -189,12 +194,12 @@ serve(async (req) => {
               ${waiver.medicalConditions ? `<div class="info-row"><span class="label">Medical Conditions:</span> ${waiver.medicalConditions}</div>` : ''}
               ${waiver.hikingExperience ? `<div class="info-row"><span class="label">Hiking Experience:</span> ${waiver.hikingExperience}</div>` : ''}
               
-              ${waiver.emergencyContactName || waiver.emergencyContactPhone || waiver.emergencyContactRelationship ? `
+              ${emergencyName || emergencyPhone || emergencyRelationship ? `
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
                   <strong style="color: #7c2d3e;">Emergency Contact (from Waiver):</strong>
-                  ${waiver.emergencyContactName ? `<div class="info-row"><span class="label">Name:</span> ${waiver.emergencyContactName}</div>` : ''}
-                  ${waiver.emergencyContactPhone ? `<div class="info-row"><span class="label">Phone:</span> ${waiver.emergencyContactPhone}</div>` : ''}
-                  ${waiver.emergencyContactRelationship ? `<div class="info-row"><span class="label">Relationship:</span> ${waiver.emergencyContactRelationship}</div>` : ''}
+                  ${emergencyName ? `<div class="info-row"><span class="label">Name:</span> ${emergencyName}</div>` : ''}
+                  ${emergencyPhone ? `<div class="info-row"><span class="label">Phone:</span> ${emergencyPhone}</div>` : ''}
+                  ${emergencyRelationship ? `<div class="info-row"><span class="label">Relationship:</span> ${emergencyRelationship}</div>` : ''}
                 </div>
               ` : ''}
               
@@ -259,6 +264,10 @@ serve(async (req) => {
         }
 
         // Emergency Contact Section (from participant_documents - most current)
+        const emergencyName = waiver.emergencyContactName || waiver.emergencyName;
+        const emergencyPhone = waiver.emergencyContactPhone || waiver.emergencyPhone;
+        const emergencyRelationship = waiver.emergencyContactRelationship || waiver.emergencyRelationship;
+        
         if (docs?.emergency_contact_name || docs?.emergency_contact_phone) {
           htmlContent += `
             <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🚨 Emergency Contact</h4>
@@ -269,14 +278,14 @@ serve(async (req) => {
               ${docs.emergency_contact_submitted_at ? `<div class="info-row"><span class="label">Submitted:</span> ${new Date(docs.emergency_contact_submitted_at).toLocaleString()}</div>` : ''}
             </div>
           `;
-        } else if (waiver.emergencyContactName || waiver.emergencyContactPhone) {
+        } else if (emergencyName || emergencyPhone) {
           // Fallback to waiver emergency contact if participant_documents doesn't have it
           htmlContent += `
             <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🚨 Emergency Contact (from Waiver)</h4>
             <div style="background: white; padding: 10px; border-radius: 4px;">
-              ${waiver.emergencyContactName ? `<div class="info-row"><span class="label">Name:</span> ${waiver.emergencyContactName}</div>` : ''}
-              ${waiver.emergencyContactPhone ? `<div class="info-row"><span class="label">Phone:</span> ${waiver.emergencyContactPhone}</div>` : ''}
-              ${waiver.emergencyContactRelationship ? `<div class="info-row"><span class="label">Relationship:</span> ${waiver.emergencyContactRelationship}</div>` : ''}
+              ${emergencyName ? `<div class="info-row"><span class="label">Name:</span> ${emergencyName}</div>` : ''}
+              ${emergencyPhone ? `<div class="info-row"><span class="label">Phone:</span> ${emergencyPhone}</div>` : ''}
+              ${emergencyRelationship ? `<div class="info-row"><span class="label">Relationship:</span> ${emergencyRelationship}</div>` : ''}
             </div>
           `;
         } else if (idx === 0 && booking.hiker.emergency_contact_name) {
