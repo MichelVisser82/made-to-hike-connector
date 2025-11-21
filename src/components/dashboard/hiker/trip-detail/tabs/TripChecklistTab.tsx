@@ -792,9 +792,12 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           }
         }}
         onSendInvite={async (participantId: string) => {
-          const participantIndex = additionalParticipants.findIndex((_, i) => 
-            participantStatuses?.find((s: any) => s.participant_index === i + 1)?.token_id === participantId
-          );
+          const participantIndex = additionalParticipants.findIndex((_, i) => {
+            const actualIndex = i + 1;
+            const status = participantStatuses?.find((s: any) => s.participant_index === actualIndex);
+            const derivedId = status?.token_id || `participant-${actualIndex}`;
+            return derivedId === participantId;
+          });
           
           if (participantIndex === -1) return;
           
