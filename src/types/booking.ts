@@ -18,6 +18,15 @@ export interface ParticipantDetails {
   
   participantEmail?: string;
   participantPhone?: string;
+  
+  // Multi-party system fields
+  participantTokenId?: string;
+  uniqueSecureLink?: string;
+  invitedAt?: string;
+  completedAt?: string;
+  remindersSent?: number;
+  lastReminderAt?: string;
+  documentStatus?: 'complete' | 'in_progress' | 'not_started' | 'invited';
 }
 
 export interface BookingFormData {
