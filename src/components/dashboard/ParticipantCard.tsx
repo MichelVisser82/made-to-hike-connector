@@ -291,41 +291,6 @@ export function ParticipantCard({ booking, tourDate, onSendReminder }: Participa
               </div>
             </Collapsible>
           )}
-
-          {/* Quick Actions for Urgent Items */}
-          {hasOverdue && (
-            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-red-900">Urgent: Missing requirements</p>
-                  <p className="text-xs text-red-700 mt-1">
-                    Tour departs in {daysUntilTour} days. Contact {booking.hiker.name} to complete requirements.
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="h-7 text-xs border-red-300 text-red-700 hover:bg-red-100"
-                      onClick={() => window.location.href = `mailto:${booking.hiker.email}`}
-                    >
-                      <Mail className="w-3 h-3 mr-1" />
-                      Email
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="h-7 text-xs border-red-300 text-red-700 hover:bg-red-100"
-                      onClick={() => onSendReminder?.(booking.hiker.id, 'waiver', 0)}
-                    >
-                      <MessageSquare className="w-3 h-3 mr-1" />
-                      Message
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
