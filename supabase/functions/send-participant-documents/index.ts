@@ -258,15 +258,42 @@ serve(async (req) => {
           `;
         }
 
-        // Emergency Contact Section (from participant_documents)
-        if (docs?.emergency_contact_name) {
+        // Emergency Contact Section (from participant_documents - most current)
+        if (docs?.emergency_contact_name || docs?.emergency_contact_phone) {
           htmlContent += `
-            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🚨 Emergency Contact (Primary)</h4>
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🚨 Emergency Contact</h4>
             <div style="background: white; padding: 10px; border-radius: 4px;">
-              <div class="info-row"><span class="label">Name:</span> ${docs.emergency_contact_name}</div>
+              ${docs.emergency_contact_name ? `<div class="info-row"><span class="label">Name:</span> ${docs.emergency_contact_name}</div>` : ''}
               ${docs.emergency_contact_phone ? `<div class="info-row"><span class="label">Phone:</span> ${docs.emergency_contact_phone}</div>` : ''}
               ${docs.emergency_contact_relationship ? `<div class="info-row"><span class="label">Relationship:</span> ${docs.emergency_contact_relationship}</div>` : ''}
               ${docs.emergency_contact_submitted_at ? `<div class="info-row"><span class="label">Submitted:</span> ${new Date(docs.emergency_contact_submitted_at).toLocaleString()}</div>` : ''}
+            </div>
+          `;
+        } else if (waiver.emergencyContactName || waiver.emergencyContactPhone) {
+          // Fallback to waiver emergency contact if participant_documents doesn't have it
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🚨 Emergency Contact (from Waiver)</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              ${waiver.emergencyContactName ? `<div class="info-row"><span class="label">Name:</span> ${waiver.emergencyContactName}</div>` : ''}
+              ${waiver.emergencyContactPhone ? `<div class="info-row"><span class="label">Phone:</span> ${waiver.emergencyContactPhone}</div>` : ''}
+              ${waiver.emergencyContactRelationship ? `<div class="info-row"><span class="label">Relationship:</span> ${waiver.emergencyContactRelationship}</div>` : ''}
+            </div>
+          `;
+        } else if (idx === 0 && booking.hiker.emergency_contact_name) {
+          // Fallback to booking lead's emergency contact
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🚨 Emergency Contact (from Booking)</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              <div class="info-row"><span class="label">Name:</span> ${booking.hiker.emergency_contact_name}</div>
+              ${booking.hiker.emergency_contact_phone ? `<div class="info-row"><span class="label">Phone:</span> ${booking.hiker.emergency_contact_phone}</div>` : ''}
+              ${booking.hiker.emergency_contact_relationship ? `<div class="info-row"><span class="label">Relationship:</span> ${booking.hiker.emergency_contact_relationship}</div>` : ''}
+            </div>
+          `;
+        } else {
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🚨 Emergency Contact</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              <div class="status-missing">✗ Emergency contact not provided</div>
             </div>
           `;
         }
