@@ -717,9 +717,9 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             id: status?.token_id || `participant-${actualIndex}`,
             name: `${p.firstName} ${p.surname}`,
             email: p.participantEmail || '',
-            status: status?.waiver_completed && status?.insurance_completed && status?.emergency_contact_completed
+            status: status?.waiver_completed && status?.insurance_completed
               ? 'complete'
-              : status?.waiver_completed || status?.insurance_completed || status?.emergency_contact_completed
+              : status?.waiver_completed || status?.insurance_completed
               ? 'in_progress'
               : status?.invited_at
               ? 'invited'
