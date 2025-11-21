@@ -485,181 +485,234 @@ async function getParticipantsStatus(supabase: any, bookingId: string) {
 
 // Submit waiver data
 async function submitWaiver(supabase: any, body: any) {
-  // Support both new and legacy field names for robustness
-  const waiverData = body.waiverData || body.waiver_data || body.waiver || body.data;
-  const token = body.token;
+  try {
+    // Support both new and legacy field names for robustness
+    const waiverData = body.waiverData || body.waiver_data || body.waiver || body.data;
+    const token = body.token;
 
-  console.log('submitWaiver - incoming body keys:', Object.keys(body || {}));
+    console.log('=== submitWaiver START ===');
+    console.log('Incoming body keys:', Object.keys(body || {}));
+    console.log('Has token:', !!token);
+    console.log('Has waiverData:', !!waiverData);
+    console.log('WaiverData keys:', waiverData ? Object.keys(waiverData) : 'null');
 
-  if (!token || !waiverData) {
-    console.error('submitWaiver - missing required fields', { hasToken: !!token, hasWaiverData: !!waiverData });
-    return new Response(JSON.stringify({ error: 'Missing required fields' }), {
-      status: 400,
+    if (!token || !waiverData) {
+      console.error('Missing required fields', { hasToken: !!token, hasWaiverData: !!waiverData });
+      return new Response(JSON.stringify({ error: 'Missing required fields: token or waiverData' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Step 1: Hashing token...');
+    const tokenHash = await hashToken(token);
+    
+    console.log('Step 2: Looking up token in DB...');
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('participant_tokens')
+      .select('*')
+      .eq('token_hash', tokenHash)
+      .single();
+
+    if (tokenError) {
+      console.error('Token lookup error:', tokenError);
+      return new Response(JSON.stringify({ error: 'Invalid token: ' + tokenError.message }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!tokenData) {
+      console.error('Token not found in database');
+      return new Response(JSON.stringify({ error: 'Token not found' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Step 3: Found token:', tokenData.id);
+
+    // Check if token has expired
+    if (new Date(tokenData.expires_at) < new Date()) {
+      console.error('Token expired at', tokenData.expires_at);
+      return new Response(JSON.stringify({ error: 'Token has expired' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Step 4: Upserting participant documents...');
+    const { data: docData, error: docError } = await supabase
+      .from('participant_documents')
+      .upsert({
+        participant_token_id: tokenData.id,
+        booking_id: tokenData.booking_id,
+        waiver_data: waiverData,
+        waiver_signature_url: waiverData.signatureDataUrl || null,
+        waiver_submitted_at: new Date().toISOString()
+      }, {
+        onConflict: 'participant_token_id'
+      })
+      .select()
+      .single();
+
+    if (docError) {
+      console.error('Error upserting participant_documents:', docError);
+      return new Response(JSON.stringify({ error: 'Database error: ' + docError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Step 5: Document upserted successfully:', docData?.id);
+
+    console.log('Step 6: Updating participant_tokens...');
+    const { error: updateError } = await supabase
+      .from('participant_tokens')
+      .update({ 
+        waiver_completed: true,
+        used_at: tokenData.used_at || new Date().toISOString()
+      })
+      .eq('id', tokenData.id);
+
+    if (updateError) {
+      console.error('Error updating participant_tokens:', updateError);
+    }
+
+    console.log('Step 7: Checking completion status...');
+    await checkAndMarkComplete(supabase, tokenData.id);
+
+    console.log('=== submitWaiver SUCCESS ===');
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Waiver submitted successfully'
+    }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  }
-
-  console.log('Submitting waiver for token:', String(token).substring(0, 10) + '...');
-
-  // Validate token
-  const tokenHash = await hashToken(token);
-  const { data: tokenData, error: tokenError } = await supabase
-    .from('participant_tokens')
-    .select('*')
-    .eq('token_hash', tokenHash)
-    .single();
-
-  if (tokenError || !tokenData) {
-    console.error('Token validation failed:', tokenError);
-    return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Check if token has expired
-  if (new Date(tokenData.expires_at) < new Date()) {
-    console.error('submitWaiver - token expired at', tokenData.expires_at);
-    return new Response(JSON.stringify({ error: 'Token has expired' }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Upsert participant documents
-  const { data: docData, error: docError } = await supabase
-    .from('participant_documents')
-    .upsert({
-      participant_token_id: tokenData.id,
-      booking_id: tokenData.booking_id,
-      waiver_data: waiverData,
-      waiver_signature_url: (waiverData as any).signatureDataUrl,
-      waiver_submitted_at: new Date().toISOString()
-    }, {
-      onConflict: 'participant_token_id'
-    })
-    .select()
-    .single();
-
-  if (docError) {
-    console.error('Error saving waiver:', docError);
-    return new Response(JSON.stringify({ error: docError.message }), {
+  } catch (error: any) {
+    console.error('=== submitWaiver EXCEPTION ===', error);
+    return new Response(JSON.stringify({ error: 'Server error: ' + error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-
-  // Update token to mark waiver as completed
-  const { error: updateError } = await supabase
-    .from('participant_tokens')
-    .update({ 
-      waiver_completed: true,
-      used_at: tokenData.used_at || new Date().toISOString()
-    })
-    .eq('id', tokenData.id);
-
-  if (updateError) {
-    console.error('Error updating token:', updateError);
-  }
-
-  // Check if all documents are complete and update completed_at
-  await checkAndMarkComplete(supabase, tokenData.id);
-
-  console.log('Waiver submitted successfully');
-
-  return new Response(JSON.stringify({
-    success: true,
-    message: 'Waiver submitted successfully'
-  }), {
-    status: 200,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
 }
 // Submit insurance data
 async function submitInsurance(supabase: any, body: any) {
-  const { token, insuranceData, documentUrl } = body;
+  try {
+    const insuranceData = body.insuranceData || body.insurance_data || body.insurance || body.data;
+    const token = body.token;
+    const documentUrl = body.documentUrl;
 
-  if (!token || !insuranceData) {
-    return new Response(JSON.stringify({ error: 'Missing required fields' }), {
-      status: 400,
+    console.log('=== submitInsurance START ===');
+    console.log('Incoming body keys:', Object.keys(body || {}));
+    console.log('Has token:', !!token);
+    console.log('Has insuranceData:', !!insuranceData);
+
+    if (!token || !insuranceData) {
+      console.error('Missing required fields', { hasToken: !!token, hasInsuranceData: !!insuranceData });
+      return new Response(JSON.stringify({ error: 'Missing required fields: token or insuranceData' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Step 1: Hashing token...');
+    const tokenHash = await hashToken(token);
+    
+    console.log('Step 2: Looking up token in DB...');
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('participant_tokens')
+      .select('*')
+      .eq('token_hash', tokenHash)
+      .single();
+
+    if (tokenError) {
+      console.error('Token lookup error:', tokenError);
+      return new Response(JSON.stringify({ error: 'Invalid token: ' + tokenError.message }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!tokenData) {
+      console.error('Token not found in database');
+      return new Response(JSON.stringify({ error: 'Token not found' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Step 3: Found token:', tokenData.id);
+
+    // Check if token has expired
+    if (new Date(tokenData.expires_at) < new Date()) {
+      console.error('Token expired at', tokenData.expires_at);
+      return new Response(JSON.stringify({ error: 'Token has expired' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Step 4: Upserting insurance document...');
+    const { error: docError } = await supabase
+      .from('participant_documents')
+      .upsert({
+        participant_token_id: tokenData.id,
+        booking_id: tokenData.booking_id,
+        insurance_provider: insuranceData.provider,
+        insurance_policy_number: insuranceData.policyNumber,
+        insurance_emergency_number: insuranceData.emergencyNumber,
+        insurance_document_url: documentUrl || null,
+        insurance_submitted_at: new Date().toISOString()
+      }, {
+        onConflict: 'participant_token_id'
+      });
+
+    if (docError) {
+      console.error('Error upserting insurance:', docError);
+      return new Response(JSON.stringify({ error: 'Database error: ' + docError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Step 5: Insurance document saved');
+
+    console.log('Step 6: Updating participant_tokens...');
+    const { error: updateError } = await supabase
+      .from('participant_tokens')
+      .update({ 
+        insurance_completed: true,
+        used_at: tokenData.used_at || new Date().toISOString()
+      })
+      .eq('id', tokenData.id);
+
+    if (updateError) {
+      console.error('Error updating token:', updateError);
+    }
+
+    console.log('Step 7: Checking completion status...');
+    await checkAndMarkComplete(supabase, tokenData.id);
+
+    console.log('=== submitInsurance SUCCESS ===');
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Insurance submitted successfully'
+    }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  }
-
-  console.log('Submitting insurance for token:', token.substring(0, 10) + '...');
-
-  // Validate token
-  const tokenHash = await hashToken(token);
-  const { data: tokenData, error: tokenError } = await supabase
-    .from('participant_tokens')
-    .select('*')
-    .eq('token_hash', tokenHash)
-    .single();
-
-  if (tokenError || !tokenData) {
-    console.error('Token validation failed:', tokenError);
-    return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Check if token has expired
-  if (new Date(tokenData.expires_at) < new Date()) {
-    return new Response(JSON.stringify({ error: 'Token has expired' }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Upsert participant documents
-  const { error: docError } = await supabase
-    .from('participant_documents')
-    .upsert({
-      participant_token_id: tokenData.id,
-      booking_id: tokenData.booking_id,
-      insurance_provider: insuranceData.provider,
-      insurance_policy_number: insuranceData.policyNumber,
-      insurance_emergency_number: insuranceData.emergencyNumber,
-      insurance_document_url: documentUrl,
-      insurance_submitted_at: new Date().toISOString()
-    }, {
-      onConflict: 'participant_token_id'
-    });
-
-  if (docError) {
-    console.error('Error saving insurance:', docError);
-    return new Response(JSON.stringify({ error: docError.message }), {
+  } catch (error: any) {
+    console.error('=== submitInsurance EXCEPTION ===', error);
+    return new Response(JSON.stringify({ error: 'Server error: ' + error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-
-  // Update token to mark insurance as completed
-  const { error: updateError } = await supabase
-    .from('participant_tokens')
-    .update({ 
-      insurance_completed: true,
-      used_at: tokenData.used_at || new Date().toISOString()
-    })
-    .eq('id', tokenData.id);
-
-  if (updateError) {
-    console.error('Error updating token:', updateError);
-  }
-
-  // Check if all documents are complete and update completed_at
-  await checkAndMarkComplete(supabase, tokenData.id);
-
-  console.log('Insurance submitted successfully');
-
-  return new Response(JSON.stringify({
-    success: true,
-    message: 'Insurance submitted successfully'
-  }), {
-    status: 200,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
 }
 
 // Submit emergency contact data
