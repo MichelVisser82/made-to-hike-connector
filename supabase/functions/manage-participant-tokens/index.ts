@@ -12,6 +12,7 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const url = new URL(req.url);
     
     // Parse request body
     const body = await req.json();
@@ -22,7 +23,7 @@ serve(async (req) => {
     // Action-based routing
     switch (action) {
       case 'create_token':
-        return await createToken(supabase, body);
+        return await createToken(supabase, body, url);
       
       case 'send_invitation':
         return await sendInvitation(supabase, body);
@@ -80,7 +81,7 @@ async function hashToken(token: string): Promise<string> {
 }
 
 // Create new participant token
-async function createToken(supabase: any, body: any) {
+async function createToken(supabase: any, body: any, url: URL) {
   const { bookingId, participantIndex, email, name } = body;
 
   if (!bookingId || participantIndex === undefined || !email || !name) {
@@ -120,7 +121,7 @@ async function createToken(supabase: any, body: any) {
 
   return new Response(JSON.stringify({
     success: true,
-    tokenId: data.id,
+    token_id: data.id,
     link: participantLink,
     token: token // Only returned once, never stored
   }), {
