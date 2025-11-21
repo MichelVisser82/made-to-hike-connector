@@ -95,22 +95,53 @@ async function createToken(supabase: any, body: any, url: URL) {
   const token = generateSecureToken();
   const tokenHash = await hashToken(token);
 
-  // Store in database
-  const { data, error } = await supabase
+  // Check if token already exists for this participant
+  const { data: existingToken } = await supabase
     .from('participant_tokens')
-    .insert({
-      booking_id: bookingId,
-      participant_index: participantIndex,
-      participant_email: email,
-      participant_name: name,
-      token_hash: tokenHash,
-      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    })
-    .select()
+    .select('id')
+    .eq('booking_id', bookingId)
+    .eq('participant_index', participantIndex)
     .single();
 
+  let data, error;
+
+  if (existingToken) {
+    // Update existing token with new hash and reset expiration
+    const result = await supabase
+      .from('participant_tokens')
+      .update({
+        token_hash: tokenHash,
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        participant_email: email,
+        participant_name: name,
+      })
+      .eq('id', existingToken.id)
+      .select()
+      .single();
+    
+    data = result.data;
+    error = result.error;
+  } else {
+    // Create new token
+    const result = await supabase
+      .from('participant_tokens')
+      .insert({
+        booking_id: bookingId,
+        participant_index: participantIndex,
+        participant_email: email,
+        participant_name: name,
+        token_hash: tokenHash,
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      })
+      .select()
+      .single();
+    
+    data = result.data;
+    error = result.error;
+  }
+
   if (error) {
-    console.error('Error creating token:', error);
+    console.error('Error creating/updating token:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
