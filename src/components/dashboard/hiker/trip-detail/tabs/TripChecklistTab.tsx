@@ -182,11 +182,13 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
       // Send confirmation email with waiver copy
       try {
         await sendEmail({
-          type: 'custom_verification',
+          type: 'waiver_confirmation',
           to: userProfile?.email || booking.hiker_email,
-          subject: `Waiver Confirmation - ${tour.title}`,
-          name: waiverData.participantInfo?.fullName || userProfile?.email,
-          message: `Your liability waiver for ${tour.title} (${booking.booking_reference}) has been successfully submitted and saved. You can view your signed waiver anytime in your trip details.`,
+          data: {
+            name: waiverData.fullName || userProfile?.first_name || 'there',
+            tourTitle: tour.title,
+            bookingReference: booking.booking_reference || `BK-${booking.id.slice(0, 8)}`,
+          },
         });
       } catch (emailError) {
         console.error('Error sending confirmation email:', emailError);

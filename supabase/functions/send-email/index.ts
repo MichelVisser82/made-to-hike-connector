@@ -5,7 +5,7 @@ import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation'
   to: string
   from?: string
   reply_to?: string
@@ -714,6 +714,51 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </body>
 </html>`,
       text: `${data.reminderType === 'final_reminder' ? '🚨 Last Chance!' : 'Reminder'}\n\nHi ${data.recipientName},\n\n${data.reminderType === 'final_reminder' ? `This is your final reminder - your review expires on ${data.expiresDate}.` : `Don't forget to review "${data.tourTitle}".`}\n\nTour: ${data.tourTitle}\nDate: ${data.bookingDate}\nExpires: ${data.expiresDate}\n\nLeave your review now: ${data.reviewUrl}\n\nHappy hiking!\nThe Made to Hike Team`
+    },
+
+    waiver_confirmation: {
+      subject: `✅ Waiver Confirmed - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiver Confirmation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">✅ Waiver Confirmed</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Your Document Has Been Saved</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 15px; color: #2c5530; font-size: 22px;">Hi ${data.name} 👋</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your liability waiver for <strong>${data.tourTitle}</strong> (${data.bookingReference}) has been successfully submitted and securely saved.
+            </p>
+
+            <div style="background: #f0f8f0; border-left: 4px solid #2c5530; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 10px; color: #2c5530; font-size: 16px;">✓ What's Next</h3>
+                <p style="margin: 5px 0; color: #4a5568;">• You can view your signed waiver anytime in your trip details</p>
+                <p style="margin: 5px 0; color: #4a5568;">• Your guide has been notified of your submission</p>
+                <p style="margin: 5px 0; color: #4a5568;">• All required documents are now on file for your trip</p>
+            </div>
+
+            <div style="background: #e3f2fd; border: 1px solid #64b5f6; border-radius: 6px; padding: 16px; margin: 25px 0;">
+                <p style="margin: 0; color: #1565c0; font-size: 14px;">📋 Your waiver information is stored securely and will be used for future trips to make the process faster.</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">Happy hiking! 🥾<br><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Waiver Confirmation\n\nHi ${data.name},\n\nYour liability waiver for ${data.tourTitle} (${data.bookingReference}) has been successfully submitted and securely saved.\n\nWhat's Next:\n• You can view your signed waiver anytime in your trip details\n• Your guide has been notified of your submission\n• All required documents are now on file for your trip\n\nYour waiver information is stored securely and will be used for future trips to make the process faster.\n\nHappy hiking!\nThe Made to Hike Team`
     }
   }
 
@@ -724,7 +769,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
