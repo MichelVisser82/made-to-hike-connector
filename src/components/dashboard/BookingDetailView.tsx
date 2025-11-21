@@ -731,16 +731,26 @@ export function BookingDetailView() {
             <div>
               <h3 className="font-semibold text-charcoal mb-3">Waiver Status</h3>
               <div className="space-y-2">
-                {participants.map((participant: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded-md">
-                    <p className="text-sm text-charcoal">
-                      {participant.firstName} {participant.surname}
-                    </p>
-                    <Badge className="bg-sage text-white">
-                      Signed
-                    </Badge>
-                  </div>
-                ))}
+                {participants.map((participant: any, index: number) => {
+                  const hasWaiver = participant.waiverStatus === 'completed' || participant.waiverSubmittedAt;
+                  
+                  return (
+                    <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded-md">
+                      <p className="text-sm text-charcoal">
+                        {participant.firstName} {participant.surname}
+                      </p>
+                      {hasWaiver ? (
+                        <Badge className="bg-sage text-white">
+                          Signed
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-amber-500 text-amber-700">
+                          Pending
+                        </Badge>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
