@@ -118,15 +118,11 @@ export default function SmartWaiverForm({
   const totalSections = 10;
   const progress = (currentSection / totalSections) * 100;
 
-  // Update form data when prefilledData changes (e.g., when waiver data loads)
+  // Debug: Log prefilled data
   useEffect(() => {
-    if (prefilledData && Object.keys(prefilledData).length > 0) {
-      setFormData(prev => ({
-        ...prev,
-        ...prefilledData
-      }));
-    }
-  }, [prefilledData]);
+    console.log('SmartWaiverForm - Prefilled Data:', prefilledData);
+    console.log('SmartWaiverForm - Initial Form Data:', formData);
+  }, []);
 
   // Auto-save draft every 30 seconds
   useEffect(() => {
