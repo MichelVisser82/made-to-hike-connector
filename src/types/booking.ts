@@ -4,6 +4,20 @@ export interface ParticipantDetails {
   age: number;
   experience: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   medicalConditions?: string;
+  
+  // Per-participant tracking
+  waiverStatus?: 'not_started' | 'pending' | 'completed' | 'overdue';
+  waiverSubmittedAt?: string;
+  waiverData?: any;
+  
+  insuranceStatus?: 'not_submitted' | 'pending' | 'verified' | 'missing';
+  insuranceSubmittedAt?: string;
+  insuranceFileUrl?: string;
+  insurancePolicyNumber?: string;
+  insuranceProvider?: string;
+  
+  participantEmail?: string;
+  participantPhone?: string;
 }
 
 export interface BookingFormData {

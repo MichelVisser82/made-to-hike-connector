@@ -5,7 +5,7 @@ import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder'
   to: string
   from?: string
   reply_to?: string
@@ -748,6 +748,113 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
             </div>
 
             <div style="background: #e3f2fd; border: 1px solid #64b5f6; border-radius: 6px; padding: 16px; margin: 25px 0;">
+                <p style="margin: 0; color: #1565c0; font-size: 14px;">💡 Don't forget to upload your travel insurance before your tour start date!</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">See you on the trail! 🥾<br><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `✅ Waiver Confirmed\n\nHi ${data.name},\n\nYour liability waiver for ${data.tourTitle} (${data.bookingReference}) has been successfully submitted.\n\nWhat's Next:\n- View your signed waiver in your trip details\n- Your guide has been notified\n- All documents are on file\n\nSee you on the trail!\nThe Made to Hike Team`
+    },
+
+    waiver_reminder: {
+      subject: `⏰ Action Required: Submit Waiver - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiver Reminder</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">⏰ Waiver Required</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Complete Before Your Tour</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 15px; color: #2c5530; font-size: 22px;">Hi ${data.participantName} 👋</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your tour <strong>${data.tourTitle}</strong> departs in ${data.daysUntilTour} days, but we still need your signed liability waiver.
+            </p>
+
+            <div style="background: #fff3cd; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 10px; color: #92400e; font-size: 16px;">⚠️ Why This Matters</h3>
+                <p style="margin: 5px 0; color: #92400e;">A signed waiver is required for all participants before tour departure. This protects both you and your guide.</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.waiverUrl}" style="display: inline-block; background: #f59e0b; color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    Submit Waiver Now
+                </a>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">Questions? Contact your guide<br><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `⏰ Waiver Required\n\nHi ${data.participantName},\n\nYour tour ${data.tourTitle} departs in ${data.daysUntilTour} days, but we still need your signed waiver.\n\nSubmit now: ${data.waiverUrl}\n\nThe Made to Hike Team`
+    },
+
+    insurance_reminder: {
+      subject: `📋 Action Required: Upload Insurance - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Reminder</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">📋 Insurance Required</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Upload Before Your Tour</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 15px; color: #2c5530; font-size: 22px;">Hi ${data.participantName} 👋</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your tour <strong>${data.tourTitle}</strong> departs in ${data.daysUntilTour} days, but we still need proof of your travel insurance.
+            </p>
+
+            <div style="background: #fff3cd; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 10px; color: #92400e; font-size: 16px;">⚠️ Insurance Requirements</h3>
+                <p style="margin: 5px 0; color: #92400e;">• Must include mountain rescue coverage</p>
+                <p style="margin: 5px 0; color: #92400e;">• Must be valid for tour dates</p>
+                <p style="margin: 5px 0; color: #92400e;">• Upload clear photo or PDF of policy</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.uploadUrl}" style="display: inline-block; background: #f59e0b; color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    Upload Insurance Now
+                </a>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">Questions? Contact your guide<br><strong>The Made to Hike Team</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `📋 Insurance Required\n\nHi ${data.participantName},\n\nYour tour ${data.tourTitle} departs in ${data.daysUntilTour} days, but we still need proof of your insurance.\n\nUpload now: ${data.uploadUrl}\n\nThe Made to Hike Team`
+    },
+  };
+
+  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder'];
                 <p style="margin: 0; color: #1565c0; font-size: 14px;">📋 Your waiver information is stored securely and will be used for future trips to make the process faster.</p>
             </div>
 

@@ -24,7 +24,9 @@ interface WaiverFormProps {
   location: string;
   guideName: string;
   guideContact: string;
-  onSubmit: (data: any) => void;
+  participantIndex?: number; // Which participant is submitting (0 = lead)
+  participantName?: string; // Display name for clarity
+  onSubmit: (data: any, participantIndex?: number) => void;
   onSaveDraft?: (data: any) => void;
   prefilledData?: Partial<WaiverData>;
 }
@@ -94,6 +96,8 @@ export default function SmartWaiverForm({
   location, 
   guideName, 
   guideContact,
+  participantIndex = 0,
+  participantName,
   onSubmit,
   onSaveDraft,
   prefilledData 
@@ -212,8 +216,9 @@ export default function SmartWaiverForm({
       onSubmit({
         ...formData,
         signatureDate: new Date().toISOString(),
-        submittedAt: new Date().toISOString()
-      });
+        submittedAt: new Date().toISOString(),
+        participantIndex
+      }, participantIndex);
     }
   };
 
@@ -235,6 +240,11 @@ export default function SmartWaiverForm({
               <h1 className="text-2xl text-burgundy mb-2" style={{fontFamily: 'Playfair Display, serif'}}>
                 Multi-Day Hiking Waiver
               </h1>
+              {participantName && (
+                <p className="text-sm font-medium text-charcoal mb-1">
+                  For: {participantName}
+                </p>
+              )}
               <p className="text-muted-foreground">
                 Please complete all sections carefully. Your information is securely stored.
               </p>
