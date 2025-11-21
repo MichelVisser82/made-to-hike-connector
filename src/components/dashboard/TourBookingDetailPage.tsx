@@ -535,11 +535,12 @@ export function TourBookingDetailPage() {
             <div className="flex items-center gap-4 text-sm">
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                {bookings.length > 0 ? (
-                  bookings[0].booking_date === bookings[bookings.length - 1].booking_date
-                    ? format(new Date(bookings[0].booking_date), 'MMM dd, yyyy')
-                    : `${format(new Date(bookings[0].booking_date), 'MMM dd')} - ${format(new Date(bookings[bookings.length - 1].booking_date), 'MMM dd, yyyy')}`
-                ) : 'No dates'}
+                {bookings.length > 0 ? (() => {
+                  const uniqueDates = [...new Set(bookings.map(b => b.booking_date))].sort();
+                  return uniqueDates.length === 1
+                    ? format(new Date(uniqueDates[0]), 'MMM dd, yyyy')
+                    : `${format(new Date(uniqueDates[0]), 'MMM dd')} - ${format(new Date(uniqueDates[uniqueDates.length - 1]), 'MMM dd, yyyy')}`;
+                })() : 'No dates'}
               </span>
               {tour.location && (
                 <span className="flex items-center gap-1">

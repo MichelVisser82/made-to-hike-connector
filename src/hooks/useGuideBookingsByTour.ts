@@ -89,6 +89,7 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
 
       // Group bookings by tour AND date (composite key)
       const tourMap = new Map<string, TourBookingSummary>();
+      const seenKeys = new Set<string>();
 
       bookings?.forEach((booking: any) => {
         const tour = booking.tours;
@@ -96,6 +97,13 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
 
         // Create composite key: tourId_bookingDate
         const compositeKey = `${tour.id}_${booking.booking_date}`;
+        
+        // Skip if we've already processed this exact tour-date combination
+        if (seenKeys.has(compositeKey)) {
+          return;
+        }
+        seenKeys.add(compositeKey);
+
         const existing = tourMap.get(compositeKey);
         const isConfirmed = ['confirmed', 'pending_confirmation', 'completed'].includes(booking.status);
         const isPending = booking.status === 'pending';
