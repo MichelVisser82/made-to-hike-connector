@@ -48,6 +48,9 @@ interface TourBooking {
   status: string;
   special_requests: string | null;
   created_at: string;
+  waiver_uploaded_at: string | null;
+  insurance_uploaded_at: string | null;
+  waiver_data: any | null;
   hiker: {
     id: string;
     name: string;
@@ -125,6 +128,9 @@ export function TourBookingDetailPage() {
           status,
           special_requests,
           created_at,
+          waiver_uploaded_at,
+          insurance_uploaded_at,
+          waiver_data,
           hiker:profiles!bookings_hiker_id_fkey (
             id,
             name,
@@ -142,7 +148,34 @@ export function TourBookingDetailPage() {
         .order('booking_date', { ascending: true });
 
       if (bookingsError) throw bookingsError;
-      setBookings((bookingsData || []) as TourBooking[]);
+      
+      // Normalize bookings: migrate booking-level data to per-participant structure
+      const normalizedBookings = (bookingsData || []).map((booking: any) => {
+        const participantsDetails = booking.participants_details || [];
+        
+        // If participants_details is empty or missing per-participant tracking, migrate from booking-level
+        const normalizedParticipants = participantsDetails.map((participant: any, index: number) => {
+          // Only migrate for lead hiker (index 0) if no per-participant data exists
+          if (index === 0 && !participant.waiverStatus && !participant.waiverSubmittedAt) {
+            return {
+              ...participant,
+              waiverStatus: booking.waiver_uploaded_at || booking.waiver_data ? 'completed' : undefined,
+              waiverSubmittedAt: booking.waiver_uploaded_at,
+              waiverData: booking.waiver_data,
+              insuranceStatus: booking.insurance_uploaded_at ? 'verified' : undefined,
+              insuranceSubmittedAt: booking.insurance_uploaded_at
+            };
+          }
+          return participant;
+        });
+        
+        return {
+          ...booking,
+          participants_details: normalizedParticipants
+        };
+      });
+      
+      setBookings(normalizedBookings as TourBooking[]);
     } catch (error) {
       console.error('Error fetching tour bookings:', error);
       toast({
