@@ -839,6 +839,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                 guideName: guide.display_name,
                 primaryBookerName: userProfile?.first_name || 'the primary booker',
                 bookingReference: booking.booking_reference,
+                frontendUrl: window.location.origin
               }
             });
             

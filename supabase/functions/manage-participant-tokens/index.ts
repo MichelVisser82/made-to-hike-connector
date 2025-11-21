@@ -163,7 +163,7 @@ async function createToken(supabase: any, body: any, url: URL) {
 
 // Send invitation email
 async function sendInvitation(supabase: any, body: any) {
-  const { tokenId, tourName, tourDates, guideName, primaryBookerName, bookingReference } = body;
+  const { tokenId, tourName, tourDates, guideName, primaryBookerName, bookingReference, frontendUrl } = body;
 
   if (!tokenId) {
     return new Response(JSON.stringify({ error: 'Missing tokenId' }), {
@@ -207,7 +207,7 @@ async function sendInvitation(supabase: any, body: any) {
     .update({ token_hash: tokenHash })
     .eq('id', tokenId);
 
-  const participantLink = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.app')}/participant/${token}`;
+  const participantLink = `${frontendUrl || 'https://madetohike.com'}/participant/${token}`;
 
   // Extract data from nested structure
   const booking = tokenData.bookings;
@@ -262,7 +262,7 @@ async function sendInvitation(supabase: any, body: any) {
 
 // Send reminder email
 async function sendReminder(supabase: any, body: any) {
-  const { tokenId, tourName, daysUntilTour, primaryBookerName } = body;
+  const { tokenId, tourName, daysUntilTour, primaryBookerName, frontendUrl } = body;
 
   if (!tokenId) {
     return new Response(JSON.stringify({ error: 'Missing tokenId' }), {
@@ -306,7 +306,7 @@ async function sendReminder(supabase: any, body: any) {
     })
     .eq('id', tokenId);
 
-  const participantLink = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.app')}/participant/${token}`;
+  const participantLink = `${frontendUrl || 'https://madetohike.com'}/participant/${token}`;
 
   // Extract tour title from nested structure
   const tour = tokenData.bookings?.tours;
