@@ -571,6 +571,7 @@ async function submitWaiver(supabase: any, body: any) {
       .from('participant_tokens')
       .update({ 
         waiver_completed: true,
+        emergency_contact_completed: true,
         used_at: tokenData.used_at || new Date().toISOString()
       })
       .eq('id', tokenData.id);
