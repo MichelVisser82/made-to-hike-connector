@@ -352,8 +352,8 @@ async function validateToken(supabase: any, token: string) {
 
   const tokenHash = await hashToken(token);
 
-  // Find token record with booking and tour data
-  const { data: tokenRecord, error } = await supabase
+  // Find token record with booking and tour data - use order by to get most recent
+  const { data: tokenRecords, error } = await supabase
     .from('participant_tokens')
     .select(`
       *,
@@ -363,11 +363,11 @@ async function validateToken(supabase: any, token: string) {
       )
     `)
     .eq('token_hash', tokenHash)
-    .single();
+    .order('created_at', { ascending: false });
 
-  console.log('Token lookup result:', { found: !!tokenRecord, error: error?.message });
+  console.log('Token lookup result:', { found: !!tokenRecords?.length, count: tokenRecords?.length, error: error?.message });
 
-  if (error || !tokenRecord) {
+  if (error || !tokenRecords || tokenRecords.length === 0) {
     return new Response(JSON.stringify({ 
       valid: false,
       error: 'Invalid or expired token' 
@@ -376,6 +376,9 @@ async function validateToken(supabase: any, token: string) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
+  // Use the most recent token if multiple exist
+  const tokenRecord = tokenRecords[0];
 
   // Check expiration
   if (new Date(tokenRecord.expires_at) < new Date()) {
