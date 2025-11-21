@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -81,6 +81,8 @@ interface TourDetails {
 
 export function TourBookingDetailPage() {
   const { tourSlug } = useParams();
+  const [searchParams] = useSearchParams();
+  const dateFilter = searchParams.get('date');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -97,7 +99,7 @@ export function TourBookingDetailPage() {
     if (tourSlug && user) {
       fetchTourAndBookings();
     }
-  }, [tourSlug, user]);
+  }, [tourSlug, user, dateFilter]);
 
   const fetchTourAndBookings = async () => {
     try {
@@ -114,8 +116,8 @@ export function TourBookingDetailPage() {
       if (tourError) throw tourError;
       setTour(tourData as TourDetails);
 
-      // Fetch bookings for this tour
-      const { data: bookingsData, error: bookingsError } = await supabase
+      // Fetch bookings for this tour, filtered by date if specified
+      let bookingsQuery = supabase
         .from('bookings')
         .select(`
           id,
@@ -144,7 +146,14 @@ export function TourBookingDetailPage() {
           )
         `)
         .eq('tour_id', tourData.id)
-        .in('status', ['confirmed', 'pending', 'pending_confirmation', 'completed'])
+        .in('status', ['confirmed', 'pending', 'pending_confirmation', 'completed']);
+
+      // Filter by specific date if provided
+      if (dateFilter) {
+        bookingsQuery = bookingsQuery.eq('booking_date', dateFilter);
+      }
+
+      const { data: bookingsData, error: bookingsError } = await bookingsQuery
         .order('booking_date', { ascending: true });
 
       if (bookingsError) throw bookingsError;
