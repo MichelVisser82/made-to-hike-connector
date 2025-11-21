@@ -98,13 +98,24 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
       
       const { data } = await supabase
         .from('profiles')
-        .select('email, phone, country, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship')
+        .select('first_name, last_name, email, phone, country, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, date_of_birth')
         .eq('id', user.id)
         .single();
       
       return data;
     }
   });
+
+  // Extract participant data from booking for pre-filling
+  const getParticipantData = () => {
+    const participantsDetails = booking.participants_details as any;
+    if (!participantsDetails || !Array.isArray(participantsDetails) || participantsDetails.length === 0) {
+      return null;
+    }
+    return participantsDetails[0]; // Use first participant (primary booker)
+  };
+
+  const primaryParticipant = getParticipantData();
 
   // Determine whether to use database checklist or mock data
   const useMockData = checklist.length === 0;
@@ -444,20 +455,24 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             onSubmit={handleWaiverSubmit}
             onSaveDraft={handleWaiverDraftSave}
             prefilledData={{
+              // Start with data from booking form and profile
+              fullName: primaryParticipant?.first_name && primaryParticipant?.surname
+                ? `${primaryParticipant.first_name} ${primaryParticipant.surname}`
+                : userProfile?.first_name && userProfile?.last_name
+                ? `${userProfile.first_name} ${userProfile.last_name}`
+                : undefined,
+              dateOfBirth: userProfile?.date_of_birth || undefined,
+              email: userProfile?.email || booking.hiker_email || undefined,
+              phone: userProfile?.phone || undefined,
+              country: userProfile?.country || undefined,
+              emergencyName: userProfile?.emergency_contact_name || undefined,
+              emergencyPhone: userProfile?.emergency_contact_phone || undefined,
+              emergencyRelationship: userProfile?.emergency_contact_relationship || undefined,
+              medicalDetails: primaryParticipant?.medical_conditions || undefined,
+              // Then overlay any previously saved waiver data
               ...(parsedWaiverData || {}),
+              // Finally overlay any draft data (most recent)
               ...loadWaiverDraft(),
-              fullName: booking.participants_details?.[0] 
-                ? `${booking.participants_details[0].firstName || ''} ${booking.participants_details[0].surname || ''}`.trim()
-                : (parsedWaiverData?.fullName || ''),
-              email: userProfile?.email || parsedWaiverData?.email || '',
-              phone: userProfile?.phone || parsedWaiverData?.phone || '',
-              country: userProfile?.country || parsedWaiverData?.country || '',
-              emergencyName: userProfile?.emergency_contact_name || parsedWaiverData?.emergencyName || '',
-              emergencyPhone: userProfile?.emergency_contact_phone || parsedWaiverData?.emergencyPhone || '',
-              emergencyRelationship: userProfile?.emergency_contact_relationship || parsedWaiverData?.emergencyRelationship || '',
-              hasInsurance: typeof parsedWaiverData?.hasInsurance === 'boolean'
-                ? parsedWaiverData.hasInsurance
-                : !!booking.insurance_uploaded_at,
             }}
           />
         </DialogContent>
