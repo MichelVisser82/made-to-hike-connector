@@ -45,7 +45,7 @@ export function TourBookingsList({ tours, loading }: TourBookingsListProps) {
         <Card
           key={tour.tour_id}
           className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden border-burgundy/10"
-          onClick={() => navigate(`/dashboard/bookings/tour/${tour.tour_slug}`)}
+          onClick={() => navigate(`/dashboard/bookings/tour/${tour.tour_slug}?date=${tour.earliest_date}`)}
         >
           <div className="flex gap-4 p-4">
             {/* Tour Image */}
