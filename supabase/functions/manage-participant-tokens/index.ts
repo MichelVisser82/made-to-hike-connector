@@ -214,6 +214,24 @@ async function sendInvitation(supabase: any, body: any) {
   const tour = booking?.tours;
   const guide = tour?.guide_profiles;
 
+  // Log data for debugging
+  console.log('Token data:', {
+    participant_name: tokenData.participant_name,
+    booking: booking,
+    tour: tour,
+    guide: guide
+  });
+
+  console.log('Email data being sent:', {
+    participantName: tokenData.participant_name,
+    primaryBooker: primaryBookerName,
+    tourTitle: tourName || tour?.title,
+    tourDates: tourDates,
+    guideName: guideName || guide?.display_name,
+    bookingReference: bookingReference || booking?.booking_reference,
+    participantLink
+  });
+
   // Send email via send-email edge function with correct field names
   const emailResponse = await supabase.functions.invoke('send-email', {
     body: {
