@@ -1175,6 +1175,146 @@ export type Database = {
           },
         ]
       }
+      participant_documents: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          emergency_contact_submitted_at: string | null
+          id: string
+          insurance_document_url: string | null
+          insurance_emergency_number: string | null
+          insurance_policy_number: string | null
+          insurance_provider: string | null
+          insurance_submitted_at: string | null
+          participant_token_id: string
+          updated_at: string | null
+          waiver_data: Json | null
+          waiver_signature_url: string | null
+          waiver_submitted_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          emergency_contact_submitted_at?: string | null
+          id?: string
+          insurance_document_url?: string | null
+          insurance_emergency_number?: string | null
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
+          insurance_submitted_at?: string | null
+          participant_token_id: string
+          updated_at?: string | null
+          waiver_data?: Json | null
+          waiver_signature_url?: string | null
+          waiver_submitted_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          emergency_contact_submitted_at?: string | null
+          id?: string
+          insurance_document_url?: string | null
+          insurance_emergency_number?: string | null
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
+          insurance_submitted_at?: string | null
+          participant_token_id?: string
+          updated_at?: string | null
+          waiver_data?: Json | null
+          waiver_signature_url?: string | null
+          waiver_submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_documents_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_documents_participant_token_id_fkey"
+            columns: ["participant_token_id"]
+            isOneToOne: false
+            referencedRelation: "participant_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participant_tokens: {
+        Row: {
+          booking_id: string
+          completed_at: string | null
+          created_at: string | null
+          emergency_contact_completed: boolean | null
+          expires_at: string
+          id: string
+          insurance_completed: boolean | null
+          last_accessed_at: string | null
+          participant_email: string
+          participant_index: number
+          participant_name: string
+          reminder_count: number | null
+          reminder_sent_at: string | null
+          token_hash: string
+          used_at: string | null
+          waiver_completed: boolean | null
+        }
+        Insert: {
+          booking_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          emergency_contact_completed?: boolean | null
+          expires_at?: string
+          id?: string
+          insurance_completed?: boolean | null
+          last_accessed_at?: string | null
+          participant_email: string
+          participant_index: number
+          participant_name: string
+          reminder_count?: number | null
+          reminder_sent_at?: string | null
+          token_hash: string
+          used_at?: string | null
+          waiver_completed?: boolean | null
+        }
+        Update: {
+          booking_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          emergency_contact_completed?: boolean | null
+          expires_at?: string
+          id?: string
+          insurance_completed?: boolean | null
+          last_accessed_at?: string | null
+          participant_email?: string
+          participant_index?: number
+          participant_name?: string
+          reminder_count?: number | null
+          reminder_sent_at?: string | null
+          token_hash?: string
+          used_at?: string | null
+          waiver_completed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_tokens_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           created_at: string | null
