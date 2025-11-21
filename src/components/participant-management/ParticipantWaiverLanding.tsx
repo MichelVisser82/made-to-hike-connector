@@ -22,6 +22,11 @@ interface ParticipantWaiverLandingProps {
   primaryBooker: string;
   participantEmail?: string;
   tourId?: string;
+  completionStatus?: {
+    waiver: boolean;
+    insurance: boolean;
+    emergencyContact: boolean;
+  };
   onWaiverSubmit?: (data: any) => Promise<void>;
   onInsuranceSubmit?: (data: any) => Promise<void>;
 }
@@ -36,10 +41,22 @@ export default function ParticipantWaiverLanding({
   primaryBooker,
   participantEmail,
   tourId,
+  completionStatus,
   onWaiverSubmit,
   onInsuranceSubmit
 }: ParticipantWaiverLandingProps) {
-  const [stage, setStage] = useState<"welcome" | "waiver" | "insurance" | "complete">("welcome");
+  const [stage, setStage] = useState<"welcome" | "waiver" | "insurance" | "complete">(() => {
+    // If both waiver and insurance are complete, show completion screen
+    if (completionStatus?.waiver && completionStatus?.insurance) {
+      return "complete";
+    }
+    // If waiver is complete but not insurance, skip to insurance
+    if (completionStatus?.waiver && !completionStatus?.insurance) {
+      return "insurance";
+    }
+    // Otherwise start at welcome
+    return "welcome";
+  });
   const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
 
   const handleWaiverSubmit = async (data: any) => {
@@ -75,6 +92,7 @@ export default function ParticipantWaiverLanding({
       <CompletionScreen 
         tourName={tourName} 
         primaryBooker={primaryBooker}
+        isReturning={completionStatus?.waiver && completionStatus?.insurance}
         onEmailConfirmation={handleEmailConfirmation}
         onViewTourDetails={handleViewTourDetails}
       />
@@ -388,7 +406,7 @@ function InsuranceUpload({ tourName, onSubmit, onBack }: any) {
   );
 }
 
-function CompletionScreen({ tourName, primaryBooker, onEmailConfirmation, onViewTourDetails }: any) {
+function CompletionScreen({ tourName, primaryBooker, isReturning, onEmailConfirmation, onViewTourDetails }: any) {
   return (
     <div className="min-h-screen bg-cream-light flex items-center justify-center py-8">
       <div className="max-w-2xl mx-auto px-4">
@@ -402,8 +420,20 @@ function CompletionScreen({ tourName, primaryBooker, onEmailConfirmation, onView
           </h1>
           
           <p className="text-lg text-charcoal/70 mb-6">
-            Your participant information has been submitted successfully
+            {isReturning 
+              ? "You've already completed all required documents" 
+              : "Your participant information has been submitted successfully"
+            }
           </p>
+
+          {isReturning && (
+            <Alert className="mb-6 bg-sage/10 border-sage/20 text-left">
+              <CheckCircle className="h-4 w-4 text-sage" />
+              <AlertDescription className="text-sm text-charcoal/70">
+                All your documents have been received and are being reviewed. This confirmation screen is shown for your reference.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="bg-sage/5 border border-sage/20 rounded-lg p-6 mb-6">
             <h3 className="font-medium text-charcoal mb-3">What happens next?</h3>

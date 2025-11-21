@@ -171,6 +171,7 @@ export default function ParticipantPage() {
       primaryBooker={booking.hiker_email}
       participantEmail={participantData.participant_email}
       tourId={tour.id}
+      completionStatus={participantData.completionStatus}
       onWaiverSubmit={handleWaiverSubmit}
       onInsuranceSubmit={handleInsuranceSubmit}
     />
