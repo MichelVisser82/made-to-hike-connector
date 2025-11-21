@@ -72,7 +72,7 @@ export default function ParticipantPage() {
         body: {
           action: 'submit_waiver',
           token,
-          waiver_data: waiverData
+          waiverData
         }
       });
 
@@ -92,7 +92,6 @@ export default function ParticipantPage() {
       throw error;
     }
   };
-
   const handleInsuranceSubmit = async (insuranceData: any) => {
     try {
       // Submit insurance data via edge function
