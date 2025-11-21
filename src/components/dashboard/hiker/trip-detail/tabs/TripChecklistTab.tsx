@@ -709,6 +709,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
         onClose={() => setParticipantManagementOpen(false)}
         bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
         tourName={tour.title}
+        maxParticipants={booking.participants}
         participants={additionalParticipants.map((p, index) => {
           const actualIndex = index + 1; // Adjust since we're excluding primary booker
           const status = participantStatuses?.find((s: any) => s.participant_index === actualIndex);
@@ -732,11 +733,63 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           };
         })}
         onAddParticipant={async (name: string, email: string) => {
-          toast({
-            title: 'Not Implemented',
-            description: 'Adding participants after booking is not yet supported.',
-            variant: 'destructive',
-          });
+          try {
+            // Parse name into first and last name
+            const nameParts = name.trim().split(' ');
+            const firstName = nameParts[0];
+            const surname = nameParts.slice(1).join(' ') || nameParts[0];
+
+            // Get current participants
+            const currentParticipants = booking.participants_details as ParticipantDetails[] || [];
+            
+            // Check for duplicate email
+            if (currentParticipants.some(p => p.participantEmail === email)) {
+              toast({
+                title: 'Duplicate Email',
+                description: 'A participant with this email already exists.',
+                variant: 'destructive',
+              });
+              return;
+            }
+
+            // Add new participant
+            const newParticipant: ParticipantDetails = {
+              firstName,
+              surname,
+              age: 0,
+              experience: 'beginner',
+              participantEmail: email,
+              documentStatus: 'not_started',
+            };
+
+            const updatedParticipants = [...currentParticipants, newParticipant];
+
+            // Update booking
+            const { error } = await supabase
+              .from('bookings')
+              .update({ 
+                participants_details: updatedParticipants as any,
+              })
+              .eq('id', booking.id);
+
+            if (error) throw error;
+
+            // Invalidate queries to refresh UI
+            queryClient.invalidateQueries({ queryKey: ['booking', booking.id] });
+            queryClient.invalidateQueries({ queryKey: ['participant-statuses', booking.id] });
+
+            toast({
+              title: 'Participant Added',
+              description: `${name} has been added. You can now send them an invitation.`,
+            });
+          } catch (error) {
+            console.error('Error adding participant:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to add participant. Please try again.',
+              variant: 'destructive',
+            });
+          }
         }}
         onSendInvite={async (participantId: string) => {
           const participantIndex = additionalParticipants.findIndex((_, i) => 

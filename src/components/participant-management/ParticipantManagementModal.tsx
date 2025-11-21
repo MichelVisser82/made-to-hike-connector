@@ -32,6 +32,7 @@ interface ParticipantManagementModalProps {
   bookingReference: string;
   tourName: string;
   participants: Participant[];
+  maxParticipants: number;
   onAddParticipant: (name: string, email: string) => void;
   onSendInvite: (participantId: string) => void;
   onRemoveParticipant: (participantId: string) => void;
@@ -43,6 +44,7 @@ export default function ParticipantManagementModal({
   bookingReference,
   tourName,
   participants,
+  maxParticipants,
   onAddParticipant,
   onSendInvite,
   onRemoveParticipant
@@ -69,6 +71,8 @@ export default function ParticipantManagementModal({
 
   const completedCount = participants.filter(p => p.status === "complete").length;
   const totalCount = participants.length;
+  const remainingSlots = maxParticipants - (totalCount + 1); // +1 for the booker who's not in this list
+  const canAddMore = remainingSlots > 0;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -91,15 +95,24 @@ export default function ParticipantManagementModal({
                   {completedCount} / {totalCount}
                 </div>
                 <div className="text-sm text-charcoal/60">Participants Complete</div>
+                <div className="text-xs text-charcoal/50 mt-1">
+                  {totalCount + 1} of {maxParticipants} spots filled
+                </div>
               </div>
               <Button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="bg-burgundy hover:bg-burgundy-dark text-white"
+                disabled={!canAddMore}
+                className="bg-burgundy hover:bg-burgundy-dark text-white disabled:opacity-50"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Participant
               </Button>
             </div>
+            {!canAddMore && (
+              <div className="mt-2 text-xs text-burgundy">
+                All participant spots are filled for this booking
+              </div>
+            )}
           </Card>
 
           {/* Add Participant Form */}
@@ -129,7 +142,7 @@ export default function ParticipantManagementModal({
                 <Alert className="bg-sage/10 border-sage/20">
                   <Mail className="h-4 w-4 text-sage" />
                   <AlertDescription className="text-xs text-charcoal/70">
-                    They'll receive an email with a secure link to complete their waiver, insurance, and emergency contact information.
+                    The participant will be added to your booking. You can send them an invitation link after adding them.
                   </AlertDescription>
                 </Alert>
                 <div className="flex gap-2">
@@ -149,8 +162,8 @@ export default function ParticipantManagementModal({
                     disabled={!newName || !newEmail}
                     className="flex-1 bg-sage hover:bg-sage/90 text-white"
                   >
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Invitation
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Participant
                   </Button>
                 </div>
               </div>
@@ -305,26 +318,32 @@ function ParticipantCard({
                   className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
                 >
                   <Mail className="w-3.5 h-3.5 mr-1.5" />
-                  {participant.status === "invited" ? "Resend" : "Remind"}
+                  {participant.status === "not_started" 
+                    ? "Send Invitation"
+                    : participant.status === "invited"
+                    ? "Resend Invitation"
+                    : "Send Reminder"}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onCopyLink(participant.uniqueLink)}
-                  className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                >
-                  {isCopied ? (
-                    <>
-                      <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 mr-1.5" />
-                      Copy Link
-                    </>
-                  )}
-                </Button>
+                {participant.uniqueLink && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onCopyLink(participant.uniqueLink)}
+                    className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                  >
+                    {isCopied ? (
+                      <>
+                        <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 mr-1.5" />
+                        Copy Link
+                      </>
+                    )}
+                  </Button>
+                )}
               </>
             )}
             {participant.status === "complete" && (
