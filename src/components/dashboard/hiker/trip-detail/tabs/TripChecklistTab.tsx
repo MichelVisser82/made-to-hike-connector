@@ -792,6 +792,8 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           }
         }}
         onSendInvite={async (participantId: string, emailOverride?: string) => {
+          console.log('=== onSendInvite called ===', { participantId, emailOverride });
+          
           const participantIndex = additionalParticipants.findIndex((_, i) => {
             const actualIndex = i + 1;
             const status = participantStatuses?.find((s: any) => s.participant_index === actualIndex);
@@ -799,63 +801,90 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             return derivedId === participantId;
           });
           
-          if (participantIndex === -1) return;
+          console.log('Found participant:', { participantIndex, additionalParticipants: additionalParticipants.length });
           
-          const actualIndex = participantIndex + 1; // Adjust since we're excluding primary booker
+          if (participantIndex === -1) {
+            console.error('Participant not found for ID:', participantId);
+            return;
+          }
+          
+          const actualIndex = participantIndex + 1;
           const participant = additionalParticipants[participantIndex];
-          
-          // Use emailOverride if provided, otherwise fall back to participant.participantEmail
           const email = emailOverride || participant.participantEmail;
           
-          // Validate participant has email
+          console.log('Preparing to send invitation:', { actualIndex, participant, email });
+          
           if (!email) {
+            console.error('No email for participant:', participant);
             toast({
               title: 'Email Required',
-              description: `${participant.firstName} ${participant.surname} needs an email address. Please add them again with their email.`,
+              description: `${participant.firstName} ${participant.surname} needs an email address.`,
               variant: 'destructive',
             });
             return;
           }
           
           try {
-                const { data: tokenData, error: tokenError } = await supabase.functions.invoke('manage-participant-tokens', {
-                  body: {
-                    action: 'create_token',
-                    bookingId: booking.id,
-                    email: email,
-                    name: `${participant.firstName} ${participant.surname}`,
-                    participantIndex: actualIndex,
-                  }
-                });
-            
-            if (tokenError) throw tokenError;
-            
-            const { error: inviteError } = await supabase.functions.invoke('manage-participant-tokens', {
+            console.log('Step 1: Creating token...');
+            const { data: tokenData, error: tokenError } = await supabase.functions.invoke('manage-participant-tokens', {
               body: {
-                action: 'send_invitation',
-                tokenId: tokenData.token_id,
-                tourName: tour.title,
-                tourDates: format(new Date(booking.booking_date), 'MMM dd, yyyy'),
-                guideName: guide.display_name,
-                primaryBookerName: userProfile?.first_name || 'the primary booker',
-                bookingReference: booking.booking_reference,
-                frontendUrl: window.location.origin
+                action: 'create_token',
+                bookingId: booking.id,
+                email: email,
+                name: `${participant.firstName} ${participant.surname}`,
+                participantIndex: actualIndex,
               }
             });
             
-            if (inviteError) throw inviteError;
+            console.log('Token creation result:', { tokenData, tokenError });
             
+            if (tokenError) {
+              console.error('Token creation error:', tokenError);
+              throw new Error(`Token creation failed: ${tokenError.message || JSON.stringify(tokenError)}`);
+            }
+            
+            if (!tokenData?.token_id) {
+              console.error('No token_id in response:', tokenData);
+              throw new Error('Invalid token response: missing token_id');
+            }
+            
+            console.log('Step 2: Sending invitation...');
+            const invitePayload = {
+              action: 'send_invitation',
+              tokenId: tokenData.token_id,
+              tourName: tour.title,
+              tourDates: format(new Date(booking.booking_date), 'MMM dd, yyyy'),
+              guideName: guide.display_name,
+              primaryBookerName: userProfile?.first_name || 'the primary booker',
+              bookingReference: booking.booking_reference,
+              frontendUrl: window.location.origin
+            };
+            
+            console.log('Sending invitation with payload:', invitePayload);
+            
+            const { data: inviteData, error: inviteError } = await supabase.functions.invoke('manage-participant-tokens', {
+              body: invitePayload
+            });
+            
+            console.log('Invitation send result:', { inviteData, inviteError });
+            
+            if (inviteError) {
+              console.error('Invitation send error:', inviteError);
+              throw new Error(`Invitation failed: ${inviteError.message || JSON.stringify(inviteError)}`);
+            }
+            
+            console.log('Success! Invalidating queries...');
             queryClient.invalidateQueries({ queryKey: ['participant-statuses', booking.id] });
             
             toast({
               title: 'Invitation Sent',
               description: `Invitation email sent to ${participant.firstName} ${participant.surname}`,
             });
-          } catch (error) {
-            console.error('Error sending invitation:', error);
+          } catch (error: any) {
+            console.error('=== Complete error in onSendInvite ===', error);
             toast({
               title: 'Error',
-              description: 'Failed to send invitation. Please try again.',
+              description: error?.message || 'Failed to send invitation. Please try again.',
               variant: 'destructive',
             });
           }
