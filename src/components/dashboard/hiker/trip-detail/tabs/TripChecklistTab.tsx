@@ -370,11 +370,13 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
     refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
   });
 
-  // Calculate participant completion
+  // Calculate participant completion (excluding primary booker at index 0)
+  const additionalParticipants = participants.slice(1); // Exclude primary booker
   const completedParticipants = participantStatuses?.filter((p: any) => 
+    p.participant_index > 0 && // Only count additional participants
     p.waiver_completed && p.insurance_completed && p.emergency_contact_completed
   ).length || 0;
-  const totalParticipants = participants.length;
+  const totalParticipants = additionalParticipants.length;
 
   return (
     <div className="space-y-6">
@@ -412,14 +414,15 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                 </p>
                 
                 <div className="space-y-2 mb-3">
-                  {participants.map((participant, index) => {
-                    const status = participantStatuses?.find((p: any) => p.participant_index === index);
+                  {additionalParticipants.map((participant, index) => {
+                    const actualIndex = index + 1; // Adjust index since we're showing from index 1+
+                    const status = participantStatuses?.find((p: any) => p.participant_index === actualIndex);
                     const isComplete = status?.waiver_completed && status?.insurance_completed && status?.emergency_contact_completed;
                     const isInvited = !!status?.invited_at;
                     const isInProgress = status && !isComplete && (status.waiver_completed || status.insurance_completed || status.emergency_contact_completed);
                     
                     return (
-                      <div key={index} className="flex items-center justify-between p-2 bg-background rounded border border-burgundy/10">
+                      <div key={actualIndex} className="flex items-center justify-between p-2 bg-background rounded border border-burgundy/10">
                         <span className="text-sm font-medium">
                           {participant.firstName} {participant.surname}
                         </span>
