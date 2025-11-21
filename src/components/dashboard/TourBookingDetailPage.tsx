@@ -535,7 +535,11 @@ export function TourBookingDetailPage() {
             <div className="flex items-center gap-4 text-sm">
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                {bookings.length > 0 ? `${format(new Date(bookings[0].booking_date), 'MMM dd')} - ${format(new Date(bookings[bookings.length - 1].booking_date), 'dd, yyyy')}` : 'No dates'}
+                {bookings.length > 0 ? (
+                  bookings[0].booking_date === bookings[bookings.length - 1].booking_date
+                    ? format(new Date(bookings[0].booking_date), 'MMM dd, yyyy')
+                    : `${format(new Date(bookings[0].booking_date), 'MMM dd')} - ${format(new Date(bookings[bookings.length - 1].booking_date), 'MMM dd, yyyy')}`
+                ) : 'No dates'}
               </span>
               {tour.location && (
                 <span className="flex items-center gap-1">
