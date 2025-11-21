@@ -48,7 +48,7 @@ serve(async (req) => {
         )
       `)
       .eq('tour_id', tourId)
-      .in('status', ['confirmed', 'pending', 'pending_confirmation']);
+      .in('status', ['confirmed', 'pending', 'pending_confirmation', 'completed']);
 
     if (tourDate) {
       bookingsQuery = bookingsQuery.eq('booking_date', tourDate);
@@ -64,6 +64,12 @@ serve(async (req) => {
       .select('*')
       .in('booking_id', bookingIds);
 
+    // Fetch participant documents with full details
+    const { data: participantDocs } = await supabase
+      .from('participant_documents')
+      .select('*')
+      .in('booking_id', bookingIds);
+
     // Create token map
     const tokensByBooking = new Map<string, Map<number, any>>();
     (tokens || []).forEach((token: any) => {
@@ -71,6 +77,12 @@ serve(async (req) => {
         tokensByBooking.set(token.booking_id, new Map());
       }
       tokensByBooking.get(token.booking_id)!.set(token.participant_index, token);
+    });
+
+    // Create participant documents map
+    const docsByTokenId = new Map<string, any>();
+    (participantDocs || []).forEach((doc: any) => {
+      docsByTokenId.set(doc.participant_token_id, doc);
     });
 
     // Generate HTML content for PDF
@@ -84,6 +96,7 @@ serve(async (req) => {
           h1 { color: #7c2d3e; font-size: 28px; margin-bottom: 10px; }
           h2 { color: #7c2d3e; font-size: 20px; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #7c2d3e; padding-bottom: 5px; }
           h3 { color: #4a5568; font-size: 16px; margin-top: 20px; margin-bottom: 10px; }
+          h4 { color: #7c2d3e; font-size: 14px; margin-top: 15px; margin-bottom: 8px; }
           .header { margin-bottom: 30px; }
           .info-row { margin: 5px 0; }
           .label { font-weight: bold; color: #4a5568; }
@@ -132,6 +145,7 @@ serve(async (req) => {
 
       participants.forEach((participant: any, idx: number) => {
         const token = bookingTokens?.get(idx);
+        const docs = token ? docsByTokenId.get(token.id) : null;
         const waiverComplete = token?.waiver_completed || (idx === 0 && booking.waiver_uploaded_at);
         const insuranceComplete = token?.insurance_completed || (idx === 0 && booking.insurance_uploaded_at);
 
@@ -144,26 +158,93 @@ serve(async (req) => {
             <div class="info-row"><span class="label">Age:</span> ${participant.age || 'N/A'}</div>
             <div class="info-row"><span class="label">Experience:</span> ${participant.experience || 'N/A'}</div>
             ${participant.medicalConditions ? `<div class="info-row"><span class="label">Medical:</span> ${participant.medicalConditions}</div>` : ''}
-            
-            <div style="margin-top: 10px;">
-              <div class="info-row">
-                <span class="label">Waiver Status:</span> 
-                <span class="${waiverComplete ? 'status-complete' : 'status-missing'}">
-                  ${waiverComplete ? '✓ Signed' : '✗ Pending'}
-                </span>
-              </div>
-              <div class="info-row">
-                <span class="label">Insurance Status:</span> 
-                <span class="${insuranceComplete ? 'status-complete' : 'status-missing'}">
-                  ${insuranceComplete ? '✓ Verified' : '✗ Pending'}
-                </span>
-              </div>
-            </div>
-
-            ${participant.participantEmail ? `<div class="info-row"><span class="label">Email:</span> ${participant.participantEmail}</div>` : ''}
-            ${participant.participantPhone ? `<div class="info-row"><span class="label">Phone:</span> ${participant.participantPhone}</div>` : ''}
-          </div>
         `;
+
+        // Waiver Section
+        if (docs?.waiver_data) {
+          const waiver = docs.waiver_data;
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">📋 Waiver Information</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              ${waiver.fullName ? `<div class="info-row"><span class="label">Full Name:</span> ${waiver.fullName}</div>` : ''}
+              ${waiver.dateOfBirth ? `<div class="info-row"><span class="label">Date of Birth:</span> ${waiver.dateOfBirth}</div>` : ''}
+              ${waiver.nationality ? `<div class="info-row"><span class="label">Nationality:</span> ${waiver.nationality}</div>` : ''}
+              ${waiver.address || waiver.city || waiver.country ? `
+                <div class="info-row"><span class="label">Address:</span> ${[waiver.address, waiver.city, waiver.country].filter(Boolean).join(', ')}</div>
+              ` : ''}
+              ${waiver.phone ? `<div class="info-row"><span class="label">Phone:</span> ${waiver.phone}</div>` : ''}
+              ${waiver.email ? `<div class="info-row"><span class="label">Email:</span> ${waiver.email}</div>` : ''}
+              ${waiver.medicalConditions ? `<div class="info-row"><span class="label">Medical Conditions:</span> ${waiver.medicalConditions}</div>` : ''}
+              ${waiver.emergencyContactName ? `
+                <div class="info-row"><span class="label">Emergency Contact:</span> ${waiver.emergencyContactName}</div>
+                ${waiver.emergencyContactPhone ? `<div class="info-row"><span class="label">Emergency Phone:</span> ${waiver.emergencyContactPhone}</div>` : ''}
+                ${waiver.emergencyContactRelationship ? `<div class="info-row"><span class="label">Relationship:</span> ${waiver.emergencyContactRelationship}</div>` : ''}
+              ` : ''}
+              ${waiver.signature ? `<div class="info-row"><span class="label">Digital Signature:</span> ✓ Signed</div>` : ''}
+              ${docs.waiver_submitted_at ? `<div class="info-row"><span class="label">Submitted:</span> ${new Date(docs.waiver_submitted_at).toLocaleString()}</div>` : ''}
+              ${waiver.hasReadTerms ? `<div class="info-row">✓ Read and accepted terms</div>` : ''}
+              ${waiver.acceptsRisks ? `<div class="info-row">✓ Accepts inherent risks</div>` : ''}
+              ${waiver.releasesLiability ? `<div class="info-row">✓ Releases from liability</div>` : ''}
+            </div>
+          `;
+        } else if (waiverComplete) {
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">📋 Waiver Information</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              <div class="status-complete">✓ Waiver signed but details not available (legacy submission)</div>
+            </div>
+          `;
+        } else {
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">📋 Waiver Information</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              <div class="status-missing">✗ Waiver not submitted</div>
+            </div>
+          `;
+        }
+
+        // Insurance Section
+        if (docs?.insurance_provider || docs?.insurance_policy_number) {
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🏥 Travel Insurance</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              ${docs.insurance_provider ? `<div class="info-row"><span class="label">Provider:</span> ${docs.insurance_provider}</div>` : ''}
+              ${docs.insurance_policy_number ? `<div class="info-row"><span class="label">Policy Number:</span> ${docs.insurance_policy_number}</div>` : ''}
+              ${docs.insurance_emergency_number ? `<div class="info-row"><span class="label">Emergency Number:</span> ${docs.insurance_emergency_number}</div>` : ''}
+              ${docs.insurance_document_url ? `<div class="info-row"><span class="label">Document:</span> <a href="${docs.insurance_document_url}">View Document</a></div>` : ''}
+              ${docs.insurance_submitted_at ? `<div class="info-row"><span class="label">Submitted:</span> ${new Date(docs.insurance_submitted_at).toLocaleString()}</div>` : ''}
+            </div>
+          `;
+        } else if (insuranceComplete) {
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🏥 Travel Insurance</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              <div class="status-complete">✓ Insurance verified but details not available (legacy submission)</div>
+            </div>
+          `;
+        } else {
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🏥 Travel Insurance</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              <div class="status-missing">✗ Insurance not submitted</div>
+            </div>
+          `;
+        }
+
+        // Emergency Contact Section (from participant_documents)
+        if (docs?.emergency_contact_name) {
+          htmlContent += `
+            <h4 style="color: #7c2d3e; margin-top: 15px; margin-bottom: 8px;">🚨 Emergency Contact (Primary)</h4>
+            <div style="background: white; padding: 10px; border-radius: 4px;">
+              <div class="info-row"><span class="label">Name:</span> ${docs.emergency_contact_name}</div>
+              ${docs.emergency_contact_phone ? `<div class="info-row"><span class="label">Phone:</span> ${docs.emergency_contact_phone}</div>` : ''}
+              ${docs.emergency_contact_relationship ? `<div class="info-row"><span class="label">Relationship:</span> ${docs.emergency_contact_relationship}</div>` : ''}
+              ${docs.emergency_contact_submitted_at ? `<div class="info-row"><span class="label">Submitted:</span> ${new Date(docs.emergency_contact_submitted_at).toLocaleString()}</div>` : ''}
+            </div>
+          `;
+        }
+
+        htmlContent += `</div>`;
       });
     }
 
