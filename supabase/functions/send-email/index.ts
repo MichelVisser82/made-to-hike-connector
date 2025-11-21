@@ -5,7 +5,7 @@ import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete' | 'guide_participant_documents'
   to: string
   from?: string
   reply_to?: string
@@ -1040,9 +1040,69 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </html>`,
       text: `Participant Update\n\n${data.participantName} has completed their tour documents for ${data.tourTitle}.\n\nProgress: ${data.completedCount} of ${data.totalCount} completed\n\nView: ${data.dashboardLink}`
     },
+
+    guide_participant_documents: {
+      subject: `📄 Participant Documents - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5a2127 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">📄 Participant Documents</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Your Tour Summary</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #7C2D32; font-size: 22px;">Hi! Here's your participant summary</h2>
+            
+            <div style="background: #FEF7ED; border-left: 4px solid #7C2D32; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 15px; color: #7C2D32; font-size: 18px;">Tour Details</h3>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Tour:</strong> ${data.tourTitle}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Date:</strong> ${data.tourDate}</p>
+            </div>
+
+            <div style="background: #f0f8f0; border: 1px solid #d0e8d0; padding: 20px; margin: 25px 0; border-radius: 6px;">
+                <h3 style="margin: 0 0 15px; color: #2c5530; font-size: 18px;">Document Status</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 10px 0; color: #4a5568;">Total Participants</td>
+                        <td style="padding: 10px 0; color: #2c5530; font-weight: bold; text-align: right;">${data.totalParticipants}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 10px 0; color: #4a5568;">Waivers Completed</td>
+                        <td style="padding: 10px 0; color: ${data.completedWaivers === data.totalParticipants ? '#059669' : '#f59e0b'}; font-weight: bold; text-align: right;">${data.completedWaivers} / ${data.totalParticipants}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #4a5568;">Insurance Verified</td>
+                        <td style="padding: 10px 0; color: ${data.completedInsurance === data.totalParticipants ? '#059669' : '#f59e0b'}; font-weight: bold; text-align: right;">${data.completedInsurance} / ${data.totalParticipants}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p style="margin: 20px 0; color: #4a5568; font-size: 14px;">
+                Please find the complete participant documentation attached to this email as an HTML file. You can open it in any web browser to view all participant details, waivers, and insurance information.
+            </p>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">
+                    <strong>Made to Hike</strong><br>
+                    Questions? Contact support@madetohike.com
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Participant Documents - ${data.tourTitle}\n\nTour Date: ${data.tourDate}\n\nDocument Status:\n- Total Participants: ${data.totalParticipants}\n- Waivers Completed: ${data.completedWaivers} / ${data.totalParticipants}\n- Insurance Verified: ${data.completedInsurance} / ${data.totalParticipants}\n\nPlease see the attached HTML file for complete participant documentation.`
+    },
   };
 
-  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete'];
+  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents'];
 
   return templates[type as keyof typeof templates] || templates.contact
 }
@@ -1051,7 +1111,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
@@ -1101,6 +1161,71 @@ serve(async (req) => {
 
     const emailRequest = validateEmailRequest(await req.json())
     console.log('Processing email request:', { type: emailRequest.type, to: emailRequest.to })
+
+    // Handle guide_participant_documents email with HTML attachment
+    if (emailRequest.type === 'guide_participant_documents') {
+      const htmlAttachment = emailRequest.data?.htmlAttachment;
+      const fileName = emailRequest.data?.fileName || 'participant-documents.html';
+
+      // Decode base64 attachment
+      const attachmentContent = htmlAttachment ? atob(htmlAttachment) : '';
+
+      const template = getEmailTemplate(emailRequest.type, {
+        ...emailRequest.data,
+      });
+
+      const emailPayload: any = {
+        from: 'MadeToHike <documents@madetohike.com>',
+        to: emailRequest.to,
+        subject: emailRequest.subject || template.subject,
+        html: template.html,
+        text: template.text,
+      };
+
+      // Add attachment if provided
+      if (attachmentContent) {
+        emailPayload.attachments = [{
+          filename: fileName,
+          content: btoa(unescape(encodeURIComponent(attachmentContent))),
+        }];
+      }
+
+      console.log('Sending guide participant documents email via Resend...');
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailPayload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Resend API error:', result);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to send email', 
+            details: result.message || 'Unknown error',
+            code: result.name || 'EMAIL_SEND_ERROR'
+          }),
+          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('Guide participant documents email sent successfully:', result.id);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Participant documents email sent successfully',
+          id: result.id,
+          type: emailRequest.type
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Handle booking-confirmation email
     if (emailRequest.type === 'booking-confirmation') {
