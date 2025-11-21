@@ -36,6 +36,7 @@ interface ParticipantManagementModalProps {
   onAddParticipant: (name: string, email: string) => void;
   onSendInvite: (participantId: string) => void;
   onRemoveParticipant: (participantId: string) => void;
+  onUpdateEmail: (participantId: string, email: string) => void;
 }
 
 export default function ParticipantManagementModal({
@@ -47,7 +48,8 @@ export default function ParticipantManagementModal({
   maxParticipants,
   onAddParticipant,
   onSendInvite,
-  onRemoveParticipant
+  onRemoveParticipant,
+  onUpdateEmail
 }: ParticipantManagementModalProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState("");
@@ -183,6 +185,7 @@ export default function ParticipantManagementModal({
                 onSendInvite={() => onSendInvite(participant.id)}
                 onRemove={() => onRemoveParticipant(participant.id)}
                 onCopyLink={(link) => copyToClipboard(link, participant.id)}
+                onUpdateEmail={(email) => onUpdateEmail(participant.id, email)}
                 isCopied={copiedLink === participant.id}
               />
             ))}
@@ -220,9 +223,13 @@ function ParticipantCard({
   participant, 
   onSendInvite, 
   onRemove, 
-  onCopyLink, 
+  onCopyLink,
+  onUpdateEmail,
   isCopied 
 }: any) {
+  const [isEditingEmail, setIsEditingEmail] = useState(!participant.email);
+  const [emailInput, setEmailInput] = useState(participant.email || "");
+
   const statusConfig = {
     complete: {
       badge: { bg: "bg-sage", text: "Complete" },
@@ -245,6 +252,16 @@ function ParticipantCard({
   const config = statusConfig[participant.status];
   const initials = participant.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
+  const handleSaveEmail = () => {
+    if (emailInput && emailInput !== participant.email) {
+      onUpdateEmail(emailInput);
+      setIsEditingEmail(false);
+    }
+  };
+
+  const isEmailValid = emailInput && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput);
+  const hasEmail = participant.email && participant.email.length > 0;
+
   return (
     <Card className={`p-4 border ${config.color}`}>
       <div className="flex items-start gap-3">
@@ -254,16 +271,36 @@ function ParticipantCard({
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-charcoal truncate">{participant.name}</h4>
-              <p className="text-sm text-charcoal/60 truncate">{participant.email}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-charcoal truncate">{participant.name}</h4>
+                {isEditingEmail ? (
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="participant@email.com"
+                      className="h-8 text-sm border-burgundy/20"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEmail}
+                      disabled={!isEmailValid}
+                      className="bg-sage hover:bg-sage/90 text-white h-8"
+                    >
+                      Save
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-charcoal/60 truncate">{participant.email}</p>
+                )}
+              </div>
+              <Badge className={`${config.badge.bg} text-white border-0 ml-2 flex-shrink-0`}>
+                {config.badge.text}
+              </Badge>
             </div>
-            <Badge className={`${config.badge.bg} text-white border-0 ml-2 flex-shrink-0`}>
-              {config.badge.text}
-            </Badge>
-          </div>
 
           {/* Status Details */}
           {participant.status === "complete" && (
@@ -315,7 +352,8 @@ function ParticipantCard({
                   variant="outline"
                   size="sm"
                   onClick={onSendInvite}
-                  className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                  disabled={!hasEmail || isEditingEmail}
+                  className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Mail className="w-3.5 h-3.5 mr-1.5" />
                   {participant.status === "not_started" 
