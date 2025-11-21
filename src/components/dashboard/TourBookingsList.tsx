@@ -43,7 +43,7 @@ export function TourBookingsList({ tours, loading }: TourBookingsListProps) {
     <div className="space-y-4">
       {tours.map((tour) => (
         <Card
-          key={tour.tour_id}
+          key={`${tour.tour_id}_${tour.earliest_date}`}
           className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden border-burgundy/10"
           onClick={() => navigate(`/dashboard/bookings/tour/${tour.tour_slug}?date=${tour.earliest_date}`)}
         >
@@ -73,7 +73,7 @@ export function TourBookingsList({ tours, loading }: TourBookingsListProps) {
                   <div className="flex items-center gap-4 text-sm text-charcoal/60 mt-1">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {format(new Date(tour.earliest_date), 'MMM dd')} - {format(new Date(tour.latest_date), 'MMM dd, yyyy')}
+                      {format(new Date(tour.earliest_date), 'MMM dd, yyyy')}
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
