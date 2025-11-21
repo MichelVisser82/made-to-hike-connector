@@ -417,9 +417,9 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                   {additionalParticipants.map((participant, index) => {
                     const actualIndex = index + 1; // Adjust index since we're showing from index 1+
                     const status = participantStatuses?.find((p: any) => p.participant_index === actualIndex);
-                    const isComplete = status?.waiver_completed && status?.insurance_completed && status?.emergency_contact_completed;
+                    const isComplete = status?.waiver_completed && status?.insurance_completed;
                     const isInvited = !!status?.invited_at;
-                    const isInProgress = status && !isComplete && (status.waiver_completed || status.insurance_completed || status.emergency_contact_completed);
+                    const isInProgress = status && !isComplete && (status.waiver_completed || status.insurance_completed);
                     
                     return (
                       <div key={actualIndex} className="flex items-center justify-between p-2 bg-background rounded border border-burgundy/10">
