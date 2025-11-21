@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileText, Package, User, Upload, Info, AlertCircle, Eye } from 'lucide-react';
+import { FileText, Package, User, Upload, Info, AlertCircle, Eye, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { TripDetails, TripChecklistItem } from '@/hooks/useTripDetails';
@@ -15,6 +15,7 @@ import SmartWaiverForm from '@/components/waiver/SmartWaiverForm';
 import { WaiverViewer } from '@/components/waiver/WaiverViewer';
 import { format, addDays } from 'date-fns';
 import { useEmail } from '@/hooks/useEmail';
+import ParticipantManagementModal from '@/components/participant-management/ParticipantManagementModal';
 
 interface TripChecklistTabProps {
   tripDetails: TripDetails;
@@ -88,6 +89,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
   const [waiverViewerOpen, setWaiverViewerOpen] = useState(false);
   const [selectedParticipantIndex, setSelectedParticipantIndex] = useState<number>(0);
   const [showParticipantSelector, setShowParticipantSelector] = useState(false);
+  const [participantManagementOpen, setParticipantManagementOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { sendEmail } = useEmail();
@@ -352,6 +354,28 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
 
   const participants = (parsedWaiverData?.participants_details || booking.participants_details || []) as ParticipantDetails[];
 
+  // Fetch participant statuses from tokens
+  const { data: participantStatuses } = useQuery({
+    queryKey: ['participant-statuses', booking.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('manage-participant-tokens', {
+        body: {
+          action: 'get_participants_status',
+          booking_id: booking.id
+        }
+      });
+      if (error) throw error;
+      return data?.participants || [];
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+  });
+
+  // Calculate participant completion
+  const completedParticipants = participantStatuses?.filter((p: any) => 
+    p.waiver_completed && p.insurance_completed && p.emergency_contact_completed
+  ).length || 0;
+  const totalParticipants = participants.length;
+
   return (
     <div className="space-y-6">
       <div>
@@ -369,6 +393,66 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               <FileText className="w-5 h-5 text-burgundy" />
               Required Documents
             </h3>
+            
+            {/* Participant Overview Card */}
+            <Card className="mb-4 border-burgundy/20 bg-cream/30">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-burgundy" />
+                    <h4 className="font-semibold text-foreground">Participant Documents</h4>
+                  </div>
+                  <Badge variant="outline" className="bg-background">
+                    {completedParticipants} of {totalParticipants} Complete
+                  </Badge>
+                </div>
+                
+                <p className="text-sm text-muted-foreground mb-3">
+                  Each participant needs to complete their waiver, insurance, and emergency contact information.
+                </p>
+                
+                <div className="space-y-2 mb-3">
+                  {participants.map((participant, index) => {
+                    const status = participantStatuses?.find((p: any) => p.participant_index === index);
+                    const isComplete = status?.waiver_completed && status?.insurance_completed && status?.emergency_contact_completed;
+                    const isInvited = !!status?.invited_at;
+                    const isInProgress = status && !isComplete && (status.waiver_completed || status.insurance_completed || status.emergency_contact_completed);
+                    
+                    return (
+                      <div key={index} className="flex items-center justify-between p-2 bg-background rounded border border-burgundy/10">
+                        <span className="text-sm font-medium">
+                          {participant.firstName} {participant.surname}
+                        </span>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            isComplete 
+                              ? 'bg-sage/10 text-sage border-sage/30' 
+                              : isInProgress
+                              ? 'bg-gold/10 text-gold border-gold/30'
+                              : isInvited
+                              ? 'bg-burgundy/10 text-burgundy border-burgundy/30'
+                              : 'bg-muted text-muted-foreground'
+                          }
+                        >
+                          {isComplete ? 'Complete' : isInProgress ? 'In Progress' : isInvited ? 'Invited' : 'Not Started'}
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                  onClick={() => setParticipantManagementOpen(true)}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Manage Participants
+                </Button>
+              </CardContent>
+            </Card>
+
             <div className="space-y-3">
             {mockDocuments.map((doc) => {
               const isLiabilityWaiver = doc.name === 'Liability Waiver';
@@ -614,6 +698,98 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
         waiverData={booking.waiver_data || loadWaiverDraft()}
         tourName={tour.title}
         bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
+      />
+
+      {/* Participant Management Modal */}
+      <ParticipantManagementModal
+        open={participantManagementOpen}
+        onClose={() => setParticipantManagementOpen(false)}
+        bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
+        tourName={tour.title}
+        participants={participants.map((p, index) => {
+          const status = participantStatuses?.find((s: any) => s.participant_index === index);
+          return {
+            id: status?.token_id || `participant-${index}`,
+            name: `${p.firstName} ${p.surname}`,
+            email: p.participantEmail || '',
+            status: status?.waiver_completed && status?.insurance_completed && status?.emergency_contact_completed
+              ? 'complete'
+              : status?.waiver_completed || status?.insurance_completed || status?.emergency_contact_completed
+              ? 'in_progress'
+              : status?.invited_at
+              ? 'invited'
+              : 'not_started',
+            waiverStatus: !!status?.waiver_completed,
+            insuranceStatus: !!status?.insurance_completed,
+            emergencyContactStatus: !!status?.emergency_contact_completed,
+            invitedAt: status?.invited_at,
+            completedAt: status?.completed_at,
+            uniqueLink: status ? `${window.location.origin}/participant/${status.token}` : undefined,
+          };
+        })}
+        onAddParticipant={async (name: string, email: string) => {
+          toast({
+            title: 'Not Implemented',
+            description: 'Adding participants after booking is not yet supported.',
+            variant: 'destructive',
+          });
+        }}
+        onSendInvite={async (participantId: string) => {
+          const participantIndex = participants.findIndex((_, i) => 
+            participantStatuses?.find((s: any) => s.participant_index === i)?.token_id === participantId
+          );
+          
+          if (participantIndex === -1) return;
+          
+          const participant = participants[participantIndex];
+          
+          try {
+            const { data: tokenData, error: tokenError } = await supabase.functions.invoke('manage-participant-tokens', {
+              body: {
+                action: 'create_token',
+                booking_id: booking.id,
+                participant_email: participant.participantEmail || '',
+                participant_name: `${participant.firstName} ${participant.surname}`,
+                participant_index: participantIndex,
+              }
+            });
+            
+            if (tokenError) throw tokenError;
+            
+            const { error: inviteError } = await supabase.functions.invoke('manage-participant-tokens', {
+              body: {
+                action: 'send_invitation',
+                token_id: tokenData.token_id,
+                tour_title: tour.title,
+                booking_reference: booking.booking_reference || `BK-${booking.id.slice(0, 8)}`,
+                tour_date: format(new Date(booking.booking_date), 'MMM dd, yyyy'),
+              }
+            });
+            
+            if (inviteError) throw inviteError;
+            
+            queryClient.invalidateQueries({ queryKey: ['participant-statuses', booking.id] });
+            
+            toast({
+              title: 'Invitation Sent',
+              description: `Invitation email sent to ${participant.firstName} ${participant.surname}`,
+            });
+          } catch (error) {
+            console.error('Error sending invitation:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to send invitation. Please try again.',
+              variant: 'destructive',
+            });
+          }
+        }}
+        onRemoveParticipant={async (participantId: string) => {
+          toast({
+            title: 'Not Implemented',
+            description: 'Removing participants is not yet supported.',
+            variant: 'destructive',
+          });
+        }}
       />
     </div>
   );
