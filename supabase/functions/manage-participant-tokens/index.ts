@@ -339,11 +339,16 @@ async function sendReminder(supabase: any, body: any) {
 // Validate token and return participant/booking data
 async function validateToken(supabase: any, token: string) {
   if (!token) {
-    return new Response(JSON.stringify({ error: 'Token required' }), {
+    return new Response(JSON.stringify({ 
+      valid: false,
+      error: 'Token required' 
+    }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
+  console.log('Validating token:', token.substring(0, 10) + '...');
 
   const tokenHash = await hashToken(token);
 
@@ -360,12 +365,14 @@ async function validateToken(supabase: any, token: string) {
     .eq('token_hash', tokenHash)
     .single();
 
+  console.log('Token lookup result:', { found: !!tokenRecord, error: error?.message });
+
   if (error || !tokenRecord) {
     return new Response(JSON.stringify({ 
       valid: false,
       error: 'Invalid or expired token' 
     }), {
-      status: 404,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
@@ -376,7 +383,7 @@ async function validateToken(supabase: any, token: string) {
       valid: false,
       error: 'Token has expired' 
     }), {
-      status: 403,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
@@ -386,6 +393,8 @@ async function validateToken(supabase: any, token: string) {
     .from('participant_tokens')
     .update({ last_accessed_at: new Date().toISOString() })
     .eq('id', tokenRecord.id);
+
+  console.log('Returning valid token data for participant:', tokenRecord.participant_name);
 
   return new Response(JSON.stringify({
     valid: true,
