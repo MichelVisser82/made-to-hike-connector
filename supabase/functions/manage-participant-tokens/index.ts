@@ -397,6 +397,7 @@ async function getParticipantsStatus(supabase: any, bookingId: string) {
     }
 
     return {
+      // New clean fields
       id: token.id,
       name: token.participant_name,
       email: token.participant_email,
@@ -407,7 +408,16 @@ async function getParticipantsStatus(supabase: any, bookingId: string) {
       insuranceStatus: token.insurance_completed,
       emergencyContactStatus: token.emergency_contact_completed,
       reminderCount: token.reminder_count,
-      lastReminderAt: token.reminder_sent_at
+      lastReminderAt: token.reminder_sent_at,
+      
+      // Compatibility fields for current frontend
+      participant_index: token.participant_index,
+      token_id: token.id,
+      waiver_completed: token.waiver_completed,
+      insurance_completed: token.insurance_completed,
+      emergency_contact_completed: token.emergency_contact_completed,
+      invited_at: token.created_at,
+      completed_at: token.completed_at,
     };
   });
 
