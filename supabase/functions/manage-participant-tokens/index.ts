@@ -201,6 +201,7 @@ async function sendInvitation(supabase: any, body: any) {
   // Send email via send-email edge function
   const emailResponse = await supabase.functions.invoke('send-email', {
     body: {
+      type: 'participant_invitation',
       to: tokenData.participant_email,
       subject: `Complete Your Tour Documents for ${tourName}`,
       templateType: 'participant_invitation',
@@ -269,6 +270,7 @@ async function sendReminder(supabase: any, body: any) {
   // Send reminder email
   const emailResponse = await supabase.functions.invoke('send-email', {
     body: {
+      type: 'participant_reminder',
       to: tokenData.participant_email,
       subject: `Reminder: Complete Your Tour Documents for ${tourName}`,
       templateType: 'participant_reminder',
