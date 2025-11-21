@@ -66,8 +66,8 @@ export default function ParticipantPage() {
   };
 
   const handleWaiverSubmit = async (waiverData: any) => {
+    console.log('=== handleWaiverSubmit called ===', { waiverData });
     try {
-      // Submit waiver data via edge function
       const { data, error } = await supabase.functions.invoke('manage-participant-tokens', {
         body: {
           action: 'submit_waiver',
@@ -76,44 +76,64 @@ export default function ParticipantPage() {
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Supabase function invocation error:', error);
+        throw error;
+      }
+
+      if (data && (data as any).error) {
+        console.error('Edge function returned error:', (data as any).error);
+        throw new Error((data as any).error);
+      }
 
       toast({
         title: 'Waiver Submitted',
         description: 'Your liability waiver has been saved successfully.'
       });
     } catch (error: any) {
-      console.error('Error submitting waiver:', error);
+      console.error('=== handleWaiverSubmit ERROR ===', error);
       toast({
         title: 'Submission Failed',
-        description: 'Failed to submit waiver. Please try again.',
+        description: error?.message || 'Failed to submit waiver. Please try again.',
         variant: 'destructive'
       });
       throw error;
     }
   };
   const handleInsuranceSubmit = async (insuranceData: any) => {
+    console.log('=== handleInsuranceSubmit called ===', { insuranceData });
     try {
-      // Submit insurance data via edge function
       const { data, error } = await supabase.functions.invoke('manage-participant-tokens', {
         body: {
           action: 'submit_insurance',
           token,
-          insurance_data: insuranceData
+          insuranceData
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Supabase function invocation error:', error);
+        throw error;
+      }
+
+      if (data && (data as any).error) {
+        console.error('Edge function returned error:', (data as any).error);
+        throw new Error((data as any).error);
+      }
 
       toast({
         title: 'Insurance Submitted',
         description: 'Your travel insurance information has been saved successfully.'
       });
     } catch (error: any) {
-      console.error('Error submitting insurance:', error);
+      console.error('=== handleInsuranceSubmit ERROR ===', error);
       toast({
         title: 'Submission Failed',
-        description: 'Failed to submit insurance. Please try again.',
+        description: error?.message || 'Failed to submit insurance. Please try again.',
         variant: 'destructive'
       });
       throw error;
