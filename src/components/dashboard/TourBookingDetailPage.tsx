@@ -158,14 +158,46 @@ export function TourBookingDetailPage() {
 
       if (bookingsError) throw bookingsError;
       
-      // Normalize bookings: migrate booking-level data to per-participant structure
+      // Fetch participant tokens for all bookings to get accurate completion status
+      const bookingIds = (bookingsData || []).map((b: any) => b.id);
+      const { data: tokensData } = await supabase
+        .from('participant_tokens')
+        .select('*')
+        .in('booking_id', bookingIds);
+      
+      // Create a map of participant tokens by booking_id and participant_index
+      const tokensByBooking = new Map<string, Map<number, any>>();
+      (tokensData || []).forEach((token: any) => {
+        if (!tokensByBooking.has(token.booking_id)) {
+          tokensByBooking.set(token.booking_id, new Map());
+        }
+        tokensByBooking.get(token.booking_id)!.set(token.participant_index, token);
+      });
+      
+      // Normalize bookings: use participant token data for accurate status
       const normalizedBookings = (bookingsData || []).map((booking: any) => {
         const participantsDetails = booking.participants_details || [];
+        const bookingTokens = tokensByBooking.get(booking.id);
         
-        // If participants_details is empty or missing per-participant tracking, migrate from booking-level
         const normalizedParticipants = participantsDetails.map((participant: any, index: number) => {
-          // Only migrate for lead hiker (index 0) if no per-participant data exists
-          if (index === 0 && !participant.waiverStatus && !participant.waiverSubmittedAt) {
+          const token = bookingTokens?.get(index);
+          
+          // Use token data if available, otherwise fall back to booking-level data for lead hiker
+          if (token) {
+            return {
+              ...participant,
+              waiverStatus: token.waiver_completed ? 'completed' : undefined,
+              waiverSubmittedAt: token.waiver_completed ? new Date().toISOString() : undefined,
+              insuranceStatus: token.insurance_completed ? 'verified' : undefined,
+              insuranceSubmittedAt: token.insurance_completed ? new Date().toISOString() : undefined,
+              participantTokenId: token.id,
+              invitedAt: token.created_at,
+              completedAt: token.completed_at
+            };
+          }
+          
+          // Fallback for lead hiker (index 0) using old booking-level data
+          if (index === 0 && !participant.waiverStatus) {
             return {
               ...participant,
               waiverStatus: booking.waiver_uploaded_at || booking.waiver_data ? 'completed' : undefined,
@@ -175,6 +207,7 @@ export function TourBookingDetailPage() {
               insuranceSubmittedAt: booking.insurance_uploaded_at
             };
           }
+          
           return participant;
         });
         
