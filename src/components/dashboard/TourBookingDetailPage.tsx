@@ -433,6 +433,45 @@ export function TourBookingDetailPage() {
     }
   };
 
+  const handleSendDocumentsEmail = async () => {
+    if (!tour || !profile?.email) {
+      toast({
+        title: 'Error',
+        description: 'Missing tour or guide email information',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setSendingMessage(true);
+
+      const { data, error } = await supabase.functions.invoke('send-participant-documents', {
+        body: {
+          tourId: tour.id,
+          tourDate: dateFilter || null,
+          guideEmail: profile.email
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Documents Sent',
+        description: `Participant documents summary has been sent to ${profile.email}`,
+      });
+    } catch (error: any) {
+      console.error('Error sending documents:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send documents email',
+        variant: 'destructive',
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   const handleExportParticipants = () => {
     // Create CSV content with comprehensive participant information
     const headers = [
@@ -652,10 +691,21 @@ export function TourBookingDetailPage() {
         <Card className="border-burgundy/10">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-playfair text-charcoal">Participants ({totalParticipants})</CardTitle>
-            <Button variant="outline" size="sm" onClick={handleExportParticipants}>
-              <Download className="w-4 h-4 mr-2" />
-              Export List
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSendDocumentsEmail}
+                disabled={sendingMessage}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Email Documents
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportParticipants}>
+                <Download className="w-4 h-4 mr-2" />
+                Export List
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="divide-y divide-burgundy/10">
             {bookings.map((booking) => (
