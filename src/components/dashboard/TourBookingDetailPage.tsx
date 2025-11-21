@@ -35,6 +35,7 @@ import {
   Paperclip,
 } from 'lucide-react';
 import WeatherForecastCard from './WeatherForecastCard';
+import { ParticipantCard } from './ParticipantCard';
 
 interface TourBooking {
   id: string;
@@ -290,6 +291,73 @@ export function TourBookingDetailPage() {
     }
   };
 
+  const handleSendReminder = async (
+    hikerId: string,
+    type: 'waiver' | 'insurance',
+    participantIndex: number
+  ) => {
+    try {
+      const booking = bookings.find(b => b.hiker.id === hikerId);
+      const participant = booking?.participants_details[participantIndex];
+      
+      if (!booking || !participant || !tour) return;
+      
+      const template = chatTemplates.find(t => 
+        type === 'waiver' 
+          ? t.name.toLowerCase().includes('waiver') 
+          : t.name.toLowerCase().includes('insurance')
+      );
+      
+      const reminderMessage = template?.message_content || 
+        `Hi ${participant.firstName}, friendly reminder to submit your ${type} for ${tour.title}.`;
+      
+      const { data: conversation } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('tour_id', tour.id)
+        .eq('hiker_id', hikerId)
+        .maybeSingle();
+      
+      let conversationId = conversation?.id;
+      
+      if (!conversationId) {
+        const { data: newConv } = await supabase
+          .from('conversations')
+          .insert({
+            guide_id: user?.id,
+            hiker_id: hikerId,
+            tour_id: tour.id,
+            conversation_type: 'booking_chat'
+          })
+          .select('id')
+          .single();
+        conversationId = newConv?.id;
+      }
+      
+      await supabase.functions.invoke('send-message', {
+        body: {
+          conversationId,
+          senderId: user?.id,
+          senderType: 'guide',
+          content: reminderMessage,
+          messageType: 'text'
+        }
+      });
+      
+      toast({
+        title: 'Reminder Sent',
+        description: `${type} reminder sent to ${participant.firstName} ${participant.surname}`
+      });
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send reminder',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleExportParticipants = () => {
     // Create CSV content with comprehensive participant information
     const headers = [
@@ -509,68 +577,14 @@ export function TourBookingDetailPage() {
               Export List
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="divide-y divide-burgundy/10">
             {bookings.map((booking) => (
-              <div key={booking.id} className="space-y-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-charcoal">{booking.hiker.name}</p>
-                  <Link 
-                    to={`/dashboard/bookings/${booking.id}`}
-                    className="text-sm text-burgundy hover:text-burgundy/80 hover:underline transition-colors"
-                  >
-                    #{booking.booking_reference}
-                  </Link>
-                </div>
-                    <Badge 
-                      variant="secondary" 
-                      className={`text-xs mt-1 ${
-                        booking.status === 'confirmed' || booking.status === 'pending_confirmation'
-                          ? 'bg-sage/10 text-sage border-sage/20'
-                          : booking.status === 'pending'
-                          ? 'bg-gold/10 text-gold border-gold/20'
-                          : 'bg-charcoal/10 text-charcoal border-charcoal/20'
-                      }`}
-                    >
-                      {booking.status === 'pending_confirmation' ? 'Confirmed' : booking.status}
-                    </Badge>
-                  </div>
-                  <div className="text-right text-sm text-charcoal/60">
-                    <div>Booked {format(new Date(booking.created_at), 'MMM dd, yyyy')}</div>
-                    <div className="font-medium text-charcoal">{booking.participants} people</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-charcoal/60">
-                  <span className="flex items-center gap-1">
-                    <Mail className="w-3 h-3" />
-                    {booking.hiker.email}
-                  </span>
-                  {booking.hiker.phone && (
-                    <span className="flex items-center gap-1">
-                      <Phone className="w-3 h-3" />
-                      {booking.hiker.phone}
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-charcoal/60 flex items-start gap-1">
-                  <span className="font-medium">Dietary:</span>
-                  <span>
-                    {booking.hiker.dietary_preferences && booking.hiker.dietary_preferences.length > 0
-                      ? booking.hiker.dietary_preferences.map(pref => 
-                          pref.charAt(0).toUpperCase() + pref.slice(1)
-                        ).join(', ')
-                      : 'N/A'}
-                  </span>
-                </div>
-                <div className="text-sm text-charcoal/60">
-                  <span className="font-medium">Emergency Contact:</span>{' '}
-                  {booking.hiker.emergency_contact_name || 'N/A'}
-                  {booking.hiker.emergency_contact_phone && ` • ${booking.hiker.emergency_contact_phone}`}
-                  {booking.hiker.emergency_contact_relationship && ` (${booking.hiker.emergency_contact_relationship})`}
-                </div>
-                {booking !== bookings[bookings.length - 1] && <Separator />}
-              </div>
+              <ParticipantCard
+                key={booking.id}
+                booking={booking}
+                tourDate={booking.booking_date}
+                onSendReminder={handleSendReminder}
+              />
             ))}
           </CardContent>
         </Card>

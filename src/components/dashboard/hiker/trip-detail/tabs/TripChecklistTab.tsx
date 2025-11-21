@@ -4,11 +4,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { FileText, Package, User, Upload, Info, AlertCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { TripDetails, TripChecklistItem } from '@/hooks/useTripDetails';
+import type { ParticipantDetails } from '@/types/booking';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import SmartWaiverForm from '@/components/waiver/SmartWaiverForm';
 import { WaiverViewer } from '@/components/waiver/WaiverViewer';
@@ -85,6 +86,8 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
   const [localCheckedItems, setLocalCheckedItems] = useState<Set<string>>(new Set());
   const [waiverDialogOpen, setWaiverDialogOpen] = useState(false);
   const [waiverViewerOpen, setWaiverViewerOpen] = useState(false);
+  const [selectedParticipantIndex, setSelectedParticipantIndex] = useState<number>(0);
+  const [showParticipantSelector, setShowParticipantSelector] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { sendEmail } = useEmail();
@@ -167,13 +170,32 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
     }
   };
 
-  const handleWaiverSubmit = async (waiverData: any) => {
+  const handleWaiverSubmit = async (waiverData: any, participantIndex: number = 0) => {
     try {
+      // Get current participants_details
+      const { data: currentBooking } = await supabase
+        .from('bookings')
+        .select('participants_details')
+        .eq('id', booking.id)
+        .single();
+      
+      const participantsDetails = (currentBooking?.participants_details as any[]) || [];
+      
+      // Update specific participant's waiver data
+      participantsDetails[participantIndex] = {
+        ...participantsDetails[participantIndex],
+        waiverStatus: 'completed',
+        waiverSubmittedAt: new Date().toISOString(),
+        waiverData: waiverData
+      };
+      
+      // Update booking with modified participants_details
       const { error } = await supabase
         .from('bookings')
         .update({
-          waiver_uploaded_at: new Date().toISOString(),
-          waiver_data: waiverData,
+          participants_details: participantsDetails as any,
+          waiver_data: waiverData, // Keep booking-level for backwards compat
+          waiver_uploaded_at: participantIndex === 0 ? new Date().toISOString() : undefined // Only update if lead
         })
         .eq('id', booking.id);
       
@@ -181,13 +203,16 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
       
       // Send confirmation email with waiver copy
       try {
+        const participant = participantsDetails[participantIndex];
+        const participantName = `${participant.firstName} ${participant.surname}`;
         await sendEmail({
           type: 'waiver_confirmation',
           to: userProfile?.email || booking.hiker_email,
           data: {
-            name: waiverData.fullName || userProfile?.first_name || 'there',
+            name: waiverData.fullName || participantName,
             tourTitle: tour.title,
             bookingReference: booking.booking_reference || `BK-${booking.id.slice(0, 8)}`,
+            participantName
           },
         });
       } catch (emailError) {
@@ -195,11 +220,13 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
       }
       
       setWaiverDialogOpen(false);
+      setShowParticipantSelector(false);
       queryClient.invalidateQueries({ queryKey: ['trip-details', booking.id] });
       
+      const participant = participantsDetails[participantIndex];
       toast({
         title: 'Waiver Submitted Successfully',
-        description: 'Your liability waiver has been saved. A confirmation email has been sent.',
+        description: `Waiver for ${participant.firstName} ${participant.surname} has been saved.`,
       });
     } catch (error) {
       console.error('Error submitting waiver:', error);
@@ -310,6 +337,21 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
 
   const { completed, total } = calculateProgress();
 
+  const handleWaiverButtonClick = () => {
+    const participants = parsedWaiverData?.participants_details || booking.participants_details || [];
+    
+    if (participants.length > 1) {
+      // Show participant selector dialog
+      setShowParticipantSelector(true);
+    } else {
+      // Single participant - go directly to waiver form
+      setSelectedParticipantIndex(0);
+      setWaiverDialogOpen(true);
+    }
+  };
+
+  const participants = (parsedWaiverData?.participants_details || booking.participants_details || []) as ParticipantDetails[];
+
   return (
     <div className="space-y-6">
       <div>
@@ -368,7 +410,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                       variant="outline" 
                       size="sm" 
                       className="w-full mt-3 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                      onClick={() => setWaiverDialogOpen(true)}
+                      onClick={handleWaiverButtonClick}
                     >
                       <FileText className="w-3.5 h-3.5 mr-2" />
                       Submit Liability Waiver
@@ -477,6 +519,44 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
         </div>
       </Card>
 
+      {/* Participant Selector Dialog */}
+      <Dialog open={showParticipantSelector} onOpenChange={setShowParticipantSelector}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Participant</DialogTitle>
+            <DialogDescription>
+              Choose which participant is submitting their liability waiver
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {participants.map((participant, index) => {
+              const isCompleted = participant.waiverStatus === 'completed' || (index === 0 && !!booking.waiver_uploaded_at);
+              return (
+                <Button
+                  key={index}
+                  variant={isCompleted ? "outline" : "default"}
+                  className="w-full justify-between"
+                  disabled={isCompleted}
+                  onClick={() => {
+                    setSelectedParticipantIndex(index);
+                    setShowParticipantSelector(false);
+                    setWaiverDialogOpen(true);
+                  }}
+                >
+                  <span>
+                    {participant.firstName} {participant.surname}
+                    {index === 0 && " (Lead)"}
+                  </span>
+                  {isCompleted && (
+                    <Badge variant="secondary" className="ml-2">✓ Completed</Badge>
+                  )}
+                </Button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Waiver Dialog */}
       <Dialog open={waiverDialogOpen} onOpenChange={setWaiverDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
@@ -495,23 +575,27 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             location={tour.region_region ? `${tour.region_subregion}, ${tour.region_region}, ${tour.region_country}` : `${tour.region_subregion}, ${tour.region_country}`}
             guideName={guide.display_name}
             guideContact={guide.phone || 'Contact via platform'}
+            participantIndex={selectedParticipantIndex}
+            participantName={participants[selectedParticipantIndex] ? `${participants[selectedParticipantIndex].firstName} ${participants[selectedParticipantIndex].surname}` : undefined}
             onSubmit={handleWaiverSubmit}
             onSaveDraft={handleWaiverDraftSave}
             prefilledData={{
-              // Start with data from booking form and profile
-              fullName: primaryParticipant?.first_name && primaryParticipant?.surname
-                ? `${primaryParticipant.first_name} ${primaryParticipant.surname}`
+              // Start with data from selected participant and profile
+              fullName: participants[selectedParticipantIndex]?.firstName && participants[selectedParticipantIndex]?.surname
+                ? `${participants[selectedParticipantIndex].firstName} ${participants[selectedParticipantIndex].surname}`
                 : userProfile?.first_name && userProfile?.last_name
                 ? `${userProfile.first_name} ${userProfile.last_name}`
                 : undefined,
               dateOfBirth: userProfile?.date_of_birth || undefined,
-              email: userProfile?.email || booking.hiker_email || undefined,
-              phone: userProfile?.phone || undefined,
+              email: participants[selectedParticipantIndex]?.participantEmail || userProfile?.email || booking.hiker_email || undefined,
+              phone: participants[selectedParticipantIndex]?.participantPhone || userProfile?.phone || undefined,
               country: userProfile?.country || undefined,
               emergencyName: userProfile?.emergency_contact_name || undefined,
               emergencyPhone: userProfile?.emergency_contact_phone || undefined,
               emergencyRelationship: userProfile?.emergency_contact_relationship || undefined,
-              medicalDetails: primaryParticipant?.medical_conditions || undefined,
+              medicalDetails: participants[selectedParticipantIndex]?.medicalConditions || undefined,
+              // Then overlay any previously saved waiver data for this participant
+              ...(participants[selectedParticipantIndex]?.waiverData || {}),
               // Then overlay any previously saved waiver data for any booking
               ...(previousWaiverData || {}),
               // Then overlay any saved waiver data for this specific booking
