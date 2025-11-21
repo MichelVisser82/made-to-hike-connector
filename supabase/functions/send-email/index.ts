@@ -859,9 +859,6 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
   return templates[type as keyof typeof templates] || templates.contact
 }
 
-  return templates[type as keyof typeof templates] || templates.contact
-}
-
 // Enhanced validation function
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
