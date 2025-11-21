@@ -791,7 +791,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             });
           }
         }}
-        onSendInvite={async (participantId: string) => {
+        onSendInvite={async (participantId: string, emailOverride?: string) => {
           const participantIndex = additionalParticipants.findIndex((_, i) => {
             const actualIndex = i + 1;
             const status = participantStatuses?.find((s: any) => s.participant_index === actualIndex);
@@ -804,8 +804,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           const actualIndex = participantIndex + 1; // Adjust since we're excluding primary booker
           const participant = additionalParticipants[participantIndex];
           
+          // Use emailOverride if provided, otherwise fall back to participant.participantEmail
+          const email = emailOverride || participant.participantEmail;
+          
           // Validate participant has email
-          if (!participant.participantEmail) {
+          if (!email) {
             toast({
               title: 'Email Required',
               description: `${participant.firstName} ${participant.surname} needs an email address. Please add them again with their email.`,
@@ -815,15 +818,15 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           }
           
           try {
-            const { data: tokenData, error: tokenError } = await supabase.functions.invoke('manage-participant-tokens', {
-              body: {
-                action: 'create_token',
-                bookingId: booking.id,
-                email: participant.participantEmail || '',
-                name: `${participant.firstName} ${participant.surname}`,
-                participantIndex: actualIndex,
-              }
-            });
+                const { data: tokenData, error: tokenError } = await supabase.functions.invoke('manage-participant-tokens', {
+                  body: {
+                    action: 'create_token',
+                    bookingId: booking.id,
+                    email: email,
+                    name: `${participant.firstName} ${participant.surname}`,
+                    participantIndex: actualIndex,
+                  }
+                });
             
             if (tokenError) throw tokenError;
             

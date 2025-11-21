@@ -34,7 +34,7 @@ interface ParticipantManagementModalProps {
   participants: Participant[];
   maxParticipants: number;
   onAddParticipant: (name: string, email: string) => void;
-  onSendInvite: (participantId: string) => void;
+  onSendInvite: (participantId: string, email?: string) => void;
   onRemoveParticipant: (participantId: string) => void;
   onUpdateEmail: (participantId: string, email: string) => void;
 }
@@ -182,7 +182,7 @@ export default function ParticipantManagementModal({
               <ParticipantCard
                 key={participant.id}
                 participant={participant}
-                onSendInvite={() => onSendInvite(participant.id)}
+                onSendInvite={(email) => onSendInvite(participant.id, email)}
                 onRemove={() => onRemoveParticipant(participant.id)}
                 onCopyLink={(link) => copyToClipboard(link, participant.id)}
                 onUpdateEmail={(email) => onUpdateEmail(participant.id, email)}
@@ -226,7 +226,14 @@ function ParticipantCard({
   onCopyLink,
   onUpdateEmail,
   isCopied 
-}: any) {
+}: {
+  participant: any;
+  onSendInvite: (email?: string) => void;
+  onRemove: () => void;
+  onCopyLink: (link: string) => void;
+  onUpdateEmail: (email: string) => void;
+  isCopied: boolean;
+}) {
   const [isEditingEmail, setIsEditingEmail] = useState(!participant.email);
   const [emailInput, setEmailInput] = useState(participant.email || "");
 
@@ -351,7 +358,7 @@ function ParticipantCard({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={onSendInvite}
+                  onClick={() => onSendInvite(emailInput || participant.email)}
                   disabled={!hasEmail || isEditingEmail}
                   className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
