@@ -37,13 +37,21 @@ const calculateDaysUntil = (tourDate: string): number => {
 };
 
 const getWaiverStatus = (participant: ParticipantDetails, daysUntilTour: number): 'completed' | 'pending' | 'overdue' => {
-  if (participant.waiverStatus === 'completed' || participant.waiverSubmittedAt) return 'completed';
+  // Check explicit status first
+  if (participant.waiverStatus === 'completed') return 'completed';
+  // Check if waiver was submitted
+  if (participant.waiverSubmittedAt) return 'completed';
+  // Determine urgency based on tour proximity
   if (daysUntilTour < 14) return 'overdue';
   return 'pending';
 };
 
 const getInsuranceStatus = (participant: ParticipantDetails, daysUntilTour: number): 'verified' | 'pending' | 'missing' => {
-  if (participant.insuranceStatus === 'verified' || participant.insuranceSubmittedAt) return 'verified';
+  // Check explicit status first
+  if (participant.insuranceStatus === 'verified') return 'verified';
+  // Check if insurance was submitted
+  if (participant.insuranceSubmittedAt) return 'verified';
+  // Determine urgency based on tour proximity
   if (daysUntilTour < 14) return 'missing';
   return 'pending';
 };
