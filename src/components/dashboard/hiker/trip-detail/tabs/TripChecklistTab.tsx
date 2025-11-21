@@ -842,11 +842,68 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           }
         }}
         onRemoveParticipant={async (participantId: string) => {
-          toast({
-            title: 'Not Implemented',
-            description: 'Removing participants is not yet supported.',
-            variant: 'destructive',
-          });
+          try {
+            // Get current participants
+            const currentParticipants = booking.participants_details as ParticipantDetails[] || [];
+            
+            // Find the participant index (accounting for the fact that modal shows additionalParticipants)
+            // The participantId might be a token_id or a participant-{index} string
+            const participantIndex = additionalParticipants.findIndex((_, i) => {
+              const actualIndex = i + 1;
+              const status = participantStatuses?.find((s: any) => s.participant_index === actualIndex);
+              return status?.token_id === participantId || `participant-${actualIndex}` === participantId;
+            });
+            
+            if (participantIndex === -1) {
+              toast({
+                title: 'Error',
+                description: 'Participant not found.',
+                variant: 'destructive',
+              });
+              return;
+            }
+
+            // The actual index in the full participants array (including booker)
+            const actualParticipantIndex = participantIndex + 1;
+            
+            // Remove the participant from the array
+            const updatedParticipants = currentParticipants.filter((_, idx) => idx !== actualParticipantIndex);
+
+            // Update booking
+            const { error } = await supabase
+              .from('bookings')
+              .update({ 
+                participants_details: updatedParticipants as any,
+              })
+              .eq('id', booking.id);
+
+            if (error) throw error;
+
+            // If participant had a token, delete it
+            const status = participantStatuses?.find((s: any) => s.participant_index === actualParticipantIndex);
+            if (status?.token_id) {
+              await supabase
+                .from('participant_tokens')
+                .delete()
+                .eq('id', status.token_id);
+            }
+
+            // Invalidate queries to refresh UI
+            queryClient.invalidateQueries({ queryKey: ['booking', booking.id] });
+            queryClient.invalidateQueries({ queryKey: ['participant-statuses', booking.id] });
+
+            toast({
+              title: 'Participant Removed',
+              description: 'The participant has been removed from this booking.',
+            });
+          } catch (error) {
+            console.error('Error removing participant:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to remove participant. Please try again.',
+              variant: 'destructive',
+            });
+          }
         }}
       />
     </div>
