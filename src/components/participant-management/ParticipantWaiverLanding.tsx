@@ -68,11 +68,9 @@ export default function ParticipantWaiverLanding({
     setStage("insurance");
   };
 
-  const handleInsuranceSubmit = async () => {
+  const handleInsuranceSubmit = async (insuranceData: any) => {
     if (onInsuranceSubmit) {
-      await onInsuranceSubmit({
-        file: insuranceFile
-      });
+      await onInsuranceSubmit(insuranceData);
     }
     setStage("complete");
   };
@@ -307,12 +305,22 @@ function StepItem({ number, title, description, icon, status }: any) {
 function InsuranceUpload({ tourName, onSubmit, onBack }: any) {
   const [insuranceProvider, setInsuranceProvider] = useState("");
   const [policyNumber, setPolicyNumber] = useState("");
+  const [emergencyNumber, setEmergencyNumber] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
     }
+  };
+
+  const handleSubmit = () => {
+    onSubmit({
+      provider: insuranceProvider,
+      policyNumber: policyNumber,
+      emergencyNumber: emergencyNumber,
+      file: file
+    });
   };
 
   return (
@@ -360,6 +368,16 @@ function InsuranceUpload({ tourName, onSubmit, onBack }: any) {
             </div>
 
             <div>
+              <Label>Emergency Assistance Number (optional)</Label>
+              <Input
+                value={emergencyNumber}
+                onChange={(e) => setEmergencyNumber(e.target.value)}
+                placeholder="24/7 emergency contact number"
+                className="border-burgundy/20"
+              />
+            </div>
+
+            <div>
               <Label>Upload Insurance Document *</Label>
               <div className="mt-2 border-2 border-dashed border-burgundy/20 rounded-lg p-8 text-center hover:border-burgundy/40 transition-colors">
                 <input
@@ -396,7 +414,7 @@ function InsuranceUpload({ tourName, onSubmit, onBack }: any) {
               Back
             </Button>
             <Button
-              onClick={onSubmit}
+              onClick={handleSubmit}
               disabled={!insuranceProvider || !policyNumber || !file}
               className="flex-1 bg-burgundy hover:bg-burgundy-dark text-white"
             >
