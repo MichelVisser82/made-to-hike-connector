@@ -618,7 +618,30 @@ export const BookingFlowNew = () => {
           {currentStep === 'participants' && (
             <ParticipantsStep
               form={form}
-              onNext={() => setCurrentStep('contact')}
+              onNext={() => {
+                // Recalculate pricing based on updated participant count
+                const participants = form.getValues('participants');
+                const basePrice = selectedSlot.price_override || tourData.price;
+                const subtotal = basePrice * participants.length;
+                const slotDiscount = selectedSlot.discount_percentage 
+                  ? subtotal * (selectedSlot.discount_percentage / 100) 
+                  : 0;
+                const serviceFee = tourData.service_fee_percentage 
+                  ? subtotal * (tourData.service_fee_percentage / 100) 
+                  : subtotal * 0.10;
+                const total = subtotal - slotDiscount + serviceFee;
+
+                setPricing({
+                  subtotal,
+                  discount: slotDiscount,
+                  slotDiscount,
+                  serviceFee,
+                  total,
+                  currency: selectedSlot.currency_override || tourData.currency
+                });
+
+                setCurrentStep('contact');
+              }}
               onBack={() => setCurrentStep('date')}
               minGroupSize={tourData.min_group_size || 1}
               maxGroupSize={tourData.max_group_size || tourData.group_size}
