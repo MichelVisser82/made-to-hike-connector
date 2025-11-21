@@ -87,33 +87,28 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
 
       if (bookingsError) throw bookingsError;
 
-      // Group bookings by tour
+      // Group bookings by tour AND date (composite key)
       const tourMap = new Map<string, TourBookingSummary>();
 
       bookings?.forEach((booking: any) => {
         const tour = booking.tours;
         if (!tour) return;
 
-        const existing = tourMap.get(tour.id);
+        // Create composite key: tourId_bookingDate
+        const compositeKey = `${tour.id}_${booking.booking_date}`;
+        const existing = tourMap.get(compositeKey);
         const isConfirmed = ['confirmed', 'pending_confirmation', 'completed'].includes(booking.status);
         const isPending = booking.status === 'pending';
 
         if (existing) {
+          // Aggregate bookings for the same tour on the same date
           existing.total_bookings += 1;
           existing.total_participants += booking.participants;
           existing.confirmed_bookings += isConfirmed ? 1 : 0;
           existing.pending_bookings += isPending ? 1 : 0;
           existing.total_revenue += booking.total_price;
-          
-          // Update date range
-          if (booking.booking_date < existing.earliest_date) {
-            existing.earliest_date = booking.booking_date;
-          }
-          if (booking.booking_date > existing.latest_date) {
-            existing.latest_date = booking.booking_date;
-          }
         } else {
-          tourMap.set(tour.id, {
+          tourMap.set(compositeKey, {
             tour_id: tour.id,
             tour_title: tour.title,
             tour_slug: tour.slug,
