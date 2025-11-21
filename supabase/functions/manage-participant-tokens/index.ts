@@ -695,7 +695,52 @@ async function submitInsurance(supabase: any, body: any) {
     }
 
     console.log('Step 7: Checking completion status...');
-    await checkAndMarkComplete(supabase, tokenData.id);
+    const isComplete = await checkAndMarkComplete(supabase, tokenData.id);
+
+    // Step 8: Send confirmation email if all documents are complete
+    if (isComplete) {
+      console.log('Step 8: All documents complete, sending confirmation email...');
+      try {
+        // Get participant and booking details for the email
+        const { data: fullTokenData } = await supabase
+          .from('participant_tokens')
+          .select(`
+            *,
+            bookings (
+              booking_reference,
+              booking_date,
+              tours (
+                id,
+                title,
+                region,
+                guide_profiles!tours_guide_id_fkey (
+                  display_name
+                )
+              )
+            )
+          `)
+          .eq('id', tokenData.id)
+          .single();
+
+        if (fullTokenData) {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'participant_completion',
+              to: tokenData.participant_email,
+              participantName: tokenData.participant_name,
+              tourTitle: fullTokenData.bookings.tours.title,
+              tourDate: fullTokenData.bookings.booking_date,
+              bookingReference: fullTokenData.bookings.booking_reference,
+              guideName: fullTokenData.bookings.tours.guide_profiles?.display_name || 'Your Guide'
+            }
+          });
+          console.log('Confirmation email sent successfully');
+        }
+      } catch (emailError) {
+        console.error('Error sending confirmation email:', emailError);
+        // Don't fail the request if email fails
+      }
+    }
 
     console.log('=== submitInsurance SUCCESS ===');
 
@@ -802,7 +847,7 @@ async function submitEmergencyContact(supabase: any, body: any) {
 }
 
 // Helper function to check if all documents are complete and mark as complete
-async function checkAndMarkComplete(supabase: any, tokenId: string) {
+async function checkAndMarkComplete(supabase: any, tokenId: string): Promise<boolean> {
   const { data: tokenData } = await supabase
     .from('participant_tokens')
     .select('waiver_completed, insurance_completed, emergency_contact_completed, completed_at')
@@ -821,5 +866,8 @@ async function checkAndMarkComplete(supabase: any, tokenId: string) {
       .eq('id', tokenId);
     
     console.log('All documents complete - marked participant as complete');
+    return true;
   }
+  
+  return false;
 }
