@@ -20,6 +20,7 @@ interface ParticipantWaiverLandingProps {
   location: string;
   guideName: string;
   primaryBooker: string;
+  participantName?: string;
   participantEmail?: string;
   tourId?: string;
   completionStatus?: {
@@ -39,6 +40,7 @@ export default function ParticipantWaiverLanding({
   location,
   guideName,
   primaryBooker,
+  participantName,
   participantEmail,
   tourId,
   completionStatus,
@@ -90,8 +92,10 @@ export default function ParticipantWaiverLanding({
   if (stage === "complete") {
     return (
       <CompletionScreen 
-        tourName={tourName} 
+        tourName={tourName}
+        participantName={participantName}
         primaryBooker={primaryBooker}
+        guideName={guideName}
         isReturning={completionStatus?.waiver && completionStatus?.insurance}
         onEmailConfirmation={handleEmailConfirmation}
         onViewTourDetails={handleViewTourDetails}
@@ -406,59 +410,96 @@ function InsuranceUpload({ tourName, onSubmit, onBack }: any) {
   );
 }
 
-function CompletionScreen({ tourName, primaryBooker, isReturning, onEmailConfirmation, onViewTourDetails }: any) {
+function CompletionScreen({ tourName, participantName, primaryBooker, guideName, isReturning, onEmailConfirmation, onViewTourDetails }: any) {
   return (
     <div className="min-h-screen bg-cream-light flex items-center justify-center py-8">
       <div className="max-w-2xl mx-auto px-4">
-        <Card className="p-8 bg-white border-burgundy/10 shadow-lg text-center">
-          <div className="w-20 h-20 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-12 h-12 text-sage" />
+        <Card className="p-8 bg-white border-burgundy/10 shadow-lg">
+          {/* Success Icon */}
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-12 h-12 text-sage" />
+            </div>
+            <h1 className="text-3xl mb-2 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
+              ✅ All Set!
+            </h1>
+            <p className="text-lg text-charcoal/70">
+              Thank you, {participantName}!
+            </p>
+            <p className="text-charcoal/60 mt-1">
+              We've received all your documents for <strong>{tourName}</strong>
+            </p>
           </div>
 
-          <h1 className="text-3xl mb-3 text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-            All Set!
-          </h1>
-          
-          <p className="text-lg text-charcoal/70 mb-6">
-            {isReturning 
-              ? "You've already completed all required documents" 
-              : "Your participant information has been submitted successfully"
-            }
-          </p>
-
           {isReturning && (
-            <Alert className="mb-6 bg-sage/10 border-sage/20 text-left">
+            <Alert className="mb-6 bg-sage/10 border-sage/20">
               <CheckCircle className="h-4 w-4 text-sage" />
               <AlertDescription className="text-sm text-charcoal/70">
-                All your documents have been received and are being reviewed. This confirmation screen is shown for your reference.
+                You've already completed all required documents. This confirmation screen is shown for your reference.
               </AlertDescription>
             </Alert>
           )}
 
-          <div className="bg-sage/5 border border-sage/20 rounded-lg p-6 mb-6">
-            <h3 className="font-medium text-charcoal mb-3">What happens next?</h3>
-            <ul className="space-y-2 text-sm text-charcoal/70 text-left">
+          {/* Documents Summary */}
+          <div className="bg-cream/50 border border-burgundy/10 rounded-lg p-5 mb-6">
+            <h3 className="font-medium text-charcoal mb-3 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-burgundy" />
+              Documents Submitted
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-2 border-b border-burgundy/10">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-sage" />
+                  <span className="text-sm text-charcoal">Liability Waiver</span>
+                </div>
+                <Badge className="bg-sage/10 text-sage border-sage/20">Signed</Badge>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-burgundy/10">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-sage" />
+                  <span className="text-sm text-charcoal">Emergency Contact</span>
+                </div>
+                <Badge className="bg-sage/10 text-sage border-sage/20">Provided</Badge>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-sage" />
+                  <span className="text-sm text-charcoal">Travel Insurance</span>
+                </div>
+                <Badge className="bg-sage/10 text-sage border-sage/20">Uploaded</Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* What's Next */}
+          <div className="bg-gradient-to-br from-sage/5 to-burgundy/5 border border-sage/20 rounded-lg p-5 mb-6">
+            <h3 className="font-medium text-charcoal mb-3 flex items-center gap-2">
+              <Mountain className="w-5 h-5 text-sage" />
+              What's next?
+            </h3>
+            <ul className="space-y-3 text-sm text-charcoal/70">
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
-                <span>{primaryBooker} will be notified that you've completed your forms</span>
+                <span><strong>{primaryBooker}</strong> will be notified of your completion</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
-                <span>Your guide will review your information before the tour</span>
+                <span><strong>{guideName}</strong> will review your information</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
-                <span>You'll receive a confirmation email with your waiver copy</span>
+                <span>You'll receive tour details <strong>48h before departure</strong></span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
-                <span>Tour details and meeting instructions will be sent 48 hours before departure</span>
+                <span>Get excited! Your adventure begins soon 🏔️</span>
               </li>
             </ul>
           </div>
 
+          {/* Action Buttons */}
           <div className="pt-6 border-t border-burgundy/10">
-            <h3 className="text-sm font-medium text-charcoal mb-3">Excited for your adventure?</h3>
+            <h3 className="text-sm font-medium text-charcoal mb-3 text-center">Ready for your adventure?</h3>
             <div className="flex gap-3 justify-center">
               <Button 
                 variant="outline" 
@@ -477,7 +518,8 @@ function CompletionScreen({ tourName, primaryBooker, isReturning, onEmailConfirm
             </div>
           </div>
 
-          <p className="text-xs text-charcoal/50 mt-6">
+          {/* Footer */}
+          <p className="text-xs text-charcoal/50 mt-6 text-center">
             Questions? Contact us at{" "}
             <a href="mailto:support@madetohike.com" className="text-burgundy hover:underline">
               support@madetohike.com

@@ -168,7 +168,8 @@ export default function ParticipantPage() {
       }}
       location={tour.region}
       guideName={tour.guide_display_name || 'Your Guide'}
-      primaryBooker={booking.hiker_email}
+      primaryBooker={booking.hiker_email || 'the primary booker'}
+      participantName={participantData.participantName}
       participantEmail={participantData.participant_email}
       tourId={tour.id}
       completionStatus={participantData.completionStatus}
