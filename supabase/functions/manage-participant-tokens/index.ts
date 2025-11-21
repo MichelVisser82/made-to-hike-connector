@@ -485,16 +485,21 @@ async function getParticipantsStatus(supabase: any, bookingId: string) {
 
 // Submit waiver data
 async function submitWaiver(supabase: any, body: any) {
-  const { token, waiverData } = body;
+  // Support both new and legacy field names for robustness
+  const waiverData = body.waiverData || body.waiver_data || body.waiver || body.data;
+  const token = body.token;
+
+  console.log('submitWaiver - incoming body keys:', Object.keys(body || {}));
 
   if (!token || !waiverData) {
+    console.error('submitWaiver - missing required fields', { hasToken: !!token, hasWaiverData: !!waiverData });
     return new Response(JSON.stringify({ error: 'Missing required fields' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
-  console.log('Submitting waiver for token:', token.substring(0, 10) + '...');
+  console.log('Submitting waiver for token:', String(token).substring(0, 10) + '...');
 
   // Validate token
   const tokenHash = await hashToken(token);
@@ -514,6 +519,7 @@ async function submitWaiver(supabase: any, body: any) {
 
   // Check if token has expired
   if (new Date(tokenData.expires_at) < new Date()) {
+    console.error('submitWaiver - token expired at', tokenData.expires_at);
     return new Response(JSON.stringify({ error: 'Token has expired' }), {
       status: 403,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -527,7 +533,7 @@ async function submitWaiver(supabase: any, body: any) {
       participant_token_id: tokenData.id,
       booking_id: tokenData.booking_id,
       waiver_data: waiverData,
-      waiver_signature_url: waiverData.signatureDataUrl,
+      waiver_signature_url: (waiverData as any).signatureDataUrl,
       waiver_submitted_at: new Date().toISOString()
     }, {
       onConflict: 'participant_token_id'
@@ -569,7 +575,6 @@ async function submitWaiver(supabase: any, body: any) {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
-
 // Submit insurance data
 async function submitInsurance(supabase: any, body: any) {
   const { token, insuranceData, documentUrl } = body;
