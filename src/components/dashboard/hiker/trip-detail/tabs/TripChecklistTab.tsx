@@ -256,6 +256,42 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
 
   const parsedWaiverData = getParsedWaiverData();
 
+  // Fetch the most recent completed waiver for this logged-in hiker to reuse across bookings
+  const { data: previousWaiverData } = useQuery({
+    queryKey: ['previous-waiver', booking.id],
+    queryFn: async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
+      if (!user) return undefined;
+
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('waiver_data, booking_date')
+        .eq('hiker_id', user.id)
+        .not('waiver_data', 'is', null)
+        .order('booking_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data?.waiver_data) return undefined;
+
+      let raw: any = data.waiver_data;
+      if (typeof raw === 'string') {
+        try {
+          raw = JSON.parse(raw);
+        } catch {
+          return undefined;
+        }
+      }
+
+      if (raw && typeof raw === 'object' && raw.formData && typeof raw.formData === 'object') {
+        return raw.formData;
+      }
+
+      return raw && typeof raw === 'object' ? raw : undefined;
+    },
+  });
+
   // Calculate progress
   const calculateProgress = () => {
     if (useMockData) {
@@ -442,6 +478,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
       {/* Waiver Dialog */}
       <Dialog open={waiverDialogOpen} onOpenChange={setWaiverDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="px-6 pt-4 pb-2">
+            <DialogTitle className="text-lg font-semibold text-foreground">
+              Liability Waiver
+            </DialogTitle>
+          </DialogHeader>
           <SmartWaiverForm
             tourName={tour.title}
             bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
@@ -469,7 +510,9 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               emergencyPhone: userProfile?.emergency_contact_phone || undefined,
               emergencyRelationship: userProfile?.emergency_contact_relationship || undefined,
               medicalDetails: primaryParticipant?.medical_conditions || undefined,
-              // Then overlay any previously saved waiver data
+              // Then overlay any previously saved waiver data for any booking
+              ...(previousWaiverData || {}),
+              // Then overlay any saved waiver data for this specific booking
               ...(parsedWaiverData || {}),
               // Finally overlay any draft data (most recent)
               ...loadWaiverDraft(),
