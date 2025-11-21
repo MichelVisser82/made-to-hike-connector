@@ -838,6 +838,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                 tourDates: format(new Date(booking.booking_date), 'MMM dd, yyyy'),
                 guideName: guide.display_name,
                 primaryBookerName: userProfile?.first_name || 'the primary booker',
+                bookingReference: booking.booking_reference,
               }
             });
             

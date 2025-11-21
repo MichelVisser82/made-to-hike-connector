@@ -163,7 +163,7 @@ async function createToken(supabase: any, body: any, url: URL) {
 
 // Send invitation email
 async function sendInvitation(supabase: any, body: any) {
-  const { tokenId, tourName, tourDates, guideName, primaryBookerName } = body;
+  const { tokenId, tourName, tourDates, guideName, primaryBookerName, bookingReference } = body;
 
   if (!tokenId) {
     return new Response(JSON.stringify({ error: 'Missing tokenId' }), {
@@ -175,7 +175,18 @@ async function sendInvitation(supabase: any, body: any) {
   // Get token details
   const { data: tokenData, error: tokenError } = await supabase
     .from('participant_tokens')
-    .select('*')
+    .select(`
+      *,
+      bookings:booking_id (
+        booking_reference,
+        tours:tour_id (
+          title,
+          guide_profiles:guide_id (
+            display_name
+          )
+        )
+      )
+    `)
     .eq('id', tokenId)
     .single();
 
@@ -198,19 +209,24 @@ async function sendInvitation(supabase: any, body: any) {
 
   const participantLink = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.app')}/participant/${token}`;
 
-  // Send email via send-email edge function
+  // Extract data from nested structure
+  const booking = tokenData.bookings;
+  const tour = booking?.tours;
+  const guide = tour?.guide_profiles;
+
+  // Send email via send-email edge function with correct field names
   const emailResponse = await supabase.functions.invoke('send-email', {
     body: {
       type: 'participant_invitation',
       to: tokenData.participant_email,
-      subject: `Complete Your Tour Documents for ${tourName}`,
-      templateType: 'participant_invitation',
-      templateData: {
+      subject: `Complete Your Tour Documents for ${tourName || tour?.title}`,
+      data: {
         participantName: tokenData.participant_name,
-        primaryBookerName,
-        tourName,
-        tourDates,
-        guideName,
+        primaryBooker: primaryBookerName,
+        tourTitle: tourName || tour?.title,
+        tourDates: tourDates,
+        guideName: guideName || guide?.display_name,
+        bookingReference: bookingReference || booking?.booking_reference,
         participantLink
       }
     }
@@ -237,10 +253,17 @@ async function sendReminder(supabase: any, body: any) {
     });
   }
 
-  // Get token details
+  // Get token details with booking info
   const { data: tokenData, error: tokenError } = await supabase
     .from('participant_tokens')
-    .select('*')
+    .select(`
+      *,
+      bookings:booking_id (
+        tours:tour_id (
+          title
+        )
+      )
+    `)
     .eq('id', tokenId)
     .single();
 
@@ -267,18 +290,19 @@ async function sendReminder(supabase: any, body: any) {
 
   const participantLink = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.app')}/participant/${token}`;
 
-  // Send reminder email
+  // Extract tour title from nested structure
+  const tour = tokenData.bookings?.tours;
+
+  // Send reminder email with correct field names
   const emailResponse = await supabase.functions.invoke('send-email', {
     body: {
       type: 'participant_reminder',
       to: tokenData.participant_email,
-      subject: `Reminder: Complete Your Tour Documents for ${tourName}`,
-      templateType: 'participant_reminder',
-      templateData: {
+      subject: `Reminder: Complete Your Tour Documents for ${tourName || tour?.title}`,
+      data: {
         participantName: tokenData.participant_name,
-        tourName,
+        tourTitle: tourName || tour?.title,
         daysUntilTour,
-        primaryBookerName,
         participantLink
       }
     }
