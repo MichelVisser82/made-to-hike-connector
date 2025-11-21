@@ -5,7 +5,7 @@ import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete'
   to: string
   from?: string
   reply_to?: string
@@ -852,9 +852,197 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </html>`,
       text: `📋 Insurance Required\n\nHi ${data.participantName},\n\nYour tour ${data.tourTitle} departs in ${data.daysUntilTour} days, but we still need proof of your insurance.\n\nUpload now: ${data.uploadUrl}\n\nThe Made to Hike Team`
     },
+
+    participant_invitation: {
+      subject: `📋 Complete Your Tour Documents - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Tour Documents</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5C1E22 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">🏔️ Made to Hike</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Complete Your Participant Information</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Hi ${data.participantName}!</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                You've been invited by <strong>${data.primaryBooker}</strong> to join this exciting adventure:
+            </p>
+
+            <div style="background: #f8fffe; border-left: 4px solid #2c5530; padding: 20px; margin-bottom: 25px; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 10px; color: #2c5530; font-size: 18px;">${data.tourTitle}</h3>
+                <p style="margin: 5px 0; color: #4a5568; font-size: 14px;"><strong>Dates:</strong> ${data.tourDates}</p>
+                <p style="margin: 5px 0; color: #4a5568; font-size: 14px;"><strong>Guide:</strong> ${data.guideName}</p>
+                <p style="margin: 5px 0; color: #4a5568; font-size: 14px;"><strong>Booking:</strong> #${data.bookingReference}</p>
+            </div>
+
+            <h3 style="color: #2c5530; margin-bottom: 15px;">You need to complete:</h3>
+            <ul style="color: #4a5568; line-height: 1.8;">
+                <li>Liability waiver (digital signature)</li>
+                <li>Travel insurance proof</li>
+                <li>Emergency contact information</li>
+            </ul>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.participantLink}" style="display: inline-block; background: #7C2D32; color: white; text-decoration: none; padding: 15px 30px; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                    Complete Your Documents
+                </a>
+            </div>
+
+            <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 15px; border-radius: 0 4px 4px 0; margin-top: 20px;">
+                <p style="margin: 0; color: #f57c00; font-size: 14px;">
+                    <strong>⏰ Important:</strong> This link expires in 30 days. No account needed!
+                </p>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px;">
+            <p style="margin: 0;">Questions? Reply to this email or contact ${data.primaryBooker}</p>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Complete Your Tour Documents - ${data.tourTitle}\n\nHi ${data.participantName}!\n\nYou've been invited by ${data.primaryBooker} to join: ${data.tourTitle}\nDates: ${data.tourDates}\nGuide: ${data.guideName}\n\nComplete your documents: ${data.participantLink}\n\nThis link expires in 30 days. Questions? Contact ${data.primaryBooker}`
+    },
+
+    participant_reminder: {
+      subject: `⏰ Reminder: Complete Your Tour Documents - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5C1E22 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">⏰ Reminder</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Hi ${data.participantName},</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your tour <strong>${data.tourTitle}</strong> departs in <strong>${data.daysUntilTour} days</strong>, but we still need your participant documents.
+            </p>
+
+            <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 20px; margin-bottom: 25px; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0; color: #f57c00; font-size: 14px;">
+                    <strong>Action Required:</strong> Please complete your waiver, insurance, and emergency contact information.
+                </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.participantLink}" style="display: inline-block; background: #7C2D32; color: white; text-decoration: none; padding: 15px 30px; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                    Continue Your Submission
+                </a>
+            </div>
+
+            <p style="color: #718096; font-size: 14px; text-align: center;">
+                Your progress is automatically saved. You can complete this at your own pace.
+            </p>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Reminder: Complete Your Tour Documents\n\nHi ${data.participantName},\n\nYour tour ${data.tourTitle} departs in ${data.daysUntilTour} days.\n\nContinue: ${data.participantLink}`
+    },
+
+    participant_completion: {
+      subject: `✅ Documents Received - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #4a7c59 0%, #2c5530 100%); padding: 30px; text-center;">
+            <div style="width: 60px; height: 60px; background: white; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 30px;">✅</span>
+            </div>
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">All Set!</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Thank you, ${data.participantName}!</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                We've received all your documents for <strong>${data.tourTitle}</strong>.
+            </p>
+
+            <div style="background: #f0f8f0; border-left: 4px solid #4a7c59; padding: 20px; margin-bottom: 25px; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 15px; color: #2c5530;">What's next?</h3>
+                <ul style="margin: 0; padding-left: 20px; color: #4a5568;">
+                    <li style="margin-bottom: 8px;">${data.primaryBooker} will be notified</li>
+                    <li style="margin-bottom: 8px;">Your guide will review your information</li>
+                    <li style="margin-bottom: 8px;">You'll receive tour details 48h before departure</li>
+                </ul>
+            </div>
+
+            <p style="color: #718096; font-size: 14px; text-align: center;">
+                Get excited! Your adventure begins soon 🏔️
+            </p>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Documents Received!\n\nThank you, ${data.participantName}!\n\nWe've received all your documents for ${data.tourTitle}.\n\n${data.primaryBooker} will be notified and your guide will review your information.`
+    },
+
+    booker_participant_complete: {
+      subject: `✅ ${data.participantName} completed tour documents`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #4a7c59 0%, #2c5530 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Participant Update</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="margin: 0 0 20px; color: #2c5530; font-size: 22px;">Good news!</h2>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                <strong>${data.participantName}</strong> has completed their tour documents for <strong>${data.tourTitle}</strong>.
+            </p>
+
+            <div style="background: #f0f8f0; border-left: 4px solid #4a7c59; padding: 20px; margin-bottom: 25px; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0; color: #2c5530; font-size: 16px;">
+                    <strong>Progress:</strong> ${data.completedCount} of ${data.totalCount} participants completed
+                </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.dashboardLink}" style="display: inline-block; background: #7C2D32; color: white; text-decoration: none; padding: 15px 30px; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                    View All Documents
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Participant Update\n\n${data.participantName} has completed their tour documents for ${data.tourTitle}.\n\nProgress: ${data.completedCount} of ${data.totalCount} completed\n\nView: ${data.dashboardLink}`
+    },
   };
 
-  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder'];
+  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete'];
 
   return templates[type as keyof typeof templates] || templates.contact
 }
@@ -863,7 +1051,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
