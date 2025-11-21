@@ -29,6 +29,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import OfferAccept from "./pages/OfferAccept";
 import OfferDecline from "./pages/OfferDecline";
+import ParticipantPage from "./pages/ParticipantPage";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ const App: React.FC = () => {
             <Route path="/offer/accept" element={<OfferAccept />} />
             <Route path="/offer/decline" element={<OfferDecline />} />
             <Route path="/help" element={<HelpPage />} />
+            <Route path="/participant/:token" element={<ParticipantPage />} />
                 <Route 
                   path="/dashboard" 
                   element={
