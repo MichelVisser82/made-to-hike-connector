@@ -39,9 +39,24 @@ export function TourBookingsList({ tours, loading }: TourBookingsListProps) {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {tours.map((tour) => (
+  // Sort tours by date (earliest first)
+  const sortedTours = [...tours].sort((a, b) => 
+    new Date(a.earliest_date).getTime() - new Date(b.earliest_date).getTime()
+  );
+
+  // Split into upcoming and past tours
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const upcomingTours = sortedTours.filter(tour => 
+    new Date(tour.earliest_date) >= today
+  );
+  
+  const pastTours = sortedTours.filter(tour => 
+    new Date(tour.earliest_date) < today
+  );
+
+  const renderTourCard = (tour: TourBookingSummary) => (
         <Card
           key={`${tour.tour_id}_${tour.earliest_date}`}
           className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden border-burgundy/10"
@@ -109,7 +124,28 @@ export function TourBookingsList({ tours, loading }: TourBookingsListProps) {
             </div>
           </div>
         </Card>
-      ))}
+  );
+
+  return (
+    <div className="space-y-8">
+      {/* Upcoming Tours Section */}
+      {upcomingTours.length > 0 && (
+        <div className="space-y-4">
+          {upcomingTours.map(renderTourCard)}
+        </div>
+      )}
+
+      {/* Past Tours Section */}
+      {pastTours.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pt-6 border-t border-burgundy/10">
+            <h3 className="text-sm font-semibold text-charcoal/60 uppercase tracking-wide">
+              Past Date Tours
+            </h3>
+          </div>
+          {pastTours.map(renderTourCard)}
+        </div>
+      )}
     </div>
   );
 }
