@@ -13,30 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import {
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  Users,
-  DollarSign,
-  Mail,
-  Phone,
-  Download,
-  FileText,
-  Send,
-  Paperclip,
-} from 'lucide-react';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Mail, Phone, Download, FileText, Send, Paperclip } from 'lucide-react';
 import WeatherForecastCard from './WeatherForecastCard';
 import { ParticipantCard } from './ParticipantCard';
-
 interface TourBooking {
   id: string;
   booking_reference: string;
@@ -63,7 +43,6 @@ interface TourBooking {
     emergency_contact_relationship?: string;
   };
 }
-
 interface TourDetails {
   id: string;
   title: string;
@@ -78,48 +57,50 @@ interface TourDetails {
   location?: string;
   price_per_person?: number;
 }
-
 export function TourBookingDetailPage() {
-  const { tourSlug } = useParams();
+  const {
+    tourSlug
+  } = useParams();
   const [searchParams] = useSearchParams();
   const dateFilter = searchParams.get('date');
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { profile } = useProfile();
-  const { toast } = useToast();
-  const { templates: chatTemplates, isLoading: templatesLoading } = useChatMessageTemplates(user?.id);
-  
+  const {
+    user
+  } = useAuth();
+  const {
+    profile
+  } = useProfile();
+  const {
+    toast
+  } = useToast();
+  const {
+    templates: chatTemplates,
+    isLoading: templatesLoading
+  } = useChatMessageTemplates(user?.id);
   const [tour, setTour] = useState<TourDetails | null>(null);
   const [bookings, setBookings] = useState<TourBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [groupMessage, setGroupMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
-
   useEffect(() => {
     if (tourSlug && user) {
       fetchTourAndBookings();
     }
   }, [tourSlug, user, dateFilter]);
-
   const fetchTourAndBookings = async () => {
     try {
       setLoading(true);
 
       // Fetch tour details
-      const { data: tourData, error: tourError } = await supabase
-        .from('tours')
-        .select('*')
-        .eq('slug', tourSlug)
-        .eq('guide_id', user?.id)
-        .single();
-
+      const {
+        data: tourData,
+        error: tourError
+      } = await supabase.from('tours').select('*').eq('slug', tourSlug).eq('guide_id', user?.id).single();
       if (tourError) throw tourError;
       setTour(tourData as TourDetails);
 
       // Fetch bookings for this tour, filtered by date if specified
-      let bookingsQuery = supabase
-        .from('bookings')
-        .select(`
+      let bookingsQuery = supabase.from('bookings').select(`
           id,
           booking_reference,
           booking_date,
@@ -144,27 +125,26 @@ export function TourBookingDetailPage() {
             emergency_contact_phone,
             emergency_contact_relationship
           )
-        `)
-        .eq('tour_id', tourData.id)
-        .in('status', ['confirmed', 'pending', 'pending_confirmation', 'completed']);
+        `).eq('tour_id', tourData.id).in('status', ['confirmed', 'pending', 'pending_confirmation', 'completed']);
 
       // Filter by specific date if provided
       if (dateFilter) {
         bookingsQuery = bookingsQuery.eq('booking_date', dateFilter);
       }
-
-      const { data: bookingsData, error: bookingsError } = await bookingsQuery
-        .order('booking_date', { ascending: true });
-
+      const {
+        data: bookingsData,
+        error: bookingsError
+      } = await bookingsQuery.order('booking_date', {
+        ascending: true
+      });
       if (bookingsError) throw bookingsError;
-      
+
       // Fetch participant tokens for all bookings to get accurate completion status
       const bookingIds = (bookingsData || []).map((b: any) => b.id);
-      const { data: tokensData } = await supabase
-        .from('participant_tokens')
-        .select('*')
-        .in('booking_id', bookingIds);
-      
+      const {
+        data: tokensData
+      } = await supabase.from('participant_tokens').select('*').in('booking_id', bookingIds);
+
       // Create a map of participant tokens by booking_id and participant_index
       const tokensByBooking = new Map<string, Map<number, any>>();
       (tokensData || []).forEach((token: any) => {
@@ -173,15 +153,14 @@ export function TourBookingDetailPage() {
         }
         tokensByBooking.get(token.booking_id)!.set(token.participant_index, token);
       });
-      
+
       // Normalize bookings: use participant token data for accurate status
       const normalizedBookings = (bookingsData || []).map((booking: any) => {
         const participantsDetails = booking.participants_details || [];
         const bookingTokens = tokensByBooking.get(booking.id);
-        
         const normalizedParticipants = participantsDetails.map((participant: any, index: number) => {
           const token = bookingTokens?.get(index);
-          
+
           // Use token data if available, otherwise fall back to booking-level data for lead hiker
           if (token) {
             return {
@@ -195,7 +174,7 @@ export function TourBookingDetailPage() {
               completedAt: token.completed_at
             };
           }
-          
+
           // Fallback for lead hiker (index 0) using old booking-level data
           if (index === 0 && !participant.waiverStatus) {
             return {
@@ -207,35 +186,30 @@ export function TourBookingDetailPage() {
               insuranceSubmittedAt: booking.insurance_uploaded_at
             };
           }
-          
           return participant;
         });
-        
         return {
           ...booking,
           participants_details: normalizedParticipants
         };
       });
-      
       setBookings(normalizedBookings as TourBooking[]);
     } catch (error) {
       console.error('Error fetching tour bookings:', error);
       toast({
         title: 'Error',
         description: 'Failed to load tour booking details',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleSendGroupMessage = async () => {
     if (!groupMessage.trim() || !tour) return;
     if (sendingMessage) return; // Prevent double-clicks
 
     setSendingMessage(true);
-
     try {
       // Get all unique hiker IDs from bookings with their info
       const uniqueHikers = new Map();
@@ -249,7 +223,6 @@ export function TourBookingDetailPage() {
           });
         }
       });
-
       let successCount = 0;
       let failCount = 0;
 
@@ -266,19 +239,14 @@ export function TourBookingDetailPage() {
             guestCount: hikerInfo.participants,
             guideName: profile?.name || 'Your guide',
             meetingPoint: tour.meeting_point || 'the meeting point',
-            startTime: '09:00', // Could be added to tour details if needed
+            startTime: '09:00' // Could be added to tour details if needed
           });
 
           // Find or create conversation
-          let { data: conversation, error: fetchError } = await supabase
-            .from('conversations')
-            .select('id')
-            .eq('tour_id', tour.id)
-            .eq('hiker_id', hikerId)
-            .eq('guide_id', user?.id)
-            .eq('conversation_type', 'booking_chat')
-            .maybeSingle();
-
+          let {
+            data: conversation,
+            error: fetchError
+          } = await supabase.from('conversations').select('id').eq('tour_id', tour.id).eq('hiker_id', hikerId).eq('guide_id', user?.id).eq('conversation_type', 'booking_chat').maybeSingle();
           if (fetchError) {
             console.error('Error fetching conversation:', fetchError);
             failCount++;
@@ -287,28 +255,23 @@ export function TourBookingDetailPage() {
 
           // Create conversation if it doesn't exist
           if (!conversation) {
-            const { data: newConv, error: createError } = await supabase
-              .from('conversations')
-              .insert({
-                tour_id: tour.id,
-                hiker_id: hikerId,
-                guide_id: user?.id,
-                conversation_type: 'booking_chat'
-              })
-              .select('id')
-              .single();
-            
+            const {
+              data: newConv,
+              error: createError
+            } = await supabase.from('conversations').insert({
+              tour_id: tour.id,
+              hiker_id: hikerId,
+              guide_id: user?.id,
+              conversation_type: 'booking_chat'
+            }).select('id').single();
             if (createError) {
               console.error('Error creating conversation:', createError);
               failCount++;
               continue;
             }
-            
             conversation = newConv;
           }
-
           const conversationId = conversation?.id;
-
           if (!conversationId) {
             console.error('No conversation ID available');
             failCount++;
@@ -316,21 +279,21 @@ export function TourBookingDetailPage() {
           }
 
           // Send personalized message using edge function
-          const { error: sendError } = await supabase.functions.invoke('send-message', {
+          const {
+            error: sendError
+          } = await supabase.functions.invoke('send-message', {
             body: {
               conversationId: conversationId,
               content: personalizedMessage,
               senderType: 'guide',
               senderName: user?.email
-            },
+            }
           });
-
           if (sendError) {
             console.error('Error sending message:', sendError);
             failCount++;
             continue;
           }
-
           successCount++;
         } catch (error) {
           console.error(`Failed to send message to hiker ${hikerId}:`, error);
@@ -346,13 +309,13 @@ export function TourBookingDetailPage() {
         setGroupMessage('');
         toast({
           title: 'Success',
-          description: `Message sent to ${successCount} participant${successCount > 1 ? 's' : ''}${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+          description: `Message sent to ${successCount} participant${successCount > 1 ? 's' : ''}${failCount > 0 ? ` (${failCount} failed)` : ''}`
         });
       } else {
         toast({
           title: 'Error',
           description: 'Failed to send messages to any participants',
-          variant: 'destructive',
+          variant: 'destructive'
         });
       }
     } catch (error) {
@@ -361,54 +324,32 @@ export function TourBookingDetailPage() {
       toast({
         title: 'Error',
         description: 'Failed to send group message',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };
-
-  const handleSendReminder = async (
-    hikerId: string,
-    type: 'waiver' | 'insurance',
-    participantIndex: number
-  ) => {
+  const handleSendReminder = async (hikerId: string, type: 'waiver' | 'insurance', participantIndex: number) => {
     try {
       const booking = bookings.find(b => b.hiker.id === hikerId);
       const participant = booking?.participants_details[participantIndex];
-      
       if (!booking || !participant || !tour) return;
-      
-      const template = chatTemplates.find(t => 
-        type === 'waiver' 
-          ? t.name.toLowerCase().includes('waiver') 
-          : t.name.toLowerCase().includes('insurance')
-      );
-      
-      const reminderMessage = template?.message_content || 
-        `Hi ${participant.firstName}, friendly reminder to submit your ${type} for ${tour.title}.`;
-      
-      const { data: conversation } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('tour_id', tour.id)
-        .eq('hiker_id', hikerId)
-        .maybeSingle();
-      
+      const template = chatTemplates.find(t => type === 'waiver' ? t.name.toLowerCase().includes('waiver') : t.name.toLowerCase().includes('insurance'));
+      const reminderMessage = template?.message_content || `Hi ${participant.firstName}, friendly reminder to submit your ${type} for ${tour.title}.`;
+      const {
+        data: conversation
+      } = await supabase.from('conversations').select('id').eq('tour_id', tour.id).eq('hiker_id', hikerId).maybeSingle();
       let conversationId = conversation?.id;
-      
       if (!conversationId) {
-        const { data: newConv } = await supabase
-          .from('conversations')
-          .insert({
-            guide_id: user?.id,
-            hiker_id: hikerId,
-            tour_id: tour.id,
-            conversation_type: 'booking_chat'
-          })
-          .select('id')
-          .single();
+        const {
+          data: newConv
+        } = await supabase.from('conversations').insert({
+          guide_id: user?.id,
+          hiker_id: hikerId,
+          tour_id: tour.id,
+          conversation_type: 'booking_chat'
+        }).select('id').single();
         conversationId = newConv?.id;
       }
-      
       await supabase.functions.invoke('send-message', {
         body: {
           conversationId,
@@ -418,7 +359,6 @@ export function TourBookingDetailPage() {
           messageType: 'text'
         }
       });
-      
       toast({
         title: 'Reminder Sent',
         description: `${type} reminder sent to ${participant.firstName} ${participant.surname}`
@@ -432,85 +372,55 @@ export function TourBookingDetailPage() {
       });
     }
   };
-
   const handleSendDocumentsEmail = async () => {
     if (!tour || !profile?.email) {
       toast({
         title: 'Error',
         description: 'Missing tour or guide email information',
-        variant: 'destructive',
+        variant: 'destructive'
       });
       return;
     }
-
     try {
       setSendingMessage(true);
-
-      const { data, error } = await supabase.functions.invoke('send-participant-documents', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('send-participant-documents', {
         body: {
           tourId: tour.id,
           tourDate: dateFilter || null,
           guideEmail: profile.email
         }
       });
-
       if (error) throw error;
-
       toast({
         title: 'Documents Sent',
-        description: `Participant documents summary has been sent to ${profile.email}`,
+        description: `Participant documents summary has been sent to ${profile.email}`
       });
     } catch (error: any) {
       console.error('Error sending documents:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to send documents email',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     } finally {
       setSendingMessage(false);
     }
   };
-
   const handleExportParticipants = () => {
     // Create CSV content with comprehensive participant information
-    const headers = [
-      'Name', 
-      'Email', 
-      'Phone', 
-      'Booking Date', 
-      'Participants', 
-      'Status', 
-      'Dietary Requirements',
-      'Emergency Contact Name',
-      'Emergency Contact Phone',
-      'Emergency Contact Relationship'
-    ];
-    
+    const headers = ['Name', 'Email', 'Phone', 'Booking Date', 'Participants', 'Status', 'Dietary Requirements', 'Emergency Contact Name', 'Emergency Contact Phone', 'Emergency Contact Relationship'];
     const rows = bookings.map(booking => {
       // Handle dietary preferences array - capitalize for display
-      const dietaryReqs = booking.hiker.dietary_preferences && Array.isArray(booking.hiker.dietary_preferences)
-        ? booking.hiker.dietary_preferences.map(pref => 
-            pref.charAt(0).toUpperCase() + pref.slice(1)
-          ).join('; ')
-        : 'None';
-      
-      return [
-        booking.hiker.name,
-        booking.hiker.email,
-        booking.hiker.phone || '',
-        format(new Date(booking.booking_date), 'yyyy-MM-dd'),
-        booking.participants.toString(),
-        booking.status === 'pending_confirmation' ? 'Confirmed' : booking.status,
-        dietaryReqs,
-        booking.hiker.emergency_contact_name || '',
-        booking.hiker.emergency_contact_phone || '',
-        booking.hiker.emergency_contact_relationship || '',
-      ];
+      const dietaryReqs = booking.hiker.dietary_preferences && Array.isArray(booking.hiker.dietary_preferences) ? booking.hiker.dietary_preferences.map(pref => pref.charAt(0).toUpperCase() + pref.slice(1)).join('; ') : 'None';
+      return [booking.hiker.name, booking.hiker.email, booking.hiker.phone || '', format(new Date(booking.booking_date), 'yyyy-MM-dd'), booking.participants.toString(), booking.status === 'pending_confirmation' ? 'Confirmed' : booking.status, dietaryReqs, booking.hiker.emergency_contact_name || '', booking.hiker.emergency_contact_phone || '', booking.hiker.emergency_contact_relationship || ''];
     });
-
     const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], {
+      type: 'text/csv'
+    });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -520,47 +430,35 @@ export function TourBookingDetailPage() {
   };
 
   // Get active chat templates from database - keep variables intact for personalization
-  const quickTemplates = chatTemplates
-    .filter(t => t.is_active)
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map(template => ({
-      icon: FileText,
-      label: template.name,
-      message: template.message_content, // Keep template variables for personalization per recipient
-    }));
-
+  const quickTemplates = chatTemplates.filter(t => t.is_active).sort((a, b) => a.sort_order - b.sort_order).map(template => ({
+    icon: FileText,
+    label: template.name,
+    message: template.message_content // Keep template variables for personalization per recipient
+  }));
   if (loading) {
-    return (
-      <div className="p-6 space-y-6">
+    return <div className="p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-64 w-full" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Skeleton className="h-96" />
           <Skeleton className="h-96" />
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!tour) {
-    return (
-      <div className="p-6">
+    return <div className="p-6">
         <Card className="border-burgundy/10">
           <CardContent className="pt-6">
             <p className="text-charcoal/60">Tour not found</p>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
   const totalParticipants = bookings.reduce((sum, b) => sum + b.participants, 0);
   const totalRevenue = bookings.reduce((sum, b) => sum + b.total_price, 0);
   const currency = bookings[0]?.currency || 'EUR';
   const pricePerPerson = tour.price_per_person || (bookings[0] ? Math.round(bookings[0].total_price / bookings[0].participants) : 0);
-
-  return (
-    <div className="p-6 space-y-6">
+  return <div className="p-6 space-y-6">
       {/* Breadcrumb */}
       <Breadcrumb>
         <BreadcrumbList>
@@ -577,12 +475,7 @@ export function TourBookingDetailPage() {
       </Breadcrumb>
 
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate('/dashboard?section=bookings')}
-        className="mb-4"
-      >
+      <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard?section=bookings')} className="mb-4">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Tours List
       </Button>
@@ -590,17 +483,9 @@ export function TourBookingDetailPage() {
       {/* Hero Section */}
       <Card className="overflow-hidden border-burgundy/10">
         <div className="relative h-64">
-          {tour.hero_image ? (
-            <img
-              src={tour.hero_image}
-              alt={tour.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-cream flex items-center justify-center">
+          {tour.hero_image ? <img src={tour.hero_image} alt={tour.title} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-cream flex items-center justify-center">
               <MapPin className="w-16 h-16 text-charcoal/40" />
-            </div>
-          )}
+            </div>}
           <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-charcoal/15 to-transparent" />
           <div className="absolute bottom-6 left-6 text-white">
             <h1 className="text-3xl font-playfair mb-2">{tour.title}</h1>
@@ -608,18 +493,14 @@ export function TourBookingDetailPage() {
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
                 {bookings.length > 0 ? (() => {
-                  const uniqueDates = [...new Set(bookings.map(b => b.booking_date))].sort();
-                  return uniqueDates.length === 1
-                    ? format(new Date(uniqueDates[0]), 'MMM dd, yyyy')
-                    : `${format(new Date(uniqueDates[0]), 'MMM dd')} - ${format(new Date(uniqueDates[uniqueDates.length - 1]), 'MMM dd, yyyy')}`;
-                })() : 'No dates'}
+                const uniqueDates = [...new Set(bookings.map(b => b.booking_date))].sort();
+                return uniqueDates.length === 1 ? format(new Date(uniqueDates[0]), 'MMM dd, yyyy') : `${format(new Date(uniqueDates[0]), 'MMM dd')} - ${format(new Date(uniqueDates[uniqueDates.length - 1]), 'MMM dd, yyyy')}`;
+              })() : 'No dates'}
               </span>
-              {tour.location && (
-                <span className="flex items-center gap-1">
+              {tour.location && <span className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
                   {tour.location}
-                </span>
-              )}
+                </span>}
               <Badge variant="secondary" className="bg-white/90 text-charcoal">
                 {tour.difficulty}
               </Badge>
@@ -666,23 +547,14 @@ export function TourBookingDetailPage() {
           <CardContent className="pt-6">
             <div className="text-sm text-charcoal/60 mb-1">MEETING POINT</div>
             <div className="font-medium text-charcoal">{tour.meeting_point}</div>
-            {tour.meeting_point_lat && tour.meeting_point_lng && (
-              <div className="text-sm text-charcoal/60 mt-1">
+            {tour.meeting_point_lat && tour.meeting_point_lng && <div className="text-sm text-charcoal/60 mt-1">
                 {tour.meeting_point_lat.toFixed(4)}°N, {tour.meeting_point_lng.toFixed(4)}°E
-              </div>
-            )}
+              </div>}
           </CardContent>
         </Card>
 
         {/* Weather Forecast */}
-        {tour.meeting_point_lat && tour.meeting_point_lng && bookings.length > 0 && (
-          <WeatherForecastCard
-            location={tour.meeting_point}
-            latitude={tour.meeting_point_lat}
-            longitude={tour.meeting_point_lng}
-            date={bookings[0].booking_date}
-          />
-        )}
+        {tour.meeting_point_lat && tour.meeting_point_lng && bookings.length > 0 && <WeatherForecastCard location={tour.meeting_point} latitude={tour.meeting_point_lat} longitude={tour.meeting_point_lng} date={bookings[0].booking_date} />}
       </div>
 
       {/* Main Content Grid */}
@@ -692,14 +564,9 @@ export function TourBookingDetailPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-playfair text-charcoal">Participants ({totalParticipants})</CardTitle>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSendDocumentsEmail}
-                disabled={sendingMessage}
-              >
+              <Button variant="outline" size="sm" onClick={handleSendDocumentsEmail} disabled={sendingMessage}>
                 <Mail className="w-4 h-4 mr-2" />
-                Email Documents
+                Email Docs
               </Button>
               <Button variant="outline" size="sm" onClick={handleExportParticipants}>
                 <Download className="w-4 h-4 mr-2" />
@@ -708,14 +575,7 @@ export function TourBookingDetailPage() {
             </div>
           </CardHeader>
           <CardContent className="divide-y divide-burgundy/10">
-            {bookings.map((booking) => (
-              <ParticipantCard
-                key={booking.id}
-                booking={booking}
-                tourDate={booking.booking_date}
-                onSendReminder={handleSendReminder}
-              />
-            ))}
+            {bookings.map(booking => <ParticipantCard key={booking.id} booking={booking} tourDate={booking.booking_date} onSendReminder={handleSendReminder} />)}
           </CardContent>
         </Card>
 
@@ -731,33 +591,19 @@ export function TourBookingDetailPage() {
             {/* Quick Templates */}
             <div>
               <div className="text-sm font-medium text-charcoal mb-2">Quick Templates</div>
-              {templatesLoading ? (
-                <div className="grid grid-cols-2 gap-2">
+              {templatesLoading ? <div className="grid grid-cols-2 gap-2">
                   <Skeleton className="h-12 w-full" />
                   <Skeleton className="h-12 w-full" />
                   <Skeleton className="h-12 w-full" />
                   <Skeleton className="h-12 w-full" />
-                </div>
-              ) : quickTemplates.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2">
-                  {quickTemplates.map((template, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      className="justify-start h-auto py-2 px-3 text-left"
-                      onClick={() => setGroupMessage(template.message)}
-                    >
+                </div> : quickTemplates.length > 0 ? <div className="grid grid-cols-2 gap-2">
+                  {quickTemplates.map((template, idx) => <Button key={idx} variant="outline" size="sm" className="justify-start h-auto py-2 px-3 text-left" onClick={() => setGroupMessage(template.message)}>
                       <template.icon className="w-4 h-4 mr-2 flex-shrink-0" />
                       <span className="text-xs line-clamp-1">{template.label}</span>
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
+                    </Button>)}
+                </div> : <p className="text-sm text-muted-foreground">
                   No active chat templates. Set them up in the Inbox section.
-                </p>
-              )}
+                </p>}
             </div>
 
             <Separator />
@@ -765,31 +611,15 @@ export function TourBookingDetailPage() {
             {/* Message Input */}
             <div>
               <div className="text-sm font-medium text-charcoal mb-2">Message</div>
-              <Textarea
-                placeholder="Type your message to all participants..."
-                value={groupMessage}
-                onChange={(e) => setGroupMessage(e.target.value)}
-                rows={6}
-                className="resize-none"
-              />
+              <Textarea placeholder="Type your message to all participants..." value={groupMessage} onChange={e => setGroupMessage(e.target.value)} rows={6} className="resize-none" />
             </div>
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 border-burgundy/20 text-charcoal hover:bg-burgundy/10"
-                onClick={() => setGroupMessage('')}
-              >
+              <Button variant="outline" size="sm" className="flex-1 border-burgundy/20 text-charcoal hover:bg-burgundy/10" onClick={() => setGroupMessage('')}>
                 Clear
               </Button>
-              <Button
-                size="sm"
-                className="flex-1 bg-burgundy hover:bg-burgundy/90 text-white"
-                onClick={handleSendGroupMessage}
-                disabled={!groupMessage.trim() || sendingMessage}
-              >
+              <Button size="sm" className="flex-1 bg-burgundy hover:bg-burgundy/90 text-white" onClick={handleSendGroupMessage} disabled={!groupMessage.trim() || sendingMessage}>
                 <Send className="w-4 h-4 mr-2" />
                 Send to All ({totalParticipants})
               </Button>
@@ -797,6 +627,5 @@ export function TourBookingDetailPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
