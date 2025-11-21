@@ -804,14 +804,24 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           const actualIndex = participantIndex + 1; // Adjust since we're excluding primary booker
           const participant = additionalParticipants[participantIndex];
           
+          // Validate participant has email
+          if (!participant.participantEmail) {
+            toast({
+              title: 'Email Required',
+              description: `${participant.firstName} ${participant.surname} needs an email address. Please add them again with their email.`,
+              variant: 'destructive',
+            });
+            return;
+          }
+          
           try {
             const { data: tokenData, error: tokenError } = await supabase.functions.invoke('manage-participant-tokens', {
               body: {
                 action: 'create_token',
-                booking_id: booking.id,
-                participant_email: participant.participantEmail || '',
-                participant_name: `${participant.firstName} ${participant.surname}`,
-                participant_index: actualIndex,
+                bookingId: booking.id,
+                email: participant.participantEmail || '',
+                name: `${participant.firstName} ${participant.surname}`,
+                participantIndex: actualIndex,
               }
             });
             
