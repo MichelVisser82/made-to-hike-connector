@@ -170,6 +170,7 @@ export default function ParticipantPage() {
       guideName={tour.guide_display_name || 'Your Guide'}
       primaryBooker={booking.hiker_email}
       participantEmail={participantData.participant_email}
+      tourId={tour.id}
       onWaiverSubmit={handleWaiverSubmit}
       onInsuranceSubmit={handleInsuranceSubmit}
     />

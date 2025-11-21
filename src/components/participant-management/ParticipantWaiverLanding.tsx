@@ -21,6 +21,7 @@ interface ParticipantWaiverLandingProps {
   guideName: string;
   primaryBooker: string;
   participantEmail?: string;
+  tourId?: string;
   onWaiverSubmit?: (data: any) => Promise<void>;
   onInsuranceSubmit?: (data: any) => Promise<void>;
 }
@@ -34,6 +35,7 @@ export default function ParticipantWaiverLanding({
   guideName,
   primaryBooker,
   participantEmail,
+  tourId,
   onWaiverSubmit,
   onInsuranceSubmit
 }: ParticipantWaiverLandingProps) {
@@ -56,8 +58,27 @@ export default function ParticipantWaiverLanding({
     setStage("complete");
   };
 
+  const handleEmailConfirmation = () => {
+    if (participantEmail) {
+      window.location.href = `mailto:${participantEmail}?subject=Tour Confirmation - ${tourName}`;
+    }
+  };
+
+  const handleViewTourDetails = () => {
+    if (tourId) {
+      window.open(`/tours/${tourId}`, '_blank');
+    }
+  };
+
   if (stage === "complete") {
-    return <CompletionScreen tourName={tourName} primaryBooker={primaryBooker} />;
+    return (
+      <CompletionScreen 
+        tourName={tourName} 
+        primaryBooker={primaryBooker}
+        onEmailConfirmation={handleEmailConfirmation}
+        onViewTourDetails={handleViewTourDetails}
+      />
+    );
   }
 
   if (stage === "insurance") {
@@ -367,7 +388,7 @@ function InsuranceUpload({ tourName, onSubmit, onBack }: any) {
   );
 }
 
-function CompletionScreen({ tourName, primaryBooker }: any) {
+function CompletionScreen({ tourName, primaryBooker, onEmailConfirmation, onViewTourDetails }: any) {
   return (
     <div className="min-h-screen bg-cream-light flex items-center justify-center py-8">
       <div className="max-w-2xl mx-auto px-4">
@@ -409,11 +430,18 @@ function CompletionScreen({ tourName, primaryBooker }: any) {
           <div className="pt-6 border-t border-burgundy/10">
             <h3 className="text-sm font-medium text-charcoal mb-3">Excited for your adventure?</h3>
             <div className="flex gap-3 justify-center">
-              <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5">
+              <Button 
+                variant="outline" 
+                className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                onClick={onEmailConfirmation}
+              >
                 <Mail className="w-4 h-4 mr-2" />
                 Email Confirmation
               </Button>
-              <Button className="bg-burgundy hover:bg-burgundy-dark text-white">
+              <Button 
+                className="bg-burgundy hover:bg-burgundy-dark text-white"
+                onClick={onViewTourDetails}
+              >
                 View Tour Details
               </Button>
             </div>
