@@ -12,34 +12,48 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const url = new URL(req.url);
-    const path = url.pathname.replace('/manage-participant-tokens/', '');
+    
+    // Parse request body
+    const body = await req.json();
+    const { action } = body;
 
-    // Parse request body if needed
-    let body: any = {};
-    if (req.method === 'POST' || req.method === 'PUT') {
-      body = await req.json();
+    console.log('Received request with action:', action);
+
+    // Action-based routing
+    switch (action) {
+      case 'create_token':
+        return await createToken(supabase, body);
+      
+      case 'send_invitation':
+        return await sendInvitation(supabase, body);
+      
+      case 'send_reminder':
+        return await sendReminder(supabase, body);
+      
+      case 'validate_token':
+        return await validateToken(supabase, body.token);
+      
+      case 'get_participants_status':
+        return await getParticipantsStatus(supabase, body.booking_id);
+      
+      case 'submit_waiver':
+        return await submitWaiver(supabase, body);
+      
+      case 'submit_insurance':
+        return await submitInsurance(supabase, body);
+      
+      case 'submit_emergency_contact':
+        return await submitEmergencyContact(supabase, body);
+      
+      default:
+        return new Response(
+          JSON.stringify({ error: `Unknown action: ${action}` }), 
+          {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
     }
-
-    // Route handling
-    if (path === 'create-token' && req.method === 'POST') {
-      return await createToken(supabase, body);
-    } else if (path === 'send-invitation' && req.method === 'POST') {
-      return await sendInvitation(supabase, body);
-    } else if (path === 'send-reminder' && req.method === 'POST') {
-      return await sendReminder(supabase, body);
-    } else if (path.startsWith('validate-token/') && req.method === 'GET') {
-      const token = path.replace('validate-token/', '');
-      return await validateToken(supabase, token);
-    } else if (path.startsWith('booking/') && path.endsWith('/participants') && req.method === 'GET') {
-      const bookingId = path.replace('booking/', '').replace('/participants', '');
-      return await getParticipantsStatus(supabase, bookingId);
-    }
-
-    return new Response(JSON.stringify({ error: 'Not found' }), {
-      status: 404,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
 
   } catch (error) {
     console.error('Error:', error);
