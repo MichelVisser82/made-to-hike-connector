@@ -830,10 +830,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             const { error: inviteError } = await supabase.functions.invoke('manage-participant-tokens', {
               body: {
                 action: 'send_invitation',
-                token_id: tokenData.token_id,
-                tour_title: tour.title,
-                booking_reference: booking.booking_reference || `BK-${booking.id.slice(0, 8)}`,
-                tour_date: format(new Date(booking.booking_date), 'MMM dd, yyyy'),
+                tokenId: tokenData.token_id,
+                tourName: tour.title,
+                tourDates: format(new Date(booking.booking_date), 'MMM dd, yyyy'),
+                guideName: guide.display_name,
+                primaryBookerName: userProfile?.first_name || 'the primary booker',
               }
             });
             
