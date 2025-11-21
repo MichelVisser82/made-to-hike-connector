@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 
 interface EmailData {
-  type: 'contact' | 'newsletter' | 'booking' | 'custom_verification'
+  type: 'contact' | 'newsletter' | 'booking' | 'custom_verification' | 'waiver_confirmation'
   to?: string
   name?: string
   email?: string
