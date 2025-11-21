@@ -855,19 +855,9 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
   };
 
   const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder'];
-                <p style="margin: 0; color: #1565c0; font-size: 14px;">📋 Your waiver information is stored securely and will be used for future trips to make the process faster.</p>
-            </div>
 
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-                <p style="margin: 0; color: #718096; font-size: 14px;">Happy hiking! 🥾<br><strong>The Made to Hike Team</strong></p>
-            </div>
-        </div>
-    </div>
-</body>
-</html>`,
-      text: `Waiver Confirmation\n\nHi ${data.name},\n\nYour liability waiver for ${data.tourTitle} (${data.bookingReference}) has been successfully submitted and securely saved.\n\nWhat's Next:\n• You can view your signed waiver anytime in your trip details\n• Your guide has been notified of your submission\n• All required documents are now on file for your trip\n\nYour waiver information is stored securely and will be used for future trips to make the process faster.\n\nHappy hiking!\nThe Made to Hike Team`
-    }
-  }
+  return templates[type as keyof typeof templates] || templates.contact
+}
 
   return templates[type as keyof typeof templates] || templates.contact
 }
@@ -876,7 +866,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
