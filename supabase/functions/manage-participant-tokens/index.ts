@@ -542,6 +542,10 @@ async function submitWaiver(supabase: any, body: any) {
     }
 
     console.log('Step 4: Upserting participant documents...');
+    
+    // Extract emergency contact info from waiver data
+    const emergencyContact = waiverData.emergencyContact || {};
+    
     const { data: docData, error: docError } = await supabase
       .from('participant_documents')
       .upsert({
@@ -549,7 +553,11 @@ async function submitWaiver(supabase: any, body: any) {
         booking_id: tokenData.booking_id,
         waiver_data: waiverData,
         waiver_signature_url: waiverData.signatureDataUrl || null,
-        waiver_submitted_at: new Date().toISOString()
+        waiver_submitted_at: new Date().toISOString(),
+        emergency_contact_name: emergencyContact.name || null,
+        emergency_contact_phone: emergencyContact.phone || null,
+        emergency_contact_relationship: emergencyContact.relationship || null,
+        emergency_contact_submitted_at: new Date().toISOString()
       }, {
         onConflict: 'participant_token_id'
       })
