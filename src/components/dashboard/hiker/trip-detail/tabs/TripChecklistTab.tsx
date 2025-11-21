@@ -709,10 +709,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
         onClose={() => setParticipantManagementOpen(false)}
         bookingReference={booking.booking_reference || `BK-${booking.id.slice(0, 8)}`}
         tourName={tour.title}
-        participants={participants.map((p, index) => {
-          const status = participantStatuses?.find((s: any) => s.participant_index === index);
+        participants={additionalParticipants.map((p, index) => {
+          const actualIndex = index + 1; // Adjust since we're excluding primary booker
+          const status = participantStatuses?.find((s: any) => s.participant_index === actualIndex);
           return {
-            id: status?.token_id || `participant-${index}`,
+            id: status?.token_id || `participant-${actualIndex}`,
             name: `${p.firstName} ${p.surname}`,
             email: p.participantEmail || '',
             status: status?.waiver_completed && status?.insurance_completed && status?.emergency_contact_completed
@@ -738,13 +739,14 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
           });
         }}
         onSendInvite={async (participantId: string) => {
-          const participantIndex = participants.findIndex((_, i) => 
-            participantStatuses?.find((s: any) => s.participant_index === i)?.token_id === participantId
+          const participantIndex = additionalParticipants.findIndex((_, i) => 
+            participantStatuses?.find((s: any) => s.participant_index === i + 1)?.token_id === participantId
           );
           
           if (participantIndex === -1) return;
           
-          const participant = participants[participantIndex];
+          const actualIndex = participantIndex + 1; // Adjust since we're excluding primary booker
+          const participant = additionalParticipants[participantIndex];
           
           try {
             const { data: tokenData, error: tokenError } = await supabase.functions.invoke('manage-participant-tokens', {
@@ -753,7 +755,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                 booking_id: booking.id,
                 participant_email: participant.participantEmail || '',
                 participant_name: `${participant.firstName} ${participant.surname}`,
-                participant_index: participantIndex,
+                participant_index: actualIndex,
               }
             });
             
