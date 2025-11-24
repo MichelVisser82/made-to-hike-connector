@@ -482,7 +482,7 @@ function Section2ParticipantInfo({ formData, updateField, errors }: any) {
             onChange={(e: any) => updateField('city', e.target.value)}
           />
           <FormField
-            label="Country"
+            label="Country/Nationality"
             value={formData.country || ''}
             onChange={(e: any) => updateField('country', e.target.value)}
           />
