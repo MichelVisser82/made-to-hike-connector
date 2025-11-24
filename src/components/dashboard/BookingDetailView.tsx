@@ -540,6 +540,35 @@ export function BookingDetailView() {
 
             <Separator />
 
+            {/* Waiver Status */}
+            <div>
+              <h3 className="font-semibold text-charcoal mb-3">Waiver Status</h3>
+              <div className="space-y-2">
+                {participants.map((participant: any, index: number) => {
+                  const hasWaiver = participant.waiverStatus === 'completed' || participant.waiverSubmittedAt;
+                  
+                  return (
+                    <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded-md">
+                      <p className="text-sm text-charcoal">
+                        {participant.firstName} {participant.surname}
+                      </p>
+                      {hasWaiver ? (
+                        <Badge className="bg-sage text-white">
+                          Signed
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-amber-500 text-amber-700">
+                          Pending
+                        </Badge>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Special Requests */}
             {booking.special_requests && (
               <>
@@ -700,33 +729,6 @@ export function BookingDetailView() {
             </div>
 
             <Separator />
-
-            {/* Waiver Status */}
-            <div>
-              <h3 className="font-semibold text-charcoal mb-3">Waiver Status</h3>
-              <div className="space-y-2">
-                {participants.map((participant: any, index: number) => {
-                  const hasWaiver = participant.waiverStatus === 'completed' || participant.waiverSubmittedAt;
-                  
-                  return (
-                    <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded-md">
-                      <p className="text-sm text-charcoal">
-                        {participant.firstName} {participant.surname}
-                      </p>
-                      {hasWaiver ? (
-                        <Badge className="bg-sage text-white">
-                          Signed
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="border-amber-500 text-amber-700">
-                          Pending
-                        </Badge>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
             {/* Refund Information - Show when booking is refunded */}
             {booking.refund_status && booking.refund_status === 'succeeded' && (
