@@ -684,9 +684,22 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               email: selectedParticipantIndex === 0
                 ? (userProfile?.email || booking.hiker_email || undefined)
                 : (participants[selectedParticipantIndex]?.participantEmail || undefined),
-              phone: selectedParticipantIndex === 0
-                ? (userProfile?.phone || undefined)
-                : (participants[selectedParticipantIndex]?.participantPhone || undefined),
+              // Parse phone number to extract country code and number
+              ...(selectedParticipantIndex === 0 && userProfile?.phone ? (() => {
+                const phoneStr = String(userProfile.phone).trim();
+                if (phoneStr.startsWith('+')) {
+                  const match = phoneStr.match(/^(\+\d{1,4})\s*(.*)$/);
+                  if (match) {
+                    return {
+                      phoneCountryCode: match[1],
+                      phone: match[2].trim()
+                    };
+                  }
+                }
+                return { phoneCountryCode: '+1', phone: phoneStr };
+              })() : selectedParticipantIndex !== 0 && participants[selectedParticipantIndex]?.participantPhone ? {
+                phone: participants[selectedParticipantIndex].participantPhone
+              } : {}),
               country: selectedParticipantIndex === 0 ? (userProfile?.country || undefined) : undefined,
               emergencyName: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_name || undefined) : undefined,
               emergencyPhone: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_phone || undefined) : undefined,
