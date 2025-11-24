@@ -684,22 +684,6 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               email: selectedParticipantIndex === 0
                 ? (userProfile?.email || booking.hiker_email || undefined)
                 : (participants[selectedParticipantIndex]?.participantEmail || undefined),
-              // Parse phone number to extract country code and number
-              ...(selectedParticipantIndex === 0 && userProfile?.phone ? (() => {
-                const phoneStr = String(userProfile.phone).trim();
-                if (phoneStr.startsWith('+')) {
-                  const match = phoneStr.match(/^(\+\d{1,4})\s*(.*)$/);
-                  if (match) {
-                    return {
-                      phoneCountryCode: match[1],
-                      phone: match[2].trim()
-                    };
-                  }
-                }
-                return { phoneCountryCode: '+1', phone: phoneStr };
-              })() : selectedParticipantIndex !== 0 && participants[selectedParticipantIndex]?.participantPhone ? {
-                phone: participants[selectedParticipantIndex].participantPhone
-              } : {}),
               country: selectedParticipantIndex === 0 ? (userProfile?.country || undefined) : undefined,
               emergencyName: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_name || undefined) : undefined,
               emergencyPhone: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_phone || undefined) : undefined,
@@ -713,11 +697,25 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               ...(parsedWaiverData || {}),
               // Finally overlay any draft data (most recent)
               ...loadWaiverDraft(),
-              // But always enforce the correct email for the primary booker so it never gets
+              // But always enforce the correct email and phone for the primary booker so it never gets
               // overwritten by older waiver data or drafts.
-              ...(selectedParticipantIndex === 0
-                ? { email: userProfile?.email || booking.hiker_email || undefined }
-                : {}),
+              ...(selectedParticipantIndex === 0 && userProfile ? (() => {
+                const result: any = { email: userProfile.email || booking.hiker_email || undefined };
+                if (userProfile.phone) {
+                  const phoneStr = String(userProfile.phone).trim();
+                  if (phoneStr.startsWith('+')) {
+                    const match = phoneStr.match(/^(\+\d{1,4})\s*(.*)$/);
+                    if (match) {
+                      result.phoneCountryCode = match[1];
+                      result.phone = match[2].trim();
+                    }
+                  } else {
+                    result.phoneCountryCode = '+1';
+                    result.phone = phoneStr;
+                  }
+                }
+                return result;
+              })() : {}),
             }}
           />
         </DialogContent>
