@@ -113,7 +113,10 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
         spotsTotal: baseGroupSize,
         // Don't set priceOverride - let it remain undefined to use tour base price
       };
-      form.setValue('date_slots', [...dateSlots, newSlot]);
+      const updatedSlots = [...dateSlots, newSlot];
+      form.setValue('date_slots', updatedSlots);
+      // Automatically open the configurator for the newly added slot
+      setEditingSlotIndex(updatedSlots.length - 1);
     }
     setSelectedDate(date);
   };
