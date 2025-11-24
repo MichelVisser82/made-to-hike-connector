@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Package, Plus, X, Check, Sparkles, MessageSquare, Eye,
   Mountain, Snowflake, Anchor, Sun, Backpack, Calendar
@@ -50,6 +50,16 @@ export default function PackingListManagerV2({
   const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [newItemEssential, setNewItemEssential] = useState(false);
+
+  // Sync state with existingList when it changes (e.g., when navigating back to this tab)
+  useEffect(() => {
+    if (existingList) {
+      setSelectedPreset(existingList.preset || tourType);
+      setCustomItems(existingList.customItems || []);
+      setExcludedItems(existingList.excludedItems || []);
+      setGuideNotes(existingList.guideNotes || "");
+    }
+  }, [existingList, tourType]);
 
   // Save data whenever preset, customItems, excludedItems, or guideNotes change
   const saveData = (preset: string, items: CustomItem[], excluded: string[], notes: string) => {
