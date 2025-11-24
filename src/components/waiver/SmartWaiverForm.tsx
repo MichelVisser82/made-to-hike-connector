@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface WaiverFormProps {
   tourName: string;
@@ -48,6 +49,7 @@ interface WaiverData {
   city: string;
   country: string;
   email: string;
+  phoneCountryCode: string;
   phone: string;
   
   // Section 3: Emergency Contact
@@ -110,6 +112,7 @@ export default function SmartWaiverForm({
     location,
     guideName,
     guideContact,
+    phoneCountryCode: '+1',
     medicalConditions: [],
     hasInsurance: true,
     mediaConsent: true,
@@ -127,6 +130,24 @@ export default function SmartWaiverForm({
     console.log('SmartWaiverForm - Prefilled Data:', prefilledData);
     console.log('SmartWaiverForm - Initial Form Data:', formData);
   }, []);
+
+  // Parse phone number if it comes in combined format
+  useEffect(() => {
+    if (formData.phone && !formData.phoneCountryCode) {
+      // Try to extract country code from phone if it starts with +
+      const phoneStr = String(formData.phone);
+      if (phoneStr.startsWith('+')) {
+        const match = phoneStr.match(/^(\+\d{1,4})\s*(.*)$/);
+        if (match) {
+          setFormData(prev => ({
+            ...prev,
+            phoneCountryCode: match[1],
+            phone: match[2]
+          }));
+        }
+      }
+    }
+  }, [prefilledData]);
 
   // Auto-save draft every 30 seconds
   useEffect(() => {
@@ -213,8 +234,14 @@ export default function SmartWaiverForm({
 
   const handleSubmit = () => {
     if (validateSection(10)) {
+      // Combine country code with phone number
+      const fullPhone = formData.phoneCountryCode && formData.phone 
+        ? `${formData.phoneCountryCode} ${formData.phone}`
+        : formData.phone;
+      
       onSubmit({
         ...formData,
+        phone: fullPhone, // Store as combined phone number
         signatureDate: new Date().toISOString(),
         submittedAt: new Date().toISOString(),
         participantIndex
@@ -470,15 +497,56 @@ function Section2ParticipantInfo({ formData, updateField, errors }: any) {
             onChange={(e: any) => updateField('email', e.target.value)}
             error={errors.email}
           />
-          <FormField
-            label="Mobile Phone"
-            type="tel"
-            required
-            value={formData.phone || ''}
-            onChange={(e: any) => updateField('phone', e.target.value)}
-            error={errors.phone}
-            placeholder="+1 (555) 123-4567"
-          />
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-foreground">
+              Mobile Phone <span className="text-burgundy">*</span>
+            </Label>
+            <div className="flex gap-2">
+              <Select
+                value={formData.phoneCountryCode || '+1'}
+                onValueChange={(value) => updateField('phoneCountryCode', value)}
+              >
+                <SelectTrigger className="w-[120px] border-burgundy/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                  <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                  <SelectItem value="+33">🇫🇷 +33</SelectItem>
+                  <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                  <SelectItem value="+39">🇮🇹 +39</SelectItem>
+                  <SelectItem value="+34">🇪🇸 +34</SelectItem>
+                  <SelectItem value="+31">🇳🇱 +31</SelectItem>
+                  <SelectItem value="+32">🇧🇪 +32</SelectItem>
+                  <SelectItem value="+41">🇨🇭 +41</SelectItem>
+                  <SelectItem value="+43">🇦🇹 +43</SelectItem>
+                  <SelectItem value="+351">🇵🇹 +351</SelectItem>
+                  <SelectItem value="+353">🇮🇪 +353</SelectItem>
+                  <SelectItem value="+46">🇸🇪 +46</SelectItem>
+                  <SelectItem value="+47">🇳🇴 +47</SelectItem>
+                  <SelectItem value="+45">🇩🇰 +45</SelectItem>
+                  <SelectItem value="+358">🇫🇮 +358</SelectItem>
+                  <SelectItem value="+48">🇵🇱 +48</SelectItem>
+                  <SelectItem value="+420">🇨🇿 +420</SelectItem>
+                  <SelectItem value="+36">🇭🇺 +36</SelectItem>
+                  <SelectItem value="+30">🇬🇷 +30</SelectItem>
+                  <SelectItem value="+61">🇦🇺 +61</SelectItem>
+                  <SelectItem value="+64">🇳🇿 +64</SelectItem>
+                  <SelectItem value="+81">🇯🇵 +81</SelectItem>
+                  <SelectItem value="+82">🇰🇷 +82</SelectItem>
+                  <SelectItem value="+86">🇨🇳 +86</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                type="tel"
+                value={formData.phone || ''}
+                onChange={(e: any) => updateField('phone', e.target.value)}
+                placeholder="555 123-4567"
+                className={`flex-1 ${errors.phone ? 'border-red-500' : 'border-burgundy/20'}`}
+              />
+            </div>
+            {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
+          </div>
         </div>
       </div>
     </div>
