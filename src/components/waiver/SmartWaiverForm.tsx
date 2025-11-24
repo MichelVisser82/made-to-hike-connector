@@ -112,7 +112,7 @@ export default function SmartWaiverForm({
     location,
     guideName,
     guideContact,
-    phoneCountryCode: '+1',
+    // phoneCountryCode will be inferred from prefilledData or user input; no hardcoded default
     medicalConditions: [],
     hasInsurance: true,
     mediaConsent: true,
