@@ -509,11 +509,11 @@ export function BookingDetailView() {
                 {booking.hiker.email}
               </a>
               <a
-                href={`tel:${booking.hiker.phone}`}
+                href={`tel:${booking.hiker.phone?.startsWith('+') ? booking.hiker.phone : `+${booking.hiker.phone}`}`}
                 className="flex items-center gap-2 text-sm text-charcoal/60 hover:text-charcoal transition-colors"
               >
                 <Phone className="h-4 w-4" />
-                {booking.hiker.phone}
+                {booking.hiker.phone?.startsWith('+') ? booking.hiker.phone : `+${booking.hiker.phone}`}
               </a>
             </div>
 
@@ -590,7 +590,11 @@ export function BookingDetailView() {
                 <div className="space-y-1">
                   <p className="font-medium text-charcoal">{emergencyContact.name}</p>
                   <p className="text-sm text-charcoal/60">{emergencyContact.relationship}</p>
-                  <p className="text-sm text-charcoal/60">{emergencyContact.phone}</p>
+                  <p className="text-sm text-charcoal/60">
+                    {emergencyContact.phone?.startsWith('+') || emergencyContact.phone === 'Not provided' 
+                      ? emergencyContact.phone 
+                      : `+${emergencyContact.phone}`}
+                  </p>
                 </div>
               </div>
             )}
@@ -851,7 +855,7 @@ export function BookingDetailView() {
                   className="w-full bg-burgundy hover:bg-burgundy/90 text-white"
                   asChild
                 >
-                  <a href={`tel:${emergencyContact.phone}`}>
+                  <a href={`tel:${emergencyContact.phone?.startsWith('+') ? emergencyContact.phone : `+${emergencyContact.phone}`}`}>
                     <PhoneCall className="h-4 w-4 mr-2" />
                     Call Emergency Number
                   </a>
