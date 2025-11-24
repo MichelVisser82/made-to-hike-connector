@@ -391,72 +391,74 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
 
       <Card className="p-6 bg-background border-burgundy/10 shadow-sm">
         <div className="space-y-6">
-          {/* Required Documents Section */}
+            {/* Required Documents Section */}
           <div>
             <h3 className="text-lg mb-4 text-foreground flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
               <FileText className="w-5 h-5 text-burgundy" />
               Required Documents
             </h3>
             
-            {/* Participant Overview Card */}
-            <Card className="mb-4 border-burgundy/20 bg-cream/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-burgundy" />
-                    <h4 className="font-semibold text-foreground">Participant Documents</h4>
+            {/* Participant Overview Card - Only show if there are additional participants */}
+            {totalParticipants > 0 && (
+              <Card className="mb-4 border-burgundy/20 bg-cream/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-burgundy" />
+                      <h4 className="font-semibold text-foreground">Participant Documents</h4>
+                    </div>
+                    <Badge variant="outline" className="bg-background">
+                      {completedParticipants} of {totalParticipants} Complete
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="bg-background">
-                    {completedParticipants} of {totalParticipants} Complete
-                  </Badge>
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-3">
-                  Each participant needs to complete their waiver, insurance, and emergency contact information.
-                </p>
-                
-                <div className="space-y-2 mb-3">
-                  {additionalParticipants.map((participant, index) => {
-                    const actualIndex = index + 1; // Adjust index since we're showing from index 1+
-                    const status = participantStatuses?.find((p: any) => p.participant_index === actualIndex);
-                    const isComplete = status?.waiver_completed && status?.insurance_completed;
-                    const isInvited = !!status?.invited_at;
-                    const isInProgress = status && !isComplete && (status.waiver_completed || status.insurance_completed);
-                    
-                    return (
-                      <div key={actualIndex} className="flex items-center justify-between p-2 bg-background rounded border border-burgundy/10">
-                        <span className="text-sm font-medium">
-                          {participant.firstName} {participant.surname}
-                        </span>
-                        <Badge 
-                          variant="outline" 
-                          className={
-                            isComplete 
-                              ? 'bg-sage/10 text-sage border-sage/30' 
-                              : isInProgress
-                              ? 'bg-gold/10 text-gold border-gold/30'
-                              : isInvited
-                              ? 'bg-burgundy/10 text-burgundy border-burgundy/30'
-                              : 'bg-muted text-muted-foreground'
-                          }
-                        >
-                          {isComplete ? 'Complete' : isInProgress ? 'In Progress' : isInvited ? 'Invited' : 'Not Started'}
-                        </Badge>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                  onClick={() => setParticipantManagementOpen(true)}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Manage Participants
-                </Button>
-              </CardContent>
-            </Card>
+                  
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Each participant needs to complete their waiver, insurance, and emergency contact information.
+                  </p>
+                  
+                  <div className="space-y-2 mb-3">
+                    {additionalParticipants.map((participant, index) => {
+                      const actualIndex = index + 1; // Adjust index since we're showing from index 1+
+                      const status = participantStatuses?.find((p: any) => p.participant_index === actualIndex);
+                      const isComplete = status?.waiver_completed && status?.insurance_completed;
+                      const isInvited = !!status?.invited_at;
+                      const isInProgress = status && !isComplete && (status.waiver_completed || status.insurance_completed);
+                      
+                      return (
+                        <div key={actualIndex} className="flex items-center justify-between p-2 bg-background rounded border border-burgundy/10">
+                          <span className="text-sm font-medium">
+                            {participant.firstName} {participant.surname}
+                          </span>
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              isComplete 
+                                ? 'bg-sage/10 text-sage border-sage/30' 
+                                : isInProgress
+                                ? 'bg-gold/10 text-gold border-gold/30'
+                                : isInvited
+                                ? 'bg-burgundy/10 text-burgundy border-burgundy/30'
+                                : 'bg-muted text-muted-foreground'
+                            }
+                          >
+                            {isComplete ? 'Complete' : isInProgress ? 'In Progress' : isInvited ? 'Invited' : 'Not Started'}
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                    onClick={() => setParticipantManagementOpen(true)}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Manage Participants
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             <div className="space-y-3">
             {mockDocuments.map((doc) => {
