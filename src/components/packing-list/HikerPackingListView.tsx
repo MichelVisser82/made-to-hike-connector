@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Package, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import type { PackingListData } from '@/types/packingList';
+import { getItemsForPreset } from '@/utils/packingListData';
 
 interface HikerPackingListViewProps {
   packingList: PackingListData;
@@ -15,8 +16,14 @@ export default function HikerPackingListView({ packingList }: HikerPackingListVi
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['essentials']));
 
-  // Get all items from preset and custom items
+  // Get preset items based on selected preset
+  const presetItems = packingList.preset 
+    ? getItemsForPreset(packingList.preset)
+    : [];
+  
+  // Merge preset items with custom items
   const allItems = [
+    ...presetItems,
     ...(packingList.customItems || [])
   ];
 
