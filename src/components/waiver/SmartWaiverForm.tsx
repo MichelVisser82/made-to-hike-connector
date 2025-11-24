@@ -131,6 +131,16 @@ export default function SmartWaiverForm({
     console.log('SmartWaiverForm - Initial Form Data:', formData);
   }, []);
 
+  // Normalize legacy data: if country looks like a phone code (e.g. "+31"), clear it
+  useEffect(() => {
+    if (typeof formData.country === 'string' && formData.country.trim().startsWith('+')) {
+      setFormData(prev => ({
+        ...prev,
+        country: '',
+      }));
+    }
+  }, [formData.country]);
+
   // Parse phone number if it comes in combined format
   useEffect(() => {
     if (formData.phone && !formData.phoneCountryCode) {
@@ -142,12 +152,12 @@ export default function SmartWaiverForm({
           setFormData(prev => ({
             ...prev,
             phoneCountryCode: match[1],
-            phone: match[2]
+            phone: match[2],
           }));
         }
       }
     }
-  }, [prefilledData]);
+  }, [prefilledData, formData.phone, formData.phoneCountryCode]);
 
   // Auto-save draft every 30 seconds
   useEffect(() => {
