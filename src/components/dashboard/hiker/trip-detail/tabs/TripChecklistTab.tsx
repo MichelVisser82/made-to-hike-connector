@@ -684,11 +684,6 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               email: selectedParticipantIndex === 0
                 ? (userProfile?.email || booking.hiker_email || undefined)
                 : (participants[selectedParticipantIndex]?.participantEmail || undefined),
-              country: selectedParticipantIndex === 0
-                ? (userProfile?.country && !String(userProfile.country).trim().startsWith('+')
-                  ? userProfile.country
-                  : undefined)
-                : undefined,
               emergencyName: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_name || undefined) : undefined,
               emergencyPhone: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_phone || undefined) : undefined,
               emergencyRelationship: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_relationship || undefined) : undefined,
@@ -706,7 +701,12 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               ...(selectedParticipantIndex === 0 && userProfile ? (() => {
                 const result: any = { email: userProfile.email || booking.hiker_email || undefined };
                 const phoneStr = userProfile.phone ? String(userProfile.phone).trim() : '';
-                const countryStr = userProfile.country ? String(userProfile.country).trim() : '';
+                const countryStrRaw = userProfile.country ? String(userProfile.country).trim() : '';
+
+                // Clean country value (must not look like a phone code)
+                if (countryStrRaw && !countryStrRaw.startsWith('+')) {
+                  result.country = countryStrRaw;
+                }
 
                 // 1) Prefer explicit phone with country code, if present
                 if (phoneStr) {
@@ -723,12 +723,12 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                 }
 
                 // 2) Legacy case: country field stored a phone code like "+43"
-                if (!result.phoneCountryCode && countryStr && countryStr.startsWith('+')) {
-                  result.phoneCountryCode = countryStr;
+                if (!result.phoneCountryCode && countryStrRaw && countryStrRaw.startsWith('+')) {
+                  result.phoneCountryCode = countryStrRaw;
                 }
 
                 // 3) Map known country names to default dial codes (e.g. Netherlands -> +31)
-                if (!result.phoneCountryCode && countryStr && !countryStr.startsWith('+')) {
+                if (!result.phoneCountryCode && countryStrRaw && !countryStrRaw.startsWith('+')) {
                   const countryDialMap: Record<string, string> = {
                     Netherlands: '+31',
                     Austria: '+43',
@@ -749,7 +749,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                     Hungary: '+36',
                     Greece: '+30',
                   };
-                  const mapped = countryDialMap[countryStr];
+                  const mapped = countryDialMap[countryStrRaw];
                   if (mapped) {
                     result.phoneCountryCode = mapped;
                   }
