@@ -497,7 +497,10 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                       variant="outline" 
                       size="sm" 
                       className="w-full mt-3 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                      onClick={handleWaiverButtonClick}
+                      onClick={() => {
+                        setSelectedParticipantIndex(0);
+                        setWaiverDialogOpen(true);
+                      }}
                     >
                       <FileText className="w-3.5 h-3.5 mr-2" />
                       Submit Liability Waiver
