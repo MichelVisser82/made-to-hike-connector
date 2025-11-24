@@ -113,6 +113,7 @@ const tourSchema = z.object({
       category: z.string(),
       essential: z.boolean()
     })).default([]),
+    excludedItems: z.array(z.string()).default([]),
     guideNotes: z.string().optional(),
     lastUpdated: z.string().optional()
   }).optional(),

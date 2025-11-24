@@ -26,6 +26,7 @@ export interface PackingListData {
   enabled: boolean;
   preset?: PackingListPreset;
   customItems?: CustomPackingItem[];
+  excludedItems?: string[]; // IDs of preset items that guide has deselected
   guideNotes?: string;
   lastUpdated?: string;
 }
