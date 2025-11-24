@@ -33,19 +33,20 @@ export default function PackingListSection({
     });
   };
 
-  const handlePackingListSave = (listData: any) => {
+  const handlePackingListSave = async (listData: any) => {
     setValue('packing_list', {
       enabled: true,
       preset: listData.preset,
       customItems: listData.customItems || [],
+      excludedItems: listData.excludedItems || [],
       guideNotes: listData.guideNotes || '',
       lastUpdated: new Date().toISOString()
     });
-  };
-
-  const handleSave = async () => {
-    const isValid = await trigger(['packing_list']);
-    if (isValid && onSave) await onSave();
+    
+    // Auto-save changes
+    if (onSave) {
+      await onSave();
+    }
   };
 
   const handleNext = async () => {
@@ -96,13 +97,9 @@ export default function PackingListSection({
           </Button>
         )}
         <div className="flex-1" />
-        {onNext ? (
+        {onNext && (
           <Button onClick={handleNext} size="lg" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Next'}
-          </Button>
-        ) : (
-          <Button onClick={handleSave} size="lg" disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Progress'}
           </Button>
         )}
       </div>
