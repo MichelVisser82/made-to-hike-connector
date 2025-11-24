@@ -670,24 +670,31 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             onSubmit={handleWaiverSubmit}
             onSaveDraft={handleWaiverDraftSave}
             prefilledData={{
-              // Start with data from selected participant and profile
-              fullName: participants[selectedParticipantIndex]?.firstName && participants[selectedParticipantIndex]?.surname
-                ? `${participants[selectedParticipantIndex].firstName} ${participants[selectedParticipantIndex].surname}`
-                : userProfile?.first_name && userProfile?.last_name
-                ? `${userProfile.first_name} ${userProfile.last_name}`
-                : undefined,
-              dateOfBirth: userProfile?.date_of_birth || undefined,
-              email: participants[selectedParticipantIndex]?.participantEmail || userProfile?.email || booking.hiker_email || undefined,
-              phone: participants[selectedParticipantIndex]?.participantPhone || userProfile?.phone || undefined,
-              country: userProfile?.country || undefined,
-              emergencyName: userProfile?.emergency_contact_name || undefined,
-              emergencyPhone: userProfile?.emergency_contact_phone || undefined,
-              emergencyRelationship: userProfile?.emergency_contact_relationship || undefined,
+              // For primary booker (index 0), prioritize user profile and booking data
+              // For other participants, use their participant data
+              fullName: selectedParticipantIndex === 0
+                ? (userProfile?.first_name && userProfile?.last_name
+                  ? `${userProfile.first_name} ${userProfile.last_name}`
+                  : undefined)
+                : (participants[selectedParticipantIndex]?.firstName && participants[selectedParticipantIndex]?.surname
+                  ? `${participants[selectedParticipantIndex].firstName} ${participants[selectedParticipantIndex].surname}`
+                  : undefined),
+              dateOfBirth: selectedParticipantIndex === 0 ? (userProfile?.date_of_birth || undefined) : undefined,
+              email: selectedParticipantIndex === 0
+                ? (userProfile?.email || booking.hiker_email || undefined)
+                : (participants[selectedParticipantIndex]?.participantEmail || undefined),
+              phone: selectedParticipantIndex === 0
+                ? (userProfile?.phone || undefined)
+                : (participants[selectedParticipantIndex]?.participantPhone || undefined),
+              country: selectedParticipantIndex === 0 ? (userProfile?.country || undefined) : undefined,
+              emergencyName: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_name || undefined) : undefined,
+              emergencyPhone: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_phone || undefined) : undefined,
+              emergencyRelationship: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_relationship || undefined) : undefined,
               medicalDetails: participants[selectedParticipantIndex]?.medicalConditions || undefined,
               // Then overlay any previously saved waiver data for this participant
               ...(participants[selectedParticipantIndex]?.waiverData || {}),
-              // Then overlay any previously saved waiver data for any booking
-              ...(previousWaiverData || {}),
+              // Then overlay any previously saved waiver data for any booking (only for primary booker)
+              ...(selectedParticipantIndex === 0 ? (previousWaiverData || {}) : {}),
               // Then overlay any saved waiver data for this specific booking
               ...(parsedWaiverData || {}),
               // Finally overlay any draft data (most recent)
