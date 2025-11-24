@@ -680,6 +680,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                   ? `${participants[selectedParticipantIndex].firstName} ${participants[selectedParticipantIndex].surname}`
                   : undefined),
               dateOfBirth: selectedParticipantIndex === 0 ? (userProfile?.date_of_birth || undefined) : undefined,
+              // Start with participant/booker email preference
               email: selectedParticipantIndex === 0
                 ? (userProfile?.email || booking.hiker_email || undefined)
                 : (participants[selectedParticipantIndex]?.participantEmail || undefined),
@@ -699,6 +700,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               ...(parsedWaiverData || {}),
               // Finally overlay any draft data (most recent)
               ...loadWaiverDraft(),
+              // But always enforce the correct email for the primary booker so it never gets
+              // overwritten by older waiver data or drafts.
+              ...(selectedParticipantIndex === 0
+                ? { email: userProfile?.email || booking.hiker_email || undefined }
+                : {}),
             }}
           />
         </DialogContent>
