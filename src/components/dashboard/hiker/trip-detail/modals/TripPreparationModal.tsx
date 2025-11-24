@@ -12,8 +12,11 @@ interface TripPreparationModalProps {
 }
 
 export function TripPreparationModal({ isOpen, onClose, tripDetails }: TripPreparationModalProps) {
-  const { preparationStatus } = tripDetails;
+  const { preparationStatus, tour } = tripDetails;
   const navigate = useNavigate();
+
+  // Check if packing list is enabled for this tour
+  const hasPackingList = tour.packing_list && (tour.packing_list as any)?.enabled;
 
   const preparationItems = [
     {
@@ -40,12 +43,13 @@ export function TripPreparationModal({ isOpen, onClose, tripDetails }: TripPrepa
       completed: preparationStatus.insurance_uploaded,
       action: null // Will be implemented
     },
-    {
+    // Only include Trip Checklist if packing list is enabled
+    ...(hasPackingList ? [{
       label: 'Trip Checklist',
       description: 'Complete your packing checklist',
       completed: preparationStatus.checklist_completed,
       action: null // Switch to checklist tab
-    }
+    }] : [])
   ];
 
   const completedCount = preparationItems.filter(item => item.completed).length;

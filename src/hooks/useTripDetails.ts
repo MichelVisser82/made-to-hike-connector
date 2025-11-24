@@ -200,6 +200,9 @@ export function useTripDetails(bookingId: string | undefined) {
       const checklist = checklistData || [];
       const checkedItems = checklist.filter(item => item.is_checked).length;
       const totalChecklistItems = checklist.length;
+      
+      // Check if tour has packing list enabled
+      const hasPackingList = bookingData.tours?.packing_list && (bookingData.tours.packing_list as any)?.enabled;
 
       const preparationStatus: PreparationStatus = {
         payment_confirmed: bookingData.payment_status === 'succeeded',
@@ -210,16 +213,23 @@ export function useTripDetails(bookingId: string | undefined) {
         overall_percentage: 0
       };
 
-      // Calculate overall percentage (5 main items)
-      const completedMainItems = [
+      // Calculate overall percentage - adjust total based on whether packing list is enabled
+      const mainItemsToCheck = [
         preparationStatus.payment_confirmed,
         preparationStatus.emergency_contact_added,
         preparationStatus.waiver_signed,
         preparationStatus.insurance_uploaded,
-        preparationStatus.checklist_completed
-      ].filter(Boolean).length;
+      ];
       
-      preparationStatus.overall_percentage = Math.round((completedMainItems / 5) * 100);
+      // Only include checklist_completed if tour has packing list
+      if (hasPackingList) {
+        mainItemsToCheck.push(preparationStatus.checklist_completed);
+      }
+      
+      const completedMainItems = mainItemsToCheck.filter(Boolean).length;
+      const totalMainItems = mainItemsToCheck.length;
+      
+      preparationStatus.overall_percentage = Math.round((completedMainItems / totalMainItems) * 100);
 
       // Merge tour_offer data if this is a custom tour
       let tourData = bookingData.tours as any;
