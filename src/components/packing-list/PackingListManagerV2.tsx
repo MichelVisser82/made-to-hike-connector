@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { 
   Package, Plus, X, Check, Sparkles, MessageSquare, Eye,
   Mountain, Snowflake, Anchor, Sun, Backpack, Calendar
@@ -50,29 +50,6 @@ export default function PackingListManagerV2({
   const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [newItemEssential, setNewItemEssential] = useState(false);
-  
-  // Track if we've initialized from existingList to prevent feedback loops
-  const initializedRef = useRef(false);
-  const prevExistingListRef = useRef(existingList);
-
-  // Only sync when existingList reference actually changes (tab navigation), not on every save
-  useEffect(() => {
-    // Skip if this is the initial mount and we already have the data
-    if (!initializedRef.current && existingList) {
-      initializedRef.current = true;
-      prevExistingListRef.current = existingList;
-      return;
-    }
-
-    // Only update if the reference actually changed (different object)
-    if (existingList && existingList !== prevExistingListRef.current) {
-      setSelectedPreset(existingList.preset || tourType);
-      setCustomItems(existingList.customItems || []);
-      setExcludedItems(existingList.excludedItems || []);
-      setGuideNotes(existingList.guideNotes || "");
-      prevExistingListRef.current = existingList;
-    }
-  }, [existingList, tourType]);
 
   // Save data whenever preset, customItems, excludedItems, or guideNotes change
   const saveData = (preset: string, items: CustomItem[], excluded: string[], notes: string) => {
