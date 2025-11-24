@@ -242,13 +242,8 @@ export default function PackingListManagerV2({
     });
   };
 
-  // Filter out excluded items (items the guide has deselected)
-  const getVisibleItems = () => {
-    return getItemsForPreset().filter(item => !excludedItems.includes(item.id));
-  };
-
-  // Group visible items by category
-  const groupedItems = getVisibleItems().reduce((acc, item) => {
+  // Group items by category (don't filter out excluded items)
+  const groupedItems = getItemsForPreset().reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
@@ -257,9 +252,10 @@ export default function PackingListManagerV2({
   }, {} as Record<string, PackingItem[]>);
 
   const currentPreset = presets.find(p => p.id === selectedPreset);
-  const visibleItems = getVisibleItems();
-  const essentialCount = visibleItems.filter(i => i.essential).length;
-  const optionalCount = visibleItems.filter(i => !i.essential).length;
+  const allItems = getItemsForPreset();
+  const includedItems = allItems.filter(i => !excludedItems.includes(i.id));
+  const essentialCount = includedItems.filter(i => i.essential).length;
+  const optionalCount = includedItems.filter(i => !i.essential).length;
 
   const addCustomItem = () => {
     if (newItemName.trim() && selectedCategory) {
@@ -578,7 +574,7 @@ export default function PackingListManagerV2({
           <Separator className="my-8" />
           
           <div className="text-center text-sm text-charcoal/60">
-            <p>Total: {visibleItems.length + customItems.length} items • Pack size: {currentPreset?.packSize}</p>
+            <p>Total: {includedItems.length + customItems.length} items • Pack size: {currentPreset?.packSize}</p>
           </div>
         </Card>
       )}
