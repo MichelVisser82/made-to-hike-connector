@@ -262,7 +262,12 @@ export function HikerTodaySection({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-4xl font-bold text-burgundy">{daysUntilNextTrip}</div>
+                      <div className="text-4xl font-bold text-burgundy">
+                        {Math.ceil(
+                          (new Date(trip.tour_date_slots?.slot_date || trip.booking_date).getTime() - Date.now()) /
+                          (1000 * 60 * 60 * 24)
+                        )}
+                      </div>
                       <div className="text-sm text-charcoal/60">days</div>
                     </div>
                   </div>
