@@ -42,14 +42,18 @@ export function HikerTodaySection({
   const { profile } = useProfile();
   const navigate = useNavigate();
   const nextTrip = upcomingTrips[0];
-  const daysUntilNextTrip = nextTrip ? Math.ceil((new Date(nextTrip.booking_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
+  // Use tour start date from date slot, fallback to booking_date if not available
+  const tourStartDate = nextTrip?.tour_date_slots?.slot_date || nextTrip?.booking_date;
+  const daysUntilNextTrip = tourStartDate ? Math.ceil((new Date(tourStartDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
 
   // Generate dynamic action items from booking data
   const actionItems = useMemo(() => {
     const items: ActionItem[] = [];
 
     upcomingTrips.forEach((trip) => {
-      const daysUntil = Math.ceil((new Date(trip.booking_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      // Use tour start date from date slot, fallback to booking_date if not available
+      const tripStartDate = trip.tour_date_slots?.slot_date || trip.booking_date;
+      const daysUntil = Math.ceil((new Date(tripStartDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       const isUrgent = daysUntil <= 5;
 
       // Check for missing waiver (check both timestamp and data)
