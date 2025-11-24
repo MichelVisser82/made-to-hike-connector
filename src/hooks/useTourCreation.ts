@@ -196,6 +196,11 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         currency: initialData.currency,
         service_fee: initialData.service_fee || 0,
         group_size: initialData.group_size,
+        packing_list: initialData.packing_list || {
+          enabled: false,
+          customItems: [],
+          guideNotes: '',
+        },
       };
     }
 
