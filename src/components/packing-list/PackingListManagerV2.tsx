@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 interface PackingItem {
   id: string;
@@ -23,7 +26,8 @@ interface PackingItem {
 interface CustomItem {
   id: string;
   name: string;
-  checked: boolean;
+  category: string;
+  essential: boolean;
 }
 
 interface PackingListManagerV2Props {
@@ -41,6 +45,9 @@ export default function PackingListManagerV2({
   const [customItems, setCustomItems] = useState<CustomItem[]>([]);
   const [newItemName, setNewItemName] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [newItemEssential, setNewItemEssential] = useState(false);
 
   // Preset configurations
   const presets = [
@@ -217,14 +224,36 @@ export default function PackingListManagerV2({
   const optionalCount = visibleItems.filter(i => !i.essential).length;
 
   const addCustomItem = () => {
-    if (newItemName.trim()) {
-      setCustomItems([...customItems, {
+    if (newItemName.trim() && selectedCategory) {
+      const newItem = {
         id: `custom-${Date.now()}`,
         name: newItemName,
-        checked: true
-      }]);
+        category: selectedCategory,
+        essential: newItemEssential
+      };
+      setCustomItems([...customItems, newItem]);
+      
+      // Reset and close dialog
       setNewItemName("");
+      setNewItemEssential(false);
+      setAddItemDialogOpen(false);
+      
+      // Call onSave immediately if provided
+      if (onSave) {
+        onSave({
+          preset: selectedPreset,
+          customItems: [...customItems, newItem],
+          guideNotes: "" // Add your guide notes state here if needed
+        });
+      }
     }
+  };
+
+  const openAddItemDialog = (category: string) => {
+    setSelectedCategory(category);
+    setNewItemName("");
+    setNewItemEssential(false);
+    setAddItemDialogOpen(true);
   };
 
   const removeCustomItem = (id: string) => {
@@ -353,13 +382,24 @@ export default function PackingListManagerV2({
             <div className="space-y-8">
               {Object.entries(groupedItems).map(([category, items]) => (
                 <div key={category}>
-                  <h4 className="font-medium text-charcoal mb-4 flex items-center gap-2 text-lg">
-                    <Package className="w-5 h-5 text-burgundy" />
-                    {category}
-                    <Badge variant="outline" className="text-xs ml-auto">
-                      {items.length} items
-                    </Badge>
-                  </h4>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-medium text-charcoal flex items-center gap-2 text-lg">
+                      <Package className="w-5 h-5 text-burgundy" />
+                      {category}
+                      <Badge variant="outline" className="text-xs">
+                        {items.length} items
+                      </Badge>
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openAddItemDialog(category)}
+                      className="h-8 gap-1 text-burgundy hover:text-burgundy hover:bg-burgundy/10"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Item
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
                     {items.map(item => (
                       <div 
@@ -381,46 +421,31 @@ export default function PackingListManagerV2({
             </div>
           </Card>
 
-          {/* Custom Items - More Prominent */}
-          <Card className="p-6 bg-sage/5 border-sage/20">
-            <div className="flex items-center gap-3 mb-4">
-              <Sparkles className="w-6 h-6 text-sage" />
-              <div>
+          {/* Custom Items Summary */}
+          {customItems.length > 0 && (
+            <Card className="p-6 bg-sage/5 border-sage/20">
+              <div className="flex items-center gap-3 mb-4">
+                <Sparkles className="w-6 h-6 text-sage" />
                 <h3 className="text-xl text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>
-                  Add Tour-Specific Items
+                  Custom Items Added
                 </h3>
-                <p className="text-sm text-charcoal/70">
-                  Include any special equipment or considerations for this particular tour
-                </p>
               </div>
-            </div>
-
-            <div className="flex gap-3 mb-4">
-              <Input
-                placeholder="e.g., 'Swimsuit for alpine lake swim on Day 3'"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addCustomItem()}
-                className="flex-1 bg-white"
-              />
-              <Button 
-                onClick={addCustomItem}
-                className="bg-sage hover:bg-sage/90 text-white px-6"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add
-              </Button>
-            </div>
-
-            {customItems.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {customItems.map(item => (
                   <div 
                     key={item.id}
-                    className="flex items-center gap-3 p-3 bg-white border border-sage/30 rounded-lg"
+                    className={`flex items-center gap-3 p-3 bg-white border rounded-lg ${
+                      item.essential ? 'border-burgundy/40' : 'border-sage/30'
+                    }`}
                   >
                     <Check className="w-4 h-4 text-sage" />
-                    <p className="flex-1 text-sm text-charcoal">{item.name}</p>
+                    <div className="flex-1">
+                      <p className="text-sm text-charcoal">{item.name}</p>
+                      <p className="text-xs text-charcoal/50">{item.category}</p>
+                    </div>
+                    {item.essential && (
+                      <Badge variant="destructive" className="text-xs">Essential</Badge>
+                    )}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -432,8 +457,8 @@ export default function PackingListManagerV2({
                   </div>
                 ))}
               </div>
-            )}
-          </Card>
+            </Card>
+          )}
 
           {/* Save Actions */}
           <div className="flex items-center justify-between p-6 bg-white border border-burgundy/10 rounded-lg shadow-sm">
@@ -513,6 +538,72 @@ export default function PackingListManagerV2({
           </div>
         </Card>
       )}
+
+      {/* Add Item Dialog */}
+      <Dialog open={addItemDialogOpen} onOpenChange={setAddItemDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-playfair text-charcoal">
+              <Plus className="w-5 h-5 text-burgundy" />
+              Add Custom Item
+            </DialogTitle>
+            <DialogDescription>
+              Add a custom item to <span className="font-medium text-charcoal">{selectedCategory}</span>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="item-name" className="text-charcoal font-medium">
+                Item Name
+              </Label>
+              <Input
+                id="item-name"
+                placeholder="e.g., Swimsuit for alpine lake"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addCustomItem()}
+                className="bg-white"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="essential-toggle" className="text-charcoal font-medium">
+                  Mark as Essential
+                </Label>
+                <p className="text-sm text-charcoal/60">
+                  Essential items are highlighted for hikers
+                </p>
+              </div>
+              <Switch
+                id="essential-toggle"
+                checked={newItemEssential}
+                onCheckedChange={setNewItemEssential}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setAddItemDialogOpen(false)}
+              className="border-charcoal/20"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={addCustomItem}
+              disabled={!newItemName.trim()}
+              className="bg-burgundy hover:bg-burgundy/90 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Item
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

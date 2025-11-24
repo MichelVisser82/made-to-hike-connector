@@ -21,7 +21,7 @@ export default function HikerPackingListView({ packingList }: HikerPackingListVi
     ? getItemsForPreset(packingList.preset)
     : [];
   
-  // Merge preset items with custom items
+  // Merge preset items with custom items - custom items already have the right structure
   const allItems = [
     ...presetItems,
     ...(packingList.customItems || [])
