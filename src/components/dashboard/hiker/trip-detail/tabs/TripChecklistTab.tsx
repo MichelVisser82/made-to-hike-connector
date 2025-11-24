@@ -374,7 +374,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
   const additionalParticipants = participants.slice(1); // Exclude primary booker
   const completedParticipants = participantStatuses?.filter((p: any) => 
     p.participant_index > 0 && // Only count additional participants
-    p.waiver_completed && p.insurance_completed && p.emergency_contact_completed
+    p.waiver_completed && p.insurance_completed
   ).length || 0;
   const totalParticipants = additionalParticipants.length;
 
