@@ -706,17 +706,17 @@ function Section5Insurance({ formData, updateField, errors }: any) {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl mb-2 text-foreground" style={{fontFamily: 'Playfair Display, serif'}}>
-          Section 5: Insurance Confirmation
+          Section 5: Medical Insurance Confirmation
         </h2>
         <p className="text-sm text-muted-foreground">
-          Valid travel insurance covering mountain activities is required for participation.
+          Valid medical and travel insurance covering mountain activities is required for participation.
         </p>
       </div>
 
       <Alert className="bg-burgundy/5 border-burgundy/20">
         <Shield className="h-4 w-4 text-burgundy" />
         <AlertDescription className="text-sm text-muted-foreground">
-          <strong>Required Coverage:</strong> Your insurance must cover medical treatment abroad, mountain rescue and evacuation, emergency repatriation, and trip cancellation.
+          <strong>Required Medical Coverage:</strong> Your medical insurance must cover medical treatment abroad, mountain rescue and evacuation, emergency repatriation, and trip cancellation.
         </AlertDescription>
       </Alert>
 
@@ -726,14 +726,14 @@ function Section5Insurance({ formData, updateField, errors }: any) {
           onCheckedChange={(checked) => updateField('hasInsurance', checked)}
         />
         <Label className="text-sm text-foreground cursor-pointer">
-          I confirm that I have valid travel and medical insurance covering all required areas
+          I confirm that I have valid medical and travel insurance covering all required areas
         </Label>
       </div>
 
       {formData.hasInsurance && (
         <div className="space-y-4">
           <FormField
-            label="Insurance Provider"
+            label="Medical Insurance Provider"
             required
             value={formData.insuranceProvider || ''}
             onChange={(e: any) => updateField('insuranceProvider', e.target.value)}
@@ -750,7 +750,7 @@ function Section5Insurance({ formData, updateField, errors }: any) {
               error={errors.policyNumber}
             />
             <FormField
-              label="Emergency Contact Number (Insurance)"
+              label="Emergency Contact Number (Medical Insurance)"
               value={formData.insuranceEmergencyNumber || ''}
               onChange={(e: any) => updateField('insuranceEmergencyNumber', e.target.value)}
               placeholder="24/7 emergency line"
