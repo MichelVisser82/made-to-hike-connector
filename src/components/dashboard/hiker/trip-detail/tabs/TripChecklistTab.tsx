@@ -556,23 +556,6 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             </div>
           )}
 
-          {/* Equipment Rental Info Box */}
-          <div className="bg-sage/10 border border-sage/20 rounded-lg p-4">
-            <div className="flex items-start gap-2">
-              <Info className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-medium text-foreground mb-2">Equipment Rental Available</h4>
-                <p className="text-sm text-muted-foreground mb-2">Don't have all the gear? No problem! Your guide can arrange equipment rental for:</p>
-                <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                  <li>Backpacks, sleeping bags, and trekking poles</li>
-                  <li>Technical gear (crampons, ice axes if needed)</li>
-                  <li>Waterproof clothing</li>
-                </ul>
-                <p className="text-sm text-muted-foreground mt-2">Contact your guide at least 7 days before departure to arrange rentals.</p>
-              </div>
-            </div>
-          </div>
-
           {/* Important Reminder Box */}
           <div className="bg-burgundy/10 border border-burgundy/20 rounded-lg p-4">
             <div className="flex items-start gap-2">
