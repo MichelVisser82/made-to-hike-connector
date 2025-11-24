@@ -70,16 +70,27 @@ serve(async (req) => {
     // Read file content
     const fileContent = await file.text();
     
-    // Parse trackpoints using regex
+    console.log(`[parse-gpx] File size: ${fileContent.length} bytes`);
+    console.log(`[parse-gpx] File preview: ${fileContent.substring(0, 500)}`);
+    
+    // Parse trackpoints - handle both <trkpt> and <rtept> tags
     const trackpoints: Array<{ lat: number; lng: number; elevation?: number }> = [];
-    const trkptRegex = /<trkpt[^>]*lat=["']([^"']*)["'][^>]*lon=["']([^"']*)["'][^>]*>([\s\S]*?)<\/trkpt>/gi;
+    
+    // More flexible regex that handles attributes in any order and namespace prefixes
+    const trkptRegex = /<(?:[\w:]+)?(?:trkpt|rtept)\s+[^>]*?(?:lat=["']([^"']+)["'][^>]*?lon=["']([^"']+)["']|lon=["']([^"']+)["'][^>]*?lat=["']([^"']+)["'])[^>]*?>([\s\S]*?)<\/(?:[\w:]+)?(?:trkpt|rtept)>/gi;
     let trkptMatch;
     let hasElevationData = false;
     
     while ((trkptMatch = trkptRegex.exec(fileContent)) !== null) {
-      const lat = parseFloat(trkptMatch[1]);
-      const lng = parseFloat(trkptMatch[2]);
-      const content = trkptMatch[3];
+      // Handle both lat-lon and lon-lat order
+      const lat = trkptMatch[1] ? parseFloat(trkptMatch[1]) : parseFloat(trkptMatch[4]);
+      const lng = trkptMatch[2] ? parseFloat(trkptMatch[2]) : parseFloat(trkptMatch[3]);
+      const content = trkptMatch[5];
+      
+      if (isNaN(lat) || isNaN(lng)) {
+        console.log(`[parse-gpx] Skipping invalid point: lat=${lat}, lng=${lng}`);
+        continue;
+      }
       
       const eleValue = extractTagValue(content, 'ele');
       const elevation = eleValue ? parseFloat(eleValue) : undefined;
@@ -91,17 +102,21 @@ serve(async (req) => {
       trackpoints.push({ lat, lng, elevation });
     }
 
-    console.log(`[parse-gpx] Has elevation data: ${hasElevationData}`);
+    console.log(`[parse-gpx] Extracted ${trackpoints.length} trackpoints`);
 
-    // Parse waypoints using regex
+    // Parse waypoints - handle namespace prefixes and attribute order
     const waypoints: Array<{ name: string; description?: string; lat: number; lng: number; elevation?: number }> = [];
-    const wptRegex = /<wpt[^>]*lat=["']([^"']*)["'][^>]*lon=["']([^"']*)["'][^>]*>([\s\S]*?)<\/wpt>/gi;
+    const wptRegex = /<(?:[\w:]+)?wpt\s+[^>]*?(?:lat=["']([^"']+)["'][^>]*?lon=["']([^"']+)["']|lon=["']([^"']+)["'][^>]*?lat=["']([^"']+)["'])[^>]*?>([\s\S]*?)<\/(?:[\w:]+)?wpt>/gi;
     let wptMatch;
     
     while ((wptMatch = wptRegex.exec(fileContent)) !== null) {
-      const lat = parseFloat(wptMatch[1]);
-      const lng = parseFloat(wptMatch[2]);
-      const content = wptMatch[3];
+      const lat = wptMatch[1] ? parseFloat(wptMatch[1]) : parseFloat(wptMatch[4]);
+      const lng = wptMatch[2] ? parseFloat(wptMatch[2]) : parseFloat(wptMatch[3]);
+      const content = wptMatch[5];
+      
+      if (isNaN(lat) || isNaN(lng)) {
+        continue;
+      }
       
       const name = extractTagValue(content, 'name') || 'Unnamed';
       const description = extractTagValue(content, 'desc') || undefined;
@@ -111,7 +126,7 @@ serve(async (req) => {
       waypoints.push({ name, description, lat, lng, elevation });
     }
 
-    console.log(`[parse-gpx] Extracted ${trackpoints.length} trackpoints and ${waypoints.length} waypoints`);
+    console.log(`[parse-gpx] Total extracted: ${trackpoints.length} trackpoints and ${waypoints.length} waypoints`);
 
     if (trackpoints.length === 0) {
       throw new Error('No trackpoints found in GPX file');
