@@ -19,6 +19,12 @@ export interface HikerBooking {
   created_at: string;
   special_requests: string | null;
   tour_id: string;
+  // Document & preparation fields
+  waiver_uploaded_at: string | null;
+  waiver_data: any | null;
+  insurance_uploaded_at: string | null;
+  insurance_file_url: string | null;
+  participants_details: any[] | null;
   tours: {
     id: string;
     title: string;
@@ -108,6 +114,11 @@ export function useHikerBookings(hikerId: string | undefined) {
           created_at,
           special_requests,
           tour_id,
+          waiver_uploaded_at,
+          waiver_data,
+          insurance_uploaded_at,
+          insurance_file_url,
+          participants_details,
           tours (
             id,
             title,
