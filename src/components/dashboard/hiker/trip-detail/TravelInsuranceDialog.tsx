@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -106,57 +106,83 @@ export function TravelInsuranceDialog({
     }
   };
 
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-5 w-5 text-sage" />
-            <DialogTitle>Travel Insurance Details</DialogTitle>
+      <DialogContent className="sm:max-w-lg bg-cream border-burgundy/20">
+        <DialogHeader className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-burgundy/10 flex items-center justify-center">
+              <Shield className="h-6 w-6 text-burgundy" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
+                Travel Insurance
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground mt-1">
+                Secure your adventure with proof of coverage
+              </DialogDescription>
+            </div>
           </div>
-          <DialogDescription>
-            Please provide your travel insurance information for this trip.
-          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="provider">Insurance Company Name *</Label>
-            <Input
-              id="provider"
-              placeholder="e.g., World Nomads, Allianz"
-              value={provider}
-              onChange={(e) => setProvider(e.target.value)}
-              maxLength={200}
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-6 py-6">
+          <div className="space-y-4 bg-white rounded-lg p-6 border border-burgundy/10">
+            <div className="space-y-2">
+              <Label htmlFor="provider" className="text-sm font-medium text-foreground">
+                Insurance Company Name <span className="text-burgundy">*</span>
+              </Label>
+              <Input
+                id="provider"
+                placeholder="e.g., World Nomads, Allianz Global"
+                value={provider}
+                onChange={(e) => setProvider(e.target.value)}
+                maxLength={200}
+                required
+                className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="policyNumber" className="text-sm font-medium text-foreground">
+                Policy Number <span className="text-burgundy">*</span>
+              </Label>
+              <Input
+                id="policyNumber"
+                placeholder="e.g., WN-123456789"
+                value={policyNumber}
+                onChange={(e) => setPolicyNumber(e.target.value)}
+                maxLength={100}
+                required
+                className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="policyNumber">Policy Number *</Label>
-            <Input
-              id="policyNumber"
-              placeholder="e.g., WN-123456789"
-              value={policyNumber}
-              onChange={(e) => setPolicyNumber(e.target.value)}
-              maxLength={100}
-              required
-            />
+          <div className="bg-sage/5 border border-sage/20 rounded-lg p-4">
+            <p className="text-sm text-muted-foreground">
+              <strong className="text-sage">Important:</strong> Your insurance must cover mountain hiking activities and emergency rescue at altitude.
+            </p>
           </div>
 
-          <DialogFooter>
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
+              className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Save Insurance Details'}
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="flex-1 bg-burgundy text-white hover:bg-burgundy/90"
+            >
+              {loading ? 'Saving...' : existingData ? 'Update Details' : 'Save Insurance Details'}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
