@@ -87,7 +87,7 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
 
   const { existingBooked, existingAvailable } = getExistingTourDates();
 
-  // Check if a date is blocked (falls within any tour period or existing tours)
+  // Check if a date is blocked - prevents overlap by checking if ANY day of the new tour would conflict
   const isDateBlocked = (date: Date) => {
     const isInCurrentTour = currentTourDates.some(tourDate => 
       isSameDay(tourDate, date)
@@ -95,7 +95,20 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
     const isInExistingTour = [...existingBooked, ...existingAvailable].some(existingDate =>
       isSameDay(existingDate, date)
     );
-    return isInCurrentTour || isInExistingTour;
+    
+    // Check if selecting this date would cause the tour duration to overlap with any existing tours
+    const wouldOverlapWithExisting = () => {
+      for (let i = 0; i < Math.ceil(tourDuration); i++) {
+        const checkDate = addDays(date, i);
+        const overlaps = [...existingBooked, ...existingAvailable].some(existingDate =>
+          isSameDay(existingDate, checkDate)
+        );
+        if (overlaps) return true;
+      }
+      return false;
+    };
+    
+    return isInCurrentTour || isInExistingTour || wouldOverlapWithExisting();
   };
 
   const handleDateSelect = (date: Date | undefined) => {
