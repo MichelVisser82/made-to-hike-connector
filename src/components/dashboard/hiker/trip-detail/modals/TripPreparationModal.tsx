@@ -52,41 +52,62 @@ export function TripPreparationModal({ isOpen, onClose, tripDetails }: TripPrepa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Trip Preparation Checklist</DialogTitle>
+      <DialogContent className="sm:max-w-[650px] bg-cream border-burgundy/20">
+        <DialogHeader className="space-y-3 pb-4">
+          <DialogTitle className="text-3xl text-burgundy text-center" style={{fontFamily: 'Playfair Display, serif'}}>
+            Trip Preparation
+          </DialogTitle>
+          <p className="text-muted-foreground text-center text-sm">
+            Complete these steps to ensure you're ready for your adventure
+          </p>
         </DialogHeader>
+        
         <div className="space-y-6">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">{completedCount} of {preparationItems.length} completed</span>
-              <span className="text-muted-foreground">{preparationStatus.overall_percentage}%</span>
+          {/* Progress Section */}
+          <div className="bg-white rounded-lg p-5 border border-burgundy/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">
+                {completedCount} of {preparationItems.length} steps completed
+              </span>
+              <span className="text-lg font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
+                {preparationStatus.overall_percentage}%
+              </span>
             </div>
-            <Progress value={preparationStatus.overall_percentage} className="h-2" />
+            <Progress 
+              value={preparationStatus.overall_percentage} 
+              className="h-3 bg-burgundy/10"
+            />
           </div>
 
-          <div className="space-y-4">
+          {/* Checklist Items */}
+          <div className="space-y-3">
             {preparationItems.map((item, idx) => (
               <div
                 key={idx}
-                className={`p-4 rounded-lg border ${
-                  item.completed ? 'bg-green-50/50 border-green-200' : 'bg-card'
+                className={`p-4 rounded-lg border transition-all duration-200 ${
+                  item.completed 
+                    ? 'bg-sage/5 border-sage/30 shadow-sm' 
+                    : 'bg-white border-burgundy/10 hover:border-burgundy/20'
                 }`}
               >
                 <div className="flex items-start gap-4">
                   {item.completed ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-sage flex-shrink-0 mt-0.5" />
                   ) : (
-                    <Circle className="w-6 h-6 text-muted-foreground flex-shrink-0" />
+                    <Circle className="w-6 h-6 text-burgundy/40 flex-shrink-0 mt-0.5" />
                   )}
-                  <div className="flex-1">
-                    <h4 className="font-semibold mb-1">{item.label}</h4>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-foreground mb-1">
+                      {item.label}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {item.description}
+                    </p>
                     {!item.completed && item.action && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="mt-3"
+                        className="mt-3 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
                         onClick={item.action}
                       >
                         Complete
@@ -99,18 +120,27 @@ export function TripPreparationModal({ isOpen, onClose, tripDetails }: TripPrepa
             ))}
           </div>
 
+          {/* Success Message */}
           {preparationStatus.overall_percentage === 100 && (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
-              <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <p className="font-semibold text-green-900">All set for your adventure!</p>
-              <p className="text-sm text-green-700 mt-1">
-                You've completed all preparation steps. Have a great trip!
+            <div className="p-5 bg-sage/10 border border-sage/30 rounded-lg text-center animate-fade-in">
+              <CheckCircle2 className="w-10 h-10 text-sage mx-auto mb-3" />
+              <p className="text-lg font-semibold text-sage mb-2" style={{fontFamily: 'Playfair Display, serif'}}>
+                All Set for Your Adventure!
+              </p>
+              <p className="text-sm text-muted-foreground">
+                You've completed all preparation steps. Have a wonderful journey!
               </p>
             </div>
           )}
 
-          <div className="flex justify-end">
-            <Button onClick={onClose}>Close</Button>
+          {/* Close Button */}
+          <div className="flex justify-center pt-2">
+            <Button 
+              onClick={onClose}
+              className="bg-burgundy text-white hover:bg-burgundy/90 px-8"
+            >
+              Close
+            </Button>
           </div>
         </div>
       </DialogContent>
