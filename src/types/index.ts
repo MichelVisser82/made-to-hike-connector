@@ -73,6 +73,7 @@ export interface Tour {
     custom_deposit_amount?: number;
     custom_final_payment_days?: number;
   };
+  packing_list?: any; // JSON field from database
 }
 
 export interface SearchFilters {

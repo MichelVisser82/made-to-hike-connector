@@ -2467,6 +2467,7 @@ export type Database = {
           meta_title: string | null
           min_group_size: number | null
           pack_weight: number | null
+          packing_list: Json | null
           policy_overrides: Json | null
           price: number
           rating: number | null
@@ -2529,6 +2530,7 @@ export type Database = {
           meta_title?: string | null
           min_group_size?: number | null
           pack_weight?: number | null
+          packing_list?: Json | null
           policy_overrides?: Json | null
           price: number
           rating?: number | null
@@ -2591,6 +2593,7 @@ export type Database = {
           meta_title?: string | null
           min_group_size?: number | null
           pack_weight?: number | null
+          packing_list?: Json | null
           policy_overrides?: Json | null
           price?: number
           rating?: number | null

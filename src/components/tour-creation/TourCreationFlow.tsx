@@ -15,6 +15,7 @@ import { Step8RouteMap } from './steps/Step8RouteMap';
 import Step8Highlights from './steps/Step8Highlights';
 import Step9Itinerary from './steps/Step9Itinerary';
 import Step10Inclusions from './steps/Step10Inclusions';
+import PackingListSection from './steps/PackingListSection';
 import Step11Pricing from './steps/Step11Pricing';
 import Step12Review from './steps/Step12Review';
 
@@ -60,6 +61,7 @@ const mainTabsConfig = {
     subTabs: [
       { value: 'dates', label: 'Available Dates', component: Step6AvailableDates },
       { value: 'inclusions', label: 'Inclusions', component: Step10Inclusions },
+      { value: 'packing-list', label: 'Packing List', component: PackingListSection },
       { value: 'pricing', label: 'Pricing', component: Step11Pricing }
     ]
   },
