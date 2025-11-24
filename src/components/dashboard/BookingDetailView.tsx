@@ -607,32 +607,6 @@ export function BookingDetailView() {
               </p>
             </div>
 
-            <Separator />
-
-            {/* Equipment Checklist */}
-            <div>
-              <h3 className="font-semibold text-charcoal mb-3">Equipment Checklist</h3>
-              <div className="space-y-2">
-                {booking.tour.includes?.slice(0, 3).map((item, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Checkbox 
-                      id={`equipment-${index}`} 
-                      checked={index < 2}
-                      className="data-[state=checked]:bg-burgundy data-[state=checked]:border-burgundy"
-                    />
-                    <label
-                      htmlFor={`equipment-${index}`}
-                      className="text-sm text-charcoal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {item}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Separator />
-
             {/* Weather Forecast */}
             <div>
               <h3 className="font-semibold text-charcoal mb-3 flex items-center gap-2">
