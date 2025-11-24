@@ -451,6 +451,20 @@ export function useTourCreation(options?: UseTourCreationOptions) {
           .insert(dateSlotInserts);
       }
 
+      // In edit mode, refetch the tour data to keep form in sync
+      if (editMode && tourIdToUpdate) {
+        const { data: updatedTour } = await supabase
+          .from('tours')
+          .select('*')
+          .eq('id', tourIdToUpdate)
+          .single();
+        
+        if (updatedTour && updatedTour.packing_list) {
+          // Update only the packing_list field with fresh database data
+          form.setValue('packing_list', updatedTour.packing_list as any);
+        }
+      }
+
       if (showToast) {
         toast({
           title: "Progress saved",
