@@ -49,7 +49,11 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
       try {
         const { data, error } = await supabase
           .from('bookings')
-          .select(`*, tour:tours(*)`)
+          .select(`
+            *, 
+            tour:tours(*),
+            tour_date_slots(slot_date)
+          `)
           .eq('hiker_id', user.id)
           .order('booking_date', { ascending: true });
         if (error) throw error;
@@ -63,9 +67,11 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
     fetchBookings();
   }, [user.id]);
 
-  const upcomingTrips = bookings.filter(b => 
-    new Date(b.booking_date) >= new Date() && b.status !== 'cancelled'
-  );
+  const upcomingTrips = bookings.filter(b => {
+    // Use tour start date from date slot, fallback to booking_date if not available
+    const tripStartDate = b.tour_date_slots?.slot_date || b.booking_date;
+    return new Date(tripStartDate) >= new Date() && b.status !== 'cancelled';
+  });
   const completedTrips = bookings.filter(b => b.status === 'completed').length;
 
   const handleViewTrip = (trip: any) => {
