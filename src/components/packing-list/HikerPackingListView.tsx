@@ -21,9 +21,12 @@ export default function HikerPackingListView({ packingList }: HikerPackingListVi
     ? getItemsForPreset(packingList.preset)
     : [];
   
-  // Merge preset items with custom items - custom items already have the right structure
+  // Filter out excluded items and merge with custom items
+  const excludedIds = packingList.excludedItems || [];
+  const includedPresetItems = presetItems.filter(item => !excludedIds.includes(item.id));
+  
   const allItems = [
-    ...presetItems,
+    ...includedPresetItems,
     ...(packingList.customItems || [])
   ];
 

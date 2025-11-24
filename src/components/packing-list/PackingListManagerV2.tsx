@@ -43,6 +43,7 @@ export default function PackingListManagerV2({
 }: PackingListManagerV2Props) {
   const [selectedPreset, setSelectedPreset] = useState(existingList?.preset || tourType);
   const [customItems, setCustomItems] = useState<CustomItem[]>(existingList?.customItems || []);
+  const [excludedItems, setExcludedItems] = useState<string[]>(existingList?.excludedItems || []);
   const [guideNotes, setGuideNotes] = useState(existingList?.guideNotes || "");
   const [newItemName, setNewItemName] = useState("");
   const [showPreview, setShowPreview] = useState(false);
@@ -50,12 +51,13 @@ export default function PackingListManagerV2({
   const [selectedCategory, setSelectedCategory] = useState("");
   const [newItemEssential, setNewItemEssential] = useState(false);
 
-  // Save data whenever preset, customItems, or guideNotes change
-  const saveData = (preset: string, items: CustomItem[], notes: string) => {
+  // Save data whenever preset, customItems, excludedItems, or guideNotes change
+  const saveData = (preset: string, items: CustomItem[], excluded: string[], notes: string) => {
     if (onSave) {
       onSave({
         preset,
         customItems: items,
+        excludedItems: excluded,
         guideNotes: notes
       });
     }
@@ -63,12 +65,21 @@ export default function PackingListManagerV2({
 
   const handlePresetChange = (presetId: string) => {
     setSelectedPreset(presetId);
-    saveData(presetId, customItems, guideNotes);
+    setExcludedItems([]); // Reset exclusions when changing preset
+    saveData(presetId, customItems, [], guideNotes);
   };
 
   const handleGuideNotesChange = (notes: string) => {
     setGuideNotes(notes);
-    saveData(selectedPreset, customItems, notes);
+    saveData(selectedPreset, customItems, excludedItems, notes);
+  };
+
+  const toggleItemExclusion = (itemId: string) => {
+    const newExcluded = excludedItems.includes(itemId)
+      ? excludedItems.filter(id => id !== itemId)
+      : [...excludedItems, itemId];
+    setExcludedItems(newExcluded);
+    saveData(selectedPreset, customItems, newExcluded, guideNotes);
   };
 
   // Preset configurations
@@ -281,7 +292,7 @@ export default function PackingListManagerV2({
   const removeCustomItem = (id: string) => {
     const updatedItems = customItems.filter(item => item.id !== id);
     setCustomItems(updatedItems);
-    saveData(selectedPreset, updatedItems, guideNotes);
+    saveData(selectedPreset, updatedItems, excludedItems, guideNotes);
   };
 
   return (
@@ -432,7 +443,11 @@ export default function PackingListManagerV2({
                           item.essential ? 'border-l-4 border-l-burgundy' : ''
                         }`}
                       >
-                        <Checkbox defaultChecked className="mt-0.5 flex-shrink-0" />
+                        <Checkbox 
+                          checked={!excludedItems.includes(item.id)}
+                          onCheckedChange={() => toggleItemExclusion(item.id)}
+                          className="mt-0.5 flex-shrink-0" 
+                        />
                         <div className="flex-1 min-w-0 flex items-start justify-between gap-2">
                           <p className="text-sm text-charcoal leading-snug break-words">{item.name}</p>
                           {!item.essential && (
@@ -502,7 +517,7 @@ export default function PackingListManagerV2({
                 Save as Draft
               </Button>
               <Button 
-                onClick={() => saveData(selectedPreset, customItems, guideNotes)}
+                onClick={() => saveData(selectedPreset, customItems, excludedItems, guideNotes)}
                 className="bg-burgundy hover:bg-burgundy-dark text-white px-6"
               >
                 <Check className="w-4 h-4 mr-2" />
