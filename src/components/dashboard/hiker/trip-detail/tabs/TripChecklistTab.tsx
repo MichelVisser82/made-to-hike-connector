@@ -16,6 +16,7 @@ import { WaiverViewer } from '@/components/waiver/WaiverViewer';
 import { format, addDays } from 'date-fns';
 import { useEmail } from '@/hooks/useEmail';
 import ParticipantManagementModal from '@/components/participant-management/ParticipantManagementModal';
+import { TravelInsuranceDialog } from '../TravelInsuranceDialog';
 
 interface TripChecklistTabProps {
   tripDetails: TripDetails;
@@ -90,6 +91,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
   const [selectedParticipantIndex, setSelectedParticipantIndex] = useState<number>(0);
   const [showParticipantSelector, setShowParticipantSelector] = useState(false);
   const [participantManagementOpen, setParticipantManagementOpen] = useState(false);
+  const [insuranceDialogOpen, setInsuranceDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { sendEmail } = useEmail();
@@ -122,11 +124,36 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
 
   const primaryParticipant = getParticipantData();
 
+  // Get insurance data if exists
+  const getInsuranceData = () => {
+    const participantsDetails = booking.participants_details as any;
+    if (!participantsDetails || !Array.isArray(participantsDetails) || participantsDetails.length === 0) {
+      return null;
+    }
+    const primary = participantsDetails[0];
+    if (primary?.insurance_provider && primary?.insurance_policy_number) {
+      return {
+        provider: primary.insurance_provider,
+        policyNumber: primary.insurance_policy_number,
+      };
+    }
+    return null;
+  };
+
+  const insuranceData = getInsuranceData();
+  const hasInsuranceDetails = !!insuranceData;
+
   // Determine whether to use database checklist or mock data
   const useMockData = checklist.length === 0;
   const mockDocuments = getMockDocuments(!!booking.waiver_uploaded_at);
 
   const handleCheckItem = async (itemId: string, currentlyChecked: boolean) => {
+    // Special handling for travel insurance - open dialog
+    if (itemId === 'doc-2') {
+      setInsuranceDialogOpen(true);
+      return;
+    }
+
     if (useMockData) {
       // For mock data, just toggle locally
       setLocalCheckedItems(prev => {
@@ -459,8 +486,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
             <div className="space-y-3">
             {mockDocuments.map((doc) => {
               const isLiabilityWaiver = doc.name === 'Liability Waiver';
+              const isTravelInsurance = doc.id === 'doc-2';
               const isChecked = useMockData
-                ? (doc.checked || localCheckedItems.has(doc.id))
+                ? isTravelInsurance 
+                  ? hasInsuranceDetails  // Check if insurance details are saved
+                  : (doc.checked || localCheckedItems.has(doc.id))
                 : isLiabilityWaiver
                 ? !!booking.waiver_uploaded_at
                 : false;
@@ -475,7 +505,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                         id={doc.id}
                         checked={isChecked}
                         onCheckedChange={() => handleCheckItem(doc.id, isChecked)}
-                        disabled={loading === doc.id || isLiabilityWaiver}
+                        disabled={loading === doc.id || isLiabilityWaiver || isTravelInsurance}
                       />
                       <div>
                         <label htmlFor={doc.id} className="font-medium text-foreground cursor-pointer">
@@ -515,6 +545,21 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                     >
                       <Eye className="w-3.5 h-3.5 mr-2" />
                       View Signed Waiver
+                    </Button>
+                  )}
+                  {isTravelInsurance && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={`w-full mt-3 ${
+                        isChecked 
+                          ? 'border-sage/30 text-sage hover:bg-sage/5' 
+                          : 'border-burgundy/30 text-burgundy hover:bg-burgundy/5'
+                      }`}
+                      onClick={() => setInsuranceDialogOpen(true)}
+                    >
+                      <FileText className="w-3.5 h-3.5 mr-2" />
+                      {isChecked ? 'View/Edit Insurance Details' : 'Add Insurance Details'}
                     </Button>
                   )}
                 </div>
@@ -1078,6 +1123,17 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               variant: 'destructive',
             });
           }
+        }}
+      />
+
+      {/* Travel Insurance Dialog */}
+      <TravelInsuranceDialog
+        open={insuranceDialogOpen}
+        onOpenChange={setInsuranceDialogOpen}
+        bookingId={booking.id}
+        existingData={insuranceData || undefined}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['trip-details', booking.id] });
         }}
       />
     </div>
