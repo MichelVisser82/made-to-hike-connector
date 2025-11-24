@@ -130,9 +130,13 @@ export default function HikerPackingListView({ packingList }: HikerPackingListVi
                       >
                         {item.name}
                       </label>
-                      {item.essential && (
+                      {item.essential ? (
                         <Badge variant="destructive" className="text-xs">
                           Essential
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs border-charcoal/30 text-charcoal/60">
+                          Optional
                         </Badge>
                       )}
                     </div>
