@@ -242,7 +242,7 @@ export default function PackingListManagerV2({
     });
   };
 
-  // Group items by category (don't filter out excluded items)
+  // Group items by category (don't filter out excluded items for editing view)
   const groupedItems = getItemsForPreset().reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
@@ -250,6 +250,17 @@ export default function PackingListManagerV2({
     acc[item.category].push(item);
     return acc;
   }, {} as Record<string, PackingItem[]>);
+
+  // Group only included items for preview
+  const groupedIncludedItems = getItemsForPreset()
+    .filter(item => !excludedItems.includes(item.id))
+    .reduce((acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item);
+      return acc;
+    }, {} as Record<string, PackingItem[]>);
 
   const currentPreset = presets.find(p => p.id === selectedPreset);
   const allItems = getItemsForPreset();
@@ -524,7 +535,7 @@ export default function PackingListManagerV2({
 
           {/* Simplified checklist for hikers */}
           <div className="space-y-6">
-            {Object.entries(groupedItems).map(([category, items]) => (
+            {Object.entries(groupedIncludedItems).map(([category, items]) => (
               <div key={category}>
                 <h4 className="font-medium text-charcoal mb-3">{category}</h4>
                 <div className="space-y-1.5">
