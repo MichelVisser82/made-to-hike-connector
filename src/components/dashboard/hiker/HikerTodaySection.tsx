@@ -52,8 +52,9 @@ export function HikerTodaySection({
       const daysUntil = Math.ceil((new Date(trip.booking_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       const isUrgent = daysUntil <= 5;
 
-      // Check for missing waiver
-      if (!trip.waiver_uploaded_at) {
+      // Check for missing waiver (check both timestamp and data)
+      const hasWaiver = trip.waiver_uploaded_at || (trip.waiver_data && Object.keys(trip.waiver_data).length > 0);
+      if (!hasWaiver) {
         items.push({
           id: `waiver-${trip.id}`,
           type: 'waiver',
@@ -66,8 +67,9 @@ export function HikerTodaySection({
         });
       }
 
-      // Check for missing insurance
-      if (!trip.insurance_uploaded_at) {
+      // Check for missing insurance (check both timestamp and file URL)
+      const hasInsurance = trip.insurance_uploaded_at || trip.insurance_file_url;
+      if (!hasInsurance) {
         items.push({
           id: `insurance-${trip.id}`,
           type: 'insurance',
@@ -114,8 +116,11 @@ export function HikerTodaySection({
         });
       }
 
-      // Add completed items for paid bookings
-      if (trip.payment_status === 'paid' && trip.waiver_uploaded_at && trip.insurance_uploaded_at) {
+      // Add completed items for paid bookings with all documents
+      const hasWaiverCompleted = trip.waiver_uploaded_at || (trip.waiver_data && Object.keys(trip.waiver_data).length > 0);
+      const hasInsuranceCompleted = trip.insurance_uploaded_at || trip.insurance_file_url;
+      
+      if (trip.payment_status === 'paid' && hasWaiverCompleted && hasInsuranceCompleted) {
         items.push({
           id: `completed-${trip.id}`,
           type: 'completed',
