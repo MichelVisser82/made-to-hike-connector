@@ -23,7 +23,14 @@ export default function HikerPackingListView({ packingList }: HikerPackingListVi
   
   // Filter out excluded items and merge with custom items
   const excludedIds = packingList.excludedItems || [];
+  
+  console.log('HikerPackingListView - packingList:', packingList);
+  console.log('HikerPackingListView - excludedIds:', excludedIds);
+  console.log('HikerPackingListView - presetItems count:', presetItems.length);
+  
   const includedPresetItems = presetItems.filter(item => !excludedIds.includes(item.id));
+  
+  console.log('HikerPackingListView - includedPresetItems count:', includedPresetItems.length);
   
   const allItems = [
     ...includedPresetItems,
