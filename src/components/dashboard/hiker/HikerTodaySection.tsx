@@ -50,7 +50,7 @@ export function HikerTodaySection({
 
     upcomingTrips.forEach((trip) => {
       const daysUntil = Math.ceil((new Date(trip.booking_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-      const isUrgent = daysUntil <= 30;
+      const isUrgent = daysUntil <= 5;
 
       // Check for missing waiver
       if (!trip.waiver_uploaded_at) {
@@ -348,9 +348,7 @@ export function HikerTodaySection({
                       <Badge variant="destructive" className="mt-1 bg-burgundy shrink-0">Urgent</Badge>
                     )}
                     {item.priority === 'medium' && (
-                      <div className="w-5 h-5 rounded-full bg-burgundy/20 mt-1 shrink-0 flex items-center justify-center">
-                        <AlertCircle className="w-3 h-3 text-burgundy" />
-                      </div>
+                      <Badge variant="outline" className="mt-1 border-burgundy/30 text-burgundy shrink-0">To-do</Badge>
                     )}
                     {item.priority === 'completed' && (
                       <div className="w-5 h-5 rounded-full bg-sage mt-1 shrink-0 flex items-center justify-center">
