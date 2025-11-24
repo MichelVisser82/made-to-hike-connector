@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GPXUploader } from './GPXUploader';
-import { ManualRouteDrawer } from './ManualRouteDrawer';
 import { DaySplitter } from './DaySplitter';
 import { HighlightEditor } from './HighlightEditor';
 import { PrivacySettingsPanel } from './PrivacySettingsPanel';
 import { MapPreview } from './MapPreview';
 import { GPXParseResult, TourHighlight } from '@/types/map';
 import { Coordinate, analyzeRoute } from '@/utils/routeAnalysis';
-import { Map, Upload, Sparkles, MapPin, Lock, PenTool, Eye, Loader2 } from 'lucide-react';
+import { Map, Upload, Sparkles, MapPin, Lock, Eye, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -127,22 +126,6 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
 
   const handleGPXUpload = (result: GPXParseResult) => {
     setGpxData(result);
-    setActiveTab('split');
-  };
-
-  const handleManualRoute = (trackpoints: Coordinate[]) => {
-    const analysis = analyzeRoute(trackpoints);
-    const mockResult: GPXParseResult = {
-      trackpoints,
-      waypoints: [],
-      analysis: {
-        totalDistance: analysis.totalDistance,
-        elevationGain: analysis.elevationGain,
-        elevationLoss: analysis.elevationLoss,
-        boundingBox: analysis.boundingBox
-      }
-    };
-    setGpxData(mockResult);
     setActiveTab('split');
   };
 
@@ -323,14 +306,14 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
         <div>
           <h2 className="text-2xl font-bold">Route & Interactive Map</h2>
           <p className="text-muted-foreground">
-            Upload your GPX file to create an interactive route map
+            Upload a GPX file to create an interactive route map with daily segments and highlights
           </p>
         </div>
       </div>
 
       <Card className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="preview" className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               Preview
@@ -338,10 +321,6 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
             <TabsTrigger value="upload" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload GPX
-            </TabsTrigger>
-            <TabsTrigger value="draw" className="flex items-center gap-2">
-              <PenTool className="h-4 w-4" />
-              Draw Route
             </TabsTrigger>
             <TabsTrigger value="split" disabled={!gpxData} className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
@@ -377,38 +356,22 @@ export function MapEditorInterface({ tourId, daysCount, onDataChange }: MapEdito
                 </div>
                 <h3 className="text-xl font-semibold mb-2">No Route Data Yet</h3>
                 <p className="text-muted-foreground max-w-md mb-6">
-                  Upload a GPX file or draw a route manually to see your interactive map preview here.
+                  Upload a GPX file to see your interactive map preview here.
                   Once you add route data, you'll be able to split it into days, add highlights, and configure privacy settings.
                 </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setActiveTab('upload')}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Upload GPX
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('draw')}
-                    className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-md hover:bg-accent transition-colors"
-                  >
-                    <PenTool className="h-4 w-4" />
-                    Draw Route
-                  </button>
-                </div>
+                <button
+                  onClick={() => setActiveTab('upload')}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload GPX
+                </button>
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="upload" className="mt-6">
             <GPXUploader tourId={tourId} onUploadSuccess={handleGPXUpload} />
-          </TabsContent>
-
-          <TabsContent value="draw" className="mt-6">
-            <ManualRouteDrawer
-              onRouteConfirmed={handleManualRoute}
-              onBack={() => setActiveTab('upload')}
-            />
           </TabsContent>
 
           <TabsContent value="split" className="mt-6">
