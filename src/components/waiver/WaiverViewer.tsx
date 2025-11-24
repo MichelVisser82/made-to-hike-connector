@@ -230,9 +230,9 @@ export function WaiverViewer({ open, onOpenChange, waiverData, tourName, booking
               <Separator className="mt-4" />
             </div>
 
-            {/* Insurance Information */}
+            {/* Medical Insurance Information */}
             <div>
-              <h3 className="font-semibold text-foreground mb-3">Insurance Information</h3>
+              <h3 className="font-semibold text-foreground mb-3">Medical Insurance Information</h3>
               <div className="space-y-2 text-sm">
                 {renderRow(
                   'Has insurance',
