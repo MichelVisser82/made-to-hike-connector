@@ -128,6 +128,31 @@ serve(async (req) => {
 
     console.log(`[parse-gpx] Total extracted: ${trackpoints.length} trackpoints and ${waypoints.length} waypoints`);
 
+    // Fallback parser for GPX files that use self-closing trkpt/rtept tags without inner content
+    if (trackpoints.length === 0) {
+      console.log('[parse-gpx] Primary parser found 0 trackpoints, trying fallback parser for self-closing tags');
+
+      const pointTagRegex = /<(?:[\w:]+)?(?:trkpt|rtept)\s+[^>]*?\/?>/gi;
+      let pointMatch;
+
+      while ((pointMatch = pointTagRegex.exec(fileContent)) !== null) {
+        const tag = pointMatch[0];
+        const latStr = extractAttribute(tag, 'lat');
+        const lonStr = extractAttribute(tag, 'lon');
+
+        if (!latStr || !lonStr) continue;
+
+        const lat = parseFloat(latStr);
+        const lng = parseFloat(lonStr);
+
+        if (isNaN(lat) || isNaN(lng)) continue;
+
+        trackpoints.push({ lat, lng });
+      }
+
+      console.log(`[parse-gpx] Fallback parser extracted ${trackpoints.length} trackpoints`);
+    }
+
     if (trackpoints.length === 0) {
       throw new Error('No trackpoints found in GPX file');
     }
