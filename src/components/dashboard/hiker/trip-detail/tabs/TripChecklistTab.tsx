@@ -60,30 +60,6 @@ const getMockDocuments = (waiverUploaded: boolean) => [
   },
 ];
 
-const mockEssentialGear = [
-  { id: 'gear-1', name: 'Hiking boots (well broken-in)', checked: false },
-  { id: 'gear-2', name: '40-50L backpack', checked: false },
-  { id: 'gear-3', name: 'Sleeping bag (rated -5°C)', checked: false },
-  { id: 'gear-4', name: 'Layered clothing system', checked: false },
-  { id: 'gear-5', name: 'Waterproof jacket', checked: false },
-  { id: 'gear-6', name: 'Waterproof pants', checked: false },
-  { id: 'gear-7', name: 'Warm gloves', checked: false },
-  { id: 'gear-8', name: 'Warm hat/beanie', checked: false },
-  { id: 'gear-9', name: 'Headlamp with spare batteries', checked: false },
-  { id: 'gear-10', name: 'Trekking poles', checked: false },
-  { id: 'gear-11', name: 'Sunglasses (UV protection)', checked: false },
-  { id: 'gear-12', name: 'High SPF sunscreen', checked: false },
-];
-
-const mockPersonalItems = [
-  { id: 'personal-1', name: '2L water capacity (bottles/bladder)', checked: false },
-  { id: 'personal-2', name: 'High-energy snacks/bars', checked: false },
-  { id: 'personal-3', name: 'Personal first aid kit', checked: false },
-  { id: 'personal-4', name: 'Personal medications', checked: false },
-  { id: 'personal-5', name: 'Toiletries & towel', checked: false },
-  { id: 'personal-6', name: 'Camera/phone charger', checked: false },
-];
-
 export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
   const { checklist, booking, tour, guide } = tripDetails;
   const [loading, setLoading] = useState<string | null>(null);
@@ -355,11 +331,8 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
   // Calculate progress
   const calculateProgress = () => {
     if (useMockData) {
-      const totalMock = mockDocuments.length + mockEssentialGear.length + mockPersonalItems.length;
-      const completedMock = 
-        mockDocuments.filter(d => d.checked || localCheckedItems.has(d.id)).length +
-        mockEssentialGear.filter(g => g.checked || localCheckedItems.has(g.id)).length +
-        mockPersonalItems.filter(p => p.checked || localCheckedItems.has(p.id)).length;
+      const totalMock = mockDocuments.length;
+      const completedMock = mockDocuments.filter(d => d.checked || localCheckedItems.has(d.id)).length;
       return { completed: completedMock, total: totalMock };
     }
     const completedItems = checklist.filter(item => item.is_checked).length;
@@ -567,62 +540,6 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                 </div>
               );
             })}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Essential Gear Section */}
-          <div>
-            <h3 className="text-lg mb-4 text-foreground flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
-              <Package className="w-5 h-5 text-burgundy" />
-              Essential Gear & Equipment
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {mockEssentialGear.map((item) => {
-                const isChecked = useMockData ? (item.checked || localCheckedItems.has(item.id)) : false;
-                return (
-                  <div key={item.id} className="flex items-center gap-3 p-3 bg-cream rounded-lg">
-                    <Checkbox 
-                      id={item.id}
-                      checked={isChecked}
-                      onCheckedChange={() => handleCheckItem(item.id, isChecked)}
-                      disabled={loading === item.id}
-                    />
-                    <label htmlFor={item.id} className="text-sm text-foreground cursor-pointer flex-1">
-                      {item.name}
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Personal Items Section */}
-          <div>
-            <h3 className="text-lg mb-4 text-foreground flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
-              <User className="w-5 h-5 text-burgundy" />
-              Personal Items
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {mockPersonalItems.map((item) => {
-                const isChecked = useMockData ? (item.checked || localCheckedItems.has(item.id)) : false;
-                return (
-                  <div key={item.id} className="flex items-center gap-3 p-3 bg-cream rounded-lg">
-                    <Checkbox 
-                      id={item.id}
-                      checked={isChecked}
-                      onCheckedChange={() => handleCheckItem(item.id, isChecked)}
-                      disabled={loading === item.id}
-                    />
-                    <label htmlFor={item.id} className="text-sm text-foreground cursor-pointer flex-1">
-                      {item.name}
-                    </label>
-                  </div>
-                );
-              })}
             </div>
           </div>
 
