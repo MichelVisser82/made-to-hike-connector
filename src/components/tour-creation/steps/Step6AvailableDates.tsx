@@ -96,6 +96,18 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
       isSameDay(existingDate, date)
     );
     
+    // Check if selecting this date would cause the tour duration to overlap with current tour dates
+    const wouldOverlapWithCurrentTour = () => {
+      for (let i = 0; i < Math.ceil(tourDuration); i++) {
+        const checkDate = addDays(date, i);
+        const overlaps = currentTourDates.some(tourDate =>
+          isSameDay(tourDate, checkDate)
+        );
+        if (overlaps) return true;
+      }
+      return false;
+    };
+    
     // Check if selecting this date would cause the tour duration to overlap with any existing tours
     const wouldOverlapWithExisting = () => {
       for (let i = 0; i < Math.ceil(tourDuration); i++) {
@@ -108,7 +120,7 @@ export default function Step6AvailableDates({ onSave, onNext, onPrev, isSaving }
       return false;
     };
     
-    return isInCurrentTour || isInExistingTour || wouldOverlapWithExisting();
+    return isInCurrentTour || isInExistingTour || wouldOverlapWithCurrentTour() || wouldOverlapWithExisting();
   };
 
   const handleDateSelect = (date: Date | undefined) => {
