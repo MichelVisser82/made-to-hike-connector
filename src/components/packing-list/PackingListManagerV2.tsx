@@ -409,8 +409,13 @@ export default function PackingListManagerV2({
                         }`}
                       >
                         <Checkbox defaultChecked className="mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 flex items-start justify-between gap-2">
                           <p className="text-sm text-charcoal leading-snug break-words">{item.name}</p>
+                          {!item.essential && (
+                            <Badge variant="outline" className="text-xs flex-shrink-0 border-charcoal/30 text-charcoal/60">
+                              Optional
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -503,9 +508,16 @@ export default function PackingListManagerV2({
                 <h4 className="font-medium text-charcoal mb-3">{category}</h4>
                 <div className="space-y-1.5">
                   {items.map(item => (
-                    <div key={item.id} className="flex items-start gap-3 p-2">
-                      <div className="w-5 h-5 border-2 border-charcoal/30 rounded mt-0.5 flex-shrink-0" />
-                      <span className="text-charcoal/80 text-sm">{item.name}</span>
+                    <div key={item.id} className="flex items-start gap-3 p-2 justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 border-2 border-charcoal/30 rounded mt-0.5 flex-shrink-0" />
+                        <span className="text-charcoal/80 text-sm">{item.name}</span>
+                      </div>
+                      {!item.essential && (
+                        <Badge variant="outline" className="text-xs border-charcoal/30 text-charcoal/60 flex-shrink-0">
+                          Optional
+                        </Badge>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -521,9 +533,16 @@ export default function PackingListManagerV2({
                 </div>
                 <div className="space-y-1.5">
                   {customItems.map(item => (
-                    <div key={item.id} className="flex items-start gap-3 p-2 bg-sage/5 rounded">
-                      <Check className="w-5 h-5 text-sage mt-0.5" />
-                      <span className="text-charcoal/80 text-sm">{item.name}</span>
+                    <div key={item.id} className="flex items-start gap-3 p-2 bg-sage/5 rounded justify-between">
+                      <div className="flex items-start gap-3">
+                        <Check className="w-5 h-5 text-sage mt-0.5" />
+                        <span className="text-charcoal/80 text-sm">{item.name}</span>
+                      </div>
+                      {!item.essential && (
+                        <Badge variant="outline" className="text-xs border-charcoal/30 text-charcoal/60 flex-shrink-0">
+                          Optional
+                        </Badge>
+                      )}
                     </div>
                   ))}
                 </div>
