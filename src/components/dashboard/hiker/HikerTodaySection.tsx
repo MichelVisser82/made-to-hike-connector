@@ -82,25 +82,11 @@ export function HikerTodaySection({
         });
       }
 
-      // Check for incomplete participant documents
-      if (trip.participants_details && Array.isArray(trip.participants_details)) {
-        const incompleteParticipants = trip.participants_details.filter((p: any) => 
-          p.documentStatus !== 'complete' && p.documentStatus !== 'completed'
-        );
-        
-        if (incompleteParticipants.length > 0) {
-          items.push({
-            id: `participant-${trip.id}`,
-            type: 'participant_docs',
-            priority: isUrgent ? 'urgent' : 'medium',
-            title: `${incompleteParticipants.length} participant${incompleteParticipants.length > 1 ? 's' : ''} need to complete documents`,
-            bookingId: trip.id,
-            tourTitle: trip.tour?.title || 'Unknown Tour',
-            daysUntil,
-            onClick: () => navigate(`/dashboard/trip/${trip.id}`)
-          });
-        }
-      }
+      // Participant documents: current booking data does not reliably reflect
+      // per-participant completion, so we avoid showing potentially incorrect
+      // "participants need to complete documents" action items here.
+      // When a reliable per-participant summary is available on the booking
+      // object, we can re-enable a reminder action based on that field.
 
       // Check for pending payments
       if (trip.payment_status === 'pending' || trip.payment_status === 'partial') {
