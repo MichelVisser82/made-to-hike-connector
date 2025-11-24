@@ -269,21 +269,16 @@ export default function PackingListManagerV2({
         category: selectedCategory,
         essential: newItemEssential
       };
-      setCustomItems([...customItems, newItem]);
+      const updatedItems = [...customItems, newItem];
+      setCustomItems(updatedItems);
       
       // Reset and close dialog
       setNewItemName("");
       setNewItemEssential(false);
       setAddItemDialogOpen(false);
       
-      // Call onSave immediately if provided
-      if (onSave) {
-        onSave({
-          preset: selectedPreset,
-          customItems: [...customItems, newItem],
-          guideNotes: "" // Add your guide notes state here if needed
-        });
-      }
+      // Auto-save
+      saveData(selectedPreset, updatedItems, excludedItems, guideNotes);
     }
   };
 
@@ -509,26 +504,12 @@ export default function PackingListManagerV2({
             </Card>
           )}
 
-          {/* Save Actions */}
-          <div className="flex items-center justify-between p-6 bg-white border border-burgundy/10 rounded-lg shadow-sm">
+          {/* Info Banner */}
+          <div className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-sm">
             <p className="text-sm text-charcoal/70">
-              This list will be sent automatically with booking confirmations
+              <Check className="w-4 h-4 inline-block mr-2 text-sage" />
+              Changes are saved automatically. This list will be sent with booking confirmations.
             </p>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline"
-                className="border-burgundy/30 text-burgundy"
-              >
-                Save as Draft
-              </Button>
-              <Button 
-                onClick={() => saveData(selectedPreset, customItems, excludedItems, guideNotes)}
-                className="bg-burgundy hover:bg-burgundy-dark text-white px-6"
-              >
-                <Check className="w-4 h-4 mr-2" />
-                Save & Continue
-              </Button>
-            </div>
           </div>
         </>
       ) : (
