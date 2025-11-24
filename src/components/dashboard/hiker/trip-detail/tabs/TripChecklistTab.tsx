@@ -708,6 +708,7 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                 const phoneStr = userProfile.phone ? String(userProfile.phone).trim() : '';
                 const countryStr = userProfile.country ? String(userProfile.country).trim() : '';
 
+                // 1) Prefer explicit phone with country code, if present
                 if (phoneStr) {
                   if (phoneStr.startsWith('+')) {
                     const match = phoneStr.match(/^(\+\d{1,4})\s*(.*)$/);
@@ -716,12 +717,42 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                       result.phone = match[2].trim();
                     }
                   } else {
-                    result.phoneCountryCode = '+1';
+                    // No explicit country code, keep the local number and let user choose code
                     result.phone = phoneStr;
                   }
-                } else if (countryStr && countryStr.startsWith('+')) {
-                  // Legacy data: country field was used to store phone country code like "+43"
+                }
+
+                // 2) Legacy case: country field stored a phone code like "+43"
+                if (!result.phoneCountryCode && countryStr && countryStr.startsWith('+')) {
                   result.phoneCountryCode = countryStr;
+                }
+
+                // 3) Map known country names to default dial codes (e.g. Netherlands -> +31)
+                if (!result.phoneCountryCode && countryStr && !countryStr.startsWith('+')) {
+                  const countryDialMap: Record<string, string> = {
+                    Netherlands: '+31',
+                    Austria: '+43',
+                    Germany: '+49',
+                    France: '+33',
+                    Spain: '+34',
+                    Italy: '+39',
+                    Belgium: '+32',
+                    Switzerland: '+41',
+                    Portugal: '+351',
+                    Ireland: '+353',
+                    Sweden: '+46',
+                    Norway: '+47',
+                    Denmark: '+45',
+                    Finland: '+358',
+                    Poland: '+48',
+                    'Czech Republic': '+420',
+                    Hungary: '+36',
+                    Greece: '+30',
+                  };
+                  const mapped = countryDialMap[countryStr];
+                  if (mapped) {
+                    result.phoneCountryCode = mapped;
+                  }
                 }
 
                 return result;
