@@ -17,6 +17,8 @@ import { format, addDays } from 'date-fns';
 import { useEmail } from '@/hooks/useEmail';
 import ParticipantManagementModal from '@/components/participant-management/ParticipantManagementModal';
 import { TravelInsuranceDialog } from '../TravelInsuranceDialog';
+import HikerPackingListView from '@/components/packing-list/HikerPackingListView';
+import type { PackingListData } from '@/types/packingList';
 
 interface TripChecklistTabProps {
   tripDetails: TripDetails;
@@ -623,6 +625,17 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               })}
             </div>
           </div>
+
+          {/* Packing List Section - Only show if enabled by guide */}
+          {tour.packing_list && (tour.packing_list as any)?.enabled && (
+            <div>
+              <h3 className="text-lg mb-4 text-foreground flex items-center gap-2" style={{fontFamily: 'Playfair Display, serif'}}>
+                <Package className="w-5 h-5 text-burgundy" />
+                Equipment & Packing List
+              </h3>
+              <HikerPackingListView packingList={tour.packing_list as PackingListData} />
+            </div>
+          )}
 
           {/* Equipment Rental Info Box */}
           <div className="bg-sage/10 border border-sage/20 rounded-lg p-4">

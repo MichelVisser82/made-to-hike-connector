@@ -102,6 +102,20 @@ const tourSchema = z.object({
     custom_deposit_amount: z.number().optional(),
     custom_final_payment_days: z.number().optional(),
   }).optional(),
+  
+  // Packing List (optional)
+  packing_list: z.object({
+    enabled: z.boolean().default(false),
+    preset: z.string().optional(),
+    customItems: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      category: z.string(),
+      essential: z.boolean()
+    })).default([]),
+    guideNotes: z.string().optional(),
+    lastUpdated: z.string().optional()
+  }).optional(),
 });
 
 export type TourFormData = z.infer<typeof tourSchema>;

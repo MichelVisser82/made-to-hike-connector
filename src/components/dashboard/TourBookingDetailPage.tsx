@@ -14,9 +14,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Mail, Phone, Download, FileText, Send, Paperclip } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Mail, Phone, Download, FileText, Send, Paperclip, Package, Edit3 } from 'lucide-react';
 import WeatherForecastCard from './WeatherForecastCard';
 import { ParticipantCard } from './ParticipantCard';
+import { useState as useDialogState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import PackingListManagerV2 from '@/components/packing-list/PackingListManagerV2';
+import type { PackingListData } from '@/types/packingList';
 interface TourBooking {
   id: string;
   booking_reference: string;
@@ -56,6 +60,7 @@ interface TourDetails {
   max_group_size: number;
   location?: string;
   price_per_person?: number;
+  packing_list?: any; // JSON field from database
 }
 export function TourBookingDetailPage() {
   const {
@@ -82,6 +87,7 @@ export function TourBookingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [groupMessage, setGroupMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [packingListModalOpen, setPackingListModalOpen] = useState(false);
   useEffect(() => {
     if (tourSlug && user) {
       fetchTourAndBookings();
@@ -579,6 +585,47 @@ export function TourBookingDetailPage() {
           </CardContent>
         </Card>
 
+        {/* Equipment Checklist - Only show if packing list is configured */}
+        {tour.packing_list && (tour.packing_list as any)?.enabled && (
+          <Card className="border-burgundy/10">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2 font-playfair text-charcoal">
+                <Package className="w-5 h-5 text-burgundy" />
+                Equipment Checklist
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setPackingListModalOpen(true)}
+              >
+                <Edit3 className="w-4 h-4 mr-2" />
+                Edit List
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-charcoal">Preset Template</p>
+                    <p className="text-xs text-charcoal/60 capitalize">
+                      {((tour.packing_list as any)?.preset || 'custom').replace(/-/g, ' ')}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-burgundy border-burgundy/30">
+                    {((tour.packing_list as any)?.customItems?.length || 0)} custom items
+                  </Badge>
+                </div>
+                {(tour.packing_list as any)?.guideNotes && (
+                  <div className="bg-cream rounded-lg p-3 mt-2">
+                    <p className="text-xs font-medium text-charcoal mb-1">Guide Notes</p>
+                    <p className="text-sm text-charcoal/80">{(tour.packing_list as any).guideNotes}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Group Message */}
         <Card className="border-burgundy/10">
           <CardHeader>
@@ -627,5 +674,58 @@ export function TourBookingDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Packing List Edit Modal */}
+      <Dialog open={packingListModalOpen} onOpenChange={setPackingListModalOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-playfair text-charcoal">
+              <Package className="w-5 h-5 text-burgundy" />
+              Edit Equipment Checklist
+            </DialogTitle>
+            <DialogDescription>
+              Update the packing list for {tour?.title}
+            </DialogDescription>
+          </DialogHeader>
+          <PackingListManagerV2
+            tourType={((tour?.packing_list as any)?.preset)}
+            existingList={tour?.packing_list}
+            onSave={async (listData) => {
+              try {
+                const { error } = await supabase
+                  .from('tours')
+                  .update({ 
+                    packing_list: {
+                      enabled: true,
+                      preset: listData.preset,
+                      customItems: listData.customItems || [],
+                      guideNotes: listData.guideNotes || '',
+                      lastUpdated: new Date().toISOString()
+                    }
+                  })
+                  .eq('id', tour?.id);
+
+                if (error) throw error;
+
+                // Refetch tour data
+                await fetchTourAndBookings();
+                
+                setPackingListModalOpen(false);
+                toast({
+                  title: 'Success',
+                  description: 'Packing list updated successfully',
+                });
+              } catch (error) {
+                console.error('Error updating packing list:', error);
+                toast({
+                  title: 'Error',
+                  description: 'Failed to update packing list',
+                  variant: 'destructive'
+                });
+              }
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>;
 }
