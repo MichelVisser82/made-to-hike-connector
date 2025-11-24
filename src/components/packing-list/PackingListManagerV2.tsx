@@ -41,13 +41,35 @@ export default function PackingListManagerV2({
   onSave,
   existingList 
 }: PackingListManagerV2Props) {
-  const [selectedPreset, setSelectedPreset] = useState(tourType);
-  const [customItems, setCustomItems] = useState<CustomItem[]>([]);
+  const [selectedPreset, setSelectedPreset] = useState(existingList?.preset || tourType);
+  const [customItems, setCustomItems] = useState<CustomItem[]>(existingList?.customItems || []);
+  const [guideNotes, setGuideNotes] = useState(existingList?.guideNotes || "");
   const [newItemName, setNewItemName] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [newItemEssential, setNewItemEssential] = useState(false);
+
+  // Save data whenever preset, customItems, or guideNotes change
+  const saveData = (preset: string, items: CustomItem[], notes: string) => {
+    if (onSave) {
+      onSave({
+        preset,
+        customItems: items,
+        guideNotes: notes
+      });
+    }
+  };
+
+  const handlePresetChange = (presetId: string) => {
+    setSelectedPreset(presetId);
+    saveData(presetId, customItems, guideNotes);
+  };
+
+  const handleGuideNotesChange = (notes: string) => {
+    setGuideNotes(notes);
+    saveData(selectedPreset, customItems, notes);
+  };
 
   // Preset configurations
   const presets = [
@@ -257,7 +279,9 @@ export default function PackingListManagerV2({
   };
 
   const removeCustomItem = (id: string) => {
-    setCustomItems(customItems.filter(item => item.id !== id));
+    const updatedItems = customItems.filter(item => item.id !== id);
+    setCustomItems(updatedItems);
+    saveData(selectedPreset, updatedItems, guideNotes);
   };
 
   return (
@@ -303,7 +327,7 @@ export default function PackingListManagerV2({
               return (
                 <button
                   key={preset.id}
-                  onClick={() => setSelectedPreset(preset.id)}
+                  onClick={() => handlePresetChange(preset.id)}
                   className={`p-5 rounded-xl border-2 transition-all text-left ${
                     isSelected
                       ? 'border-burgundy bg-burgundy/5 shadow-lg scale-105'
@@ -478,7 +502,7 @@ export default function PackingListManagerV2({
                 Save as Draft
               </Button>
               <Button 
-                onClick={() => onSave?.({ preset: selectedPreset, customItems })}
+                onClick={() => saveData(selectedPreset, customItems, guideNotes)}
                 className="bg-burgundy hover:bg-burgundy-dark text-white px-6"
               >
                 <Check className="w-4 h-4 mr-2" />
