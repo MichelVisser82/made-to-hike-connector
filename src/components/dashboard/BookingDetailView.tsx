@@ -210,23 +210,23 @@ export function BookingDetailView() {
   const fetchWeatherForecast = async (bookingData: BookingWithDetails) => {
     if (!bookingData?.tour.meeting_point || !bookingData?.booking_date) return;
     
+    // Only fetch weather if GPS coordinates are available
+    if (!bookingData.tour.meeting_point_lat || !bookingData.tour.meeting_point_lng) {
+      console.log('Skipping weather fetch: GPS coordinates not available for this tour');
+      return;
+    }
+    
     setWeatherLoading(true);
     setWeatherError(false);
     
     try {
-      // Prepare request body with GPS coordinates if available
+      // Prepare request body with GPS coordinates
       const requestBody: any = {
-        date: format(new Date(bookingData.booking_date), 'yyyy-MM-dd')
+        date: format(new Date(bookingData.booking_date), 'yyyy-MM-dd'),
+        latitude: bookingData.tour.meeting_point_lat,
+        longitude: bookingData.tour.meeting_point_lng,
+        location: bookingData.tour.meeting_point
       };
-      
-      // Use GPS coordinates if available for more accurate weather
-      if (bookingData.tour.meeting_point_lat && bookingData.tour.meeting_point_lng) {
-        requestBody.latitude = bookingData.tour.meeting_point_lat;
-        requestBody.longitude = bookingData.tour.meeting_point_lng;
-        requestBody.location = bookingData.tour.meeting_point; // Keep as fallback
-      } else {
-        requestBody.location = bookingData.tour.meeting_point;
-      }
       
       const { data, error } = await supabase.functions.invoke('get-weather-forecast', {
         body: requestBody
