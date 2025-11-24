@@ -1,9 +1,11 @@
-import { Calendar, Mountain, MessageSquare, Heart, User, MapPin, Users, Eye, MessageCircle } from 'lucide-react';
+import { Calendar, Mountain, MessageSquare, Heart, User, MapPin, Users, Eye, MessageCircle, AlertCircle, CheckCircle, FileText, Shield, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
+import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 
 interface HikerTodaySectionProps {
   userId: string;
@@ -14,6 +16,17 @@ interface HikerTodaySectionProps {
   onViewTrip: (trip: any) => void;
   onMessageGuide: (guideId: string) => void;
   onNavigateToSection: (section: string, defaultTab?: string) => void;
+}
+
+interface ActionItem {
+  id: string;
+  type: 'waiver' | 'insurance' | 'participant_docs' | 'payment' | 'review' | 'completed';
+  priority: 'urgent' | 'medium' | 'completed';
+  title: string;
+  bookingId: string;
+  tourTitle: string;
+  daysUntil?: number;
+  onClick: () => void;
 }
 
 export function HikerTodaySection({
@@ -27,8 +40,106 @@ export function HikerTodaySection({
   onNavigateToSection
 }: HikerTodaySectionProps) {
   const { profile } = useProfile();
+  const navigate = useNavigate();
   const nextTrip = upcomingTrips[0];
   const daysUntilNextTrip = nextTrip ? Math.ceil((new Date(nextTrip.booking_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
+
+  // Generate dynamic action items from booking data
+  const actionItems = useMemo(() => {
+    const items: ActionItem[] = [];
+
+    upcomingTrips.forEach((trip) => {
+      const daysUntil = Math.ceil((new Date(trip.booking_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const isUrgent = daysUntil <= 30;
+
+      // Check for missing waiver
+      if (!trip.waiver_uploaded_at) {
+        items.push({
+          id: `waiver-${trip.id}`,
+          type: 'waiver',
+          priority: isUrgent ? 'urgent' : 'medium',
+          title: `Upload waiver for ${trip.tour?.title || 'trip'}`,
+          bookingId: trip.id,
+          tourTitle: trip.tour?.title || 'Unknown Tour',
+          daysUntil,
+          onClick: () => navigate(`/dashboard/trip/${trip.id}`)
+        });
+      }
+
+      // Check for missing insurance
+      if (!trip.insurance_uploaded_at) {
+        items.push({
+          id: `insurance-${trip.id}`,
+          type: 'insurance',
+          priority: isUrgent ? 'urgent' : 'medium',
+          title: `Submit travel insurance for ${trip.tour?.title || 'trip'}`,
+          bookingId: trip.id,
+          tourTitle: trip.tour?.title || 'Unknown Tour',
+          daysUntil,
+          onClick: () => navigate(`/dashboard/trip/${trip.id}`)
+        });
+      }
+
+      // Check for incomplete participant documents
+      if (trip.participants_details && Array.isArray(trip.participants_details)) {
+        const incompleteParticipants = trip.participants_details.filter((p: any) => 
+          p.documentStatus !== 'complete' && p.documentStatus !== 'completed'
+        );
+        
+        if (incompleteParticipants.length > 0) {
+          items.push({
+            id: `participant-${trip.id}`,
+            type: 'participant_docs',
+            priority: isUrgent ? 'urgent' : 'medium',
+            title: `${incompleteParticipants.length} participant${incompleteParticipants.length > 1 ? 's' : ''} need to complete documents`,
+            bookingId: trip.id,
+            tourTitle: trip.tour?.title || 'Unknown Tour',
+            daysUntil,
+            onClick: () => navigate(`/dashboard/trip/${trip.id}`)
+          });
+        }
+      }
+
+      // Check for pending payments
+      if (trip.payment_status === 'pending' || trip.payment_status === 'partial') {
+        items.push({
+          id: `payment-${trip.id}`,
+          type: 'payment',
+          priority: isUrgent ? 'urgent' : 'medium',
+          title: `Complete payment for ${trip.tour?.title || 'trip'}`,
+          bookingId: trip.id,
+          tourTitle: trip.tour?.title || 'Unknown Tour',
+          daysUntil,
+          onClick: () => navigate(`/dashboard/trip/${trip.id}`)
+        });
+      }
+
+      // Add completed items for paid bookings
+      if (trip.payment_status === 'paid' && trip.waiver_uploaded_at && trip.insurance_uploaded_at) {
+        items.push({
+          id: `completed-${trip.id}`,
+          type: 'completed',
+          priority: 'completed',
+          title: `All documents submitted — ${trip.tour?.title || 'trip'}`,
+          bookingId: trip.id,
+          tourTitle: trip.tour?.title || 'Unknown Tour',
+          onClick: () => navigate(`/dashboard/trip/${trip.id}`)
+        });
+      }
+    });
+
+    // Sort: urgent first, then medium, then completed
+    // Within each priority, sort by days until trip
+    return items
+      .sort((a, b) => {
+        const priorityOrder = { urgent: 0, medium: 1, completed: 2 };
+        if (a.priority !== b.priority) {
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        }
+        return (a.daysUntil || 999) - (b.daysUntil || 999);
+      })
+      .slice(0, 5); // Show max 5 items
+  }, [upcomingTrips, navigate]);
 
   const currentDate = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
@@ -220,28 +331,57 @@ export function HikerTodaySection({
               <CardTitle className="text-lg font-playfair text-charcoal">Action Items</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-gold/10 rounded-lg border border-gold/20">
-                <Badge variant="destructive" className="mt-1 bg-burgundy">Urgent</Badge>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-charcoal">Upload waiver for Mont Blanc Trek</p>
+              {actionItems.length > 0 ? (
+                actionItems.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={item.onClick}
+                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all hover:shadow-sm ${
+                      item.priority === 'urgent'
+                        ? 'bg-gold/10 border border-gold/20 hover:bg-gold/15'
+                        : item.priority === 'completed'
+                        ? 'bg-sage/5 border border-sage/20'
+                        : 'bg-cream hover:bg-cream/80'
+                    }`}
+                  >
+                    {item.priority === 'urgent' && (
+                      <Badge variant="destructive" className="mt-1 bg-burgundy shrink-0">Urgent</Badge>
+                    )}
+                    {item.priority === 'medium' && (
+                      <div className="w-5 h-5 rounded-full bg-burgundy/20 mt-1 shrink-0 flex items-center justify-center">
+                        <AlertCircle className="w-3 h-3 text-burgundy" />
+                      </div>
+                    )}
+                    {item.priority === 'completed' && (
+                      <div className="w-5 h-5 rounded-full bg-sage mt-1 shrink-0 flex items-center justify-center">
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm font-medium ${
+                          item.priority === 'completed'
+                            ? 'text-charcoal/60 line-through'
+                            : 'text-charcoal'
+                        }`}
+                      >
+                        {item.title}
+                      </p>
+                      {item.daysUntil !== undefined && item.priority !== 'completed' && (
+                        <p className="text-xs text-charcoal/50 mt-0.5">
+                          {item.daysUntil} days until trip
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-2 text-sage" />
+                  <p className="text-sm text-charcoal/70">All caught up!</p>
+                  <p className="text-xs text-charcoal/50 mt-1">No action items at the moment</p>
                 </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-cream rounded-lg">
-                <div className="w-5 h-5 rounded-full bg-burgundy/20 mt-1" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-charcoal">Review your experience with Emma</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg border border-sage/20">
-                <div className="w-5 h-5 rounded-full bg-sage flex items-center justify-center mt-1">
-                  <span className="text-xs text-white">✓</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-charcoal/60 line-through">
-                    Payment confirmed — Scottish Highlands
-                  </p>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
