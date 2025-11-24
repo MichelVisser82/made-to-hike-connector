@@ -684,7 +684,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               email: selectedParticipantIndex === 0
                 ? (userProfile?.email || booking.hiker_email || undefined)
                 : (participants[selectedParticipantIndex]?.participantEmail || undefined),
-              country: selectedParticipantIndex === 0 ? (userProfile?.country || undefined) : undefined,
+              country: selectedParticipantIndex === 0
+                ? (userProfile?.country && !String(userProfile.country).trim().startsWith('+')
+                  ? userProfile.country
+                  : undefined)
+                : undefined,
               emergencyName: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_name || undefined) : undefined,
               emergencyPhone: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_phone || undefined) : undefined,
               emergencyRelationship: selectedParticipantIndex === 0 ? (userProfile?.emergency_contact_relationship || undefined) : undefined,
@@ -701,8 +705,10 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
               // overwritten by older waiver data or drafts.
               ...(selectedParticipantIndex === 0 && userProfile ? (() => {
                 const result: any = { email: userProfile.email || booking.hiker_email || undefined };
-                if (userProfile.phone) {
-                  const phoneStr = String(userProfile.phone).trim();
+                const phoneStr = userProfile.phone ? String(userProfile.phone).trim() : '';
+                const countryStr = userProfile.country ? String(userProfile.country).trim() : '';
+
+                if (phoneStr) {
                   if (phoneStr.startsWith('+')) {
                     const match = phoneStr.match(/^(\+\d{1,4})\s*(.*)$/);
                     if (match) {
@@ -713,7 +719,11 @@ export function TripChecklistTab({ tripDetails }: TripChecklistTabProps) {
                     result.phoneCountryCode = '+1';
                     result.phone = phoneStr;
                   }
+                } else if (countryStr && countryStr.startsWith('+')) {
+                  // Legacy data: country field was used to store phone country code like "+43"
+                  result.phoneCountryCode = countryStr;
                 }
+
                 return result;
               })() : {}),
             }}
