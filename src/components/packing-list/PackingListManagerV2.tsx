@@ -242,8 +242,13 @@ export default function PackingListManagerV2({
     });
   };
 
-  // Group items by category
-  const groupedItems = getItemsForPreset().reduce((acc, item) => {
+  // Filter out excluded items (items the guide has deselected)
+  const getVisibleItems = () => {
+    return getItemsForPreset().filter(item => !excludedItems.includes(item.id));
+  };
+
+  // Group visible items by category
+  const groupedItems = getVisibleItems().reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
@@ -252,7 +257,7 @@ export default function PackingListManagerV2({
   }, {} as Record<string, PackingItem[]>);
 
   const currentPreset = presets.find(p => p.id === selectedPreset);
-  const visibleItems = getItemsForPreset();
+  const visibleItems = getVisibleItems();
   const essentialCount = visibleItems.filter(i => i.essential).length;
   const optionalCount = visibleItems.filter(i => !i.essential).length;
 
