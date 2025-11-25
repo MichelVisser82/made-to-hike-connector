@@ -50,12 +50,9 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Mountain className="h-8 w-8 text-primary" />
-              <div>
-                <div className="text-lg font-semibold">MadeToHike</div>
-                <div className="text-xs text-muted-foreground">Guided Adventures</div>
-              </div>
+            <div className="flex items-center gap-3">
+              <Mountain className="h-7 w-7 text-burgundy" />
+              <span className="text-xl text-burgundy font-playfair">Made to Hike</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Europe's premier marketplace for certified mountain guides and authentic hiking experiences. 
