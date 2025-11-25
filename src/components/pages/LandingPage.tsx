@@ -19,6 +19,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Card } from '../ui/card';
 import { SmartImage } from '../SmartImage';
+import { CertificationBadge } from '../ui/certification-badge';
 import { useFeaturedRegions, formatRegionPath } from '@/hooks/useFeaturedRegions';
 import { useFeaturedTours } from '@/hooks/useFeaturedTours';
 import { useAllGuides } from '@/hooks/useAllGuides';
@@ -243,10 +244,14 @@ export function LandingPage({
                     </h3>
                     <div className="flex items-center gap-2 text-sm mb-4">
                       <span className="text-charcoal">{guideName}</span>
-                      <Badge variant="outline" className="border-burgundy text-burgundy">
-                        <Award className="w-3 h-3 mr-1" />
-                        {certTitle}
-                      </Badge>
+                      {primaryCert && (
+                        <CertificationBadge 
+                          certification={primaryCert}
+                          size="mini"
+                          displayMode="simple"
+                          showTooltip={false}
+                        />
+                      )}
                     </div>
 
                     <div className="space-y-2 text-sm text-charcoal/70 mb-4 pb-4 border-b border-charcoal/10">
@@ -446,10 +451,14 @@ export function LandingPage({
                         />
                       )}
                       <div className="absolute top-4 right-4">
-                        <Badge className="bg-burgundy text-white border-0">
-                          <Award className="w-3 h-3 mr-1" />
-                          {certTitle}
-                        </Badge>
+                        {primaryCert && (
+                          <CertificationBadge 
+                            certification={primaryCert}
+                            size="compact"
+                            displayMode="simple"
+                            showTooltip={false}
+                          />
+                        )}
                       </div>
                       <div className="absolute bottom-4 left-4">
                         <div className="flex items-center gap-1 bg-white/90 px-3 py-1 rounded-full">
