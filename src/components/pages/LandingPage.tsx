@@ -101,7 +101,7 @@ export function LandingPage({
           <SmartImage
             category="hero"
             usageContext="landing_split_hero"
-            tags={['guide', 'map', 'planning', 'hands']}
+            tags={['guide', 'mountain', 'hiking']}
             className="w-full h-full object-cover"
             alt="Mountain guide with topographic map"
           />
