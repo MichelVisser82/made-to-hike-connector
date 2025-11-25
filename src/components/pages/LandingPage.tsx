@@ -109,13 +109,12 @@ export function LandingPage({
             
             <h1 className="text-4xl lg:text-6xl mb-8 leading-tight text-white" style={{
             fontFamily: 'Playfair Display, serif'
-          }}>
-              Discover Europe's Alps<br />
+          }}>Discover the mountains with Certified Guides<br />
               With Certified Guides
             </h1>
 
             <div className="space-y-4 mb-12 text-cream/90 leading-relaxed">
-              <p>Connect with IFMGA and UIMLA certified guides across the Dolomites, Pyrenees, and Scottish Highlands.</p>
+              <p>Join other passionate hikers with certified guides across different regions like the Dolomites, Pyrenees, and Scottish Highlands.</p>
               <p>Authentic experiences. Fair guide compensation.</p>
               <p>Sustainable mountain tourism.</p>
             </div>
