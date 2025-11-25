@@ -22,6 +22,7 @@ interface ParticipantCardProps {
       name: string;
       email: string;
       phone: string | null;
+      country?: string | null;
       dietary_preferences?: any;
       emergency_contact_name?: string | null;
     };
@@ -113,7 +114,7 @@ export function ParticipantCard({ booking, tourDate, onSendReminder }: Participa
         {booking.hiker.phone && (
           <div className="flex items-center gap-2 text-charcoal/70">
             <Phone className="w-4 h-4" />
-            {booking.hiker.phone}
+            {booking.hiker.country || ''}{booking.hiker.phone}
           </div>
         )}
         {booking.hiker.emergency_contact_name && (

@@ -82,10 +82,12 @@ interface BookingWithDetails {
     name: string;
     email: string;
     phone: string;
+    country: string | null;
     avatar_url: string | null;
     emergency_contact_name: string | null;
     emergency_contact_relationship: string | null;
     emergency_contact_phone: string | null;
+    emergency_contact_country: string | null;
   };
 }
 
@@ -178,11 +180,13 @@ export function BookingDetailView() {
             id, 
             name, 
             email, 
-            phone, 
+            phone,
+            country,
             avatar_url,
             emergency_contact_name,
             emergency_contact_relationship,
-            emergency_contact_phone
+            emergency_contact_phone,
+            emergency_contact_country
           )
         `)
         .eq('id', bookingId)
@@ -509,11 +513,11 @@ export function BookingDetailView() {
                 {booking.hiker.email}
               </a>
               <a
-                href={`tel:${booking.hiker.phone?.startsWith('+') ? booking.hiker.phone : `+${booking.hiker.phone}`}`}
+                href={`tel:${booking.hiker.country || ''}${booking.hiker.phone}`}
                 className="flex items-center gap-2 text-sm text-charcoal/60 hover:text-charcoal transition-colors"
               >
                 <Phone className="h-4 w-4" />
-                {booking.hiker.phone?.startsWith('+') ? booking.hiker.phone : `+${booking.hiker.phone}`}
+                {booking.hiker.country}{booking.hiker.phone}
               </a>
             </div>
 
@@ -591,9 +595,9 @@ export function BookingDetailView() {
                   <p className="font-medium text-charcoal">{emergencyContact.name}</p>
                   <p className="text-sm text-charcoal/60">{emergencyContact.relationship}</p>
                   <p className="text-sm text-charcoal/60">
-                    {emergencyContact.phone?.startsWith('+') || emergencyContact.phone === 'Not provided' 
+                    {emergencyContact.phone === 'Not provided' 
                       ? emergencyContact.phone 
-                      : `+${emergencyContact.phone}`}
+                      : `${booking.hiker.emergency_contact_country || ''}${emergencyContact.phone}`}
                   </p>
                 </div>
               </div>
@@ -855,7 +859,7 @@ export function BookingDetailView() {
                   className="w-full bg-burgundy hover:bg-burgundy/90 text-white"
                   asChild
                 >
-                  <a href={`tel:${emergencyContact.phone?.startsWith('+') ? emergencyContact.phone : `+${emergencyContact.phone}`}`}>
+                  <a href={`tel:${booking.hiker.emergency_contact_country || ''}${emergencyContact.phone}`}>
                     <PhoneCall className="h-4 w-4 mr-2" />
                     Call Emergency Number
                   </a>
