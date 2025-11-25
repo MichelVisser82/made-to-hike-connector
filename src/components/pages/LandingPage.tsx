@@ -115,7 +115,7 @@ export function LandingPage({
 
             <div className="space-y-4 mb-12 text-cream/90 leading-relaxed">
               <p>Join other passionate hikers with certified guides across different regions like the Dolomites, Pyrenees, and Scottish Highlands.</p>
-              <p>Authentic experiences. Fair guide compensation.</p>
+              <p>Authentic and safe experiences. Fair guide compensation.</p>
               <p>Sustainable mountain tourism.</p>
             </div>
 
