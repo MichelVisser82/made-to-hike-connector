@@ -211,56 +211,71 @@ export const Auth = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>🏔️ Welcome Back</CardTitle>
-            <CardDescription>
-              Sign in to your MadeToHike account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signin-email">Email</Label>
-                <Input
-                  id="signin-email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter your email"
-                />
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-cream via-background to-sage/5">
+        <div className="w-full max-w-md">
+          <Card className="border-burgundy/20 shadow-elegant backdrop-blur-sm bg-card/95">
+            <CardHeader className="text-center space-y-4 pb-8">
+              <div className="mx-auto w-16 h-16 rounded-full bg-burgundy/10 flex items-center justify-center mb-2">
+                <span className="text-3xl">🏔️</span>
               </div>
+              <CardTitle className="text-3xl text-burgundy" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Welcome Back
+              </CardTitle>
+              <CardDescription className="text-base text-charcoal/70">
+                Sign in to your MadeToHike account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-8 pb-8">
+              <form onSubmit={handleSignIn} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="signin-email" className="text-charcoal font-medium">Email</Label>
+                  <Input
+                    id="signin-email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="your.email@example.com"
+                    className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signin-password">Password</Label>
-                <Input
-                  id="signin-password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter your password"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signin-password" className="text-charcoal font-medium">Password</Label>
+                  <Input
+                    id="signin-password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter your password"
+                    className="border-burgundy/20 focus:border-burgundy focus:ring-burgundy/20"
+                  />
+                </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Signing In...' : 'Sign In'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-        
-        <div className="text-center">
-          <Button variant="link" onClick={toggleMode}>
-            Don't have an account? Sign up
-          </Button>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-burgundy hover:bg-burgundy/90 text-cream font-medium h-11 shadow-md hover:shadow-lg transition-all" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Signing In...' : 'Sign In'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          
+          <div className="text-center mt-6">
+            <Button 
+              variant="link" 
+              onClick={toggleMode}
+              className="text-charcoal/70 hover:text-burgundy transition-colors"
+            >
+              Don't have an account? <span className="font-semibold ml-1">Sign up</span>
+            </Button>
+          </div>
         </div>
-      </div>
       </div>
     </MainLayout>
   );
