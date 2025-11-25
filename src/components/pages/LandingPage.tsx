@@ -23,7 +23,6 @@ import { useFeaturedRegions, formatRegionPath } from '@/hooks/useFeaturedRegions
 import { useFeaturedTours } from '@/hooks/useFeaturedTours';
 import { useAllGuides } from '@/hooks/useAllGuides';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
-import { Footer } from '../layout/Footer';
 import type { User } from '../../types';
 
 interface LandingPageProps {
@@ -832,8 +831,10 @@ export function LandingPage({
               <h4 className="text-burgundy-light mb-4 uppercase text-sm tracking-wider">For Hikers</h4>
               <ul className="space-y-2 text-sm text-white/70">
                 <li><button onClick={() => navigate('/tours')} className="hover:text-burgundy-light">Browse Tours</button></li>
+                <li><button onClick={() => navigate('/guides')} className="hover:text-burgundy-light">Our Guides</button></li>
                 <li><button onClick={() => navigate('/how-it-works')} className="hover:text-burgundy-light">How It Works</button></li>
                 <li><button onClick={() => navigate('/safety')} className="hover:text-burgundy-light">Safety Standards</button></li>
+                <li><button onClick={() => navigate('/certifications')} className="hover:text-burgundy-light">Certification Reference Guide</button></li>
                 <li><button onClick={() => navigate('/reviews')} className="hover:text-burgundy-light">Reviews</button></li>
                 <li><button onClick={() => navigate('/custom-requests')} className="hover:text-burgundy-light">Custom Requests</button></li>
               </ul>
