@@ -471,9 +471,7 @@ export function LandingPage({
           </div>
 
           <div className="mt-16 text-center">
-            <p className="text-lg text-charcoal/70 italic">
-              "We're building what we wished existed when we started guiding."
-            </p>
+            <p className="text-lg text-charcoal/70 italic">"We're building what I wished existed when I started guiding."</p>
             <p className="text-charcoal mt-2" style={{
             fontFamily: 'Playfair Display, serif'
           }}>
@@ -595,7 +593,7 @@ export function LandingPage({
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-charcoal/70">Perfect for hut-to-hut treks and via ferrata routes</span>
+                  <span className="text-sm text-charcoal/70">Perfect for hut-to-hut treks and non-technical routes</span>
                 </div>
               </div>
 
