@@ -687,6 +687,21 @@ export function LandingPage({
                 </div>
               </div>
 
+              <div className="flex justify-center mb-6">
+                <CertificationBadge 
+                  certification={{
+                    certificationType: 'standard',
+                    title: "UIMLA",
+                    certifyingBody: "International Mountain Leader",
+                    verificationPriority: 2,
+                    isPrimary: false
+                  }}
+                  size="full"
+                  showTooltip={true}
+                  displayMode="detailed"
+                />
+              </div>
+
               <p className="text-charcoal/80 leading-relaxed mb-6">
                 Professional mountain leaders trained to guide non-technical mountain terrain, trekking routes, 
                 and alpine hiking. Extensive training in navigation, weather, emergency procedures, and group management.
