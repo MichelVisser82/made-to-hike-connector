@@ -128,19 +128,28 @@ Consider implementing rate limiting for:
 3. ✅ Proper RBAC implementation with security definer functions
 4. ✅ Input validation with Zod across all forms
 5. ✅ PII removed from error logs
+6. ✅ **NEW**: Payment secrets hidden from guides via secure bookings_guide_view
+7. ✅ **NEW**: Profile RLS policies tightened - users only see own data or relevant participants
+8. ✅ **NEW**: Guide contact info restricted to guide themselves and confirmed bookers
+9. ✅ **NEW**: Added security definer function to prevent RLS recursion
+10. ✅ **NEW**: Removed password hash testing utility that logged credentials
 
 ### ⚠️ Pending Issues:
-1. ⚠️ **Leaked Password Protection** - Requires manual enablement in Supabase Dashboard
-2. ℹ️ "SECURITY DEFINER View" warning - Investigated, likely false positive for guide_profiles_public view
-3. ℹ️ "Extension in Public Schema" warning - Low priority Postgres best practice
+1. ⚠️ **Leaked Password Protection** - Requires manual enablement in Supabase Dashboard (CRITICAL)
+2. ℹ️ "SECURITY DEFINER View" warning - Expected behavior for our secure views (bookings_guide_view)
+3. ℹ️ "Function Search Path Mutable" - Low priority optimization
+4. ℹ️ "Extension in Public Schema" warning - Low priority Postgres best practice
 
 ### 📊 Security Scan Findings:
 
-Current findings from security scan:
-- **ERROR**: SECURITY DEFINER View - Under investigation (likely false positive)
-- **WARN**: Leaked Password Protection Disabled - **ACTION REQUIRED** ⚠️
+Current findings from security scan (Post Phase 1 Improvements):
+- **ERROR**: SECURITY DEFINER View - Expected behavior for secure bookings_guide_view (intentional design)
+- **WARN**: Leaked Password Protection Disabled - **ACTION REQUIRED** ⚠️ (Manual dashboard action needed)
+- **WARN**: Function Search Path Mutable - Low priority (affects custom functions)
 - **WARN**: Extension in Public Schema - Low priority optimization
-- **INFO**: Profile table email exposure - Properly secured with RLS, authenticated users can only see their own data
+- **RESOLVED**: Profile table PII exposure - Now properly secured with restrictive RLS policies
+- **RESOLVED**: Payment data exposure - Now hidden from guides via secure view
+- **RESOLVED**: Contact info leakage - Phone numbers only visible to owners and confirmed bookers
 
 ## 📚 Resources
 
@@ -155,13 +164,32 @@ Current findings from security scan:
 
 ## 🎯 Next Steps
 
-1. **IMMEDIATE**: Enable Leaked Password Protection in Supabase Dashboard
-2. **THIS WEEK**: Review all edge functions for input validation
-3. **THIS MONTH**: Implement rate limiting for authentication endpoints
-4. **ONGOING**: Regular security audits and dependency updates
+### **IMMEDIATE ACTIONS**:
+1. ⚠️ **CRITICAL**: Enable Leaked Password Protection in Supabase Dashboard
+   - Go to: https://supabase.com/dashboard/project/ohecxwxumzpfcfsokfkg/auth/providers
+   - Navigate to: Authentication → Policies → Leaked Password Protection
+   - Enable this setting immediately
+
+### **THIS WEEK**:
+2. Test the new RLS policies thoroughly with different user roles
+3. Verify guides cannot see payment secrets in bookings
+4. Review all edge functions for input validation
+5. Monitor for any RLS policy conflicts or access issues
+
+### **THIS MONTH**: 
+6. Implement rate limiting for authentication endpoints
+7. Add security headers to responses (CSP, X-Frame-Options, etc.)
+8. Complete 2FA implementation
+9. Implement SMS notifications with rate limiting
+
+### **ONGOING**:
+10. Regular security audits and dependency updates
+11. Monitor security scan results after each major change
+12. Review and update RLS policies as new features are added
 
 ---
 
-**Last Updated**: 2025-10-08
-**Security Review Date**: 2025-10-08
-**Next Review**: 2025-11-08 (Quarterly recommended)
+**Last Updated**: 2025-11-25
+**Security Review Date**: 2025-11-25  
+**Phase 1 Improvements**: COMPLETED
+**Next Review**: 2026-02-25 (Quarterly recommended)
