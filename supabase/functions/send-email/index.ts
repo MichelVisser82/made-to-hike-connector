@@ -5,7 +5,7 @@ import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete' | 'guide_participant_documents'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete' | 'guide_participant_documents' | 'review_response'
   to: string
   from?: string
   reply_to?: string
@@ -1100,9 +1100,59 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </html>`,
       text: `Participant Documents - ${data.tourTitle}\n\nTour Date: ${data.tourDate}\n\nDocument Status:\n- Total Participants: ${data.totalParticipants}\n- Waivers Completed: ${data.completedWaivers} / ${data.totalParticipants}\n- Insurance Verified: ${data.completedInsurance} / ${data.totalParticipants}\n\nPlease see the attached HTML file for complete participant documentation.`
     },
+
+    review_response: {
+      subject: `${data.responderType === 'guide' ? 'Your guide' : 'Your hiker'} responded to your review - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5a2127 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">💬 New Response to Your Review</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.reviewerName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                ${data.responderType === 'guide' ? 'Your guide' : 'Your hiker'} has responded to the review you left for <strong>${data.tourTitle}</strong>.
+            </p>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #7C2D32; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0 0 12px; color: #666; font-size: 14px; font-style: italic;">Your review (${data.rating}/5):</p>
+                <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">"${data.reviewComment}"</p>
+            </div>
+
+            <div style="background: white; border: 2px solid #7C2D32; padding: 20px; margin: 25px 0; border-radius: 8px;">
+                <p style="margin: 0 0 12px; color: #7C2D32; font-size: 14px; font-weight: 600;">Response:</p>
+                <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">"${data.responseText}"</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.dashboardUrl}" style="display: inline-block; background: #7C2D32; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    View Full Conversation
+                </a>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
+                <p style="margin: 0; color: #718096; font-size: 13px; line-height: 1.6;">
+                    Thank you for being part of the MadeToHike community!
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `${data.responderType === 'guide' ? 'Your guide' : 'Your hiker'} responded to your review - ${data.tourTitle}\n\nHi ${data.reviewerName},\n\n${data.responderType === 'guide' ? 'Your guide' : 'Your hiker'} has responded to the review you left for ${data.tourTitle}.\n\nYour review (${data.rating}/5):\n"${data.reviewComment}"\n\nResponse:\n"${data.responseText}"\n\nView the full conversation at: ${data.dashboardUrl}\n\nThank you for being part of the MadeToHike community!`
+    },
   };
 
-  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents'];
+  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response'];
 
   return templates[type as keyof typeof templates] || templates.contact
 }
@@ -1111,7 +1161,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 

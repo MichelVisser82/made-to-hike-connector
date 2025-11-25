@@ -156,7 +156,21 @@ export default function PublishedReviewCard({
           </div>
         )}
 
-        {showResponseButton && onResponse && (
+        {review.review_responses && review.review_responses.length > 0 && (
+          <div className="pt-4 border-t space-y-2">
+            <h5 className="text-sm font-semibold text-muted-foreground">Response from {review.review_type === 'hiker_to_guide' ? 'Guide' : 'Hiker'}</h5>
+            <div className="bg-muted/50 rounded-lg p-4">
+              <p className="text-sm text-foreground leading-relaxed">
+                {review.review_responses[0].response_text}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {format(new Date(review.review_responses[0].created_at), 'MMMM d, yyyy')}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {showResponseButton && onResponse && !review.review_responses?.length && (
           <div className="pt-2 border-t">
             <Button variant="outline" size="sm" onClick={onResponse}>
               Respond to Review

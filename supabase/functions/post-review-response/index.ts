@@ -88,8 +88,8 @@ Deno.serve(async (req) => {
     // For now, auto-approve
     const moderationStatus = 'approved';
 
-    // Create response record
-    const { data: response, error: insertError } = await supabase
+    // Insert the response
+    const { data: responseData, error: insertError } = await supabase
       .from('review_responses')
       .insert({
         review_id: reviewId,
@@ -103,8 +103,45 @@ Deno.serve(async (req) => {
 
     if (insertError) throw insertError;
 
-    // Send notification to original reviewer
+    // Fetch reviewer details and tour info for email notification
     const originalReviewerId = responderType === 'guide' ? review.hiker_id : review.guide_id;
+    
+    const { data: recipientProfile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', originalReviewerId)
+      .single();
+
+    const { data: reviewWithTour } = await supabase
+      .from('reviews')
+      .select('overall_rating, comment, tours!inner(title)')
+      .eq('id', reviewId)
+      .single();
+
+    // Send email notification
+    if (recipientProfile?.email && reviewWithTour) {
+      try {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'review_response',
+            to: recipientProfile.email,
+            data: {
+              reviewerName: recipientProfile.name,
+              tourTitle: reviewWithTour.tours.title,
+              rating: reviewWithTour.overall_rating,
+              reviewComment: reviewWithTour.comment || 'No comment provided',
+              responseText: responseText,
+              responderType: responderType,
+              dashboardUrl: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/dashboard/reviews`
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError);
+      }
+    }
+
+    // Send notification to original reviewer
     const originalReviewerType = responderType === 'guide' ? 'hiker' : 'guide';
 
     await supabase.from('review_notifications').insert({
@@ -113,9 +150,6 @@ Deno.serve(async (req) => {
       recipient_type: originalReviewerType,
       notification_type: 'response_received'
     });
-
-    // TODO: Send email notification via send-email function
-    console.log(`Response posted for review ${reviewId}`);
 
     return new Response(
       JSON.stringify({
