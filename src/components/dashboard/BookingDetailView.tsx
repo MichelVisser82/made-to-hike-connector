@@ -31,6 +31,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { HikingLocationMap } from "@/components/tour/HikingLocationMap";
 import {
   ArrowLeft,
   Mail,
@@ -639,9 +640,21 @@ export function BookingDetailView() {
                 <MapPin className="h-4 w-4 text-burgundy" />
                 <h3 className="font-semibold text-charcoal">Meeting Location</h3>
               </div>
-              <p className="text-sm text-charcoal/60 whitespace-pre-line">
+              <p className="text-sm text-charcoal/60 whitespace-pre-line mb-3">
                 {booking.tour.meeting_point}
               </p>
+              {booking.tour.meeting_point_lat && booking.tour.meeting_point_lng && (
+                <div className="mt-3">
+                  <HikingLocationMap
+                    latitude={booking.tour.meeting_point_lat}
+                    longitude={booking.tour.meeting_point_lng}
+                    title={booking.tour.meeting_point}
+                    height="200px"
+                    zoom={14}
+                    showControls={false}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Weather Forecast */}
