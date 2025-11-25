@@ -730,7 +730,7 @@ export function AppNavigation({
 
   // Default public navigation
   return (
-    <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-burgundy/10 bg-cream-light backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <a
@@ -738,13 +738,13 @@ export function AppNavigation({
             onClick={handleLogoClick}
             className="flex items-center gap-2 hover:opacity-80 cursor-pointer"
           >
-            <svg className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="h-8 w-8 text-burgundy" viewBox="0 0 24 24" fill="currentColor">
               <path d="M14,6L10.25,11L14,16L15.5,14.5L13.25,11L15.5,7.5L14,6M9.5,6L8,7.5L10.25,11L8,14.5L9.5,16L13.25,11L9.5,6Z"/>
               <path d="M4.5,3C3.67,3 3,3.67 3,4.5V19.5C3,20.33 3.67,21 4.5,21H19.5C20.33,21 21,20.33 21,19.5V4.5C21,3.67 20.33,3 19.5,3H4.5Z"/>
             </svg>
             <div>
-              <div className="text-lg font-semibold">MadeToHike</div>
-              <div className="text-xs text-muted-foreground">Guided Adventures</div>
+              <div className="text-lg font-playfair font-semibold text-burgundy">MadeToHike</div>
+              <div className="text-xs text-charcoal/60">Guided Adventures</div>
             </div>
           </a>
 
@@ -752,7 +752,7 @@ export function AppNavigation({
             {currentPage !== 'search' && (
               <button
                 onClick={handleSearch}
-                className="text-sm hover:text-primary"
+                className="text-sm text-charcoal hover:text-burgundy transition-colors"
               >
                 Find Tours
               </button>
