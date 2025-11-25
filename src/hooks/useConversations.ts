@@ -22,8 +22,9 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
         {
           event: '*',
           schema: 'public',
-          table: 'conversations',
-          ...(isAdmin ? {} : { filter: `hiker_id=eq.${userId},guide_id=eq.${userId}` })
+          table: 'conversations'
+          // Note: Realtime subscriptions with OR filters are complex
+          // We'll listen to all changes and filter in fetchConversations
         },
         () => {
           fetchConversations();
