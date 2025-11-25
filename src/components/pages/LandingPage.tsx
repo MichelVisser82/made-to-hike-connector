@@ -475,9 +475,7 @@ export function LandingPage({
             <p className="text-lg text-charcoal/70 italic">"We're building what I wished existed when I started guiding."</p>
             <p className="text-charcoal mt-2" style={{
             fontFamily: 'Playfair Display, serif'
-          }}>
-              — Michel Visser, Founder & UIMLA Mountain Guide
-            </p>
+          }}>— Michel Visser, Founder & ML Mountain Guide</p>
           </div>
         </div>
       </section>
