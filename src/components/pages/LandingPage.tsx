@@ -622,7 +622,6 @@ export function LandingPage({
                   <Award className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <Badge className="mb-2 bg-burgundy text-white">Premium Certification</Badge>
                   <h3 className="text-2xl text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
                     IFMGA / UIAGM
                   </h3>
