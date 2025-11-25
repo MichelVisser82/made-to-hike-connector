@@ -249,7 +249,7 @@ export function LandingPage({
                           certification={primaryCert}
                           size="mini"
                           displayMode="simple"
-                          showTooltip={false}
+                          showTooltip={true}
                         />
                       )}
                     </div>
@@ -456,7 +456,7 @@ export function LandingPage({
                             certification={primaryCert}
                             size="compact"
                             displayMode="simple"
-                            showTooltip={false}
+                            showTooltip={true}
                           />
                         )}
                       </div>
