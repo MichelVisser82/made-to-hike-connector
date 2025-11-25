@@ -55,24 +55,26 @@ export default function ReviewResponseForm({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">Respond to {reviewerName}'s Review</h3>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h3 className="font-serif text-2xl font-semibold text-primary mb-2">
+          Respond to {reviewerName}'s Review
+        </h3>
+        <p className="text-sm text-muted-foreground">
           You can only respond once. Make sure your response is thoughtful and professional.
         </p>
       </div>
 
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
+      <Alert className="border-primary/20 bg-primary/5">
+        <AlertCircle className="h-4 w-4 text-primary" />
+        <AlertDescription className="text-foreground">
           This is a one-time response. Once submitted, you cannot edit or delete it.
         </AlertDescription>
       </Alert>
 
       <div className="space-y-2">
-        <Label htmlFor="response">
-          Your Response <span className="text-destructive">*</span>
+        <Label htmlFor="response" className="text-base font-medium">
+          Your Response <span className="text-primary">*</span>
         </Label>
         <Textarea
           id="response"
@@ -80,20 +82,21 @@ export default function ReviewResponseForm({
           onChange={(e) => handleResponseChange(e.target.value)}
           placeholder="Thank you for your feedback..."
           rows={5}
-          className="resize-none"
+          className="resize-none border-border focus:border-primary focus:ring-primary"
         />
-        <p className={`text-sm ${charCount < 10 ? 'text-destructive' : 'text-muted-foreground'}`}>
+        <p className={`text-sm ${charCount < 10 ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
           {charCount}/300 characters (minimum 10)
         </p>
       </div>
 
-      <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={onCancel}>
+      <div className="flex justify-end gap-3 pt-2">
+        <Button variant="outline" onClick={onCancel} className="border-border hover:bg-muted">
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           disabled={postResponse.isPending || charCount < 10}
+          className="bg-primary hover:bg-primary/90"
         >
           {postResponse.isPending ? 'Posting...' : 'Post Response'}
         </Button>
