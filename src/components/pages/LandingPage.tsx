@@ -109,7 +109,8 @@ export function LandingPage({
             
             <h1 className="text-4xl lg:text-6xl mb-8 leading-tight text-white" style={{
             fontFamily: 'Playfair Display, serif'
-          }}>Discover the mountains with Certified Guides <br />
+          }}>Discover the mountains with Certified Guides 
+            <br />
               With Certified Guides
             </h1>
 
