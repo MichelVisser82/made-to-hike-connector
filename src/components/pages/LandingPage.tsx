@@ -13,7 +13,8 @@ import {
   Award,
   Heart,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CheckCircle
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -74,27 +75,13 @@ export function LandingPage({
         {/* Left Side - Image */}
         <div className="lg:w-1/2 h-[50vh] lg:h-screen relative overflow-hidden">
           <SmartImage
-            category="hero"
-            usageContext="guide_planning"
-            tags={['hero', 'guide', 'mountain']}
+            category="guide"
+            usageContext="map_planning"
+            tags={['guide', 'map', 'topographic', 'planning']}
             className="w-full h-full object-cover"
-            alt="Mountain guide planning expedition"
+            alt="Mountain guide planning route on topographic map"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-charcoal/30" />
-          {/* Subtle contour lines overlay */}
-          <div className="absolute inset-0 opacity-10">
-            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="contours" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                  <path d="M0,20 Q25,10 50,20 T100,20" stroke="white" fill="none" strokeWidth="0.5"/>
-                  <path d="M0,40 Q25,35 50,40 T100,40" stroke="white" fill="none" strokeWidth="0.5"/>
-                  <path d="M0,60 Q25,55 50,60 T100,60" stroke="white" fill="none" strokeWidth="0.5"/>
-                  <path d="M0,80 Q25,75 50,80 T100,80" stroke="white" fill="none" strokeWidth="0.5"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#contours)" />
-            </svg>
-          </div>
         </div>
 
         {/* Right Side - Hero Content */}
@@ -146,17 +133,6 @@ export function LandingPage({
               >
                 Become a Guide <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-            </div>
-
-            {/* Scroll Indicator */}
-            <div className="mt-16 flex justify-center">
-              <div className="flex flex-col items-center gap-2 animate-bounce">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-50">
-                  <path d="M5,10 Q20,5 35,10" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                  <path d="M5,20 Q20,15 35,20" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                  <path d="M5,30 Q20,25 35,30" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                </svg>
-              </div>
             </div>
           </div>
         </div>
