@@ -226,9 +226,6 @@ export function LandingPage({
                       className="w-full h-full object-cover"
                       alt={`${tour.title} in ${tourRegion}`}
                     />
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-burgundy text-white border-0">Year-round</Badge>
-                    </div>
                     <div className="absolute bottom-4 left-4">
                       <div className="flex items-center gap-1 bg-white/95 px-3 py-1 rounded-full">
                         <Star className="w-3 h-3 fill-burgundy text-burgundy" />
