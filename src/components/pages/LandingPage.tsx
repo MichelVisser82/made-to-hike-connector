@@ -629,6 +629,21 @@ export function LandingPage({
                 </div>
               </div>
 
+              <div className="flex justify-center mb-6">
+                <CertificationBadge 
+                  certification={{
+                    certificationType: 'standard',
+                    title: "IFMGA",
+                    certifyingBody: "International Federation of Mountain Guides Associations",
+                    verificationPriority: 1,
+                    isPrimary: true
+                  }}
+                  size="full"
+                  showTooltip={true}
+                  displayMode="detailed"
+                />
+              </div>
+
               <p className="text-charcoal/80 leading-relaxed mb-6">
                 The gold standard of mountain guiding. IFMGA guides complete 3+ years of intensive training 
                 covering technical climbing, skiing, mountaineering, avalanche safety, and rescue techniques.
