@@ -272,13 +272,17 @@ export function LandingPage({
                     <SmartImage category="landscape" usageContext={`${region.country}-${region.region || region.subregion}`} tags={[`location:${region.country.toLowerCase()}-${(region.region || region.subregion).toLowerCase().replace(/\s+/g, '-')}`, region.country.toLowerCase(), (region.region || region.subregion).toLowerCase().replace(/\s+/g, '-'), 'mountain', 'alpine']} className="w-full h-full object-cover" alt={`${region.country} - ${region.region || region.subregion} mountain landscape`} />
                       <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/40 to-transparent" />
                       
+                      {/* Country badge - top left */}
+                      <div className="absolute top-6 left-6 z-20">
+                        <Badge className="bg-burgundy text-white border-0 px-4 py-1">
+                          {region.country}
+                        </Badge>
+                      </div>
+
                       {/* Content overlay */}
                       <div className="absolute inset-0 flex items-end">
                         <div className="w-full max-w-7xl mx-auto px-6 pb-16 md:pb-24">
                           <div className="max-w-3xl">
-                            <Badge className="mb-4 bg-burgundy text-white border-0 px-4 py-1">
-                              {region.country}
-                            </Badge>
                             
                             <h3 className="text-4xl md:text-6xl text-white mb-4" style={{
                         fontFamily: 'Playfair Display, serif'
