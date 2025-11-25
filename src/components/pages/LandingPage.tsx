@@ -75,11 +75,11 @@ export function LandingPage({
         {/* Left Side - Image */}
         <div className="lg:w-1/2 h-[50vh] lg:h-screen relative overflow-hidden">
           <SmartImage
-            category="guide"
-            usageContext="map_planning"
-            tags={['guide', 'map', 'topographic', 'planning']}
+            category="hero"
+            usageContext="guide_map_planning"
+            tags={['hero', 'guide', 'map', 'topographic', 'planning', 'weathered-hands', 'professional']}
             className="w-full h-full object-cover"
-            alt="Mountain guide planning route on topographic map"
+            alt="Mountain guide with weathered hands studying topographic map"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-charcoal/30" />
           {/* Subtle contour lines overlay */}
