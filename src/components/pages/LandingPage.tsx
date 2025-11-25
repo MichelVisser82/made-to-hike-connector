@@ -544,7 +544,9 @@ export function LandingPage({
 
               <div className="mt-6 pt-6 border-t border-charcoal/10">
                 <p className="text-sm text-charcoal/60">Training Duration: 200+ days over 3-5 years
-Best For: Technical alpine routes, glacier crossings, multi-pitch climbing<strong>Training Duration:</strong> 200+ days over 3-5 years<br />
+Best For: Technical alpine routes, glacier crossings, multi-pitch climbing<strong>
+
+Training Duration:</strong> 200+ days over 3-5 years<br />
                   <strong></strong> ~60%<br />
                   <strong>Best For:</strong> Technical alpine routes, glacier crossings, multi-pitch climbing
                 </p>
@@ -598,7 +600,7 @@ Best For: Technical alpine routes, glacier crossings, multi-pitch climbing<stron
               </div>
 
               <div className="mt-6 pt-6 border-t border-charcoal/10">
-                <p className="text-sm text-charcoal/60">Training Duration: 40-80 days over 1-2 years
+                <p className="text-sm text-charcoal/60">Training Duration: 40-80 days over 1-2 years Best For: Alpine trekking, via ferrata, non-technical high routesTraining Duration: 40-80 days over 1-2 years
 Best For: Alpine trekking, via ferrata, non-technical high routes<strong>Training Duration:</strong> 40-80 days over 1-2 years<br />
                   <strong>Exam Pass Rate:</strong> ~75%<br />
                   <strong>Best For:</strong> Alpine trekking, via ferrata, non-technical high routes
