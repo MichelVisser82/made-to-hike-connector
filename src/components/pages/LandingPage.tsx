@@ -393,7 +393,7 @@ export function LandingPage({
 
             <div className="mt-12 text-center">
               <Button className="bg-charcoal text-white hover:bg-charcoal/90" onClick={() => navigate('/guides')}>
-                All {totalGuides} Certified Guides <ArrowRight className="ml-2 w-4 h-4" />
+                All Certified Guides <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </div>
           </div>
