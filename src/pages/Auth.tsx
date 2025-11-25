@@ -265,16 +265,6 @@ export const Auth = () => {
               </form>
             </CardContent>
           </Card>
-          
-          <div className="text-center mt-6">
-            <Button 
-              variant="link" 
-              onClick={toggleMode}
-              className="text-charcoal/70 hover:text-burgundy transition-colors"
-            >
-              Don't have an account? <span className="font-semibold ml-1">Sign up</span>
-            </Button>
-          </div>
         </div>
       </div>
     </MainLayout>
