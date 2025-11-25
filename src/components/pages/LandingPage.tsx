@@ -704,30 +704,6 @@ export function LandingPage({
             </Card>
           </div>
 
-          {/* Verification Process */}
-          <div className="bg-burgundy/5 border-l-4 border-burgundy p-8 rounded-r-lg">
-            <h3 className="text-xl mb-4 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-              How We Verify Every Guide
-            </h3>
-            <div className="grid md:grid-cols-4 gap-6">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-burgundy rounded-full flex items-center justify-center text-white mb-3">1</div>
-                <p className="text-sm text-charcoal/70">Guide submits certification documents</p>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-burgundy rounded-full flex items-center justify-center text-white mb-3">2</div>
-                <p className="text-sm text-charcoal/70">Manual review by certified guides</p>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-burgundy rounded-full flex items-center justify-center text-white mb-3">3</div>
-                <p className="text-sm text-charcoal/70">Cross-check with official registries</p>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-burgundy rounded-full flex items-center justify-center text-white mb-3">4</div>
-                <p className="text-sm text-charcoal/70">Annual renewal requirement</p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
