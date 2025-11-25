@@ -665,7 +665,6 @@ export function LandingPage({
                   <Mountain className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <Badge className="mb-2 bg-burgundy text-white">Standard Certification</Badge>
                   <h3 className="text-2xl text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
                     UIMLA / IML
                   </h3>
