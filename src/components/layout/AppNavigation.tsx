@@ -118,12 +118,12 @@ export function AppNavigation({
   };
 
   const handleLogoClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    window.scrollTo(0, 0);
     if (onLogoClick) {
+      e.preventDefault();
       onLogoClick();
     } else {
-      navigate('/', { replace: true });
+      // Allow default anchor navigation to home
+      window.scrollTo(0, 0);
     }
   };
 
