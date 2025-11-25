@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Mountain } from 'lucide-react';
 import { CustomSignup } from '@/components/CustomSignup';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,7 +81,10 @@ export const Auth = () => {
         <div className="w-full max-w-md space-y-4">
           <Card className="border-primary/20 shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-primary">🔐 Admin Access</CardTitle>
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <Mountain className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle className="text-primary">Admin Access</CardTitle>
               <CardDescription>
                 Administrative portal for MadeToHike
               </CardDescription>
@@ -139,7 +143,10 @@ export const Auth = () => {
         <div className="w-full max-w-md space-y-4">
           <Card className="border-green-600/20 shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-green-600">🥾 Guide Access</CardTitle>
+              <div className="mx-auto w-16 h-16 rounded-full bg-green-600/10 flex items-center justify-center mb-3">
+                <Mountain className="w-8 h-8 text-green-600" />
+              </div>
+              <CardTitle className="text-green-600">Guide Access</CardTitle>
               <CardDescription>
                 Quick access portal for verified guides
               </CardDescription>
@@ -216,7 +223,7 @@ export const Auth = () => {
           <Card className="border-burgundy/20 shadow-elegant backdrop-blur-sm bg-card/95">
             <CardHeader className="text-center space-y-4 pb-8">
               <div className="mx-auto w-16 h-16 rounded-full bg-burgundy/10 flex items-center justify-center mb-2">
-                <span className="text-3xl">🏔️</span>
+                <Mountain className="w-8 h-8 text-burgundy" />
               </div>
               <CardTitle className="text-3xl text-burgundy" style={{ fontFamily: 'Playfair Display, serif' }}>
                 Welcome Back
