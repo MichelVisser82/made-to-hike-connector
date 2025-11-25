@@ -13,8 +13,7 @@ import {
   Award,
   Heart,
   ChevronLeft,
-  ChevronRight,
-  CheckCircle
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -76,10 +75,10 @@ export function LandingPage({
         <div className="lg:w-1/2 h-[50vh] lg:h-screen relative overflow-hidden">
           <SmartImage
             category="hero"
-            usageContext="guide_map_planning"
-            tags={['hero', 'guide', 'map', 'topographic', 'planning', 'weathered-hands', 'professional']}
+            usageContext="guide_planning"
+            tags={['hero', 'guide', 'mountain']}
             className="w-full h-full object-cover"
-            alt="Mountain guide with weathered hands studying topographic map"
+            alt="Mountain guide planning expedition"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-charcoal/30" />
           {/* Subtle contour lines overlay */}
