@@ -468,7 +468,19 @@ export function LandingPage({
                       <h3 className="text-2xl mb-1 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
                         {guide.display_name}
                       </h3>
-                      <p className="text-burgundy mb-4">{guide.specialties?.[0] || 'Mountain Guide'}</p>
+                      {guide.specialties && guide.specialties.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {guide.specialties.slice(0, 3).map((specialty, idx) => (
+                            <Badge 
+                              key={idx}
+                              variant="outline" 
+                              className="text-xs border-burgundy/30 text-burgundy bg-burgundy/5"
+                            >
+                              {specialty}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
 
                       <div className="space-y-2 text-sm text-charcoal/70 mb-4 pb-4 border-b border-charcoal/10">
                         <div className="flex justify-between">
