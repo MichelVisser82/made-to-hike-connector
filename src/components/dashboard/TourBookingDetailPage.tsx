@@ -40,11 +40,13 @@ interface TourBooking {
     name: string;
     email: string;
     phone: string;
+    country?: string | null;
     avatar_url: string | null;
     dietary_preferences?: string[];
     emergency_contact_name?: string;
     emergency_contact_phone?: string;
     emergency_contact_relationship?: string;
+    emergency_contact_country?: string | null;
   };
 }
 interface TourDetails {
@@ -125,11 +127,13 @@ export function TourBookingDetailPage() {
             name,
             email,
             phone,
+            country,
             avatar_url,
             dietary_preferences,
             emergency_contact_name,
             emergency_contact_phone,
-            emergency_contact_relationship
+            emergency_contact_relationship,
+            emergency_contact_country
           )
         `).eq('tour_id', tourData.id).in('status', ['confirmed', 'pending', 'pending_confirmation', 'completed']);
 
@@ -421,7 +425,9 @@ export function TourBookingDetailPage() {
     const rows = bookings.map(booking => {
       // Handle dietary preferences array - capitalize for display
       const dietaryReqs = booking.hiker.dietary_preferences && Array.isArray(booking.hiker.dietary_preferences) ? booking.hiker.dietary_preferences.map(pref => pref.charAt(0).toUpperCase() + pref.slice(1)).join('; ') : 'None';
-      return [booking.hiker.name, booking.hiker.email, booking.hiker.phone || '', format(new Date(booking.booking_date), 'yyyy-MM-dd'), booking.participants.toString(), booking.status === 'pending_confirmation' ? 'Confirmed' : booking.status, dietaryReqs, booking.hiker.emergency_contact_name || '', booking.hiker.emergency_contact_phone || '', booking.hiker.emergency_contact_relationship || ''];
+      const phoneWithCountry = booking.hiker.phone ? `${booking.hiker.country || ''}${booking.hiker.phone}` : '';
+      const emergencyPhoneWithCountry = booking.hiker.emergency_contact_phone ? `${booking.hiker.emergency_contact_country || ''}${booking.hiker.emergency_contact_phone}` : '';
+      return [booking.hiker.name, booking.hiker.email, phoneWithCountry, format(new Date(booking.booking_date), 'yyyy-MM-dd'), booking.participants.toString(), booking.status === 'pending_confirmation' ? 'Confirmed' : booking.status, dietaryReqs, booking.hiker.emergency_contact_name || '', emergencyPhoneWithCountry, booking.hiker.emergency_contact_relationship || ''];
     });
     const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob([csv], {
