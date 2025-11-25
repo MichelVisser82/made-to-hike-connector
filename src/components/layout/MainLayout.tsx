@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppNavigation } from './AppNavigation';
-import { Footer } from './Footer';
 import type { DashboardSection, DashboardMode } from '@/types/dashboard';
 
 interface MainLayoutProps {
@@ -60,12 +59,6 @@ export function MainLayout({
         isVerified={isVerified}
       />
       <main className="flex-1">{children}</main>
-      {!dashboardMode && (
-        <Footer 
-          onNavigate={handleNavigate}
-          onNavigateToSearch={handleNavigateToSearch}
-        />
-      )}
     </div>
   );
 }
