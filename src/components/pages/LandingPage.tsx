@@ -693,7 +693,7 @@ Best For: Alpine trekking, via ferrata, non-technical high routes<strong>Trainin
                 <div className="text-left">
                   <p className="text-white mb-2">
                     <strong>Michel Visser, Founder</strong><br />
-                    <span className="text-white/60">UK Mountain Guide | UIMLA Certified</span>
+                    <span className="text-white/60">UK Mountain Guide | ML Certified</span>
                   </p>
                   <p className="text-white/70 italic text-sm">
                     "I built this because platforms were extracting too much value from guides. We're changing that."
