@@ -172,8 +172,8 @@ export function CertificationsContent() {
         <section className="relative h-[400px] md:h-[500px] overflow-hidden">
           <SmartImage 
             category="hero"
-            usageContext="certifications"
-            tags={['mountains', 'guides', 'adventure']}
+            usageContext="hero"
+            tags={['mountains', 'hiking']}
             className="absolute inset-0 w-full h-full object-cover"
             alt="Mountain guide in alpine terrain"
             priority="high"
