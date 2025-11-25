@@ -207,6 +207,8 @@ export function LandingPage({
               const tourRegion = `${tour.region_country}, ${tour.region_region || tour.region_subregion}`;
               const durationDays = tour.duration_days || parseInt(tour.duration) || 1;
               const difficultyLabel = tour.difficulty_level || tour.difficulty;
+              const primaryCert = tour.guide_certifications?.[0];
+              const certTitle = primaryCert?.title || 'Certified';
               
               return (
                 <Card key={tour.id} className="overflow-hidden border-burgundy/10 hover:shadow-2xl transition-all duration-300 cursor-pointer" onClick={() => navigate(`/tour/${tour.slug}`)}>
@@ -239,9 +241,12 @@ export function LandingPage({
                     <h3 className="text-2xl mb-2 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
                       {tour.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-burgundy mb-4">
-                      <Award className="w-4 h-4" />
-                      <span>{guideName} • Certified</span>
+                    <div className="flex items-center gap-2 text-sm mb-4">
+                      <span className="text-charcoal">{guideName}</span>
+                      <Badge variant="outline" className="border-burgundy text-burgundy">
+                        <Award className="w-3 h-3 mr-1" />
+                        {certTitle}
+                      </Badge>
                     </div>
 
                     <div className="space-y-2 text-sm text-charcoal/70 mb-4 pb-4 border-b border-charcoal/10">
