@@ -598,8 +598,8 @@ export function LandingPage({
               </div>
 
               <div className="mt-6 pt-6 border-t border-charcoal/10">
-                <p className="text-sm text-charcoal/60">
-                  <strong>Training Duration:</strong> 40-80 days over 1-2 years<br />
+                <p className="text-sm text-charcoal/60">Training Duration: 40-80 days over 1-2 years
+Best For: Alpine trekking, via ferrata, non-technical high routes<strong>Training Duration:</strong> 40-80 days over 1-2 years<br />
                   <strong>Exam Pass Rate:</strong> ~75%<br />
                   <strong>Best For:</strong> Alpine trekking, via ferrata, non-technical high routes
                 </p>
