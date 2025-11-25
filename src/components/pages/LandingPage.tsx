@@ -314,18 +314,19 @@ export function LandingPage({
                     style={{ position: index === 0 ? 'relative' : 'absolute' }}
                   >
                     <div className="relative h-[70vh] md:h-[80vh]">
-                      <SmartImage
-                        category="region"
-                        usageContext={`${region.country}-${region.region || region.subregion}`}
-                        tags={[
-                          `location:${region.country.toLowerCase()}-${(region.region || region.subregion).toLowerCase()}`,
-                          region.country.toLowerCase(),
-                          'landscape',
-                          'mountain'
-                        ]}
-                        className="w-full h-full object-cover"
-                        alt={`${region.country} - ${region.region || region.subregion} mountain landscape`}
-                      />
+                    <SmartImage
+                      category="landscape"
+                      usageContext={`${region.country}-${region.region || region.subregion}`}
+                      tags={[
+                        `location:${region.country.toLowerCase()}-${(region.region || region.subregion).toLowerCase().replace(/\s+/g, '-')}`,
+                        region.country.toLowerCase(),
+                        (region.region || region.subregion).toLowerCase().replace(/\s+/g, '-'),
+                        'mountain',
+                        'alpine'
+                      ]}
+                      className="w-full h-full object-cover"
+                      alt={`${region.country} - ${region.region || region.subregion} mountain landscape`}
+                    />
                       <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/40 to-transparent" />
                       
                       {/* Content overlay */}
