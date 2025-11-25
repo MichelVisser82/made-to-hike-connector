@@ -109,9 +109,8 @@ export function LandingPage({
             
             <h1 className="text-4xl lg:text-6xl mb-8 leading-tight text-white" style={{
             fontFamily: 'Playfair Display, serif'
-          }}>Discover the mountains with Certified Guides 
-            <br />
-              With Certified Guides
+          }}>
+              Discover the mountains with Certified Guides
             </h1>
 
             <div className="space-y-4 mb-12 text-cream/90 leading-relaxed">
@@ -542,13 +541,9 @@ export function LandingPage({
               </div>
 
               <div className="mt-6 pt-6 border-t border-charcoal/10">
-                <p className="text-sm text-charcoal/60">Training Duration: 200+ days over 3-5 years Best For: Technical alpine routes, glacier crossings, multi-pitch climbing
-
-Training Duration: 200+ days over 3-5 years
-Best For: Technical alpine routes, glacier crossings, multi-pitch climbing<strong>
-
-Training Duration:</strong> 200+ days over 3-5 years<br />
-                  <strong></strong> ~60%<br />
+                <p className="text-sm text-charcoal/60">
+                  <strong>Training Duration:</strong> 200+ days over 3-5 years<br />
+                  <strong>Exam Pass Rate:</strong> ~60%<br />
                   <strong>Best For:</strong> Technical alpine routes, glacier crossings, multi-pitch climbing
                 </p>
               </div>
@@ -601,8 +596,8 @@ Training Duration:</strong> 200+ days over 3-5 years<br />
               </div>
 
               <div className="mt-6 pt-6 border-t border-charcoal/10">
-                <p className="text-sm text-charcoal/60">Training Duration: 40-80 days over 1-2 years Best For: Alpine trekking, via ferrata, non-technical high routesTraining Duration: 40-80 days over 1-2 years
-Best For: Alpine trekking, via ferrata, non-technical high routes<strong>Training Duration:</strong> 40-80 days over 1-2 years<br />
+                <p className="text-sm text-charcoal/60">
+                  <strong>Training Duration:</strong> 40-80 days over 1-2 years<br />
                   <strong>Exam Pass Rate:</strong> ~75%<br />
                   <strong>Best For:</strong> Alpine trekking, via ferrata, non-technical high routes
                 </p>
