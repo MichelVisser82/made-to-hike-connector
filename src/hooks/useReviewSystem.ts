@@ -53,6 +53,12 @@ export interface ReviewData {
     certifications?: any[];
     verified?: boolean;
   };
+  review_responses?: {
+    id: string;
+    response_text: string;
+    created_at: string;
+    responder_type: 'guide' | 'hiker';
+  }[];
 }
 
 // Hook to get pending reviews to write
@@ -149,7 +155,8 @@ export function useReceivedReviews(isGuide: boolean) {
         .select(`
           *,
           tours!inner (title),
-          profiles!reviews_${otherColumn}_fkey (name, avatar_url)
+          profiles!reviews_${otherColumn}_fkey (name, avatar_url),
+          review_responses (id, response_text, created_at, responder_type)
         `)
         .eq(column, user.id)
         .eq('review_type', reviewType)

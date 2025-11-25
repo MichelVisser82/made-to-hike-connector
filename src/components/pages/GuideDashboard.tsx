@@ -532,7 +532,7 @@ export function GuideDashboard({
 
       if (reviewsError) throw reviewsError;
 
-      // Transform reviews
+      // Transform reviews - Note: Full review management is now in ReviewsTab
       const transformedReviews: Review[] = reviewsData?.map(review => ({
         id: review.id,
         guest_name: review.profiles?.name || 'Anonymous',
@@ -540,7 +540,7 @@ export function GuideDashboard({
         rating: review.overall_rating,
         comment: review.comment || '',
         date: review.created_at,
-        reply: undefined, // TODO: Add reply functionality
+        reply: undefined, // Reply functionality available in ReviewsTab
       })) || [];
 
       setReviews(transformedReviews);
