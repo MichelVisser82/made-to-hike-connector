@@ -58,7 +58,7 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
 
       const tourIds = tours.map(t => t.id);
 
-      // Fetch all bookings for these tours
+      // Fetch all bookings for these tours with date slot information
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
@@ -69,6 +69,10 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
           total_price,
           currency,
           status,
+          date_slot_id,
+          tour_date_slots!date_slot_id (
+            slot_date
+          ),
           tours!inner (
             id,
             title,
@@ -87,22 +91,18 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
 
       if (bookingsError) throw bookingsError;
 
-      // Group bookings by tour AND date (composite key)
+      // Group bookings by tour AND actual tour date (from slot_date)
       const tourMap = new Map<string, TourBookingSummary>();
-      const seenKeys = new Set<string>();
 
       bookings?.forEach((booking: any) => {
         const tour = booking.tours;
         if (!tour) return;
 
-        // Create composite key: tourId_bookingDate
-        const compositeKey = `${tour.id}_${booking.booking_date}`;
+        // Use actual tour start date from slot_date, fallback to booking_date
+        const tourDate = booking.tour_date_slots?.slot_date || booking.booking_date;
         
-        // Skip if we've already processed this exact tour-date combination
-        if (seenKeys.has(compositeKey)) {
-          return;
-        }
-        seenKeys.add(compositeKey);
+        // Create composite key: tourId_tourDate (actual tour date, not booking date)
+        const compositeKey = `${tour.id}_${tourDate}`;
 
         const existing = tourMap.get(compositeKey);
         const isConfirmed = ['confirmed', 'pending_confirmation', 'completed'].includes(booking.status);
@@ -131,8 +131,8 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
             max_group_size: tour.max_group_size,
             confirmed_bookings: isConfirmed ? 1 : 0,
             pending_bookings: isPending ? 1 : 0,
-            earliest_date: booking.booking_date,
-            latest_date: booking.booking_date,
+            earliest_date: tourDate,
+            latest_date: tourDate,
             total_revenue: booking.total_price,
             currency: booking.currency,
           });
