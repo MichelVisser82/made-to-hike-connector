@@ -561,121 +561,71 @@ export function GuideDashboard({
         breakdown,
       });
 
-      // Mock conversations (TODO: Implement real messaging system)
-      setConversations([
-        {
-          id: 'conv-1',
-          guest_id: 'guest-1',
-          guest_name: 'Sarah Johnson',
-          tour_id: 'tour-1',
-          tour_title: 'Mont Blanc Summit Trek',
-          last_message: 'Thanks for the gear recommendations!',
-          last_message_time: new Date(Date.now() - 3600000).toISOString(),
-          is_unread: true,
-          messages: [
-            {
-              id: 'msg-1',
-              sender: 'guest',
-              content: "Hi! I'm looking forward to the trek. Any specific gear recommendations?",
-              timestamp: new Date(Date.now() - 7200000).toISOString(),
-              booking_id: 'booking-1',
-              read: true,
-            },
-            {
-              id: 'msg-2',
-              sender: 'guide',
-              content: 'Great! Make sure you have well-fitted mountaineering boots and layers for changing weather.',
-              timestamp: new Date(Date.now() - 3600000).toISOString(),
-              booking_id: 'booking-1',
-              read: true,
-            },
-            {
-              id: 'msg-3',
-              sender: 'guest',
-              content: "Thanks for the recommendations! I'll make sure to pack accordingly.",
-              timestamp: new Date(Date.now() - 3600000).toISOString(),
-              booking_id: 'booking-1',
-              read: false,
-            },
-          ],
-        },
-        {
-          id: 'conv-2',
-          guest_id: 'guest-2',
-          guest_name: 'Michael Chen',
-          tour_id: 'tour-2',
-          tour_title: 'Alpine Lakes Discovery',
-          last_message: 'What time should we arrive?',
-          last_message_time: new Date(Date.now() - 10800000).toISOString(),
-          is_unread: true,
-          messages: [
-            {
-              id: 'msg-4',
-              sender: 'guest',
-              content: 'What time should we arrive?',
-              timestamp: new Date(Date.now() - 10800000).toISOString(),
-              booking_id: 'booking-2',
-              read: false,
-            },
-          ],
-        },
-        {
-          id: 'conv-3',
-          guest_id: 'guest-3',
-          guest_name: 'Emma Williams',
-          tour_id: 'tour-3',
-          tour_title: 'Highland Photography Tour',
-          last_message: 'Looking forward to the trek!',
-          last_message_time: new Date(Date.now() - 86400000).toISOString(),
-          is_unread: false,
-          messages: [
-            {
-              id: 'msg-5',
-              sender: 'guest',
-              content: 'Looking forward to the trek!',
-              timestamp: new Date(Date.now() - 86400000).toISOString(),
-              booking_id: 'booking-3',
-              read: true,
-            },
-          ],
-        },
-      ]);
+      // Use real conversations from useConversations hook
+      // Transform liveConversations to match the Conversation type expected by InboxSection
+      const transformedConversations: Conversation[] = liveConversations.map(conv => {
+        // Get the other participant's profile
+        const otherProfile = conv.profiles;
+        
+        return {
+          id: conv.id,
+          guest_id: conv.hiker_id || '',
+          guest_name: otherProfile?.name || conv.anonymous_name || 'Guest',
+          tour_id: conv.tour_id || '',
+          tour_title: conv.tours?.title || 'Tour',
+          last_message: '', // Will be populated by messages query if needed
+          last_message_time: conv.last_message_at || conv.created_at || new Date().toISOString(),
+          is_unread: (conv.unread_count || 0) > 0,
+          messages: [], // Messages are fetched separately when viewing conversation
+        };
+      });
+      
+      setConversations(transformedConversations);
 
-      // Mock notification preferences
-      setNotificationPreferences([
+      // Fetch real notification preferences from database
+      const { data: prefsData } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      // Define default preferences structure
+      const defaultPreferences: NotificationPreference[] = [
         {
           id: 'pref-1',
           title: 'New Booking Requests',
           description: 'Get notified when someone requests to book your tour',
-          email: true,
-          sms: true,
-          push: true,
+          email: prefsData?.email_on_new_message ?? true,
+          sms: false, // SMS not yet implemented
+          push: false, // Push not yet implemented
         },
         {
           id: 'pref-2',
           title: 'Messages from Guests',
           description: 'Receive notifications for new messages',
-          email: true,
+          email: prefsData?.email_on_new_message ?? true,
           sms: false,
-          push: true,
+          push: false,
         },
         {
           id: 'pref-3',
           title: 'Reviews',
           description: 'Get notified when guests leave reviews',
-          email: true,
+          email: true, // Always on for now
           sms: false,
-          push: true,
+          push: false,
         },
         {
           id: 'pref-4',
           title: 'Payout Updates',
           description: 'Track your earnings and payouts',
-          email: true,
+          email: true, // Always on for now
           sms: false,
           push: false,
         },
-      ]);
+      ];
+
+      setNotificationPreferences(defaultPreferences);
 
     } catch (error) {
       console.error('Error fetching inbox data:', error);

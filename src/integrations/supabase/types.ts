@@ -381,6 +381,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "conversations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conversations_guide_id_fkey"
             columns: ["guide_id"]
             isOneToOne: false
@@ -509,6 +516,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
             referencedColumns: ["id"]
           },
           {
@@ -1242,6 +1256,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "participant_documents_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "participant_documents_participant_token_id_fkey"
             columns: ["participant_token_id"]
             isOneToOne: false
@@ -1311,6 +1332,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_tokens_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
             referencedColumns: ["id"]
           },
         ]
@@ -1465,6 +1493,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "review_notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       review_responses: {
@@ -1590,6 +1625,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
             referencedColumns: ["id"]
           },
           {
@@ -1799,6 +1841,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_transfers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
             referencedColumns: ["id"]
           },
           {
@@ -2362,6 +2411,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tour_offers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tour_offers_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
@@ -2668,6 +2724,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_checklist_items_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2977,6 +3040,103 @@ export type Database = {
       }
     }
     Views: {
+      bookings_guide_view: {
+        Row: {
+          booking_date: string | null
+          booking_reference: string | null
+          created_at: string | null
+          currency: Database["public"]["Enums"]["currency"] | null
+          date_slot_id: string | null
+          hiker_email: string | null
+          hiker_id: string | null
+          id: string | null
+          insurance_file_url: string | null
+          insurance_uploaded_at: string | null
+          participants: number | null
+          participants_details: Json | null
+          payment_status: string | null
+          special_requests: string | null
+          status: string | null
+          stripe_client_secret: string | null
+          stripe_payment_intent_id: string | null
+          total_price: number | null
+          tour_id: string | null
+          updated_at: string | null
+          waiver_data: Json | null
+          waiver_uploaded_at: string | null
+        }
+        Insert: {
+          booking_date?: string | null
+          booking_reference?: string | null
+          created_at?: string | null
+          currency?: Database["public"]["Enums"]["currency"] | null
+          date_slot_id?: string | null
+          hiker_email?: string | null
+          hiker_id?: string | null
+          id?: string | null
+          insurance_file_url?: string | null
+          insurance_uploaded_at?: string | null
+          participants?: number | null
+          participants_details?: Json | null
+          payment_status?: string | null
+          special_requests?: string | null
+          status?: string | null
+          stripe_client_secret?: never
+          stripe_payment_intent_id?: never
+          total_price?: number | null
+          tour_id?: string | null
+          updated_at?: string | null
+          waiver_data?: Json | null
+          waiver_uploaded_at?: string | null
+        }
+        Update: {
+          booking_date?: string | null
+          booking_reference?: string | null
+          created_at?: string | null
+          currency?: Database["public"]["Enums"]["currency"] | null
+          date_slot_id?: string | null
+          hiker_email?: string | null
+          hiker_id?: string | null
+          id?: string | null
+          insurance_file_url?: string | null
+          insurance_uploaded_at?: string | null
+          participants?: number | null
+          participants_details?: Json | null
+          payment_status?: string | null
+          special_requests?: string | null
+          status?: string | null
+          stripe_client_secret?: never
+          stripe_payment_intent_id?: never
+          total_price?: number | null
+          tour_id?: string | null
+          updated_at?: string | null
+          waiver_data?: Json | null
+          waiver_uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_date_slot_id_fkey"
+            columns: ["date_slot_id"]
+            isOneToOne: false
+            referencedRelation: "tour_date_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_hiker_id_fkey"
+            columns: ["hiker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guide_profiles_public: {
         Row: {
           active_since: string | null
@@ -3160,6 +3320,10 @@ export type Database = {
         Returns: boolean
       }
       migrate_tour_dates_to_slots: { Args: never; Returns: undefined }
+      user_has_booking_with_guide: {
+        Args: { _guide_id: string; _user_id: string }
+        Returns: boolean
+      }
       validate_discount_code: {
         Args: {
           p_code: string
