@@ -294,6 +294,50 @@ serve(async (req) => {
       console.error('Error updating slots:', updateSlotsError);
     }
 
+    // Check if tour is now fully booked and send alert to guide
+    if (newSpotsBooked >= dateSlot.spots_total) {
+      console.log('Tour is now fully booked - sending alert to guide');
+      try {
+        const { data: guideProfile } = await supabase
+          .from('guide_profiles')
+          .select('display_name')
+          .eq('user_id', tour.guide_id)
+          .single();
+
+        const { data: guideUser } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', tour.guide_id)
+          .single();
+
+        if (guideUser?.email) {
+          // Count total bookings for this date
+          const { count: bookingsCount } = await supabase
+            .from('bookings')
+            .select('*', { count: 'exact', head: true })
+            .eq('date_slot_id', date_slot_id)
+            .eq('status', 'confirmed');
+
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'tour_fully_booked_alert',
+              to: guideUser.email,
+              data: {
+                guideName: guideProfile?.display_name || 'Guide',
+                tourTitle: tour.title,
+                tourDate: new Date(dateSlot.slot_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                totalSpots: dateSlot.spots_total,
+                bookingsCount: bookingsCount || 0,
+              }
+            }
+          });
+          console.log('Fully booked alert email sent to guide');
+        }
+      } catch (emailError) {
+        console.error('Error sending fully booked alert:', emailError);
+      }
+    }
+
     // Increment discount code usage if applicable
     if (discount_code) {
       const { data: currentCode } = await supabase

@@ -5,7 +5,7 @@ import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete' | 'guide_participant_documents' | 'review_response'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete' | 'guide_participant_documents' | 'review_response' | 'booking_cancellation_hiker' | 'booking_cancellation_guide' | 'booking_refund_hiker' | 'pre_trip_reminder' | 'post_trip_thank_you' | 'tour_date_change_notification' | 'tour_fully_booked_alert' | 'payout_processed_notification' | 'document_upload_notification' | 'review_received_notification' | 'guide_verification_completed' | 'failed_payment_alert_admin'
   to: string
   from?: string
   reply_to?: string
@@ -1150,9 +1150,614 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </html>`,
       text: `${data.responderType === 'guide' ? 'Your guide' : 'Your hiker'} responded to your review - ${data.tourTitle}\n\nHi ${data.reviewerName},\n\n${data.responderType === 'guide' ? 'Your guide' : 'Your hiker'} has responded to the review you left for ${data.tourTitle}.\n\nYour review (${data.rating}/5):\n"${data.reviewComment}"\n\nResponse:\n"${data.responseText}"\n\nView the full conversation at: ${data.dashboardUrl}\n\nThank you for being part of the MadeToHike community!`
     },
+
+    // PHASE 1: Critical Missing Templates
+    booking_cancellation_hiker: {
+      subject: `❌ Booking Cancelled - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5a2127 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Booking Cancelled</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.hikerName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your booking has been cancelled for:
+            </p>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #7C2D32; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Tour:</strong> ${data.tourTitle}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Booking Reference:</strong> ${data.bookingReference}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Date:</strong> ${data.bookingDate}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Guide:</strong> ${data.guideName}</p>
+                ${data.reason ? `<p style="margin: 15px 0 5px; color: #4a5568;"><strong>Reason:</strong> ${data.reason}</p>` : ''}
+            </div>
+
+            ${data.refundAmount ? `
+            <div style="background: #f0f8f0; border: 1px solid #4a7c59; border-radius: 6px; padding: 16px; margin: 25px 0;">
+                <p style="margin: 0; color: #2c5530; font-size: 16px; font-weight: 600;">
+                    Refund being processed: ${data.currency} ${data.refundAmount}
+                </p>
+                <p style="margin: 8px 0 0; color: #4a5568; font-size: 14px;">
+                    You will see the refund in 5-10 business days.
+                </p>
+            </div>
+            ` : ''}
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    If you have questions, please contact <strong>${data.guideName}</strong> or our support team.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Booking Cancelled - ${data.tourTitle}\n\nHi ${data.hikerName},\n\nYour booking has been cancelled:\n\nTour: ${data.tourTitle}\nBooking Reference: ${data.bookingReference}\nDate: ${data.bookingDate}\nGuide: ${data.guideName}\n${data.reason ? `Reason: ${data.reason}\n` : ''}\n${data.refundAmount ? `\nRefund being processed: ${data.currency} ${data.refundAmount}\nYou will see this in 5-10 business days.\n` : ''}\nIf you have questions, please contact ${data.guideName} or our support team.`
+    },
+
+    booking_cancellation_guide: {
+      subject: `❌ Booking Cancelled - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5a2127 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Booking Cancelled</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.guideName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                A booking has been cancelled:
+            </p>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #7C2D32; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Tour:</strong> ${data.tourTitle}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Booking Reference:</strong> ${data.bookingReference}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Date:</strong> ${data.bookingDate}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Hiker:</strong> ${data.hikerName}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Cancelled:</strong> ${data.cancelledAt}</p>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    This spot is now available for new bookings.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `Booking Cancelled - ${data.tourTitle}\n\nHi ${data.guideName},\n\nA booking has been cancelled:\n\nTour: ${data.tourTitle}\nBooking Reference: ${data.bookingReference}\nDate: ${data.bookingDate}\nHiker: ${data.hikerName}\nCancelled: ${data.cancelledAt}\n\nThis spot is now available for new bookings.`
+    },
+
+    booking_refund_hiker: {
+      subject: `✅ Refund Processed - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #4a7c59 0%, #2c5530 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">✅ Refund Processed</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.hikerName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your refund has been processed for:
+            </p>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #4a7c59; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Tour:</strong> ${data.tourTitle}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Booking Reference:</strong> ${data.bookingReference}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Guide:</strong> ${data.guideName}</p>
+            </div>
+
+            <div style="background: #f0f8f0; border: 2px solid #4a7c59; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+                <p style="margin: 0 0 8px; color: #2c5530; font-size: 20px; font-weight: 600;">
+                    ${data.currency} ${data.refundAmount}
+                </p>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    ${data.refundReason ? `Reason: ${data.refundReason}` : 'Refund processed'}
+                </p>
+            </div>
+
+            <div style="background: #e3f2fd; border: 1px solid #64b5f6; border-radius: 6px; padding: 16px; margin: 25px 0;">
+                <p style="margin: 0; color: #1565c0; font-size: 14px;">
+                    💳 Your refund of <strong>${data.currency} ${data.refundAmount}</strong> will appear in your account within 5-10 business days.
+                </p>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    Questions? Contact our support team.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `✅ Refund Processed - ${data.tourTitle}\n\nHi ${data.hikerName},\n\nYour refund has been processed:\n\nTour: ${data.tourTitle}\nBooking Reference: ${data.bookingReference}\nGuide: ${data.guideName}\n\nRefund Amount: ${data.currency} ${data.refundAmount}\n${data.refundReason ? `Reason: ${data.refundReason}\n` : ''}\nYour refund will appear in your account within 5-10 business days.\n\nQuestions? Contact our support team.`
+    },
+
+    // PHASE 2: High Priority New Templates
+    pre_trip_reminder: {
+      subject: `🏔️ Your adventure starts in 3 days! - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5a2127 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">🏔️ Your Adventure Starts Soon!</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.hikerName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your adventure <strong>${data.tourTitle}</strong> starts in <strong>3 days</strong>!
+            </p>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #7C2D32; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 15px; color: #7C2D32;">📅 Tour Details</h3>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Tour Date:</strong> ${data.tourDate}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Meeting Time:</strong> ${data.startTime}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Meeting Point:</strong> ${data.meetingPoint}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Guide:</strong> ${data.guideName}</p>
+            </div>
+
+            <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 15px; color: #f57c00;">✓ Final Checklist</h3>
+                <ul style="margin: 0; padding-left: 20px; color: #4a5568; line-height: 1.8;">
+                    <li>Check weather forecast</li>
+                    <li>Pack all required gear</li>
+                    <li>Bring signed waiver (if not uploaded)</li>
+                    <li>Ensure travel insurance is valid</li>
+                    <li>Charge your phone/camera</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.checklistUrl}" style="display: inline-block; background: #7C2D32; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    View Full Checklist
+                </a>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    Get ready for an amazing adventure! 🥾
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `🏔️ Your adventure starts in 3 days! - ${data.tourTitle}\n\nHi ${data.hikerName},\n\nYour adventure starts in 3 days!\n\nTour Date: ${data.tourDate}\nMeeting Time: ${data.startTime}\nMeeting Point: ${data.meetingPoint}\nGuide: ${data.guideName}\n\nFinal Checklist:\n- Check weather forecast\n- Pack all required gear\n- Bring signed waiver\n- Ensure insurance is valid\n- Charge phone/camera\n\nView full checklist: ${data.checklistUrl}\n\nGet ready for an amazing adventure! 🥾`
+    },
+
+    post_trip_thank_you: {
+      subject: `✨ Thank you for hiking with us! - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #4a7c59 0%, #2c5530 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">✨ Thank You for Hiking with Us!</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.hikerName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Thank you for completing <strong>${data.tourTitle}</strong> with ${data.guideName}! We hope you had an amazing adventure.
+            </p>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #4a7c59; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="margin: 0 0 15px; color: #2c5530;">⭐ Share Your Experience</h3>
+                <p style="margin: 0 0 15px; color: #4a5568;">
+                    Your feedback helps other hikers make informed decisions and helps guides improve their tours.
+                </p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="${data.reviewUrl}" style="display: inline-block; background: #4a7c59; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px;">
+                        Leave a Review
+                    </a>
+                </div>
+            </div>
+
+            <div style="background: #e3f2fd; border: 1px solid #64b5f6; border-radius: 6px; padding: 16px; margin: 25px 0;">
+                <p style="margin: 0; color: #1565c0; font-size: 14px; text-align: center;">
+                    💡 Reviews are only published when both parties complete theirs, ensuring fairness and authenticity.
+                </p>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0 0 10px; color: #718096; font-size: 13px;">
+                    We'd love to see you on the trails again soon! 🥾
+                </p>
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    <strong>The Made to Hike Team</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `✨ Thank you for hiking with us! - ${data.tourTitle}\n\nHi ${data.hikerName},\n\nThank you for completing ${data.tourTitle} with ${data.guideName}! We hope you had an amazing adventure.\n\n⭐ Share Your Experience\nYour feedback helps other hikers make informed decisions and helps guides improve their tours.\n\nLeave a review: ${data.reviewUrl}\n\nReviews are only published when both parties complete theirs.\n\nWe'd love to see you on the trails again soon! 🥾\nThe Made to Hike Team`
+    },
+
+    tour_date_change_notification: {
+      subject: `📅 Tour Date Changed - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">📅 Tour Date Changed</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.hikerName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your guide ${data.guideName} has changed the date for <strong>${data.tourTitle}</strong>.
+            </p>
+
+            <div style="background: #fff8e1; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 5px 0; color: #92400e;"><strong>Booking Reference:</strong> ${data.bookingReference}</p>
+                <p style="margin: 15px 0 5px; color: #92400e;"><strong>Previous Date:</strong> ${data.oldDate}</p>
+                <p style="margin: 5px 0; color: #059669; font-size: 18px; font-weight: 600;"><strong>New Date:</strong> ${data.newDate}</p>
+            </div>
+
+            <div style="background: #e3f2fd; border: 1px solid #64b5f6; border-radius: 6px; padding: 16px; margin: 25px 0;">
+                <p style="margin: 0; color: #1565c0; font-size: 14px;">
+                    💡 If you cannot make the new date, please contact ${data.guideName} to discuss alternatives or cancellation options.
+                </p>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    Questions? Contact ${data.guideName} directly.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `📅 Tour Date Changed - ${data.tourTitle}\n\nHi ${data.hikerName},\n\nYour guide ${data.guideName} has changed the date for ${data.tourTitle}.\n\nBooking Reference: ${data.bookingReference}\nPrevious Date: ${data.oldDate}\nNew Date: ${data.newDate}\n\nIf you cannot make the new date, please contact ${data.guideName} to discuss alternatives.\n\nQuestions? Contact ${data.guideName} directly.`
+    },
+
+    tour_fully_booked_alert: {
+      subject: `🎉 Tour Fully Booked - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #4a7c59 0%, #2c5530 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">🎉 Tour Fully Booked!</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.guideName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Great news! Your tour <strong>${data.tourTitle}</strong> is now fully booked!
+            </p>
+
+            <div style="background: #f0f8f0; border: 2px solid #4a7c59; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+                <p style="margin: 0 0 8px; color: #2c5530; font-size: 24px; font-weight: 600;">
+                    ${data.totalSpots} / ${data.totalSpots} Spots
+                </p>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    Tour Date: ${data.tourDate}
+                </p>
+            </div>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #4a7c59; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0 0 10px; color: #2c5530; font-size: 16px; font-weight: 600;">
+                    Total Bookings: ${data.bookingsCount}
+                </p>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    All participants confirmed
+                </p>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    Get ready for a great tour! 🥾
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `🎉 Tour Fully Booked! - ${data.tourTitle}\n\nHi ${data.guideName},\n\nGreat news! Your tour ${data.tourTitle} is now fully booked!\n\n${data.totalSpots} / ${data.totalSpots} Spots\nTour Date: ${data.tourDate}\n\nTotal Bookings: ${data.bookingsCount}\nAll participants confirmed\n\nGet ready for a great tour! 🥾`
+    },
+
+    payout_processed_notification: {
+      subject: `💰 Payout Processed - ${data.currency} ${data.amount}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #4a7c59 0%, #2c5530 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">💰 Payout Processed</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.guideName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your payout has been processed successfully!
+            </p>
+
+            <div style="background: #f0f8f0; border: 2px solid #4a7c59; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+                <p style="margin: 0 0 8px; color: #2c5530; font-size: 28px; font-weight: 600;">
+                    ${data.currency} ${data.amount}
+                </p>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    Payout Date: ${data.payoutDate}
+                </p>
+            </div>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #4a7c59; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Bank Account:</strong> ****${data.bankLast4}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Expected Arrival:</strong> 2-3 business days</p>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    Questions about your payout? Contact our support team.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `💰 Payout Processed - ${data.currency} ${data.amount}\n\nHi ${data.guideName},\n\nYour payout has been processed successfully!\n\nAmount: ${data.currency} ${data.amount}\nPayout Date: ${data.payoutDate}\nBank Account: ****${data.bankLast4}\nExpected Arrival: 2-3 business days\n\nQuestions about your payout? Contact our support team.`
+    },
+
+    // PHASE 3: Medium Priority Templates
+    document_upload_notification: {
+      subject: `📄 Document Uploaded - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5a2127 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">📄 Document Uploaded</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.guideName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                ${data.hikerName} has uploaded their <strong>${data.documentType}</strong> for ${data.tourTitle}.
+            </p>
+
+            <div style="background: #FEF7ED; border-left: 4px solid #7C2D32; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Hiker:</strong> ${data.hikerName}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Document:</strong> ${data.documentType}</p>
+                <p style="margin: 5px 0; color: #4a5568;"><strong>Uploaded:</strong> ${data.uploadDate}</p>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    View documents in your booking dashboard.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `📄 Document Uploaded - ${data.tourTitle}\n\nHi ${data.guideName},\n\n${data.hikerName} has uploaded their ${data.documentType} for ${data.tourTitle}.\n\nHiker: ${data.hikerName}\nDocument: ${data.documentType}\nUploaded: ${data.uploadDate}\n\nView documents in your booking dashboard.`
+    },
+
+    review_received_notification: {
+      subject: `⭐ New Review Received - ${data.tourTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7C2D32 0%, #5a2127 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">⭐ New Review Received</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.guideName},</p>
+            
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                ${data.reviewerName} left a review for <strong>${data.tourTitle}</strong>!
+            </p>
+
+            <div style="background: #FEF7ED; border: 2px solid #7C2D32; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+                <p style="margin: 0 0 8px; color: #7C2D32; font-size: 32px; font-weight: 600;">
+                    ${data.rating} ⭐
+                </p>
+                <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                    Overall Rating
+                </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.reviewUrl}" style="display: inline-block; background: #7C2D32; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    Read Full Review
+                </a>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    Thank you for providing great experiences! 🥾
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `⭐ New Review Received - ${data.tourTitle}\n\nHi ${data.guideName},\n\n${data.reviewerName} left a review for ${data.tourTitle}!\n\nOverall Rating: ${data.rating} ⭐\n\nRead full review: ${data.reviewUrl}\n\nThank you for providing great experiences! 🥾`
+    },
+
+    guide_verification_completed: {
+      subject: `${data.status === 'approved' ? '✅ Verification Approved' : '❌ Verification Update Required'}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, ${data.status === 'approved' ? '#4a7c59' : '#f59e0b'} 0%, ${data.status === 'approved' ? '#2c5530' : '#f97316'} 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">${data.status === 'approved' ? '✅ Verification Approved' : '❌ Update Required'}</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Hi ${data.guideName},</p>
+            
+            ${data.status === 'approved' ? `
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Congratulations! Your guide verification has been <strong>approved</strong>. You can now create and publish tours!
+            </p>
+
+            <div style="background: #f0f8f0; border: 2px solid #4a7c59; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+                <p style="margin: 0; color: #2c5530; font-size: 18px; font-weight: 600;">
+                    ✓ Verified Guide
+                </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard" style="display: inline-block; background: #4a7c59; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    Create Your First Tour
+                </a>
+            </div>
+            ` : `
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">
+                Your verification request requires additional information or updates.
+            </p>
+
+            ${data.adminNotes ? `
+            <div style="background: #fff8e1; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 0 0 10px; color: #92400e; font-size: 14px; font-weight: 600;">Admin Notes:</p>
+                <p style="margin: 0; color: #92400e; font-size: 14px;">${data.adminNotes}</p>
+            </div>
+            ` : ''}
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard" style="display: inline-block; background: #f59e0b; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    Update Your Profile
+                </a>
+            </div>
+            `}
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 13px;">
+                    Questions? Contact our support team.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `${data.status === 'approved' ? '✅ Verification Approved' : '❌ Update Required'}\n\nHi ${data.guideName},\n\n${data.status === 'approved' ? 'Congratulations! Your guide verification has been approved. You can now create and publish tours!\n\nCreate your first tour: https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard' : `Your verification request requires additional information.\n\n${data.adminNotes ? `Admin Notes: ${data.adminNotes}\n\n` : ''}Update your profile: https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/dashboard`}\n\nQuestions? Contact our support team.`
+    },
+
+    failed_payment_alert_admin: {
+      subject: `🚨 Failed Payment Alert - ${data.bookingReference}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 30px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">🚨 Failed Payment Alert</h1>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px;">Admin Alert: Payment Failed</p>
+            
+            <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <p style="margin: 5px 0; color: #991b1b;"><strong>Booking Reference:</strong> ${data.bookingReference}</p>
+                <p style="margin: 5px 0; color: #991b1b;"><strong>Hiker:</strong> ${data.hikerName}</p>
+                <p style="margin: 5px 0; color: #991b1b;"><strong>Tour:</strong> ${data.tourTitle}</p>
+                <p style="margin: 5px 0; color: #991b1b;"><strong>Amount:</strong> ${data.currency} ${data.amount}</p>
+                <p style="margin: 5px 0; color: #991b1b;"><strong>Error Code:</strong> ${data.errorCode}</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin" style="display: inline-block; background: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                    Review in Admin
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+      text: `🚨 Failed Payment Alert - ${data.bookingReference}\n\nAdmin Alert: Payment Failed\n\nBooking Reference: ${data.bookingReference}\nHiker: ${data.hikerName}\nTour: ${data.tourTitle}\nAmount: ${data.currency} ${data.amount}\nError Code: ${data.errorCode}\n\nReview in admin: https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin`
+    },
   };
 
-  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response'];
+  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin'];
 
   return templates[type as keyof typeof templates] || templates.contact
 }
@@ -1161,7 +1766,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'booking_refund_hiker', 'booking_cancellation_guide', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 

@@ -100,6 +100,11 @@ Deno.serve(async (req) => {
           .eq('status', 'completed')
           .gte('booking_date', lookbackStart.toISOString().split('T')[0])
           .lte('booking_date', now.toISOString().split('T')[0])
+      } else if (template.trigger_type === 'pre_trip_reminder') {
+        // Send for tours starting in 3 days
+        const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
+        bookingsQuery = bookingsQuery
+          .eq('booking_date', threeDaysFromNow.toISOString().split('T')[0])
       }
       
       const { data: bookings, error: bookingsError } = await bookingsQuery

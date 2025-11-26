@@ -257,6 +257,25 @@ Deno.serve(async (req) => {
             }
           }
 
+          // Send post-trip thank you email to hiker
+          try {
+            await supabase.functions.invoke('send-email', {
+              body: {
+                type: 'post_trip_thank_you',
+                to: hikerProfile.email,
+                data: {
+                  hikerName: hikerProfile.name,
+                  tourTitle: booking.tours.title,
+                  guideName: guideProfile?.display_name || 'your guide',
+                  reviewUrl: hikerReviewUrl,
+                }
+              }
+            });
+            console.log('Post-trip thank you email sent to hiker');
+          } catch (thankYouError) {
+            console.error('Error sending thank you email:', thankYouError);
+          }
+
           console.log(`Review notifications and emails created for booking ${booking.id}`);
         }
 
