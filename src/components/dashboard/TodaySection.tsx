@@ -107,9 +107,9 @@ export function TodaySection({
           <div className="text-3xl font-playfair text-charcoal mb-1">
             {stats.todayTours}
           </div>
-          <div className="text-sm text-charcoal/60 mb-1">Today's Tours</div>
+          <div className="text-sm text-charcoal/60 mb-1">Next 30 Days</div>
           <div className="text-xs text-charcoal/50">
-            {stats.todayTours === 0 ? 'No tours scheduled' : stats.nextTourTime ? `Next at ${stats.nextTourTime}` : ''}
+            {stats.todayTours === 0 ? 'No tours scheduled' : `${stats.todayTours} upcoming ${stats.todayTours === 1 ? 'tour' : 'tours'}`}
           </div>
         </Card>
 
@@ -173,7 +173,7 @@ export function TodaySection({
         <div className="md:col-span-2">
           <Card className="p-6 bg-white border border-burgundy/10 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-playfair text-charcoal">Today's Schedule</h2>
+              <h2 className="text-xl font-playfair text-charcoal">Upcoming Schedule (30 Days)</h2>
             <Button
               onClick={onManageAvailability}
               variant="ghost"
@@ -189,7 +189,7 @@ export function TodaySection({
               <div className="py-12 text-center">
                 <Calendar className="w-16 h-16 text-burgundy/20 mx-auto mb-4" />
                 <h3 className="text-lg font-playfair text-charcoal mb-2">
-                  No tours scheduled today
+                  No tours scheduled in the next 30 days
                 </h3>
                 <p className="text-sm text-charcoal/60 mb-6">
                   Your schedule is clear. Time to plan your next adventure!
