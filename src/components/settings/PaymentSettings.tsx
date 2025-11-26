@@ -11,7 +11,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Loader2, AlertCircle, CheckCircle, FileText, ExternalLink, RefreshCw, Bug } from 'lucide-react';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useMyGuideProfile, useRefreshMyGuideProfile, type ProfileError } from '@/hooks/useGuideProfile';
-import { ProfileDebugPanel } from '@/components/debug/ProfileDebugPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -253,9 +252,6 @@ export function PaymentSettings() {
   // Determine error state
   const errorType = profileError?.type || (guideProfile === null ? 'no_profile' : null);
   return <div className="space-y-6">
-      {/* Debug Panel */}
-      <ProfileDebugPanel />
-
       {/* Debug Info (Development Only) */}
       {process.env.NODE_ENV === 'development' && <Card className="border-blue-200 bg-blue-50">
           <CardHeader>

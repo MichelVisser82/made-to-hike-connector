@@ -26,7 +26,6 @@ export function useGuideTours(guideId: string | undefined, limit?: number) {
         throw error;
       }
       
-      console.log('Guide tours loaded:', data?.length || 0);
       return data as any[];
     },
     enabled: !!guideId,

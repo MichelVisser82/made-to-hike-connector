@@ -22,8 +22,6 @@ export const useEmail = () => {
     setSuccess(false)
 
     try {
-      console.log('Sending email request:', emailData)
-      
       const { data, error: supabaseError } = await supabase.functions.invoke('send-email', {
         body: emailData,
       })
@@ -38,7 +36,6 @@ export const useEmail = () => {
         throw new Error(data.error)
       }
 
-      console.log('Email sent successfully:', data)
       setSuccess(true)
       return data
 
