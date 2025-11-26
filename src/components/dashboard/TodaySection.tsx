@@ -200,7 +200,7 @@ export function TodaySection({
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
                 {upcomingTours.map((tour) => (
                   <div
                     key={tour.id}
