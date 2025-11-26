@@ -817,16 +817,63 @@ export function GuideDashboard({
     unreadMessages: totalUnreadMessages,
   };
 
-  const mockSchedule: TodayScheduleItem[] = upcomingBookings.map(booking => ({
-    id: booking.id,
-    time: format(new Date(booking.booking_date), 'MMM dd'), // Show date instead of time
-    title: booking.tour?.title || 'Tour',
-    status: booking.status as 'confirmed' | 'pending' | 'completed',
-    guestName: booking.guest?.name || 'Guest',
-    participantCount: booking.participants,
-    location: booking.tour?.meeting_point || 'Location',
-    tourId: booking.tour_id,
-  }));
+  // Group bookings by tour_id and booking_date to show tours instead of individual bookings
+  const tourScheduleMap = new Map<string, {
+    tourId: string;
+    tourTitle: string;
+    bookingDate: string;
+    location: string;
+    bookingIds: string[];
+    guestNames: string[];
+    totalParticipants: number;
+    statuses: string[];
+  }>();
+
+  upcomingBookings.forEach(booking => {
+    const key = `${booking.tour_id}-${booking.booking_date}`;
+    
+    if (tourScheduleMap.has(key)) {
+      const existing = tourScheduleMap.get(key)!;
+      existing.bookingIds.push(booking.id);
+      existing.guestNames.push(booking.guest?.name || 'Guest');
+      existing.totalParticipants += booking.participants;
+      existing.statuses.push(booking.status);
+    } else {
+      tourScheduleMap.set(key, {
+        tourId: booking.tour_id,
+        tourTitle: booking.tour?.title || 'Tour',
+        bookingDate: booking.booking_date,
+        location: booking.tour?.meeting_point || 'Location',
+        bookingIds: [booking.id],
+        guestNames: [booking.guest?.name || 'Guest'],
+        totalParticipants: booking.participants,
+        statuses: [booking.status],
+      });
+    }
+  });
+
+  const mockSchedule: TodayScheduleItem[] = Array.from(tourScheduleMap.values()).map(tour => {
+    // Determine overall status: if any confirmed, show confirmed; if all cancelled, show cancelled
+    const hasConfirmed = tour.statuses.includes('confirmed');
+    const allCancelled = tour.statuses.every(s => s === 'cancelled');
+    const status = hasConfirmed ? 'confirmed' : allCancelled ? 'cancelled' : tour.statuses[0];
+    
+    // Format guest names - show count if more than 2
+    const guestDisplay = tour.guestNames.length > 2 
+      ? `${tour.guestNames.length} bookings` 
+      : tour.guestNames.join(', ');
+    
+    return {
+      id: tour.bookingIds[0], // Use first booking ID
+      time: format(new Date(tour.bookingDate), 'MMM dd'),
+      title: tour.tourTitle,
+      status: status as 'confirmed' | 'pending' | 'completed',
+      guestName: guestDisplay,
+      participantCount: tour.totalParticipants,
+      location: tour.location,
+      tourId: tour.tourId,
+    };
+  });
   
   const mockNotifications: Notification[] = [];
 
