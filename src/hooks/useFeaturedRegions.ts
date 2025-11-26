@@ -9,6 +9,9 @@ export interface FeaturedRegion {
   description: string;
   key_features: string[];
   display_order: number;
+  hero_image?: string | null;
+  tour_title?: string;
+  tour_slug?: string;
 }
 
 /**
@@ -33,12 +36,13 @@ export function useFeaturedRegions() {
 
       console.log('Featured regions from DB:', featuredRegions);
 
-      // Then, get distinct region combinations from active tours (Country + Region only)
+      // Then, get tours with hero images for each region
       const { data: tours, error: toursError } = await supabase
         .from('tours')
-        .select('region_country, region_region')
+        .select('region_country, region_region, hero_image, title, slug')
         .eq('is_active', true)
-        .eq('is_custom_tour', false);
+        .eq('is_custom_tour', false)
+        .not('hero_image', 'is', null);
 
       if (toursError) {
         console.error('Error fetching tours for region filtering:', toursError);
@@ -47,24 +51,36 @@ export function useFeaturedRegions() {
 
       console.log('Tours for filtering:', tours);
 
-      // Create a set of Country-Region combinations that have tours
-      const regionsWithTours = new Set(
-        tours?.map(t => `${t.region_country}|${t.region_region || ''}`).filter(Boolean) || []
-      );
-
-      console.log('Regions with tours (keys):', Array.from(regionsWithTours));
-
-      // Filter featured regions to only include those with tours (matching on Country + Region)
-      const filteredRegions = (featuredRegions || []).filter(region => {
-        const key = `${region.country}|${region.region || ''}`;
-        const hasMatch = regionsWithTours.has(key);
-        console.log(`Checking region: ${region.country} - ${region.region}, key: ${key}, match: ${hasMatch}`);
-        return hasMatch;
+      // Create a map of Country-Region to a representative tour
+      const regionToTourMap = new Map<string, typeof tours[0]>();
+      tours?.forEach(tour => {
+        const key = `${tour.region_country}|${tour.region_region || ''}`;
+        if (!regionToTourMap.has(key)) {
+          regionToTourMap.set(key, tour);
+        }
       });
 
-      console.log('Filtered featured regions:', filteredRegions);
+      console.log('Region to tour map:', Array.from(regionToTourMap.keys()));
 
-      return filteredRegions as FeaturedRegion[];
+      // Enhance featured regions with tour hero images
+      const enhancedRegions = (featuredRegions || [])
+        .map(region => {
+          const key = `${region.country}|${region.region || ''}`;
+          const tour = regionToTourMap.get(key);
+          if (!tour) return null;
+          
+          return {
+            ...region,
+            hero_image: tour.hero_image,
+            tour_title: tour.title,
+            tour_slug: tour.slug
+          } as FeaturedRegion;
+        })
+        .filter((region): region is NonNullable<typeof region> => region !== null);
+
+      console.log('Enhanced featured regions with hero images:', enhancedRegions);
+
+      return enhancedRegions;
     },
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
