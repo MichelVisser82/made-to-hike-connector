@@ -116,17 +116,18 @@ export function SmartImage({
           }
         }
         
-        // Only use category/context fallbacks if no region matching was attempted
-        if (!image && regionKeywords.length === 0) {
+        // Fallback to category/context if region matching didn't find anything
+        if (!image) {
+          console.log('No region match, trying category/context fallback');
           image = await getRandomImage({ category, usage_context: usageContext });
         }
         
-        if (!image && regionKeywords.length === 0) {
+        if (!image) {
           image = await getRandomImage({ category });
         }
         
-        // Final fallback only if we have no region constraints
-        if (!image && regionKeywords.length === 0) {
+        // Final fallback
+        if (!image) {
           image = await getRandomImage({});
         }
         
