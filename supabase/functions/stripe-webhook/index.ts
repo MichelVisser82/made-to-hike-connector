@@ -394,10 +394,63 @@ async function handlePaymentFailed(event: any, supabase: any) {
     return;
   }
 
-  // Send email notification to hiker
+  // Send email notification to hiker and admin alert
   const { data: booking } = await supabase
     .from('bookings')
-    .select('hiker_id, tour_id, hiker_email, profiles!bookings_hiker_id_fkey(name)')
+    .select(`
+      hiker_id, 
+      tour_id, 
+      hiker_email, 
+      booking_reference,
+      total_price,
+      currency,
+      profiles!bookings_hiker_id_fkey(name),
+      tours!inner(title)
+    `)
+    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .single();
+
+  if (booking) {
+    const errorMessage = getUserFriendlyErrorMessage(failureCode);
+    
+    // Send email to hiker
+    await supabase.functions.invoke('send-email', {
+      body: {
+        to: booking.hiker_email,
+        subject: 'Payment Failed - Action Required',
+        html: `
+          <h2>Payment Failed</h2>
+          <p>Dear ${booking.profiles.name},</p>
+          <p>Unfortunately, your payment could not be processed.</p>
+          <p><strong>Reason:</strong> ${errorMessage}</p>
+          <p>Please try booking again with a different payment method.</p>
+        `
+      }
+    });
+
+    // Send admin alert
+    try {
+      const adminEmail = Deno.env.get('SUPPORT_REPLY_EMAIL') || 'admin@madetohike.com';
+      await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'failed_payment_alert_admin',
+          to: adminEmail,
+          data: {
+            bookingReference: booking.booking_reference,
+            hikerName: booking.profiles.name,
+            tourTitle: booking.tours.title,
+            amount: (booking.total_price / 100).toFixed(2),
+            currency: booking.currency.toUpperCase(),
+            errorCode: `${failureCode}: ${failureMessage}`,
+          }
+        }
+      });
+      logStep('Admin alert sent for failed payment');
+    } catch (adminEmailError) {
+      logStep('Error sending admin alert', { error: adminEmailError });
+    }
+  }
+}
     .eq('stripe_payment_intent_id', paymentIntent.id)
     .single();
 
@@ -559,6 +612,44 @@ async function handlePayoutPaid(event: any, supabase: any) {
       paid_at: new Date().toISOString(),
     })
     .eq('stripe_payout_id', payout.id);
+
+  // Send payout notification email to guide
+  try {
+    const { data: payoutRecord } = await supabase
+      .from('stripe_payouts')
+      .select(`
+        guide_id,
+        amount,
+        currency,
+        destination_bank_last4,
+        guide_profiles!stripe_payouts_guide_id_fkey(
+          display_name,
+          user_id,
+          profiles!guide_profiles_user_id_fkey(email)
+        )
+      `)
+      .eq('stripe_payout_id', payout.id)
+      .single();
+
+    if (payoutRecord?.guide_profiles?.profiles?.email) {
+      await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'payout_processed_notification',
+          to: payoutRecord.guide_profiles.profiles.email,
+          data: {
+            guideName: payoutRecord.guide_profiles.display_name,
+            amount: (payoutRecord.amount / 100).toFixed(2),
+            currency: payoutRecord.currency.toUpperCase(),
+            payoutDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+            bankLast4: payoutRecord.destination_bank_last4 || '****',
+          }
+        }
+      });
+      logStep('Payout notification email sent');
+    }
+  } catch (emailError) {
+    logStep('Error sending payout notification email', { error: emailError });
+  }
 }
 
 async function handlePayoutFailed(event: any, supabase: any) {
