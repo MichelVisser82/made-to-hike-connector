@@ -451,26 +451,6 @@ async function handlePaymentFailed(event: any, supabase: any) {
     }
   }
 }
-    .eq('stripe_payment_intent_id', paymentIntent.id)
-    .single();
-
-  if (booking) {
-    const errorMessage = getUserFriendlyErrorMessage(failureCode);
-    await supabase.functions.invoke('send-email', {
-      body: {
-        to: booking.hiker_email,
-        subject: 'Payment Failed - Action Required',
-        html: `
-          <h2>Payment Failed</h2>
-          <p>Dear ${booking.profiles.name},</p>
-          <p>Unfortunately, your payment could not be processed.</p>
-          <p><strong>Reason:</strong> ${errorMessage}</p>
-          <p>Please try booking again with a different payment method.</p>
-        `
-      }
-    });
-  }
-}
 
 function getUserFriendlyErrorMessage(code: string): string {
   const messages: Record<string, string> = {
