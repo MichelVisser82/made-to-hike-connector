@@ -9,8 +9,11 @@ serve(async (req) => {
 
   try {
     const { email } = await req.json();
+    console.log('=== SEND VERIFICATION CODE CALLED ===');
+    console.log('Email address:', email);
 
     if (!email) {
+      console.error('No email provided in request');
       return new Response(
         JSON.stringify({ error: 'Email is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -43,6 +46,8 @@ serve(async (req) => {
       );
     }
 
+    console.log('Verification code stored successfully, invoking send-email function...');
+
     // Send verification email via send-email function
     const { error: emailError } = await supabase.functions.invoke('send-email', {
       body: {
@@ -62,6 +67,8 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Verification email sent successfully to:', email);
 
     return new Response(
       JSON.stringify({ message: 'Verification code sent successfully' }),
