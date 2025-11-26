@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,29 +7,34 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LaunchGate } from "@/components/pre-launch/LaunchGate";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
+import { PageLoader } from "@/components/common/PageLoader";
+
+// Eager loads (frequently accessed public pages)
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import TourPage from "./pages/TourPage";
-import GuidePage from "./pages/GuidePage";
-import GuideSignupPage from "./pages/GuideSignupPage";
-import GuidesPage from "./pages/GuidesPage";
 import ToursPage from "./pages/ToursPage";
-import HelpPage from "./pages/HelpPage";
-import { EmailTest } from "./components/EmailTest";
 import { Auth } from "./pages/Auth";
-import { VerifyEmail } from "./pages/VerifyEmail";
-import CertificationsPage from "./pages/CertificationsPage";
-import DashboardPage from "./pages/DashboardPage";
-import TourCreationPage from "./pages/TourCreationPage";
-import ProfilePage from "./pages/ProfilePage";
-import SettingsPage from "./pages/SettingsPage";
-import { BookingFlowNew } from "./components/pages/BookingFlowNew";
-import { BookingSuccess } from "./components/pages/BookingSuccess";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCanceled from "./pages/PaymentCanceled";
-import OfferAccept from "./pages/OfferAccept";
-import OfferDecline from "./pages/OfferDecline";
-import ParticipantPage from "./pages/ParticipantPage";
+
+// Lazy loads (protected and deep pages)
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const TourCreationPage = lazy(() => import("./pages/TourCreationPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const TourPage = lazy(() => import("./pages/TourPage"));
+const GuidePage = lazy(() => import("./pages/GuidePage"));
+const GuideSignupPage = lazy(() => import("./pages/GuideSignupPage"));
+const GuidesPage = lazy(() => import("./pages/GuidesPage"));
+const CertificationsPage = lazy(() => import("./pages/CertificationsPage"));
+const HelpPage = lazy(() => import("./pages/HelpPage"));
+const ParticipantPage = lazy(() => import("./pages/ParticipantPage"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail").then(m => ({ default: m.VerifyEmail })));
+const BookingFlowNew = lazy(() => import("./components/pages/BookingFlowNew").then(m => ({ default: m.BookingFlowNew })));
+const BookingSuccess = lazy(() => import("./components/pages/BookingSuccess").then(m => ({ default: m.BookingSuccess })));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCanceled = lazy(() => import("./pages/PaymentCanceled"));
+const OfferAccept = lazy(() => import("./pages/OfferAccept"));
+const OfferDecline = lazy(() => import("./pages/OfferDecline"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const EmailTest = lazy(() => import("./components/EmailTest").then(m => ({ default: m.EmailTest })));
 
 const queryClient = new QueryClient();
 
@@ -38,11 +43,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <PageLoader />;
   }
   
   if (!user) {
@@ -65,26 +66,28 @@ const App: React.FC = () => {
               <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/email-test" element={<EmailTest />} />
             <Route path="/tours" element={<ToursPage />} />
-            <Route path="/tours/:tourSlug/book" element={<BookingFlowNew />} />
-            <Route path="/tours/:slug" element={<TourPage />} />
-            <Route path="/guides" element={<GuidesPage />} />
-            <Route path="/guide/signup" element={<GuideSignupPage />} />
-            <Route path="/certifications" element={<CertificationsPage />} />
-            <Route path="/booking-success" element={<BookingSuccess />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/payment-canceled" element={<PaymentCanceled />} />
-            <Route path="/offer/accept" element={<OfferAccept />} />
-            <Route path="/offer/decline" element={<OfferDecline />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route path="/participant/:token" element={<ParticipantPage />} />
+            <Route path="/verify-email" element={<Suspense fallback={<PageLoader />}><VerifyEmail /></Suspense>} />
+            <Route path="/email-test" element={<Suspense fallback={<PageLoader />}><EmailTest /></Suspense>} />
+            <Route path="/tours/:tourSlug/book" element={<Suspense fallback={<PageLoader />}><BookingFlowNew /></Suspense>} />
+            <Route path="/tours/:slug" element={<Suspense fallback={<PageLoader />}><TourPage /></Suspense>} />
+            <Route path="/guides" element={<Suspense fallback={<PageLoader />}><GuidesPage /></Suspense>} />
+            <Route path="/guide/signup" element={<Suspense fallback={<PageLoader />}><GuideSignupPage /></Suspense>} />
+            <Route path="/certifications" element={<Suspense fallback={<PageLoader />}><CertificationsPage /></Suspense>} />
+            <Route path="/booking-success" element={<Suspense fallback={<PageLoader />}><BookingSuccess /></Suspense>} />
+            <Route path="/payment-success" element={<Suspense fallback={<PageLoader />}><PaymentSuccess /></Suspense>} />
+            <Route path="/payment-canceled" element={<Suspense fallback={<PageLoader />}><PaymentCanceled /></Suspense>} />
+            <Route path="/offer/accept" element={<Suspense fallback={<PageLoader />}><OfferAccept /></Suspense>} />
+            <Route path="/offer/decline" element={<Suspense fallback={<PageLoader />}><OfferDecline /></Suspense>} />
+            <Route path="/help" element={<Suspense fallback={<PageLoader />}><HelpPage /></Suspense>} />
+            <Route path="/participant/:token" element={<Suspense fallback={<PageLoader />}><ParticipantPage /></Suspense>} />
                 <Route 
                   path="/dashboard" 
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <Suspense fallback={<PageLoader />}>
+                        <DashboardPage />
+                      </Suspense>
                     </ProtectedRoute>
                   } 
                 />
@@ -92,7 +95,9 @@ const App: React.FC = () => {
             path="/profile" 
             element={
               <ProtectedRoute>
-                <ProfilePage />
+                <Suspense fallback={<PageLoader />}>
+                  <ProfilePage />
+                </Suspense>
               </ProtectedRoute>
             } 
           />
@@ -100,7 +105,9 @@ const App: React.FC = () => {
             path="/settings/*" 
             element={
               <ProtectedRoute>
-                <SettingsPage />
+                <Suspense fallback={<PageLoader />}>
+                  <SettingsPage />
+                </Suspense>
               </ProtectedRoute>
             } 
           />
@@ -108,7 +115,9 @@ const App: React.FC = () => {
                   path="/tour-creation" 
                   element={
                     <ProtectedRoute>
-                      <TourCreationPage />
+                      <Suspense fallback={<PageLoader />}>
+                        <TourCreationPage />
+                      </Suspense>
                     </ProtectedRoute>
                   } 
                 />
@@ -116,7 +125,9 @@ const App: React.FC = () => {
                   path="/dashboard/bookings/:bookingId" 
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <Suspense fallback={<PageLoader />}>
+                        <DashboardPage />
+                      </Suspense>
                     </ProtectedRoute>
                   } 
                 />
@@ -124,7 +135,9 @@ const App: React.FC = () => {
                   path="/dashboard/bookings/tour/:tourSlug" 
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <Suspense fallback={<PageLoader />}>
+                        <DashboardPage />
+                      </Suspense>
                     </ProtectedRoute>
                   } 
                 />
@@ -132,14 +145,16 @@ const App: React.FC = () => {
                   path="/dashboard/trip/:bookingId" 
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <Suspense fallback={<PageLoader />}>
+                        <DashboardPage />
+                      </Suspense>
                     </ProtectedRoute>
                   } 
                 />
                 {/* Dynamic guide profile route - BEFORE NotFound */}
-                <Route path="/:slug" element={<GuidePage />} />
+                <Route path="/:slug" element={<Suspense fallback={<PageLoader />}><GuidePage /></Suspense>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFound /></Suspense>} />
               </Routes>
             </LaunchGate>
           </AuthProvider>
