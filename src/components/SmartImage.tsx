@@ -88,28 +88,11 @@ export function SmartImage({
             console.log(`Level 3 (country match): Found ${matchingImages.length} images`);
           }
           
-          // Filter out wrong regions to prevent mismatches
-          const wrongRegionKeywords = [
-            'scotland', 'highlands', 'scottish',
-            'dolomites', 'italy', 'italian',
-            'pyrenees', 'spain', 'spanish', 'france', 'french',
-            'switzerland', 'swiss', 'alps',
-            'norway', 'norwegian', 'lofoten',
-            'iceland', 'icelandic'
-          ];
-          
-          matchingImages = matchingImages.filter(img => {
-            const hasWrongRegion = img.tags.some(imgTag => {
-              const tag = imgTag.toLowerCase();
-              return wrongRegionKeywords.some(wrongRegion => 
-                tag.includes(wrongRegion) && !regionKeywords.some(kw => kw.includes(wrongRegion))
-              );
-            });
-            return !hasWrongRegion;
-          });
-          
-          console.log(`After filtering wrong regions: ${matchingImages.length} images`);
-          
+          // Note: we intentionally no longer filter out so-called "wrong" regions here.
+          // The database tags (location:country-subregion) are now the source of truth,
+          // and over-aggressive filtering was eliminating valid matches and causing
+          // "No image available" even when correct regional images exist.
+
           if (matchingImages.length > 0) {
             image = matchingImages[Math.floor(Math.random() * matchingImages.length)];
             console.log('Selected region-matched image:', image.file_name, 'with tags:', image.tags);
