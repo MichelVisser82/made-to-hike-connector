@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,23 @@ interface FullMapRevealProps {
 }
 
 export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
+  const [thunderforestKey, setThunderforestKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchThunderforestKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-thunderforest-key');
+        if (!error && data?.key) {
+          setThunderforestKey(data.key);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Thunderforest key:', err);
+      }
+    };
+    
+    fetchThunderforestKey();
+  }, []);
+
   // Fetch full map data (routes + all highlights)
   const { data: mapData, isLoading } = useQuery({
     queryKey: ['full-tour-map', tourId, bookingId],
@@ -320,10 +337,19 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
                     className="h-full w-full"
                     scrollWheelZoom={true}
                   >
-                    <TileLayer
-                      attribution='Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                      url="https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=2e0aadc5e41e44dba20a1eff17da0882"
-                    />
+                    {thunderforestKey ? (
+                      <TileLayer
+                        attribution='Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url={`https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${thunderforestKey}`}
+                        maxZoom={18}
+                        subdomains={['a', 'b', 'c']}
+                      />
+                    ) : (
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                    )}
                     
                     <RoutePolylineWithArrows
                       positions={routeCoordinates}
