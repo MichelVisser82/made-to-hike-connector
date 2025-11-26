@@ -145,6 +145,15 @@ verify_jwt = false
 [functions.archive-expired-offers]
 verify_jwt = false
 
+[functions.notify-tour-date-change]
+verify_jwt = false
+
+[functions.manage-participant-tokens]
+verify_jwt = false
+
+[functions.process-refund]
+verify_jwt = false
+
 # Cron jobs configuration
 [cron]
 enabled = true
