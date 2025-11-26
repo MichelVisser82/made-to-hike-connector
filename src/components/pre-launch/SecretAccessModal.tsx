@@ -21,23 +21,10 @@ export function SecretAccessModal({ open, onClose }: SecretAccessModalProps) {
 
   useEffect(() => {
     if (open) {
-      // Clear attempts when modal opens (for testing)
       sessionStorage.removeItem('mth_bypass_attempts');
       setRemainingAttempts(3);
       setPassword('');
       setError('');
-      
-      // Test hash generation
-      hashPassword('preview2025').then(hash => {
-        console.log('============================================');
-        console.log('🔐 BYPASS PASSWORD DEBUG INFO');
-        console.log('============================================');
-        console.log('Test password: "preview2025"');
-        console.log('Generated hash:', hash);
-        console.log('Expected hash:', BYPASS_PASSWORD_HASH);
-        console.log('Hashes match:', hash === BYPASS_PASSWORD_HASH);
-        console.log('============================================');
-      });
     }
   }, [open]);
 
@@ -54,12 +41,6 @@ export function SecretAccessModal({ open, onClose }: SecretAccessModalProps) {
 
     try {
       const hashedInput = await hashPassword(password);
-      
-      console.log('🔐 Password Debug Info:');
-      console.log('Entered password:', password);
-      console.log('Generated hash:', hashedInput);
-      console.log('Expected hash:', BYPASS_PASSWORD_HASH);
-      console.log('Hashes match:', hashedInput === BYPASS_PASSWORD_HASH);
       
       // TEMPORARY: Accept any password for now
       const isCorrect = true; // hashedInput === BYPASS_PASSWORD_HASH;

@@ -131,19 +131,15 @@ export async function convertToJpeg(file: File): Promise<{ blob: Blob; fileName:
   const fileType = file.type.toLowerCase();
   const fileName = file.name.toLowerCase();
   
-  console.log('Converting file to JPEG:', { name: file.name, type: fileType });
-  
   try {
     let jpegBlob: Blob;
     
     // Handle PDF files
     if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-      console.log('Converting PDF to JPEG...');
       jpegBlob = await pdfToJpeg(file);
     }
     // Handle image files
     else if (fileType.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(fileName)) {
-      console.log('Converting image to JPEG...');
       jpegBlob = await imageToJpeg(file);
     }
     // Unsupported format
@@ -154,8 +150,6 @@ export async function convertToJpeg(file: File): Promise<{ blob: Blob; fileName:
     // Generate new filename with .jpg extension
     const originalName = file.name.replace(/\.[^/.]+$/, '');
     const newFileName = `${originalName}.jpg`;
-    
-    console.log('Conversion successful:', { originalSize: file.size, newSize: jpegBlob.size, newFileName });
     
     return {
       blob: jpegBlob,

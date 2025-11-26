@@ -77,8 +77,6 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
     
     const { data: convData, error } = await query;
 
-    console.log('Fetching conversations, isAdmin:', isAdmin, 'count:', convData?.length);
-
     if (error) {
       console.error('Error fetching conversations:', error);
       setLoading(false);
@@ -226,7 +224,6 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
       })
     );
 
-    console.log('Processed conversations:', conversationsWithData.length);
     setConversations(conversationsWithData as any);
     setLoading(false);
   }

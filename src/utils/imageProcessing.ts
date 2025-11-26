@@ -245,8 +245,6 @@ export const optimizeDocument = async (
   category: string = 'certificate'
 ): Promise<File> => {
   try {
-    console.log(`Optimizing document: ${file.name} (${file.size} bytes)`);
-    
     const formData = new FormData();
     formData.append('file', file);
     formData.append('category', category);
@@ -268,7 +266,6 @@ export const optimizeDocument = async (
       { type: optimizedBlob.type }
     );
     
-    console.log(`Document optimized: ${file.size} -> ${optimizedFile.size} bytes`);
     return optimizedFile;
   } catch (error) {
     console.error('Document optimization failed, using original:', error);
@@ -286,23 +283,11 @@ export const uploadCertificateDocument = async (
   optimize: boolean = true
 ): Promise<string> => {
   try {
-    console.log('Starting certificate document upload:', { 
-      name: file.name, 
-      type: file.type, 
-      size: file.size 
-    });
-    
     // Convert all documents to JPEG format
     const { blob: jpegBlob, fileName: jpegFileName } = await convertToJpeg(file);
     
     // Create File object from blob
     const jpegFile = new File([jpegBlob], jpegFileName, { type: 'image/jpeg' });
-    
-    console.log('Converted to JPEG:', {
-      originalSize: file.size,
-      jpegSize: jpegFile.size,
-      fileName: jpegFileName
-    });
     
     // Generate unique filename
     const timestamp = Date.now();
@@ -323,7 +308,6 @@ export const uploadCertificateDocument = async (
       throw uploadError;
     }
 
-    console.log('Upload successful:', filePath);
     return filePath;
   } catch (error) {
     console.error('Certificate upload failed:', error);

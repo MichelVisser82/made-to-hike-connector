@@ -21,10 +21,6 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const { bookings, loading, error } = useHikerBookings(userId);
 
-  // Debug: Log all bookings and their statuses
-  console.log('All bookings:', bookings);
-  console.log('Booking statuses:', bookings.map(b => b.status));
-
   // Filter bookings by status - show all non-cancelled, non-completed bookings as active
   const activeBookings = bookings.filter(b => {
     const status = b.status.toLowerCase();
@@ -34,9 +30,6 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
   const completedBookings = bookings.filter(b => 
     b.status.toLowerCase() === 'completed'
   );
-
-  console.log('Active bookings count:', activeBookings.length);
-  console.log('Active booking statuses:', activeBookings.map(b => b.status));
 
   // Mock data for features not yet implemented
   const oldActiveBookings = [
