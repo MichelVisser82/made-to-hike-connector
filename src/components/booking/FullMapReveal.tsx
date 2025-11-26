@@ -321,8 +321,8 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
                     scrollWheelZoom={true}
                   >
                     <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=2e0aadc5e41e44dba20a1eff17da0882"
                     />
                     
                     <RoutePolylineWithArrows
