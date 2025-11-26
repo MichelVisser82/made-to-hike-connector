@@ -118,17 +118,24 @@ export function SmartImage({
         
         // Fallback to category/context if region matching didn't find anything
         if (!image) {
-          console.log('No region match, trying category/context fallback');
-          image = await getRandomImage({ category, usage_context: usageContext });
-        }
-        
-        if (!image) {
-          image = await getRandomImage({ category });
-        }
-        
-        // Final fallback
-        if (!image) {
-          image = await getRandomImage({});
+          if (regionKeywords.length === 0) {
+            console.log('No region tags provided, using category/context fallback');
+            image = await getRandomImage({ category, usage_context: usageContext });
+
+            if (!image && category) {
+              image = await getRandomImage({ category });
+            }
+
+            // Final generic fallback
+            if (!image) {
+              image = await getRandomImage({});
+            }
+          } else {
+            // We had explicit region tags but found no matching images.
+            // To avoid showing photos from the wrong region (e.g. Pyrenees for Dolomites),
+            // we intentionally do NOT fall back to generic random images here.
+            console.log('Region tags provided but no region-matched image found; skipping generic fallback to prevent cross-region mixups');
+          }
         }
         
         if (image) {
