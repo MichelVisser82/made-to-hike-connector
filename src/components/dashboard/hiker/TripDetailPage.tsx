@@ -6,14 +6,96 @@ import { TripHeroSection } from './trip-detail/TripHeroSection';
 import { TripSidebar } from './trip-detail/TripSidebar';
 import { TripTabContent } from './trip-detail/TripTabContent';
 import { Skeleton } from '@/components/ui/skeleton';
+import { createBrandedPDF, addPDFSection, addPDFFooter, formatCurrency, formatDate } from '@/utils/exportUtils';
+import { useToast } from '@/hooks/use-toast';
 
 export function TripDetailPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
   const { data: tripDetails, isLoading, error } = useTripDetails(bookingId);
+  const { toast } = useToast();
 
   const handleBack = () => {
     navigate('/dashboard?section=my-trips');
+  };
+
+  const handleExportPDF = () => {
+    if (!tripDetails) {
+      toast({
+        title: 'Error',
+        description: 'No trip data to export',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const doc = createBrandedPDF('Trip Summary');
+    let yPos = 45;
+
+    // Booking Information
+    yPos = addPDFSection(doc, 'Booking Information', yPos);
+    doc.text(`Booking Reference: ${tripDetails.booking.booking_reference}`, 20, yPos);
+    yPos += 7;
+    doc.text(`Tour: ${tripDetails.tour.title}`, 20, yPos);
+    yPos += 7;
+    doc.text(`Dates: ${formatDate(tripDetails.booking.booking_date)} (${tripDetails.tour.duration})`, 20, yPos);
+    yPos += 7;
+    doc.text(`Participants: ${tripDetails.booking.participants}`, 20, yPos);
+    yPos += 7;
+    doc.text(`Status: ${tripDetails.booking.status}`, 20, yPos);
+    yPos += 7;
+    doc.text(`Total: ${formatCurrency(tripDetails.booking.total_price, tripDetails.booking.currency)}`, 20, yPos);
+    yPos += 12;
+
+    // Guide Information
+    yPos = addPDFSection(doc, 'Your Guide', yPos);
+    doc.text(`Name: ${tripDetails.guide.display_name}`, 20, yPos);
+    yPos += 7;
+    if (tripDetails.guide.phone) {
+      doc.text(`Phone: ${tripDetails.guide.phone}`, 20, yPos);
+      yPos += 7;
+    }
+    if (tripDetails.guide.languages_spoken?.length > 0) {
+      doc.text(`Languages: ${tripDetails.guide.languages_spoken.join(', ')}`, 20, yPos);
+      yPos += 7;
+    }
+    yPos += 5;
+
+    // Meeting Point
+    if (tripDetails.tour.meeting_point) {
+      yPos = addPDFSection(doc, 'Meeting Point', yPos);
+      doc.text(tripDetails.tour.meeting_point, 20, yPos, { maxWidth: 170 });
+      yPos += 12;
+    }
+
+    // Preparation Checklist
+    yPos = addPDFSection(doc, 'Preparation Checklist', yPos);
+    tripDetails.checklist.forEach((item) => {
+      const status = item.is_checked ? '✓' : '○';
+      doc.text(`${status} ${item.item_name}`, 25, yPos);
+      yPos += 6;
+      if (yPos > 270) { // Start new page if needed
+        doc.addPage();
+        yPos = 20;
+      }
+    });
+    yPos += 5;
+
+    // Special Requests
+    if (tripDetails.booking.special_requests) {
+      yPos = addPDFSection(doc, 'Special Requests', yPos);
+      doc.text(tripDetails.booking.special_requests, 20, yPos, { maxWidth: 170 });
+      yPos += 12;
+    }
+
+    addPDFFooter(doc);
+    
+    doc.save(`${tripDetails.tour.slug || 'trip'}-summary-${tripDetails.booking.booking_reference}.pdf`);
+
+    toast({
+      title: 'Export Successful',
+      description: 'Trip summary PDF downloaded',
+    });
   };
 
   if (isLoading) {
@@ -75,7 +157,12 @@ export function TripDetailPage() {
                 <Share className="w-4 h-4 mr-2" />
                 Share
               </Button>
-              <Button variant="outline" size="sm" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                onClick={handleExportPDF}
+              >
                 <FileDown className="w-4 h-4 mr-2" />
                 Export PDF
               </Button>
