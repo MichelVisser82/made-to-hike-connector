@@ -779,10 +779,15 @@ export function GuideDashboard({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const todayBookings = bookings.filter(b => {
+  // Get bookings for the next 30 days
+  const next30Days = new Date();
+  next30Days.setDate(next30Days.getDate() + 30);
+  next30Days.setHours(23, 59, 59, 999);
+  
+  const upcomingBookings = bookings.filter(b => {
     const bookingDate = new Date(b.booking_date);
     bookingDate.setHours(0, 0, 0, 0);
-    return bookingDate.getTime() === today.getTime();
+    return bookingDate >= today && bookingDate <= next30Days;
   });
 
   const pendingBookings = bookings.filter(b => 
@@ -804,13 +809,13 @@ export function GuideDashboard({
   const totalUnreadMessages = liveConversations.reduce((total, conv) => total + (conv.unread_count || 0), 0);
   
   const realStats = {
-    todayTours: todayBookings.length,
+    todayTours: upcomingBookings.length,
     pendingBookings: pendingBookings.length,
     weekEarnings: weekEarnings,
     unreadMessages: totalUnreadMessages,
   };
 
-  const mockSchedule: TodayScheduleItem[] = todayBookings.map(booking => ({
+  const mockSchedule: TodayScheduleItem[] = upcomingBookings.map(booking => ({
     id: booking.id,
     time: '09:00', // TODO: Get from booking
     title: booking.tour?.title || 'Tour',
