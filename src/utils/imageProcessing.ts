@@ -71,22 +71,24 @@ export const extractGPSData = async (file: File): Promise<GPSData | null> => {
 };
 
 /**
- * Get location name from GPS coordinates
+ * Get location name from GPS coordinates in hierarchical format
+ * Returns format: country-subregion (e.g., "scotland-highlands", "italy-dolomites")
+ * Note: This is a simplified client-side fallback. The edge function uses database regions.
  */
 export const getLocationFromGPS = (latitude: number, longitude: number): string => {
   const locations = [
     {
-      name: 'scotland',
+      name: 'scotland-highlands',
       bounds: { latMin: 56.0, latMax: 58.7, lngMin: -8.0, lngMax: -2.0 },
       center: { lat: 57.35, lng: -5.0 }
     },
     {
-      name: 'dolomites',
+      name: 'italy-dolomites',
       bounds: { latMin: 46.0, latMax: 47.0, lngMin: 10.5, lngMax: 12.5 },
       center: { lat: 46.5, lng: 11.5 }
     },
     {
-      name: 'pyrenees',
+      name: 'spain-pyrenees',
       bounds: { latMin: 42.0, latMax: 43.5, lngMin: -2.0, lngMax: 3.5 },
       center: { lat: 42.75, lng: 0.75 }
     }

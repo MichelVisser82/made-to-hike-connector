@@ -36,6 +36,7 @@ export function useRegionGPS() {
 
 /**
  * Determine region from GPS coordinates by checking against all region boundaries
+ * Returns hierarchical format: country-subregion (e.g., "italy-dolomites", "scotland-highlands")
  */
 export function getLocationFromGPS(
   latitude: number,
@@ -51,10 +52,10 @@ export function getLocationFromGPS(
     const { latMin, latMax, lngMin, lngMax } = region.gps_bounds;
     if (latitude >= latMin && latitude <= latMax && 
         longitude >= lngMin && longitude <= lngMax) {
-      // Return in "Country - Region - Subregion" format
-      return region.region 
-        ? `${region.country} - ${region.region} - ${region.subregion}`
-        : `${region.country} - ${region.subregion}`;
+      // Return in hierarchical format: country-subregion
+      const countryLower = region.country.toLowerCase().replace(/\s+/g, '-');
+      const subregionLower = region.subregion.toLowerCase().replace(/\s+/g, '-');
+      return `${countryLower}-${subregionLower}`;
     }
   }
 
@@ -80,7 +81,7 @@ export function getLocationFromGPS(
     }
   }
 
-  return closestRegion.region
-    ? `${closestRegion.country} - ${closestRegion.region} - ${closestRegion.subregion}`
-    : `${closestRegion.country} - ${closestRegion.subregion}`;
+  const countryLower = closestRegion.country.toLowerCase().replace(/\s+/g, '-');
+  const subregionLower = closestRegion.subregion.toLowerCase().replace(/\s+/g, '-');
+  return `${countryLower}-${subregionLower}`;
 }
