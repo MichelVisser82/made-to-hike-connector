@@ -248,7 +248,7 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-card border-burgundy/10 shadow-sm">
         <CardContent className="p-8 text-center">
           <p className="text-muted-foreground">Loading full route map...</p>
         </CardContent>
@@ -258,7 +258,7 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
 
   if (!mapData || !mapData.dayRoutes?.length) {
     return (
-      <Card>
+      <Card className="bg-card border-burgundy/10 shadow-sm">
         <CardContent className="p-8 text-center">
           <p className="text-muted-foreground">No route data available for this tour yet.</p>
         </CardContent>
@@ -270,30 +270,30 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="bg-card border-burgundy/10 shadow-sm">
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">
+              <p className="text-3xl font-bold text-burgundy font-playfair">
                 {mapData.dayRoutes.reduce((sum, r) => sum + (r.distance_km || 0), 0).toFixed(1)} km
               </p>
               <p className="text-sm text-muted-foreground mt-1">Total Distance</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card border-burgundy/10 shadow-sm">
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">
+              <p className="text-3xl font-bold text-burgundy font-playfair">
                 {mapData.dayRoutes.reduce((sum, r) => sum + (r.elevation_gain_m || 0), 0)} m
               </p>
               <p className="text-sm text-muted-foreground mt-1">Total Elevation Gain</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card border-burgundy/10 shadow-sm">
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{mapData.highlights.length}</p>
+              <p className="text-3xl font-bold text-burgundy font-playfair">{mapData.highlights.length}</p>
               <p className="text-sm text-muted-foreground mt-1">Total Highlights</p>
             </div>
           </CardContent>
@@ -301,16 +301,16 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
       </div>
 
       {/* Day Tabs */}
-      <Card>
+      <Card className="bg-card border-burgundy/10 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Full Route Map</CardTitle>
+          <CardTitle className="font-playfair text-foreground">Full Route Map</CardTitle>
           <div className="flex gap-2">
-            <Button onClick={handleDownloadPDF} variant="outline" size="sm">
+            <Button onClick={handleDownloadPDF} variant="outline" size="sm" className="border-burgundy/20 hover:bg-burgundy/10">
               <FileDown className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
             {mapData.gpxFile && (
-              <Button onClick={handleDownloadGPX} variant="outline" size="sm">
+              <Button onClick={handleDownloadGPX} variant="outline" size="sm" className="border-burgundy/20 hover:bg-burgundy/10">
                 <Download className="h-4 w-4 mr-2" />
                 Download GPX
               </Button>
@@ -319,9 +319,13 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
         </CardHeader>
         <CardContent>
           <Tabs value={selectedDay.toString()} onValueChange={(v) => setSelectedDay(parseInt(v))}>
-            <TabsList className="w-full">
+            <TabsList className="bg-cream border border-burgundy/10 rounded-lg">
               {mapData.dayRoutes.map((route) => (
-                <TabsTrigger key={route.day_number} value={route.day_number.toString()} className="flex-1">
+                <TabsTrigger 
+                  key={route.day_number} 
+                  value={route.day_number.toString()} 
+                  className="flex-1 data-[state=active]:bg-burgundy data-[state=active]:text-white"
+                >
                   Day {route.day_number}
                 </TabsTrigger>
               ))}
@@ -330,7 +334,7 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
             {mapData.dayRoutes.map((route) => (
               <TabsContent key={route.day_number} value={route.day_number.toString()} className="space-y-4">
                 {/* Map */}
-                <div className="h-[500px] rounded-lg overflow-hidden border">
+                <div className="h-[500px] rounded-lg overflow-hidden border border-burgundy/10">
                   <MapContainer
                     center={center}
                     zoom={13}
@@ -353,7 +357,7 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
                     
                     <RoutePolylineWithArrows
                       positions={routeCoordinates}
-                      color="#10b981"
+                      color="#7C2D3A"
                       weight={4}
                     />
 
@@ -405,30 +409,30 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
 
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-muted rounded-lg">
-                    <p className="text-xl font-bold">{route.distance_km?.toFixed(1)} km</p>
+                  <div className="text-center p-3 bg-cream rounded-lg border border-burgundy/10">
+                    <p className="text-xl font-bold text-foreground">{route.distance_km?.toFixed(1)} km</p>
                     <p className="text-sm text-muted-foreground">Distance</p>
                   </div>
-                  <div className="text-center p-3 bg-muted rounded-lg">
-                    <p className="text-xl font-bold">{route.elevation_gain_m} m</p>
+                  <div className="text-center p-3 bg-cream rounded-lg border border-burgundy/10">
+                    <p className="text-xl font-bold text-foreground">{route.elevation_gain_m} m</p>
                     <p className="text-sm text-muted-foreground">Elevation Gain</p>
                   </div>
-                  <div className="text-center p-3 bg-muted rounded-lg">
-                    <p className="text-xl font-bold">~{route.estimated_duration_hours?.toFixed(1)} hrs</p>
+                  <div className="text-center p-3 bg-cream rounded-lg border border-burgundy/10">
+                    <p className="text-xl font-bold text-foreground">~{route.estimated_duration_hours?.toFixed(1)} hrs</p>
                     <p className="text-sm text-muted-foreground">Duration</p>
                   </div>
                 </div>
 
                 {/* Elevation Profile */}
                 {Array.isArray(elevationData) && elevationData.length > 0 && (
-                  <Card>
+                  <Card className="bg-card border-burgundy/10 shadow-sm">
                     <CardHeader>
-                      <CardTitle className="text-base">Elevation Profile</CardTitle>
+                      <CardTitle className="text-base font-playfair text-foreground">Elevation Profile</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={200}>
                         <AreaChart data={elevationData}>
-                          <CartesianGrid strokeDasharray="3 3" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#7C2D3A33" />
                           <XAxis 
                             dataKey="distance" 
                             label={{ value: 'Distance (km)', position: 'insideBottom', offset: -5 }}
@@ -440,8 +444,8 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
                           <Area 
                             type="monotone" 
                             dataKey="elevation" 
-                            stroke="#10b981" 
-                            fill="#10b981" 
+                            stroke="#7C2D3A" 
+                            fill="#7C2D3A" 
                             fillOpacity={0.3} 
                           />
                         </AreaChart>
@@ -456,9 +460,9 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
       </Card>
 
       {/* All Highlights List */}
-      <Card>
+      <Card className="bg-card border-burgundy/10 shadow-sm">
         <CardHeader>
-          <CardTitle>All Highlights</CardTitle>
+          <CardTitle className="font-playfair text-foreground">All Highlights</CardTitle>
           <p className="text-sm text-muted-foreground">
             {mapData.highlights.filter((h: any) => h.is_public).length} public • 
             {mapData.highlights.filter((h: any) => !h.is_public).length} secret spots
@@ -467,19 +471,19 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
         <CardContent>
           <div className="grid gap-3">
             {Array.isArray(mapData.highlights) && mapData.highlights.map((highlight: any) => (
-              <div key={highlight.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+              <div key={highlight.id} className="flex items-start gap-3 p-3 bg-cream rounded-lg border border-burgundy/10">
                 <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category as keyof typeof HIGHLIGHT_CATEGORY_ICONS]}</span>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-medium">{highlight.name}</h4>
+                    <h4 className="font-medium text-foreground">{highlight.name}</h4>
                     {!highlight.is_public && (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="bg-burgundy/10 text-burgundy border-burgundy/20">
                         <Gift className="h-3 w-3 mr-1" />
                         Secret Spot
                       </Badge>
                     )}
                     {highlight.day_number && (
-                      <Badge variant="outline">Day {highlight.day_number}</Badge>
+                      <Badge variant="outline" className="border-burgundy/20 text-foreground">Day {highlight.day_number}</Badge>
                     )}
                   </div>
                   {highlight.description && (
