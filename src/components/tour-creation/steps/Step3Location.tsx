@@ -1,12 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { useFormContext } from 'react-hook-form';
 import { useEffect } from 'react';
 import { TourFormData } from '@/hooks/useTourCreation';
 import { LocationAutocomplete } from '../LocationAutocomplete';
 import { InteractiveLocationMap } from '../InteractiveLocationMap';
 import { RegionSelector } from '../RegionSelector';
+import { Clock } from 'lucide-react';
 
 interface Step3LocationProps {
   onSave?: () => Promise<void>;
@@ -40,12 +42,12 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
   }, [selectedRegion, form]);
 
   const handleSave = async () => {
-    const isValid = await form.trigger(['region', 'meeting_point']);
+    const isValid = await form.trigger(['region', 'meeting_point', 'meeting_time']);
     if (isValid && onSave) await onSave();
   };
 
   const handleNext = async () => {
-    const isValid = await form.trigger(['region', 'meeting_point']);
+    const isValid = await form.trigger(['region', 'meeting_point', 'meeting_time']);
     if (isValid && onNext) await onNext();
   };
 
@@ -95,6 +97,31 @@ export default function Step3Location({ onSave, onNext, onPrev, isSaving }: Step
               <FormMessage />
               <p className="text-sm text-charcoal/60 mt-2">
                 You can search above or drop a pin on the map below
+              </p>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="meeting_time"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-charcoal font-medium flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Meeting Time *
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="time"
+                  {...field}
+                  value={field.value || '09:00'}
+                  className="border-burgundy/20 focus:border-burgundy"
+                />
+              </FormControl>
+              <FormMessage />
+              <p className="text-sm text-charcoal/60 mt-2">
+                What time should hikers arrive at the meeting point?
               </p>
             </FormItem>
           )}

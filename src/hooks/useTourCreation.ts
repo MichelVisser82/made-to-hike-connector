@@ -22,6 +22,7 @@ const tourSchema = z.object({
   meeting_point_lat: z.number().optional(),
   meeting_point_lng: z.number().optional(),
   meeting_point_formatted: z.string().optional(),
+  meeting_time: z.string().min(1, 'Meeting time is required'),
   
   // Step 4: Duration & Difficulty
   duration: z.number().min(0.5, 'Duration must be at least half a day').max(30, 'Duration cannot exceed 30 days'),
@@ -148,7 +149,8 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         meeting_point_lat: initialData.meeting_point_lat,
         meeting_point_lng: initialData.meeting_point_lng,
         meeting_point_formatted: initialData.meeting_point_formatted,
-        duration: typeof initialData.duration === 'number' 
+        meeting_time: initialData.meeting_time || '09:00',
+        duration: typeof initialData.duration === 'number'
           ? initialData.duration 
           : parseDurationStringToDays(initialData.duration),
         difficulty: initialData.difficulty,
@@ -214,6 +216,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
       meeting_point_lat: undefined,
       meeting_point_lng: undefined,
       meeting_point_formatted: undefined,
+      meeting_time: '09:00',
       duration: 1,
       difficulty: 'moderate' as const,
       pack_weight: 10,

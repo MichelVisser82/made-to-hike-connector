@@ -77,6 +77,7 @@ Deno.serve(async (req) => {
             title,
             guide_id,
             meeting_point,
+            meeting_time,
             guide_profiles!tours_guide_id_fkey(display_name)
           ),
           hiker:profiles!bookings_hiker_id_fkey(name)
@@ -148,7 +149,7 @@ Deno.serve(async (req) => {
             guestCount: booking.participants || 1,
             guideName: booking.tour?.guide_profiles?.display_name || 'your guide',
             meetingPoint: booking.tour?.meeting_point || 'the meeting point',
-            startTime: '09:00'
+            startTime: booking.tour?.meeting_time || 'Meeting time to be confirmed'
           }
           
           // Replace variables in subject and content
