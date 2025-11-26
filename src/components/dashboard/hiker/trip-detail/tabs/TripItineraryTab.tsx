@@ -33,8 +33,8 @@ export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
   return (
     <div className="space-y-6">
       {/* Route Map Section */}
-      <Card className="p-6 bg-white border-burgundy/10 shadow-md">
-        <h2 className="text-2xl mb-6 text-charcoal font-playfair">
+      <Card className="p-6 bg-card border-burgundy/10 shadow-sm">
+        <h2 className="text-2xl mb-6 text-foreground font-playfair">
           Your Route Map
         </h2>
         <Suspense fallback={<MapSkeleton />}>
@@ -46,13 +46,13 @@ export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
       </Card>
 
       {/* Day-by-Day Itinerary Section */}
-      <Card className="p-6 bg-white border-burgundy/10 shadow-md">
-        <h2 className="text-2xl mb-6 text-charcoal font-playfair">
+      <Card className="p-6 bg-card border-burgundy/10 shadow-sm">
+        <h2 className="text-2xl mb-6 text-foreground font-playfair">
           Day-by-Day Itinerary
         </h2>
         
         {!itineraryDays || itineraryDays.length === 0 ? (
-          <div className="text-center py-8 text-charcoal/60">
+          <div className="text-center py-8 text-muted-foreground">
             <p>Detailed itinerary will be shared closer to your trip date.</p>
           </div>
         ) : (
@@ -68,7 +68,7 @@ export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
                       {day.day}
                     </div>
                     <div className="text-left">
-                      <h3 className="font-medium text-charcoal">{day.title}</h3>
+                      <h3 className="font-medium text-foreground">{day.title}</h3>
                     </div>
                   </div>
                   {expandedDay === day.day ? (
@@ -94,17 +94,17 @@ export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
 
                       {/* Description */}
                       <div>
-                        <h4 className="font-medium text-charcoal mb-2">Overview</h4>
-                        <p className="text-charcoal/70">{day.description}</p>
+                        <h4 className="font-medium text-foreground mb-2">Overview</h4>
+                        <p className="text-muted-foreground">{day.description}</p>
                       </div>
 
                       {/* Activities */}
                       {day.activities && day.activities.length > 0 && (
                         <div>
-                          <h4 className="font-medium text-charcoal mb-3">Activities</h4>
+                          <h4 className="font-medium text-foreground mb-3">Activities</h4>
                           <ul className="space-y-2">
                             {day.activities.map((activity, idx) => (
-                              <li key={idx} className="flex gap-2 text-charcoal/70">
+                              <li key={idx} className="flex gap-2 text-muted-foreground">
                                 <span className="text-burgundy">•</span>
                                 <span>{activity}</span>
                               </li>
@@ -116,16 +116,16 @@ export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
                       {/* Accommodation */}
                       {day.accommodation && (
                         <div className="p-4 bg-cream rounded-lg">
-                          <h4 className="font-medium text-charcoal mb-2">Accommodation</h4>
-                          <p className="text-sm text-charcoal/70">{day.accommodation}</p>
+                          <h4 className="font-medium text-foreground mb-2">Accommodation</h4>
+                          <p className="text-sm text-muted-foreground">{day.accommodation}</p>
                         </div>
                       )}
 
                       {/* Meals */}
                       {day.meals && (
                         <div className="p-4 bg-sage/10 border border-sage/20 rounded-lg">
-                          <h4 className="font-medium text-charcoal mb-2">Meals Included</h4>
-                          <p className="text-sm text-charcoal/70">{day.meals}</p>
+                          <h4 className="font-medium text-foreground mb-2">Meals Included</h4>
+                          <p className="text-sm text-muted-foreground">{day.meals}</p>
                         </div>
                       )}
                     </div>
