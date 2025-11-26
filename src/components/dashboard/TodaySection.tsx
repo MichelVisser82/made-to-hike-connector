@@ -229,7 +229,12 @@ export function TodaySection({
                           </div>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="ml-auto">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="ml-auto"
+                        onClick={() => onSectionNavigate('tours')}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
                     </div>
