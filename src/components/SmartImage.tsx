@@ -34,7 +34,7 @@ export function SmartImage({
         
         // Extract region keywords from tags for better matching
         const regionKeywords = tags?.filter(tag => 
-          !['landscape', 'mountain', 'mountains'].includes(tag.toLowerCase())
+          !['landscape', 'mountain', 'mountains', 'hiking', 'trail', 'adventure', 'alpine'].includes(tag.toLowerCase())
         ).map(tag => tag.toLowerCase().replace(/\s+/g, '-')) || [];
         
         console.log('Looking for images with region keywords:', regionKeywords);
@@ -43,34 +43,72 @@ export function SmartImage({
           // Search for images with matching location tags
           const allImages = await fetchImages({ limit: 100 });
           
-          // Filter images that match ANY of our region keywords
-          const matchingImages = allImages.filter(img => {
-            // Check if image has any tags matching our region keywords
-            const hasMatchingRegion = img.tags.some(imgTag => {
+          // Multi-level matching strategy
+          let matchingImages: typeof allImages = [];
+          
+          // Level 1: Exact hierarchical match (location:country-subregion)
+          matchingImages = allImages.filter(img => {
+            return img.tags.some(imgTag => {
               const normalizedImgTag = imgTag.toLowerCase().replace(/\s+/g, '-');
-              
-              // Check for exact matches or location: prefix matches
               return regionKeywords.some(keyword => 
-                normalizedImgTag === keyword ||
                 normalizedImgTag === `location:${keyword}` ||
-                normalizedImgTag.includes(keyword)
+                normalizedImgTag === keyword
               );
             });
-            
-            // Also ensure we're not getting images from wrong regions
-            const hasWrongRegion = img.tags.some(imgTag => {
-              const tag = imgTag.toLowerCase();
-              // List of known region tags that shouldn't mix
-              const knownRegions = ['scotland', 'scottish', 'pyrenees', 'dolomites', 'switzerland', 'norway', 'iceland', 'lofoten', 'appenzell'];
-              return knownRegions.some(region => 
-                tag.includes(region) && !regionKeywords.some(kw => kw.includes(region))
-              );
-            });
-            
-            return hasMatchingRegion && !hasWrongRegion;
           });
           
-          console.log(`Found ${matchingImages.length} images matching region keywords`);
+          console.log(`Level 1 (exact match): Found ${matchingImages.length} images`);
+          
+          // Level 2: Subregion-only match if no exact matches
+          if (matchingImages.length === 0) {
+            const subregionKeywords = regionKeywords.map(kw => kw.split('-').pop()).filter(Boolean);
+            matchingImages = allImages.filter(img => {
+              return img.tags.some(imgTag => {
+                const normalizedImgTag = imgTag.toLowerCase().replace(/\s+/g, '-');
+                return subregionKeywords.some(subregion => 
+                  normalizedImgTag.includes(subregion as string) ||
+                  normalizedImgTag === `location:${subregion}`
+                );
+              });
+            });
+            console.log(`Level 2 (subregion match): Found ${matchingImages.length} images`);
+          }
+          
+          // Level 3: Country match if still no matches
+          if (matchingImages.length === 0) {
+            const countryKeywords = regionKeywords.map(kw => kw.split('-')[0]);
+            matchingImages = allImages.filter(img => {
+              return img.tags.some(imgTag => {
+                const normalizedImgTag = imgTag.toLowerCase().replace(/\s+/g, '-');
+                return countryKeywords.some(country => 
+                  normalizedImgTag.includes(country)
+                );
+              });
+            });
+            console.log(`Level 3 (country match): Found ${matchingImages.length} images`);
+          }
+          
+          // Filter out wrong regions to prevent mismatches
+          const wrongRegionKeywords = [
+            'scotland', 'highlands', 'scottish',
+            'dolomites', 'italy', 'italian',
+            'pyrenees', 'spain', 'spanish', 'france', 'french',
+            'switzerland', 'swiss', 'alps',
+            'norway', 'norwegian', 'lofoten',
+            'iceland', 'icelandic'
+          ];
+          
+          matchingImages = matchingImages.filter(img => {
+            const hasWrongRegion = img.tags.some(imgTag => {
+              const tag = imgTag.toLowerCase();
+              return wrongRegionKeywords.some(wrongRegion => 
+                tag.includes(wrongRegion) && !regionKeywords.some(kw => kw.includes(wrongRegion))
+              );
+            });
+            return !hasWrongRegion;
+          });
+          
+          console.log(`After filtering wrong regions: ${matchingImages.length} images`);
           
           if (matchingImages.length > 0) {
             image = matchingImages[Math.floor(Math.random() * matchingImages.length)];

@@ -1,7 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
 const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,24 +35,66 @@ interface ImageMetadataSuggestions {
   };
 }
 
-// Function to determine location based on GPS coordinates
-function getLocationFromGPS(latitude: number, longitude: number): string | null {
-  // Scotland Highlands boundaries (approximate)
-  if (latitude >= 56.0 && latitude <= 58.7 && longitude >= -8.0 && longitude <= -2.0) {
-    return 'scotland';
+// Function to determine location based on GPS coordinates using database regions
+async function getLocationFromGPS(
+  latitude: number, 
+  longitude: number,
+  supabaseClient: any
+): Promise<string | null> {
+  try {
+    // Query hiking_regions table for regions with GPS bounds
+    const { data: regions, error } = await supabaseClient
+      .from('hiking_regions')
+      .select('country, region, subregion, gps_bounds')
+      .not('gps_bounds', 'is', null);
+
+    if (error || !regions || regions.length === 0) {
+      console.log('No regions with GPS bounds found');
+      return null;
+    }
+
+    // Check for exact match within boundaries
+    for (const region of regions) {
+      const bounds = region.gps_bounds as any;
+      if (!bounds || !bounds.latMin || !bounds.latMax || !bounds.lngMin || !bounds.lngMax) continue;
+
+      if (latitude >= bounds.latMin && latitude <= bounds.latMax && 
+          longitude >= bounds.lngMin && longitude <= bounds.lngMax) {
+        // Return hierarchical format: country-subregion
+        const countryLower = region.country.toLowerCase().replace(/\s+/g, '-');
+        const subregionLower = region.subregion.toLowerCase().replace(/\s+/g, '-');
+        return `${countryLower}-${subregionLower}`;
+      }
+    }
+
+    // Find closest region as fallback
+    let closestRegion = regions[0];
+    let minDistance = Number.MAX_VALUE;
+
+    for (const region of regions) {
+      const bounds = region.gps_bounds as any;
+      if (!bounds) continue;
+
+      const centerLat = (bounds.latMin + bounds.latMax) / 2;
+      const centerLng = (bounds.lngMin + bounds.lngMax) / 2;
+      const distance = Math.sqrt(
+        Math.pow(latitude - centerLat, 2) + 
+        Math.pow(longitude - centerLng, 2)
+      );
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestRegion = region;
+      }
+    }
+
+    const countryLower = closestRegion.country.toLowerCase().replace(/\s+/g, '-');
+    const subregionLower = closestRegion.subregion.toLowerCase().replace(/\s+/g, '-');
+    return `${countryLower}-${subregionLower}`;
+  } catch (error) {
+    console.error('Error fetching location from GPS:', error);
+    return null;
   }
-  
-  // Dolomites boundaries (approximate)
-  if (latitude >= 46.0 && latitude <= 47.0 && longitude >= 10.5 && longitude <= 12.5) {
-    return 'dolomites';
-  }
-  
-  // Pyrenees boundaries (approximate)
-  if (latitude >= 42.0 && latitude <= 43.5 && longitude >= -2.0 && longitude <= 3.5) {
-    return 'pyrenees';
-  }
-  
-  return null;
 }
 
 serve(async (req) => {
@@ -68,6 +113,9 @@ serve(async (req) => {
     if (!anthropicApiKey) {
       throw new Error('ANTHROPIC_API_KEY not configured');
     }
+
+    // Create Supabase client
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
     // Retry logic for API calls
     let response: Response | undefined;
@@ -179,14 +227,20 @@ Filename: ${filename}${gpsData ? `\nGPS: ${gpsData.latitude}, ${gpsData.longitud
       };
     }
 
-    // Add location tag based on GPS coordinates
+    // Add hierarchical location tags based on GPS if available
     if (gpsData) {
-      const location = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
+      const location = await getLocationFromGPS(gpsData.latitude, gpsData.longitude, supabaseClient);
       if (location) {
-        // Add location tag if not already present
+        // Add hierarchical location tag
         const locationTag = `location:${location}`;
         if (!suggestions.tags.includes(locationTag)) {
           suggestions.tags.push(locationTag);
+        }
+        
+        // Also add subregion-only tag for backwards compatibility
+        const subregion = location.split('-').pop();
+        if (subregion && subregion !== location && !suggestions.tags.includes(subregion)) {
+          suggestions.tags.push(subregion);
         }
         
         // Add GPS info with detected location
@@ -209,13 +263,22 @@ Filename: ${filename}${gpsData ? `\nGPS: ${gpsData.latitude}, ${gpsData.longitud
     let fallbackGps = gpsData;
     
     if (gpsData) {
-      const location = getLocationFromGPS(gpsData.latitude, gpsData.longitude);
-      if (location) {
-        fallbackTags.push(`location:${location}`);
-        fallbackGps = {
-          ...gpsData,
-          location: location
-        };
+      try {
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+        const location = await getLocationFromGPS(gpsData.latitude, gpsData.longitude, supabaseClient);
+        if (location) {
+          fallbackTags.push(`location:${location}`);
+          const subregion = location.split('-').pop();
+          if (subregion && subregion !== location) {
+            fallbackTags.push(subregion);
+          }
+          fallbackGps = {
+            ...gpsData,
+            location: location
+          };
+        }
+      } catch (locationError) {
+        console.error('Failed to get fallback location:', locationError);
       }
     }
     

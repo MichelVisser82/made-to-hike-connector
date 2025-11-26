@@ -82,7 +82,7 @@ export function ComingSoonPage() {
         {/* Hero Section */}
         <section className="relative pt-24 pb-20 min-h-[90vh] flex items-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <SmartImage category="hero" usageContext="landing" tags={['mountain', 'landscape', 'adventure']} priority="high" className="w-full h-full object-cover" alt="Certified mountain guide leading hikers on European alpine trail" />
+            <SmartImage category="hero" usageContext="landing_hero" tags={['guide', 'mountain', 'professional']} priority="high" className="w-full h-full object-cover" alt="Certified mountain guide leading hikers on European alpine trail" />
             <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/50 to-cream-light" />
           </div>
 

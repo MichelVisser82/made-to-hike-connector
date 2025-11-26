@@ -189,7 +189,7 @@ export function LandingPage({
             const certTitle = primaryCert?.title || 'Certified';
             return <Card key={tour.id} className="overflow-hidden border-burgundy/10 hover:shadow-2xl transition-all duration-300 cursor-pointer" onClick={() => navigate(`/tour/${tour.slug}`)}>
                   <div className="relative h-64">
-                    <SmartImage category="tour" usageContext={`tour-${tour.region_country}-${tour.region_subregion}`} tags={[`location:${tour.region_country.toLowerCase()}-${(tour.region_region || tour.region_subregion).toLowerCase()}`, tour.region_country.toLowerCase(), 'hiking', 'mountain']} className="w-full h-full object-cover" alt={`${tour.title} in ${tourRegion}`} />
+                    <SmartImage category="tour" usageContext={`tour-${tour.region_country}-${tour.region_subregion}`} tags={[`location:${tour.region_country.toLowerCase().replace(/\s+/g, '-')}-${tour.region_subregion.toLowerCase().replace(/\s+/g, '-')}`, 'hiking', 'mountain']} className="w-full h-full object-cover" alt={`${tour.title} in ${tourRegion}`} />
                     <div className="absolute bottom-4 left-4">
                       <div className="flex items-center gap-1 bg-white/95 px-3 py-1 rounded-full">
                         <Star className="w-3 h-3 fill-burgundy text-burgundy" />
@@ -269,7 +269,7 @@ export function LandingPage({
               position: index === 0 ? 'relative' : 'absolute'
             }}>
                     <div className="relative h-[70vh] md:h-[80vh]">
-                    <SmartImage category="landscape" usageContext={`${region.country}-${region.region || region.subregion}`} tags={[`location:${region.country.toLowerCase()}-${(region.region || region.subregion).toLowerCase().replace(/\s+/g, '-')}`, region.country.toLowerCase(), (region.region || region.subregion).toLowerCase().replace(/\s+/g, '-'), 'mountain', 'alpine']} className="w-full h-full object-cover" alt={`${region.country} - ${region.region || region.subregion} mountain landscape`} />
+                    <SmartImage category="landscape" usageContext={`${region.country}-${region.region || region.subregion}`} tags={[`location:${region.country.toLowerCase().replace(/\s+/g, '-')}-${region.subregion.toLowerCase().replace(/\s+/g, '-')}`, 'mountain', 'alpine']} className="w-full h-full object-cover" alt={`${region.country} - ${region.region || region.subregion} mountain landscape`} />
                       <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/40 to-transparent" />
                       
                       {/* Country badge - top left */}
