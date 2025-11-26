@@ -784,11 +784,13 @@ export function GuideDashboard({
   next30Days.setDate(next30Days.getDate() + 30);
   next30Days.setHours(23, 59, 59, 999);
   
-  const upcomingBookings = bookings.filter(b => {
-    const bookingDate = new Date(b.booking_date);
-    bookingDate.setHours(0, 0, 0, 0);
-    return bookingDate >= today && bookingDate <= next30Days;
-  });
+  const upcomingBookings = bookings
+    .filter(b => {
+      const bookingDate = new Date(b.booking_date);
+      bookingDate.setHours(0, 0, 0, 0);
+      return bookingDate >= today && bookingDate <= next30Days;
+    })
+    .sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime()); // Sort by date ascending
 
   const pendingBookings = bookings.filter(b => 
     b.status === 'pending' || b.status === 'pending_confirmation'
@@ -817,7 +819,7 @@ export function GuideDashboard({
 
   const mockSchedule: TodayScheduleItem[] = upcomingBookings.map(booking => ({
     id: booking.id,
-    time: '09:00', // TODO: Get from booking
+    time: format(new Date(booking.booking_date), 'MMM dd'), // Show date instead of time
     title: booking.tour?.title || 'Tour',
     status: booking.status as 'confirmed' | 'pending' | 'completed',
     guestName: booking.guest?.name || 'Guest',
