@@ -28,6 +28,7 @@ export interface TodayScheduleItem {
   participantCount: number;
   location: string;
   tourId: string;
+  tourSlug?: string;
 }
 
 export interface DashboardStats {

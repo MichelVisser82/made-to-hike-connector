@@ -122,6 +122,7 @@ export interface BookingWithDetails extends Booking {
     region: string;
     meeting_point: string;
     guide_id: string;
+    slug?: string;
   };
   guest?: {
     id: string;
