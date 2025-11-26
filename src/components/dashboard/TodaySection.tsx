@@ -233,7 +233,7 @@ export function TodaySection({
                         variant="ghost" 
                         size="icon" 
                         className="ml-auto"
-                        onClick={() => onSectionNavigate('tours')}
+                        onClick={() => tour.tourSlug && navigate(`/dashboard/bookings/tour/${tour.tourSlug}`)}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>

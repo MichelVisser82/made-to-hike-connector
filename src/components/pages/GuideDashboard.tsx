@@ -298,7 +298,7 @@ export function GuideDashboard({
         .from('bookings')
         .select(`
           *,
-          tours!inner(title, duration, region, meeting_point, guide_id),
+          tours!inner(title, duration, region, meeting_point, guide_id, slug),
           profiles!bookings_hiker_id_fkey(id, name, email, avatar_url)
         `)
         .eq('tours.guide_id', user.id)
@@ -821,6 +821,7 @@ export function GuideDashboard({
   const tourScheduleMap = new Map<string, {
     tourId: string;
     tourTitle: string;
+    tourSlug: string;
     bookingDate: string;
     location: string;
     bookingIds: string[];
@@ -842,6 +843,7 @@ export function GuideDashboard({
       tourScheduleMap.set(key, {
         tourId: booking.tour_id,
         tourTitle: booking.tour?.title || 'Tour',
+        tourSlug: booking.tour?.slug || '',
         bookingDate: booking.booking_date,
         location: booking.tour?.meeting_point || 'Location',
         bookingIds: [booking.id],
@@ -872,6 +874,7 @@ export function GuideDashboard({
       participantCount: tour.totalParticipants,
       location: tour.location,
       tourId: tour.tourId,
+      tourSlug: tour.tourSlug,
     };
   });
   
