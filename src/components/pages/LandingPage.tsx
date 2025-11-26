@@ -82,7 +82,7 @@ export function LandingPage({
       <section className="min-h-screen flex flex-col lg:flex-row">
         {/* Left Side - Image */}
         <div className="lg:w-1/2 h-[50vh] lg:h-screen relative overflow-hidden">
-          <SmartImage category="hero" usageContext="landing_split_hero" tags={['guide', 'mountain', 'hiking']} className="w-full h-full object-cover" alt="Mountain guide with topographic map" />
+          <SmartImage category="hero" usageContext="landing" tags={['mountain', 'hiking', 'landscape']} className="w-full h-full object-cover" alt="Mountain guide with topographic map" />
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-charcoal/30" />
           {/* Subtle contour lines overlay */}
           <div className="absolute inset-0 opacity-10">
@@ -269,7 +269,7 @@ export function LandingPage({
               position: index === 0 ? 'relative' : 'absolute'
             }}>
                     <div className="relative h-[70vh] md:h-[80vh]">
-                    <SmartImage category="landscape" usageContext={`${region.country}-${region.region || region.subregion}`} tags={[`location:${region.country.toLowerCase().replace(/\s+/g, '-')}-${region.subregion.toLowerCase().replace(/\s+/g, '-')}`, 'mountain', 'alpine']} className="w-full h-full object-cover" alt={`${region.country} - ${region.region || region.subregion} mountain landscape`} />
+                    <SmartImage category="landscape" usageContext="landing" tags={[`location:${region.country.toLowerCase().replace(/\s+/g, '-')}-${region.subregion.toLowerCase().replace(/\s+/g, '-')}`, 'mountain', 'alpine']} className="w-full h-full object-cover" alt={`${region.country} - ${region.region || region.subregion} mountain landscape`} />
                       <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/40 to-transparent" />
                       
                       {/* Country badge - top left */}
