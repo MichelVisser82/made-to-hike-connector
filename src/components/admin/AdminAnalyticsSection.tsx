@@ -1,13 +1,50 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Button } from '../ui/button';
 import { TrendingUp, Users, Euro, Mountain, Loader2 } from 'lucide-react';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
+import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 export function AdminAnalyticsSection() {
   const { data: analytics, isLoading } = useAdminAnalytics();
+  const { toast } = useToast();
 
   const formatGrowth = (growth: number) => {
     const sign = growth > 0 ? '+' : '';
     return `${sign}${growth}%`;
+  };
+
+  const handleExportAnalytics = () => {
+    if (!analytics) {
+      toast({
+        title: 'No Data',
+        description: 'No analytics data to export',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const headers = ['Metric', 'Value', 'Growth'];
+    const rows = [
+      ['Total Users', analytics.totalUsers.toString(), formatGrowth(analytics.userGrowth)],
+      ['Total Tours', analytics.totalTours.toString(), formatGrowth(analytics.tourGrowth)],
+      ['Current Month Revenue', `€${analytics.currentMonthRevenue}`, formatGrowth(analytics.revenueGrowth)],
+      ['Average Growth Rate', formatGrowth(analytics.avgGrowth), '-'],
+    ];
+
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `madetohike-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: 'Export Successful',
+      description: 'Analytics data exported successfully',
+    });
   };
 
   return (
@@ -79,10 +116,22 @@ export function AdminAnalyticsSection() {
 
       <Card className="border-burgundy/10">
         <CardHeader>
-          <CardTitle className="text-charcoal font-playfair">Analytics Dashboard</CardTitle>
-          <CardDescription className="text-charcoal/60">
-            Detailed analytics and reporting coming soon
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-charcoal font-playfair">Analytics Dashboard</CardTitle>
+              <CardDescription className="text-charcoal/60">
+                Export current analytics data
+              </CardDescription>
+            </div>
+            <Button 
+              onClick={handleExportAnalytics}
+              variant="outline"
+              className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Export Analytics
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="py-12 text-center">

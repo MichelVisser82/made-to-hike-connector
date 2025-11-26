@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 import { 
   type User, 
   type Tour, 
@@ -329,9 +330,53 @@ export function GuideDashboard({
   };
 
   const handleExportBookings = () => {
+    if (bookings.length === 0) {
+      toast({
+        title: 'No Data',
+        description: 'No bookings to export',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const headers = [
+      'Booking Reference',
+      'Date',
+      'Tour Name',
+      'Guest Name',
+      'Guest Email',
+      'Participants',
+      'Status',
+      'Payment Status',
+      'Amount',
+      'Currency'
+    ];
+
+    const rows = bookings.map(booking => [
+      booking.booking_reference || '',
+      format(new Date(booking.booking_date), 'yyyy-MM-dd'),
+      booking.tour?.title || '',
+      booking.guest?.name || '',
+      booking.guest?.email || '',
+      booking.participants.toString(),
+      booking.status,
+      booking.payment_status || '',
+      booking.total_price.toFixed(2),
+      booking.currency || 'EUR'
+    ]);
+
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `madetohike-bookings-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
     toast({
-      title: 'Export',
-      description: 'Export functionality coming soon',
+      title: 'Export Successful',
+      description: `Exported ${bookings.length} bookings`,
     });
   };
 
@@ -493,9 +538,66 @@ export function GuideDashboard({
   };
 
   const handleExportReport = () => {
+    if (!transactions || transactions.length === 0) {
+      toast({
+        title: 'No Data',
+        description: 'No financial data to export',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const headers = [
+      'Date',
+      'Tour',
+      'Guest',
+      'Gross Amount',
+      'Platform Fee (15%)',
+      'Net Amount',
+      'Status',
+      'Currency'
+    ];
+
+    const rows = transactions.map(item => [
+      format(new Date(item.date), 'yyyy-MM-dd'),
+      item.tour_title || '',
+      item.guest_name || '',
+      item.gross_amount.toFixed(2),
+      item.platform_fee.toFixed(2),
+      item.net_amount.toFixed(2),
+      item.status || '',
+      item.currency || 'EUR'
+    ]);
+
+    // Calculate totals
+    const totalGross = transactions.reduce((sum, item) => sum + item.gross_amount, 0);
+    const totalPlatformFee = transactions.reduce((sum, item) => sum + item.platform_fee, 0);
+    const totalNet = transactions.reduce((sum, item) => sum + item.net_amount, 0);
+
+    // Add summary row
+    rows.push([
+      '',
+      '',
+      'TOTAL',
+      totalGross.toFixed(2),
+      totalPlatformFee.toFixed(2),
+      totalNet.toFixed(2),
+      '',
+      ''
+    ]);
+
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `madetohike-financial-report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
     toast({
-      title: 'Export',
-      description: 'Export functionality coming soon',
+      title: 'Export Successful',
+      description: `Exported ${transactions.length} transactions`,
     });
   };
 
