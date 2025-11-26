@@ -11,7 +11,7 @@
  * 3. Full app becomes visible to everyone
  */
 
-export const IS_LAUNCHED = true;
+export const IS_LAUNCHED = false;
 
 /**
  * Bypass password hash (SHA-256)
