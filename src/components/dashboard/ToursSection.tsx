@@ -11,6 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGuideTourOffers } from '@/hooks/useGuideTourOffers';
 import { OfferExpiryBadge } from '@/components/tour-offer/OfferExpiryBadge';
 import { format } from 'date-fns';
+import { downloadCSV } from '@/utils/exportUtils';
+import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,6 +68,7 @@ export function ToursSection({
   onCopyTour,
 }: ToursSectionProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'my-tours' | 'custom-tours' | 'calendar' | 'image-library'>(initialTab);
   
   const handleTabChange = (tab: 'my-tours' | 'custom-tours' | 'calendar' | 'image-library') => {
@@ -77,6 +80,54 @@ export function ToursSection({
 
   // Fetch custom tour offers to identify custom tours
   const { data: tourOffers = [], isLoading: offersLoading } = useGuideTourOffers(user?.id);
+
+  const handleExportTours = () => {
+    const toursToExport = activeTab === 'custom-tours' ? filteredCustomTours : filteredRegularTours;
+    
+    if (toursToExport.length === 0) {
+      toast({
+        title: 'No Data',
+        description: 'No tours to export',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const headers = [
+      'Title',
+      'Region',
+      'Duration',
+      'Difficulty',
+      'Price',
+      'Currency',
+      'Group Size',
+      'Status',
+      'Created Date'
+    ];
+
+    const rows = toursToExport.map(tour => [
+      tour.title || '',
+      tour.region || '',
+      tour.duration || '',
+      tour.difficulty_level || tour.difficulty || '',
+      tour.price?.toString() || '',
+      tour.currency || 'EUR',
+      tour.group_size?.toString() || '',
+      tour.is_active ? 'Active' : 'Draft',
+      tour.created_at ? format(new Date(tour.created_at), 'yyyy-MM-dd') : ''
+    ]);
+
+    downloadCSV(
+      [headers, ...rows], 
+      `madetohike-${activeTab}-${format(new Date(), 'yyyy-MM-dd')}.csv`
+    );
+
+    toast({
+      title: 'Export Successful',
+      description: `Exported ${toursToExport.length} tours`,
+    });
+  };
+
 
   // Separate regular tours from custom tours based on tour_offers
   const { regularTours, customTours } = useMemo(() => {
@@ -271,7 +322,7 @@ export function ToursSection({
             </div>
 
             {/* Export Button */}
-            <Button variant="outline" className="sm:ml-auto">
+            <Button variant="outline" className="sm:ml-auto" onClick={handleExportTours}>
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
