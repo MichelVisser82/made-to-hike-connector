@@ -70,7 +70,7 @@ export const replaceTemplateVariables = (
     '{guest-count}': data.guestCount?.toString() || '1',
     '{guide-name}': data.guideName || 'your guide',
     '{meeting-point}': data.meetingPoint || 'the meeting point',
-    '{start-time}': data.startTime || '09:00',
+    '{start-time}': data.startTime || 'Meeting time to be confirmed',
   };
 
   Object.entries(replacements).forEach(([variable, value]) => {

@@ -2519,6 +2519,7 @@ export type Database = {
           meeting_point_formatted: string | null
           meeting_point_lat: number | null
           meeting_point_lng: number | null
+          meeting_time: string | null
           meta_description: string | null
           meta_title: string | null
           min_group_size: number | null
@@ -2582,6 +2583,7 @@ export type Database = {
           meeting_point_formatted?: string | null
           meeting_point_lat?: number | null
           meeting_point_lng?: number | null
+          meeting_time?: string | null
           meta_description?: string | null
           meta_title?: string | null
           min_group_size?: number | null
@@ -2645,6 +2647,7 @@ export type Database = {
           meeting_point_formatted?: string | null
           meeting_point_lat?: number | null
           meeting_point_lng?: number | null
+          meeting_time?: string | null
           meta_description?: string | null
           meta_title?: string | null
           min_group_size?: number | null

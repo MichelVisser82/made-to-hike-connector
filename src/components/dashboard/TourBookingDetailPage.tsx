@@ -249,7 +249,7 @@ export function TourBookingDetailPage() {
             guestCount: hikerInfo.participants,
             guideName: profile?.name || 'Your guide',
             meetingPoint: tour.meeting_point || 'the meeting point',
-            startTime: '09:00' // Could be added to tour details if needed
+            startTime: (tour as any).meeting_time || 'Meeting time to be confirmed'
           });
 
           // Find or create conversation
