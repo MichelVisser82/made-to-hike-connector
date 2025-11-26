@@ -591,6 +591,51 @@ async function submitWaiver(supabase: any, body: any) {
     console.log('Step 7: Checking completion status...');
     await checkAndMarkComplete(supabase, tokenData.id);
 
+    // Step 8: Send document upload notification to guide
+    console.log('Step 8: Sending document upload notification to guide...');
+    try {
+      const { data: bookingData } = await supabase
+        .from('bookings')
+        .select(`
+          tours (
+            title,
+            guide_id,
+            guide_profiles!tours_guide_id_fkey (
+              display_name,
+              profiles!guide_profiles_user_id_fkey (
+                email
+              )
+            )
+          )
+        `)
+        .eq('id', tokenData.booking_id)
+        .single();
+
+      if (bookingData?.tours?.guide_profiles?.profiles?.email) {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'document_upload_notification',
+            to: bookingData.tours.guide_profiles.profiles.email,
+            data: {
+              guideName: bookingData.tours.guide_profiles.display_name,
+              hikerName: tokenData.participant_name,
+              tourTitle: bookingData.tours.title,
+              documentType: 'Liability Waiver',
+              uploadDate: new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })
+            }
+          }
+        });
+        console.log('Document upload notification sent to guide');
+      }
+    } catch (emailError) {
+      console.error('Error sending document notification:', emailError);
+      // Don't fail the request if email fails
+    }
+
     console.log('=== submitWaiver SUCCESS ===');
 
     return new Response(JSON.stringify({
@@ -706,7 +751,52 @@ async function submitInsurance(supabase: any, body: any) {
     console.log('Step 7: Checking completion status...');
     const isComplete = await checkAndMarkComplete(supabase, tokenData.id);
 
-    // Step 8: Send confirmation email if all documents are complete
+    // Step 8: Send document upload notification to guide
+    console.log('Step 8: Sending document upload notification to guide...');
+    try {
+      const { data: bookingData } = await supabase
+        .from('bookings')
+        .select(`
+          tours (
+            title,
+            guide_id,
+            guide_profiles!tours_guide_id_fkey (
+              display_name,
+              profiles!guide_profiles_user_id_fkey (
+                email
+              )
+            )
+          )
+        `)
+        .eq('id', tokenData.booking_id)
+        .single();
+
+      if (bookingData?.tours?.guide_profiles?.profiles?.email) {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'document_upload_notification',
+            to: bookingData.tours.guide_profiles.profiles.email,
+            data: {
+              guideName: bookingData.tours.guide_profiles.display_name,
+              hikerName: tokenData.participant_name,
+              tourTitle: bookingData.tours.title,
+              documentType: 'Travel Insurance',
+              uploadDate: new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })
+            }
+          }
+        });
+        console.log('Document upload notification sent to guide');
+      }
+    } catch (emailError) {
+      console.error('Error sending document notification:', emailError);
+      // Don't fail the request if email fails
+    }
+
+    // Step 9: Send confirmation email if all documents are complete
     if (isComplete) {
       console.log('Step 8: All documents complete, sending confirmation email...');
       try {

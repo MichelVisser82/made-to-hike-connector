@@ -28,7 +28,18 @@ export function useTourDateSlotMutations() {
   });
 
   const updateDateSlot = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: TourDateSlotUpdate }) => {
+    mutationFn: async ({ id, updates, originalDate }: { 
+      id: string; 
+      updates: TourDateSlotUpdate;
+      originalDate?: string;
+    }) => {
+      // First get the current slot data if we need to check for date changes
+      const { data: currentSlot } = await supabase
+        .from('tour_date_slots')
+        .select('slot_date, tour_id')
+        .eq('id', id)
+        .single();
+
       const { data, error } = await supabase
         .from('tour_date_slots')
         .update(updates)
@@ -37,6 +48,24 @@ export function useTourDateSlotMutations() {
         .single();
 
       if (error) throw error;
+
+      // If slot_date changed, trigger notification
+      if (currentSlot && updates.slot_date && currentSlot.slot_date !== updates.slot_date) {
+        try {
+          await supabase.functions.invoke('notify-tour-date-change', {
+            body: {
+              tourId: currentSlot.tour_id,
+              oldDate: currentSlot.slot_date,
+              newDate: updates.slot_date
+            }
+          });
+          console.log('Tour date change notification triggered');
+        } catch (notifyError) {
+          console.error('Failed to send date change notifications:', notifyError);
+          // Don't fail the mutation if notification fails
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
