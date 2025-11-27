@@ -306,7 +306,7 @@ export function LandingPage({
                         const params = new URLSearchParams();
                         params.set('country', region.country);
                         if (region.region) params.set('region', region.region);
-                        params.set('subregion', region.subregion);
+                        // Don't set subregion - show all tours in the region
                         navigate(`/tours?${params.toString()}`);
                       }}>
                               Explore {region.region || region.subregion} <ArrowRight className="ml-2 w-5 h-5" />
