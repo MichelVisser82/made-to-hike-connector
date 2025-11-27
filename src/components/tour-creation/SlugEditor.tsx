@@ -135,7 +135,7 @@ export function SlugEditor({ tourId, titleFieldName = 'title' }: SlugEditorProps
 
       <div className="flex items-center gap-2">
         <div className="flex-1 flex items-center rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-          <span className="px-3 text-sm text-muted-foreground whitespace-nowrap">
+          <span className="pl-3 text-sm text-muted-foreground whitespace-nowrap">
             madetohike.com/tours/
           </span>
           <Input
@@ -143,7 +143,7 @@ export function SlugEditor({ tourId, titleFieldName = 'title' }: SlugEditorProps
             value={slug || ''}
             onChange={(e) => handleSlugChange(e.target.value)}
             disabled={!isCustomizing}
-            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-0 pl-0"
             placeholder="your-tour-slug"
           />
         </div>
