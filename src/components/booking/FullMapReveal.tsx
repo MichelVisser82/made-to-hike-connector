@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { Download, MapPin, Gift, Eye, Copy, FileDown } from 'lucide-react';
-import { TourHighlight, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
+import { TourHighlight, HIGHLIGHT_CATEGORY_LUCIDE_ICONS, HIGHLIGHT_CATEGORY_SVG } from '@/types/map';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
@@ -213,12 +213,12 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
     return [];
   }, [selectedRoute]);
 
-  const getMarkerIcon = (isPublic: boolean) => {
+  const getMarkerIcon = (category: keyof typeof HIGHLIGHT_CATEGORY_SVG, isPublic: boolean) => {
     return L.divIcon({
       className: 'custom-marker',
       html: `
         <div class="flex items-center justify-center w-10 h-10 bg-white border-3 ${isPublic ? 'border-green-500' : 'border-purple-500'} rounded-full shadow-lg">
-          ${!isPublic ? '<span class="text-xl">🎁</span>' : '<span class="text-xl">📍</span>'}
+          ${HIGHLIGHT_CATEGORY_SVG[category]}
         </div>
       `,
       iconSize: [40, 40],
@@ -364,46 +364,49 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
                     {/* Highlights for this day */}
                     {mapData.highlights
                       .filter(h => !h.day_number || h.day_number === selectedDay)
-                      .map((highlight: any) => (
-                        <Marker
-                          key={highlight.id}
-                          position={[highlight.latitude, highlight.longitude]}
-                          icon={getMarkerIcon(highlight.is_public)}
-                        >
-                          <Popup>
-                            <div className="p-2 min-w-[200px]">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category]}</span>
-                                <Badge variant={highlight.is_public ? "default" : "secondary"}>
-                                  {highlight.is_public ? <Eye className="h-3 w-3" /> : <Gift className="h-3 w-3" />}
-                                </Badge>
-                              </div>
-                              <h4 className="font-semibold mb-1">{highlight.name}</h4>
-                              {highlight.description && (
-                                <p className="text-xs text-muted-foreground mb-3">{highlight.description}</p>
-                              )}
-                              {highlight.guide_notes && (
-                                <div className="mt-2 p-2 bg-muted rounded text-xs">
-                                  <p className="font-medium mb-1">Guide's Notes:</p>
-                                  <p className="text-muted-foreground">{highlight.guide_notes}</p>
+                      .map((highlight: any) => {
+                        const IconComponent = HIGHLIGHT_CATEGORY_LUCIDE_ICONS[highlight.category as keyof typeof HIGHLIGHT_CATEGORY_LUCIDE_ICONS];
+                        return (
+                          <Marker
+                            key={highlight.id}
+                            position={[highlight.latitude, highlight.longitude]}
+                            icon={getMarkerIcon(highlight.category, highlight.is_public)}
+                          >
+                            <Popup>
+                              <div className="p-2 min-w-[200px]">
+                                <div className="flex items-center justify-between mb-2">
+                                  <IconComponent className="h-6 w-6 text-burgundy" />
+                                  <Badge variant={highlight.is_public ? "default" : "secondary"}>
+                                    {highlight.is_public ? <Eye className="h-3 w-3" /> : <Gift className="h-3 w-3" />}
+                                  </Badge>
                                 </div>
-                              )}
-                              <div className="text-xs text-muted-foreground mb-2 mt-2">
-                                {highlight.latitude.toFixed(6)}, {highlight.longitude.toFixed(6)}
+                                <h4 className="font-semibold mb-1">{highlight.name}</h4>
+                                {highlight.description && (
+                                  <p className="text-xs text-muted-foreground mb-3">{highlight.description}</p>
+                                )}
+                                {highlight.guide_notes && (
+                                  <div className="mt-2 p-2 bg-muted rounded text-xs">
+                                    <p className="font-medium mb-1">Guide's Notes:</p>
+                                    <p className="text-muted-foreground">{highlight.guide_notes}</p>
+                                  </div>
+                                )}
+                                <div className="text-xs text-muted-foreground mb-2 mt-2">
+                                  {highlight.latitude.toFixed(6)}, {highlight.longitude.toFixed(6)}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleCopyCoordinates(highlight.latitude, highlight.longitude)}
+                                  className="w-full"
+                                >
+                                  <Copy className="h-3 w-3 mr-2" />
+                                  Copy Coordinates
+                                </Button>
                               </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleCopyCoordinates(highlight.latitude, highlight.longitude)}
-                                className="w-full"
-                              >
-                                <Copy className="h-3 w-3 mr-2" />
-                                Copy Coordinates
-                              </Button>
-                            </div>
-                          </Popup>
-                        </Marker>
-                      ))}
+                            </Popup>
+                          </Marker>
+                        );
+                      })}
                   </MapContainer>
                 </div>
 
@@ -470,28 +473,31 @@ export function FullMapReveal({ tourId, bookingId }: FullMapRevealProps) {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3">
-            {Array.isArray(mapData.highlights) && mapData.highlights.map((highlight: any) => (
-              <div key={highlight.id} className="flex items-start gap-3 p-3 bg-cream rounded-lg border border-burgundy/10">
-                <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category as keyof typeof HIGHLIGHT_CATEGORY_ICONS]}</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-foreground">{highlight.name}</h4>
-                    {!highlight.is_public && (
-                      <Badge variant="secondary" className="bg-burgundy/10 text-burgundy border-burgundy/20">
-                        <Gift className="h-3 w-3 mr-1" />
-                        Secret Spot
-                      </Badge>
-                    )}
-                    {highlight.day_number && (
-                      <Badge variant="outline" className="border-burgundy/20 text-foreground">Day {highlight.day_number}</Badge>
+            {Array.isArray(mapData.highlights) && mapData.highlights.map((highlight: any) => {
+              const IconComponent = HIGHLIGHT_CATEGORY_LUCIDE_ICONS[highlight.category as keyof typeof HIGHLIGHT_CATEGORY_LUCIDE_ICONS];
+              return (
+                <div key={highlight.id} className="flex items-start gap-3 p-3 bg-cream rounded-lg border border-burgundy/10">
+                  <IconComponent className="h-6 w-6 text-burgundy mt-0.5" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium text-foreground">{highlight.name}</h4>
+                      {!highlight.is_public && (
+                        <Badge variant="secondary" className="bg-burgundy/10 text-burgundy border-burgundy/20">
+                          <Gift className="h-3 w-3 mr-1" />
+                          Secret Spot
+                        </Badge>
+                      )}
+                      {highlight.day_number && (
+                        <Badge variant="outline" className="border-burgundy/20 text-foreground">Day {highlight.day_number}</Badge>
+                      )}
+                    </div>
+                    {highlight.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{highlight.description}</p>
                     )}
                   </div>
-                  {highlight.description && (
-                    <p className="text-sm text-muted-foreground mt-1">{highlight.description}</p>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
