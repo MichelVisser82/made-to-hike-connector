@@ -6,7 +6,7 @@ interface RegionBadgeProps {
   country: string;
   region?: string | null;
   subregion: string;
-  variant?: 'default' | 'secondary' | 'outline';
+  variant?: 'default' | 'secondary' | 'outline' | 'plain';
   size?: 'sm' | 'default' | 'lg';
   showIcon?: boolean;
   clickable?: boolean;
@@ -52,6 +52,28 @@ export function RegionBadge({
     lg: 'text-base'
   };
 
+  const iconSizeClasses = {
+    sm: 'h-3 w-3',
+    default: 'h-5 w-5',
+    lg: 'h-6 w-6'
+  };
+
+  // Plain variant: render without Badge wrapper
+  if (variant === 'plain') {
+    return (
+      <div
+        className={`flex items-center gap-2 ${clickable ? 'cursor-pointer hover:text-burgundy transition-colors' : ''} ${className}`}
+        onClick={handleClick}
+      >
+        {showIcon && <MapPin className={`${iconSizeClasses[size]} text-burgundy flex-shrink-0`} />}
+        <span className={`font-medium text-charcoal ${sizeClasses[size]}`}>
+          {displayText}
+        </span>
+      </div>
+    );
+  }
+
+  // Default: render with Badge wrapper
   return (
     <Badge
       variant={variant}
