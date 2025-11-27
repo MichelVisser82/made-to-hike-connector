@@ -5,24 +5,26 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
+import { SlugEditor } from '@/components/tour-creation/SlugEditor';
 
 interface Step2BasicInfoProps {
   onSave?: () => Promise<void>;
   onNext?: () => Promise<void>;
   onPrev?: () => void;
   isSaving: boolean;
+  tourId?: string;
 }
 
-export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Step2BasicInfoProps) {
+export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving, tourId }: Step2BasicInfoProps) {
   const form = useFormContext<TourFormData>();
 
   const handleSave = async () => {
-    const isValid = await form.trigger(['title', 'short_description', 'description']);
+    const isValid = await form.trigger(['title', 'slug', 'short_description', 'description']);
     if (isValid && onSave) await onSave();
   };
 
   const handleNext = async () => {
-    const isValid = await form.trigger(['title', 'short_description', 'description']);
+    const isValid = await form.trigger(['title', 'slug', 'short_description', 'description']);
     if (isValid && onNext) await onNext();
   };
 
@@ -50,6 +52,8 @@ export default function Step2BasicInfo({ onSave, onNext, onPrev, isSaving }: Ste
             </FormItem>
           )}
         />
+
+        <SlugEditor tourId={tourId} titleFieldName="title" />
 
         <FormField
           control={form.control}

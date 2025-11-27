@@ -10,6 +10,11 @@ import { parseDurationStringToDays, formatDurationFromDays } from '@/utils/durat
 const tourSchema = z.object({
   // Step 2: Basic Info
   title: z.string().min(5, 'Title must be at least 5 characters').max(100),
+  slug: z.string()
+    .min(3, 'Slug must be at least 3 characters')
+    .max(50, 'Slug must be 50 characters or less')
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug can only contain lowercase letters, numbers, and hyphens')
+    .optional(),
   short_description: z.string().min(10, 'Short description must be at least 10 characters').max(140, 'Short description must be 140 characters or less'),
   description: z.string().min(50, 'Description must be at least 50 characters').max(2000),
   
@@ -344,6 +349,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         
         const draftTourData = {
           title: tourData.title || 'Untitled Tour Draft',
+          slug: tourData.slug || null,
           short_description: tourData.short_description || '',
           description: tourData.description || '',
           region: 'dolomites' as const, // Use default region for draft
