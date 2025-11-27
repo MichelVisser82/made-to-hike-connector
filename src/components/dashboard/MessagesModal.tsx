@@ -220,8 +220,9 @@ export function MessagesModal({
 
   const handleCallGuest = () => {
     const phone = booking.hiker?.phone || booking.guest?.phone;
+    const country = booking.hiker?.country || booking.guest?.country || '';
     if (phone) {
-      window.location.href = `tel:${phone}`;
+      window.location.href = `tel:${country}${phone}`;
     } else {
       toast({
         title: 'No phone number',

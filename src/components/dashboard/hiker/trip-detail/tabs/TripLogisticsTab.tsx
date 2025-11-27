@@ -167,10 +167,10 @@ export function TripLogisticsTab({ tripDetails }: TripLogisticsTabProps) {
                   <Button 
                     variant="outline" 
                     className="w-full justify-start border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                    onClick={() => window.location.href = `tel:${guide.phone}`}
+                    onClick={() => window.location.href = `tel:${guide.phone_country || ''}${guide.phone}`}
                   >
                     <Phone className="w-4 h-4 mr-2" />
-                    {guide.phone}
+                    {guide.phone_country}{guide.phone}
                   </Button>
                 )}
                 <Button 

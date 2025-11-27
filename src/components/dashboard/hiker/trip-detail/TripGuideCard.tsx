@@ -78,10 +78,16 @@ export function TripGuideCard({ tripDetails }: TripGuideCardProps) {
             <MessageCircle className="w-4 h-4 mr-2" />
             Message Guide
           </Button>
-          <Button variant="outline" className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5">
-            <Phone className="w-4 h-4 mr-2" />
-            Call Guide
-          </Button>
+          {guide.phone && (
+            <Button 
+              variant="outline" 
+              className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+              onClick={() => window.location.href = `tel:${guide.phone_country || ''}${guide.phone}`}
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              {guide.phone_country}{guide.phone}
+            </Button>
+          )}
         </div>
       </div>
 

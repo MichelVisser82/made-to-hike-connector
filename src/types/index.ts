@@ -129,6 +129,7 @@ export interface BookingWithDetails extends Booking {
     name: string;
     email: string;
     phone?: string;
+    country?: string;
     avatar_url?: string;
   };
   hiker?: {
@@ -136,12 +137,14 @@ export interface BookingWithDetails extends Booking {
     name: string;
     email: string;
     phone?: string;
+    country?: string;
     avatar_url?: string;
   };
   emergency_contact?: {
     name: string;
     relationship: string;
     phone: string;
+    country?: string;
   };
 }
 

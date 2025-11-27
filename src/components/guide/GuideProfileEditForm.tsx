@@ -119,6 +119,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
     daily_rate: '',
     daily_rate_currency: 'EUR' as 'EUR' | 'GBP',
     phone: '',
+    phone_country: '',
     instagram_url: '',
     facebook_url: '',
     website_url: '',
@@ -250,6 +251,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         daily_rate: profile.daily_rate?.toString() || '',
         daily_rate_currency: profile.daily_rate_currency || 'EUR',
         phone: profile.phone || '',
+        phone_country: profile.phone_country || '',
         instagram_url: profile.instagram_url || '',
         facebook_url: profile.facebook_url || '',
         website_url: profile.website_url || '',
@@ -1254,6 +1256,7 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
         .from('guide_profiles')
         .update({
           phone: formData.phone,
+          phone_country: formData.phone_country,
           instagram_url: formData.instagram_url,
           facebook_url: formData.facebook_url,
           website_url: formData.website_url,
@@ -2541,15 +2544,45 @@ export function GuideProfileEditForm({ onNavigateToGuideProfile }: GuideProfileE
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="space-y-4 pt-6">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+44 123 456 7890"
-            />
+            <div className="grid grid-cols-4 gap-2">
+              <Select
+                value={formData.phone_country}
+                onValueChange={(value) => setFormData({ ...formData, phone_country: value })}
+              >
+                <SelectTrigger className="col-span-1">
+                  <SelectValue placeholder="Code" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="+31">🇳🇱 +31</SelectItem>
+                  <SelectItem value="+43">🇦🇹 +43</SelectItem>
+                  <SelectItem value="+41">🇨🇭 +41</SelectItem>
+                  <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                  <SelectItem value="+33">🇫🇷 +33</SelectItem>
+                  <SelectItem value="+39">🇮🇹 +39</SelectItem>
+                  <SelectItem value="+34">🇪🇸 +34</SelectItem>
+                  <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                  <SelectItem value="+47">🇳🇴 +47</SelectItem>
+                  <SelectItem value="+46">🇸🇪 +46</SelectItem>
+                  <SelectItem value="+45">🇩🇰 +45</SelectItem>
+                  <SelectItem value="+48">🇵🇱 +48</SelectItem>
+                  <SelectItem value="+420">🇨🇿 +420</SelectItem>
+                  <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="654696948"
+                className="col-span-3"
+              />
+            </div>
+            <p className="text-sm text-charcoal/60">
+              Select country code and enter number without leading zero
+            </p>
           </div>
           <div>
             <Label htmlFor="instagram_url">Instagram URL</Label>

@@ -63,6 +63,7 @@ export interface TripDetails {
     display_name: string;
     profile_image_url: string | null;
     phone: string | null;
+    phone_country: string | null;
     bio: string | null;
     languages_spoken: string[];
     certifications: any[];
@@ -92,6 +93,7 @@ export function useTripDetails(bookingId: string | undefined) {
               display_name,
               profile_image_url,
               phone,
+              phone_country,
               bio,
               languages_spoken,
               certifications,
@@ -123,6 +125,7 @@ export function useTripDetails(bookingId: string | undefined) {
             display_name,
             profile_image_url,
             phone,
+            phone_country,
             bio,
             languages_spoken,
             certifications,
@@ -142,6 +145,7 @@ export function useTripDetails(bookingId: string | undefined) {
               display_name,
               profile_image_url,
               phone,
+              phone_country,
               bio,
               languages_spoken,
               certifications,
