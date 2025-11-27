@@ -220,16 +220,14 @@ export function TourDetailPage({
               {/* Stats Card */}
               <Card className="bg-card/95 backdrop-blur-sm shadow-xl rounded-xl p-4 max-w-xl mx-auto lg:mx-0">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <RegionBadge 
-                      country={tour.region_country}
-                      region={tour.region_region}
-                      subregion={tour.region_subregion}
-                      clickable={true}
-                      variant="secondary"
-                      size="default"
-                    />
-                  </div>
+                  <RegionBadge 
+                    country={tour.region_country}
+                    region={tour.region_region}
+                    subregion={tour.region_subregion}
+                    clickable={true}
+                    variant="plain"
+                    size="default"
+                  />
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-burgundy flex-shrink-0" />
                     <span className="font-medium text-charcoal text-sm">{tour.duration}</span>
