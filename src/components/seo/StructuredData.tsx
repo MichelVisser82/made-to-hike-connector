@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Tour } from '@/types';
+import { getImageMetadataByUrl } from '@/utils/imageMetadataUtils';
 
 interface StructuredDataProps {
   tour: Tour;
@@ -8,15 +9,36 @@ interface StructuredDataProps {
 export function StructuredData({ tour }: StructuredDataProps) {
   const baseUrl = window.location.origin;
   const tourUrl = tour.slug ? `${baseUrl}/tours/${tour.slug}` : baseUrl;
+  const [imageMetadata, setImageMetadata] = useState<any>(null);
 
-  // TouristTrip Schema
+  // Fetch image metadata for structured data
+  useEffect(() => {
+    const heroImage = tour.hero_image || tour.images?.[0];
+    if (heroImage) {
+      getImageMetadataByUrl(heroImage).then(metadata => {
+        if (metadata) setImageMetadata(metadata);
+      });
+    }
+  }, [tour.hero_image, tour.images]);
+
+  // TouristTrip Schema with ImageObject
   const touristTripSchema = {
     "@context": "https://schema.org",
     "@type": "TouristTrip",
     "name": tour.title,
     "description": tour.description || tour.short_description,
-    "image": tour.hero_image || tour.images?.[0],
     "url": tourUrl,
+    // ImageObject with AI-generated metadata for search engines
+    ...(tour.hero_image || tour.images?.[0] ? {
+      "image": {
+        "@type": "ImageObject",
+        "url": tour.hero_image || tour.images?.[0],
+        "width": 1200,
+        "height": 630,
+        ...(imageMetadata?.description && { "caption": imageMetadata.description }),
+        ...(imageMetadata?.alt_text && { "description": imageMetadata.alt_text })
+      }
+    } : {}),
     "offers": {
       "@type": "Offer",
       "price": tour.price,

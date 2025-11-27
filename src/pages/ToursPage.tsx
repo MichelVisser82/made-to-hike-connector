@@ -34,11 +34,18 @@ export default function ToursPage() {
         <meta property="og:description" content="Discover expertly guided hiking tours across Europe's most stunning mountain ranges with certified guides." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${window.location.origin}/tours`} />
+        <meta property="og:image" content={`${window.location.origin}/og-tours.jpg`} />
+        <meta property="og:image:alt" content="Discover hiking tours across Europe with certified mountain guides" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/jpeg" />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Hiking Tours Across Europe | MadeToHike" />
         <meta name="twitter:description" content={`Browse guided hiking tours across ${regionText} and more.`} />
+        <meta name="twitter:image" content={`${window.location.origin}/og-tours.jpg`} />
+        <meta name="twitter:image:alt" content="Discover hiking tours across Europe with certified mountain guides" />
       </Helmet>
 
       {/* Structured Data for CollectionPage */}
