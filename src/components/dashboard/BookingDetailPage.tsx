@@ -271,11 +271,11 @@ export function BookingDetailPage() {
               {booking.guest?.email}
             </a>
             <a
-              href={`tel:${booking.guest?.phone}`}
+              href={`tel:${booking.guest?.country || ''}${booking.guest?.phone}`}
               className="flex items-center gap-2 text-burgundy hover:underline"
             >
               <Phone className="w-4 h-4" />
-              {booking.guest?.phone}
+              {booking.guest?.country}{booking.guest?.phone}
             </a>
           </div>
 
@@ -328,10 +328,10 @@ export function BookingDetailPage() {
                 <p className="font-medium text-charcoal">{booking.emergency_contact.name}</p>
                 <p className="text-sm text-charcoal/60">{booking.emergency_contact.relationship}</p>
                 <a
-                  href={`tel:${booking.emergency_contact.phone}`}
+                  href={`tel:${booking.emergency_contact.country || ''}${booking.emergency_contact.phone}`}
                   className="text-sm text-burgundy hover:underline"
                 >
-                  {booking.emergency_contact.phone}
+                  {booking.emergency_contact.country}{booking.emergency_contact.phone}
                 </a>
               </div>
             )}

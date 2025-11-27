@@ -673,6 +673,7 @@ export type Database = {
           onboarding_step: number | null
           payout_schedule: string | null
           phone: string | null
+          phone_country: string | null
           portfolio_images: string[] | null
           profile_completed: boolean | null
           profile_image_url: string | null
@@ -743,6 +744,7 @@ export type Database = {
           onboarding_step?: number | null
           payout_schedule?: string | null
           phone?: string | null
+          phone_country?: string | null
           portfolio_images?: string[] | null
           profile_completed?: boolean | null
           profile_image_url?: string | null
@@ -813,6 +815,7 @@ export type Database = {
           onboarding_step?: number | null
           payout_schedule?: string | null
           phone?: string | null
+          phone_country?: string | null
           portfolio_images?: string[] | null
           profile_completed?: boolean | null
           profile_image_url?: string | null

@@ -56,15 +56,7 @@ export function GuideFooterCTA({ guide }: GuideFooterCTAProps) {
               rel="noopener noreferrer"
               className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
             >
-              <Facebook className="w-5 h-5" />
-            </a>
-          )}
-          {guide.contact_email && (
-            <a 
-              href={`mailto:${guide.contact_email}`}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-            >
-              <Mail className="w-5 h-5" />
+            <Facebook className="w-5 h-5" />
             </a>
           )}
         </div>

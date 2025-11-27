@@ -50,8 +50,9 @@ export interface GuideProfile {
   upcoming_availability_end?: string;
   daily_rate?: number;
   daily_rate_currency: 'EUR' | 'GBP';
-  contact_email?: string;
+  // Contact
   phone?: string;
+  phone_country?: string;
   instagram_url?: string;
   facebook_url?: string;
   website_url?: string;
