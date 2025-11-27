@@ -187,7 +187,7 @@ export function LandingPage({
             const difficultyLabel = tour.difficulty_level || tour.difficulty;
             const primaryCert = tour.guide_certifications?.[0];
             const certTitle = primaryCert?.title || 'Certified';
-            return <Card key={tour.id} className="overflow-hidden border-burgundy/10 hover:shadow-2xl transition-all duration-300 cursor-pointer" onClick={() => navigate(`/tour/${tour.slug}`)}>
+            return <Card key={tour.id} className="overflow-hidden border-burgundy/10 hover:shadow-2xl transition-all duration-300 cursor-pointer" onClick={() => navigate(`/tours/${tour.slug}`)}>
                   <div className="relative h-64">
                     {tour.hero_image ? (
                       <img src={tour.hero_image} className="w-full h-full object-cover" alt={`${tour.title} in ${tourRegion}`} />
