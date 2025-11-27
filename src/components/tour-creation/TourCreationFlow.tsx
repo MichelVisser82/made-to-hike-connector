@@ -131,7 +131,7 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
       case 1:
         return <Step1Welcome onNext={nextStep} />;
       case 2:
-        return <Step2BasicInfo onNext={handleNext} onPrev={handlePrev} isSaving={isSaving} />;
+        return <Step2BasicInfo onNext={handleNext} onPrev={handlePrev} isSaving={isSaving} tourId={draftTourId || tourId} />;
       case 3:
         return <Step3Location onNext={handleNext} onPrev={handlePrev} isSaving={isSaving} />;
       case 4:
@@ -220,10 +220,13 @@ export function TourCreationFlow({ onComplete, onCancel, initialData, editMode =
                     {mainTabsConfig[activeMainTab].subTabs.map((subTab) => {
                       const Component = subTab.component;
                       const isRouteMap = subTab.value === 'route';
+                      const isBasicInfo = subTab.value === 'basic-info';
                       
                       return (
                         <TabsContent key={subTab.value} value={subTab.value} className="mt-6">
                           {isRouteMap ? (
+                            <Component onSave={handleSaveTab} isSaving={isSaving} tourId={draftTourId || tourId} />
+                          ) : isBasicInfo ? (
                             <Component onSave={handleSaveTab} isSaving={isSaving} tourId={draftTourId || tourId} />
                           ) : (
                             <Component onSave={handleSaveTab} isSaving={isSaving} />
