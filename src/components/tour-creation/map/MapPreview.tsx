@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Eye } from 'lucide-react';
 import { Coordinate } from '@/utils/routeAnalysis';
-import { TourHighlight, HIGHLIGHT_CATEGORY_ICONS, GPXParseResult } from '@/types/map';
+import { TourHighlight, HIGHLIGHT_CATEGORY_LUCIDE_ICONS, GPXParseResult } from '@/types/map';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useMemo, useState, useEffect } from 'react';
@@ -200,9 +200,10 @@ export function MapPreview({ gpxData, daySegments, highlights, onBack }: MapPrev
                   <Popup>
                     <div className="p-2 min-w-[200px]">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">
-                          {highlight.category ? HIGHLIGHT_CATEGORY_ICONS[highlight.category] : '📍'}
-                        </span>
+                        {highlight.category && (() => {
+                          const IconComponent = HIGHLIGHT_CATEGORY_LUCIDE_ICONS[highlight.category];
+                          return <IconComponent className="h-6 w-6 text-burgundy" />;
+                        })()}
                         <h4 className="font-semibold">{highlight.name}</h4>
                       </div>
                       {highlight.description && (

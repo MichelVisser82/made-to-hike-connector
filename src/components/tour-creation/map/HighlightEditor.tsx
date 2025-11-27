@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TourHighlight, HighlightCategory, HIGHLIGHT_CATEGORY_LABELS, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
+import { TourHighlight, HighlightCategory, HIGHLIGHT_CATEGORY_LABELS, HIGHLIGHT_CATEGORY_LUCIDE_ICONS, HIGHLIGHT_CATEGORY_SVG } from '@/types/map';
 import { Coordinate, getRouteBoundingBox } from '@/utils/routeAnalysis';
 import { MapPin, Plus, Edit, Trash2, Eye, EyeOff, Download } from 'lucide-react';
 import { HighlightImageUpload } from './HighlightImageUpload';
@@ -193,7 +193,7 @@ export function HighlightEditor({
       className: 'custom-marker',
       html: `
         <div class="flex items-center justify-center w-10 h-10 bg-white border-3 ${isPublic ? 'border-green-500' : 'border-purple-500'} rounded-full shadow-lg">
-          <span class="text-xl">${HIGHLIGHT_CATEGORY_ICONS[category]}</span>
+          ${HIGHLIGHT_CATEGORY_SVG[category]}
         </div>
       `,
       iconSize: [40, 40],
@@ -267,7 +267,10 @@ export function HighlightEditor({
                 <Popup>
                   <div className="p-2 min-w-[200px]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category!]}</span>
+                      {(() => {
+                        const IconComponent = HIGHLIGHT_CATEGORY_LUCIDE_ICONS[highlight.category!];
+                        return <IconComponent className="h-6 w-6 text-burgundy" />;
+                      })()}
                       <Badge variant={highlight.isPublic ? "default" : "secondary"}>
                         {highlight.isPublic ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                       </Badge>
@@ -346,46 +349,49 @@ export function HighlightEditor({
               Highlights ({highlights.filter(h => h.isPublic).length} public, {highlights.filter(h => !h.isPublic).length} secret)
             </h4>
             <div className="space-y-2">
-              {highlights.map((highlight) => (
-                <div key={highlight.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category!]}</span>
-                  <div className="flex-1">
-                    <h5 className="font-medium">{highlight.name}</h5>
-                    <p className="text-sm text-muted-foreground">
-                      {HIGHLIGHT_CATEGORY_LABELS[highlight.category!]}
-                      {highlight.dayNumber && ` • Day ${highlight.dayNumber}`}
-                    </p>
+              {highlights.map((highlight) => {
+                const IconComponent = HIGHLIGHT_CATEGORY_LUCIDE_ICONS[highlight.category!];
+                return (
+                  <div key={highlight.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <IconComponent className="h-6 w-6 text-burgundy" />
+                    <div className="flex-1">
+                      <h5 className="font-medium">{highlight.name}</h5>
+                      <p className="text-sm text-muted-foreground">
+                        {HIGHLIGHT_CATEGORY_LABELS[highlight.category!]}
+                        {highlight.dayNumber && ` • Day ${highlight.dayNumber}`}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleTogglePublic(highlight.id!)}
+                    >
+                      {highlight.isPublic ? (
+                        <Eye className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <EyeOff className="h-4 w-4 text-purple-500" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingHighlight(highlight);
+                        setIsModalOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteHighlight(highlight.id!)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleTogglePublic(highlight.id!)}
-                  >
-                    {highlight.isPublic ? (
-                      <Eye className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <EyeOff className="h-4 w-4 text-purple-500" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setEditingHighlight(highlight);
-                      setIsModalOpen(true);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteHighlight(highlight.id!)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -420,13 +426,16 @@ export function HighlightEditor({
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="z-[10000] bg-popover">
-                  {Object.entries(HIGHLIGHT_CATEGORY_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      <span className="flex items-center gap-2">
-                        {HIGHLIGHT_CATEGORY_ICONS[key as HighlightCategory]} {label}
-                      </span>
-                    </SelectItem>
-                  ))}
+                  {Object.entries(HIGHLIGHT_CATEGORY_LABELS).map(([key, label]) => {
+                    const IconComponent = HIGHLIGHT_CATEGORY_LUCIDE_ICONS[key as HighlightCategory];
+                    return (
+                      <SelectItem key={key} value={key}>
+                        <span className="flex items-center gap-2">
+                          <IconComponent className="h-4 w-4" /> {label}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

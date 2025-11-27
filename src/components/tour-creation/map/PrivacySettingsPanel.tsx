@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { TourHighlight, RouteDisplayMode, HIGHLIGHT_CATEGORY_ICONS } from '@/types/map';
+import { TourHighlight, RouteDisplayMode, HIGHLIGHT_CATEGORY_LUCIDE_ICONS } from '@/types/map';
 import { Eye, EyeOff, MapPin, Lock, Globe } from 'lucide-react';
 
 interface PrivacySettingsPanelProps {
@@ -163,7 +163,10 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
                     `}
                   >
                     <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-background border-2">
-                      <span className="text-2xl">{HIGHLIGHT_CATEGORY_ICONS[highlight.category!]}</span>
+                      {(() => {
+                        const IconComponent = HIGHLIGHT_CATEGORY_LUCIDE_ICONS[highlight.category!];
+                        return <IconComponent className="h-6 w-6 text-burgundy" />;
+                      })()}
                     </div>
                     <div className="flex-1">
                       <h5 className="font-medium">{highlight.name}</h5>
@@ -269,15 +272,18 @@ export function PrivacySettingsPanel({ highlights, onSettingsConfirmed, onBack }
                   </div>
                   {publicHighlights.length > 0 ? (
                     <div className="space-y-2">
-                      {publicHighlights.map((h) => (
-                        <div key={h.id} className="flex items-center gap-2 text-sm p-2 bg-muted/50 rounded">
-                          <span>{HIGHLIGHT_CATEGORY_ICONS[h.category!]}</span>
-                          <span>{h.name}</span>
-                          {featuredHighlightIds.includes(h.id!) && (
-                            <Badge variant="default" className="ml-auto">Featured</Badge>
-                          )}
-                        </div>
-                      ))}
+                      {publicHighlights.map((h) => {
+                        const IconComponent = HIGHLIGHT_CATEGORY_LUCIDE_ICONS[h.category!];
+                        return (
+                          <div key={h.id} className="flex items-center gap-2 text-sm p-2 bg-muted/50 rounded">
+                            <IconComponent className="h-4 w-4 text-burgundy" />
+                            <span>{h.name}</span>
+                            {featuredHighlightIds.includes(h.id!) && (
+                              <Badge variant="default" className="ml-auto">Featured</Badge>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">No public highlights</p>
