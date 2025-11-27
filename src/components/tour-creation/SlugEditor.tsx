@@ -122,12 +122,12 @@ export function SlugEditor({ tourId, titleFieldName = 'title' }: SlugEditorProps
           {isCustomizing ? (
             <>
               <Lock className="h-3 w-3 mr-1" />
-              Auto-generate
+              Reset to Auto
             </>
           ) : (
             <>
               <Edit2 className="h-3 w-3 mr-1" />
-              Customize
+              Customize URL
             </>
           )}
         </Button>
