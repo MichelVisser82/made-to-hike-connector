@@ -349,7 +349,7 @@ export function LandingPage({
             const guideSlug = guide.slug || guide.user_id;
             const primaryCert = guide.certifications?.[0];
             const certTitle = primaryCert?.title || 'Certified Guide';
-            return <Card key={guide.user_id} className="overflow-hidden border-burgundy/10 hover:shadow-2xl transition-all duration-300 cursor-pointer" onClick={() => navigate(`/guide/${guideSlug}`)}>
+            return <Card key={guide.user_id} className="overflow-hidden border-burgundy/10 hover:shadow-2xl transition-all duration-300 cursor-pointer" onClick={() => navigate(`/${guideSlug}`)}>
                     <div className="relative h-80">
                       {guide.profile_image_url ? <img src={guide.profile_image_url} alt={guide.display_name} className="w-full h-full object-cover" /> : <SmartImage category="guide" usageContext="profile_portrait" tags={['guide', 'portrait', 'professional']} className="w-full h-full object-cover" alt={guide.display_name} />}
                       <div className="absolute top-4 right-4">
