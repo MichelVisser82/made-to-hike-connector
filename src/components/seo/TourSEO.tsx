@@ -15,6 +15,17 @@ export function TourSEO({ tour }: TourSEOProps) {
   const metaDescription = tour.meta_description || generateTourMetaDescription(tour);
   const canonicalUrl = tour.slug ? getTourCanonicalUrl(tour.slug) : undefined;
   const ogImage = tour.hero_image || tour.images?.[0];
+  
+  // Use tour description for alt text (prioritize tour content over image AI metadata)
+  const ogImageAlt = tour.short_description 
+    ? tour.short_description.slice(0, 125)
+    : `${tour.title} - ${tour.region ? tour.region.charAt(0).toUpperCase() + tour.region.slice(1) : ''} Hiking Tour`.trim();
+  
+  // Determine image type
+  const imageType = ogImage?.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+  
+  // Fallback OG image for social sharing
+  const fallbackOgImage = `${window.location.origin}/og-default.jpg`;
 
   useEffect(() => {
     // Update document title
@@ -46,10 +57,14 @@ export function TourSEO({ tour }: TourSEOProps) {
     updateMetaTag('og:description', metaDescription, true);
     updateMetaTag('og:locale', 'en_US', true);
     if (canonicalUrl) updateMetaTag('og:url', canonicalUrl, true);
-    if (ogImage) {
-      updateMetaTag('og:image', ogImage, true);
-      updateMetaTag('og:image:alt', tour.title, true);
-    }
+    
+    // Open Graph image tags with proper dimensions
+    const finalOgImage = ogImage || fallbackOgImage;
+    updateMetaTag('og:image', finalOgImage, true);
+    updateMetaTag('og:image:alt', ogImageAlt, true);
+    updateMetaTag('og:image:width', '1200', true);
+    updateMetaTag('og:image:height', '630', true);
+    updateMetaTag('og:image:type', imageType, true);
     
     // Product-specific OG tags
     updateMetaTag('product:price:amount', tour.price.toString(), true);
@@ -65,8 +80,9 @@ export function TourSEO({ tour }: TourSEOProps) {
     updateMetaTag('twitter:card', 'summary_large_image');
     updateMetaTag('twitter:title', metaTitle);
     updateMetaTag('twitter:description', metaDescription);
+    updateMetaTag('twitter:image', finalOgImage);
+    updateMetaTag('twitter:image:alt', ogImageAlt);
     if (canonicalUrl) updateMetaTag('twitter:url', canonicalUrl);
-    if (ogImage) updateMetaTag('twitter:image', ogImage);
 
     // Geographic tags
     if (tour.region) {

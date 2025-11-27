@@ -77,6 +77,11 @@ export default function GuidePage() {
   if (!stats) return null;
 
   const canonicalUrl = `https://madetohike.com/${guide.slug}`;
+  
+  // Alt text using guide bio (prioritize guide content over image metadata)
+  const ogImageAlt = guide.bio 
+    ? `${guide.display_name} - ${guide.bio.slice(0, 100)}`
+    : `${guide.display_name}, certified mountain guide specializing in ${guide.specialties?.slice(0, 2).join(' and ')}`;
 
   return (
     <>
@@ -86,7 +91,25 @@ export default function GuidePage() {
         <meta property="og:type" content="profile" />
         <meta property="og:title" content={`${guide.display_name} | MadeToHike`} />
         <meta property="og:description" content={guide.bio || `Certified mountain guide ${guide.display_name}`} />
-        {guide.profile_image_url && <meta property="og:image" content={guide.profile_image_url} />}
+        {guide.profile_image_url && (
+          <>
+            <meta property="og:image" content={guide.profile_image_url} />
+            <meta property="og:image:alt" content={ogImageAlt} />
+            <meta property="og:image:width" content="1200" />
+            <meta property="og:image:height" content="630" />
+          </>
+        )}
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${guide.display_name} | MadeToHike`} />
+        <meta name="twitter:description" content={guide.bio || `Certified mountain guide ${guide.display_name}`} />
+        {guide.profile_image_url && (
+          <>
+            <meta name="twitter:image" content={guide.profile_image_url} />
+            <meta name="twitter:image:alt" content={ogImageAlt} />
+          </>
+        )}
         
         <script type="application/ld+json">
           {JSON.stringify({

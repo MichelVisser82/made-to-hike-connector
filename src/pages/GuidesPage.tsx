@@ -22,11 +22,18 @@ export default function GuidesPage() {
         <meta property="og:description" content="Browse certified mountain guides for hiking and alpine adventures across Europe." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://madetohike.com/guides" />
+        <meta property="og:image" content="https://madetohike.com/og-guides.jpg" />
+        <meta property="og:image:alt" content="Find certified IFMGA and UIMLA mountain guides across Europe" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/jpeg" />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Find Mountain Guides | MadeToHike" />
         <meta name="twitter:description" content="Browse certified mountain guides across Europe for unforgettable hiking adventures." />
+        <meta name="twitter:image" content="https://madetohike.com/og-guides.jpg" />
+        <meta name="twitter:image:alt" content="Find certified IFMGA and UIMLA mountain guides across Europe" />
       </Helmet>
 
       {/* Structured Data */}
