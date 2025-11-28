@@ -165,6 +165,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
     stats.vouchers = vouchers || [];
     stats.totalVouchersValue = totalVouchersValue;
     stats.availableVouchersValue = availableVouchersValue;
+    stats.totalEarned = totalVouchersValue;
   } else if (userType === 'guide') {
     // Get credits
     const { data: credits } = await supabase
@@ -178,7 +179,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
       c.source_type !== 'withdrawal' ? sum + c.amount : sum, 0) || 0;
     
     const pendingReferrals = referrals?.filter((r: any) => 
-      ['profile_created', 'milestone_2'].includes(r.status)
+      ['link_sent', 'profile_created', 'milestone_2'].includes(r.status)
     ) || [];
     const pendingCredits = pendingReferrals.reduce((sum: number, r: any) => 
       sum + (r.reward_amount || 0), 0);
@@ -188,6 +189,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
     stats.totalCredits = totalCredits;
     stats.pendingCredits = pendingCredits;
     stats.pendingReferrals = pendingReferrals.length;
+    stats.totalEarned = totalCredits;
   }
 
   return new Response(
