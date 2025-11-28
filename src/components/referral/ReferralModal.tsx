@@ -116,7 +116,9 @@ export default function ReferralModal({
 
   const rewardAmount = userType === 'hiker' ? '€25' : '€50';
   const primaryLink = userType === 'hiker' ? links?.hikerLink : links?.guideLink;
-  const shareMessage = `Join MadeToHike and get €10 off your first adventure! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`;
+  const shareMessage = userType === 'hiker' 
+    ? `Join MadeToHike and get €10 off your first adventure! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`
+    : `Join MadeToHike as a guide! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`;
 
   const handleCopy = (link: string, type: 'hiker' | 'guide') => {
     navigator.clipboard.writeText(link);
@@ -511,7 +513,8 @@ export default function ReferralModal({
                   <div className="flex-1 pt-2">
                     <h4 className="font-semibold text-charcoal mb-1">They Sign Up</h4>
                     <p className="text-sm text-charcoal/70">
-                      Your friend creates an account using your referral link and gets €10 welcome discount
+                      Your friend creates an account using your referral link
+                      {userType === 'hiker' && ' and gets €10 welcome discount'}
                     </p>
                   </div>
                 </div>
@@ -564,10 +567,12 @@ export default function ReferralModal({
                     <span className="text-sage shrink-0">✓</span>
                     <span>Automatic tracking and reward processing</span>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-sage shrink-0">✓</span>
-                    <span>Your friends get €10 discount on their first booking</span>
-                  </li>
+                  {userType === 'hiker' && (
+                    <li className="flex items-start gap-2">
+                      <span className="text-sage shrink-0">✓</span>
+                      <span>Your friends get €10 discount on their first booking</span>
+                    </li>
+                  )}
                   <li className="flex items-start gap-2">
                     <span className="text-sage shrink-0">✓</span>
                     <span>
