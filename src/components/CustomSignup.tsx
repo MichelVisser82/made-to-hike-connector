@@ -97,9 +97,11 @@ export const CustomSignup = () => {
 
   if (success) {
     return (
-      <Card className="max-w-md mx-auto">
+      <Card className="max-w-md mx-auto border-0 shadow-lg bg-cream/80">
         <CardHeader>
-          <CardTitle>🏔️ Check Your Email</CardTitle>
+          <CardTitle className="text-2xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
+            🏔️ Check Your Email
+          </CardTitle>
           <CardDescription>
             We've sent a verification link to your email address.
           </CardDescription>
@@ -113,7 +115,7 @@ export const CustomSignup = () => {
           </Alert>
           <Button 
             variant="outline" 
-            className="w-full mt-4"
+            className="w-full mt-4 border-burgundy text-burgundy hover:bg-burgundy/5"
             onClick={() => {
               setSuccess(false);
               setFormData({ email: '', password: '', name: '', phone: '' });
@@ -127,9 +129,11 @@ export const CustomSignup = () => {
   }
 
   return (
-    <Card className="max-w-md mx-auto">
+    <Card className="max-w-md mx-auto border-0 shadow-lg bg-cream/80">
       <CardHeader>
-        <CardTitle>🏔️ Join MadeToHike</CardTitle>
+        <CardTitle className="text-2xl font-bold text-burgundy" style={{fontFamily: 'Playfair Display, serif'}}>
+          🏔️ Join MadeToHike
+        </CardTitle>
         <CardDescription>
           Create your account to start your hiking adventure
         </CardDescription>
@@ -204,7 +208,7 @@ export const CustomSignup = () => {
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-burgundy hover:bg-burgundy/90 text-white" disabled={isLoading}>
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </form>
