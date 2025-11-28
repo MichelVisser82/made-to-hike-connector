@@ -529,7 +529,7 @@ export default function ReferralModal({
                 <Card className="p-4 bg-white border-burgundy/10">
                   <h4 className="font-semibold text-charcoal mb-2">How long does it take to receive my reward?</h4>
                   <p className="text-sm text-charcoal/70">
-                    Rewards are automatically credited within 24-48 hours after your referral completes their paid tour. You'll receive an email notification when your reward is available.
+                    Rewards are automatically credited within 24-48 hours after your referral completes their first paid tour. You'll receive an email notification when your reward is available.
                   </p>
                 </Card>
 
