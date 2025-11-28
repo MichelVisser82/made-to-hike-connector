@@ -18,6 +18,7 @@ serve(async (req) => {
 
   try {
     const { email, password, guideData, userId: existingUserId } = await req.json();
+    let userId: string;
 
     // If userId is provided, use existing user (already logged in scenario)
     if (existingUserId) {
