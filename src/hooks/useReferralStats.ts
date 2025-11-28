@@ -70,6 +70,8 @@ export const useReferralStats = (userId: string | undefined) => {
 
       const totalInvites = raw?.total_invitations_sent ?? invitations.length;
       const completedReferrals = raw?.completed_signups ?? 0;
+      const acceptedInvites = raw?.total_signups ?? signups.length;
+      const totalReferrals = totalInvites;
 
       const totalEarned = signups
         .filter((s: any) => s.reward_status === 'issued')
@@ -79,6 +81,8 @@ export const useReferralStats = (userId: string | undefined) => {
         ...raw,
         referrals,
         totalInvites,
+        totalReferrals,
+        acceptedInvites,
         completedReferrals,
         totalEarned,
       };
