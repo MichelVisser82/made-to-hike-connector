@@ -227,16 +227,24 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
     ? `${Deno.env.get('SITE_URL') || 'https://madetohike.com'}/join?ref=${referralCode}`
     : `${Deno.env.get('SITE_URL') || 'https://madetohike.com'}/guides/join?ref=${referralCode}`;
 
+  // Get referrer role to determine referrerType
+  const { data: userRoles } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .single();
+
   // Send email via send-email function
-  const emailType = targetType === 'hiker' ? 'referral_invitation_hiker' : 'referral_invitation_guide';
-  
   await supabase.functions.invoke('send-email', {
     body: {
-      type: emailType,
+      type: 'referral_invitation',
       to: targetEmail,
-      referrerName: referrer?.name || 'A friend',
-      referralUrl,
-      personalMessage: personalMessage || ''
+      data: {
+        referrerName: referrer?.name || 'A friend',
+        referrerType: userRoles?.role || 'hiker',
+        referralLink: referralUrl,
+        personalMessage: personalMessage || null
+      }
     }
   });
 
