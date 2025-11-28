@@ -30,15 +30,39 @@ Deno.serve(async (req) => {
 
     const { referralCode, invitationToken, step, userId, userType, milestoneData, completionBookingId } = body;
 
-    // Get the referral link
-    const { data: link, error: linkError } = await supabase
+    // Get the referral link by code if possible
+    let { data: link, error: linkError } = await supabase
       .from('referral_links')
       .select('*')
       .eq('referral_code', referralCode)
-      .single();
+      .maybeSingle();
+
+    // If no link found by code (e.g. legacy link where code was rotated), try resolving via invitation token
+    if ((!link || linkError) && invitationToken) {
+      console.log('Referral link not found by code, trying invitation token fallback');
+
+      const { data: invitation, error: invError } = await supabase
+        .from('referral_invitations')
+        .select('referral_link_id')
+        .eq('invitation_token', invitationToken)
+        .maybeSingle();
+
+      if (!invError && invitation?.referral_link_id) {
+        const { data: linkById, error: linkByIdError } = await supabase
+          .from('referral_links')
+          .select('*')
+          .eq('id', invitation.referral_link_id)
+          .maybeSingle();
+
+        if (!linkByIdError && linkById) {
+          link = linkById;
+          linkError = null;
+        }
+      }
+    }
 
     if (linkError || !link) {
-      console.error('Referral link not found:', referralCode);
+      console.error('Referral link not found for code or invitation:', { referralCode, invitationToken, linkError });
       return new Response(
         JSON.stringify({ error: 'Referral link not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
