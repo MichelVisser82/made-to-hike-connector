@@ -447,12 +447,8 @@ export default function ReferralModal({
 
           {/* Tab 2: Track Referrals */}
           <TabsContent value="track" className="p-6 space-y-6">
-            {/* Combined Referral Stats */}
+            {/* Referral Statistics */}
             <div>
-              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-                Your Referrals
-              </h3>
-              
               {/* Hiker Invites Row */}
               {userType === 'hiker' && totalHikerReferrals > 0 && (
                 <div className="mb-6">
@@ -558,12 +554,12 @@ export default function ReferralModal({
               </Card>
             )}
 
-            {/* Referral List */}
+            {/* Referral Activity */}
             <div>
               <h3 className="text-lg font-semibold text-charcoal mb-4" style={{
               fontFamily: 'Playfair Display, serif'
             }}>
-                Your Referrals
+                Referral Activity
               </h3>
               
               {stats?.totalReferrals && stats.totalReferrals > 0 ? (
