@@ -83,7 +83,7 @@ export const HikerReferralDashboard = ({ userId }: { userId: string }) => {
             Referral Program
           </h1>
           <p className="text-charcoal/70">
-            Invite hikers and guides to earn discount vouchers. €25 per hiker, €50 per guide.
+            Invite hikers and guides to earn discount vouchers. €25 voucher per hiker, €50 voucher per guide.
           </p>
         </div>
 
