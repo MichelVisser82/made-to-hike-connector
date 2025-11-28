@@ -928,20 +928,6 @@ export function GuideDashboard({
           {/* TOURS Section */}
           {activeSection === 'tours' && (
             <>
-              {!user.verified && (
-                <Card className="border-burgundy/20 bg-cream mb-6">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold font-playfair text-lg mb-2">Complete Your Verification</h3>
-                    <p className="text-charcoal/70 mb-4">
-                      You need to complete the verification process to start offering tours.
-                    </p>
-                    <Button onClick={onStartVerification} className="bg-burgundy hover:bg-burgundy-dark text-white">
-                      Start Verification Process
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-              
               <ToursSection
                 tours={tours}
                 loading={loading}
