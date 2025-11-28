@@ -260,18 +260,41 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
 async function trackClick(supabase: any, body: TrackClickRequest) {
   const { referralCode } = body;
 
+  console.log('Tracking click for referral code:', referralCode);
+
+  // Get current referral
+  const { data: referral, error: fetchError } = await supabase
+    .from('referrals')
+    .select('click_count')
+    .eq('referral_code', referralCode)
+    .single();
+
+  if (fetchError || !referral) {
+    console.error('Referral not found:', referralCode);
+    return new Response(
+      JSON.stringify({ error: 'Referral not found' }),
+      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   // Increment click count
-  const { error } = await supabase
+  const { error: updateError } = await supabase
     .from('referrals')
     .update({ 
-      click_count: supabase.raw('click_count + 1'),
+      click_count: (referral.click_count || 0) + 1,
       updated_at: new Date().toISOString()
     })
     .eq('referral_code', referralCode);
 
-  if (error) {
-    console.error('Error tracking click:', error);
+  if (updateError) {
+    console.error('Error updating click count:', updateError);
+    return new Response(
+      JSON.stringify({ error: 'Failed to track click' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
+
+  console.log('Click tracked successfully for:', referralCode);
 
   return new Response(
     JSON.stringify({ success: true }),
