@@ -133,7 +133,6 @@ export function AppNavigation({
     { id: 'tours' as DashboardSection, label: 'Tours', icon: Mountain },
     { id: 'bookings' as DashboardSection, label: 'Bookings', icon: UsersIcon },
     { id: 'money' as DashboardSection, label: 'Money', icon: Euro },
-    { id: 'referrals' as DashboardSection, label: 'Referrals', icon: Gift },
     { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
   ];
 
