@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Copy, Check, Euro, Gift, Users, CheckCircle, Award, Info, Clock, Sparkles, Send, MessageCircle, Facebook, Twitter, Linkedin, MessageSquare, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -96,6 +97,7 @@ export default function ReferralModal({
   userName,
   userType
 }: ReferralModalProps) {
+  const navigate = useNavigate();
   const [copiedHiker, setCopiedHiker] = useState(false);
   const [copiedGuide, setCopiedGuide] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -545,7 +547,14 @@ export default function ReferralModal({
                   <p className="text-sm text-charcoal/70 mb-3">
                     Our support team is here to help with any questions about the referral program.
                   </p>
-                  <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5">
+                  <Button 
+                    variant="outline" 
+                    className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                    onClick={() => {
+                      onOpenChange(false);
+                      navigate('/help');
+                    }}
+                  >
                     Contact Support
                   </Button>
                 </div>
