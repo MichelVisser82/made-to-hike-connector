@@ -61,10 +61,12 @@ serve(async (req) => {
         // Track referral progress if referral code present
         if (guideData.referral_code) {
           console.log('Processing referral code for guide:', guideData.referral_code);
+          console.log('With invitation token:', guideData.invitation_token);
           try {
             await supabase.functions.invoke('track-referral-progress', {
               body: {
                 referralCode: guideData.referral_code,
+                invitationToken: guideData.invitation_token, // Pass invitation token for proper linking
                 step: 'profile_created',
                 userId: authData.user.id,
                 userType: 'guide'

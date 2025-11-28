@@ -24,10 +24,15 @@ export function useGuideSignup() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Capture referral code from URL
+  // Capture referral code and invitation token from URL
   const [referralCode] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('ref') || undefined;
+  });
+
+  const [invitationToken] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('inv') || undefined;
   });
 
   const [formData, setFormData] = useState<Partial<GuideSignupData>>(() => {
@@ -154,6 +159,7 @@ export function useGuideSignup() {
             address_postal_code: formData.address_postal_code,
             date_of_birth: formData.date_of_birth,
             referral_code: referralCode, // Include referral code
+            invitation_token: invitationToken, // Include invitation token for tracking
           },
         },
       });

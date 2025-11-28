@@ -187,13 +187,14 @@ async function getStats(supabase: any, body: GetStatsRequest) {
 
   if (invitationsError) throw invitationsError;
 
-  // Get all signups
+  // Get all signups with profile email for better matching
   const { data: signups, error: signupsError } = await supabase
     .from('referral_signups')
     .select(`
       *,
       referral_link:referral_links(target_type, reward_amount, reward_type),
-      invitation:referral_invitations(referee_email)
+      invitation:referral_invitations(referee_email),
+      profile:profiles(email)
     `)
     .in('referral_link_id', linkIds)
     .order('created_at', { ascending: false });
@@ -227,6 +228,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
       id: signup.id,
       user_id: signup.user_id,
       signup_email: signup.signup_email,
+      profile_email: signup.profile?.email, // Actual current profile email for better matching
       signup_source: signup.signup_source,
       target_type: signup.referral_link.target_type,
       reward_amount: signup.referral_link.reward_amount,
