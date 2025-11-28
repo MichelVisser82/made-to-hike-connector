@@ -26,11 +26,15 @@ export const JoinPage = () => {
           body: {
             action: 'track_click',
             referralCode: refCode,
-            invitationToken: invToken
-          }
+            invitationToken: invToken,
+          },
         });
 
-        const { data, error } = await supabase
+        // Try referral_links (primary source)
+        let referral: any = null;
+        let errorMessage: string | null = null;
+
+        const { data: linkData, error: linkError } = await supabase
           .from('referral_links')
           .select(`
             referrer_id,
@@ -41,30 +45,48 @@ export const JoinPage = () => {
           .eq('referral_code', refCode)
           .single();
 
-        if (error || !data) {
-          console.error('Invalid referral code');
-          setLoading(false);
-          return;
+        if (linkError || !linkData) {
+          // Fallback to referrals table for legacy / guide-specific codes
+          const { data: legacyData, error: legacyError } = await supabase
+            .from('referrals')
+            .select(`
+              referrer_id,
+              referrer_type,
+              target_type,
+              expires_at
+            `)
+            .eq('referral_code', refCode)
+            .single();
+
+          if (legacyError || !legacyData) {
+            console.error('Invalid referral code from both referral_links and referrals');
+            setLoading(false);
+            return;
+          }
+
+          referral = legacyData;
+        } else {
+          referral = linkData;
         }
 
-        // Check if expired
-        if (new Date(data.expires_at) < new Date()) {
+        // Check if expired (if expiry is set)
+        if (referral.expires_at && new Date(referral.expires_at) < new Date()) {
           console.error('Referral code expired');
           setLoading(false);
           return;
         }
 
-        // If this is a guide invitation, redirect to guide signup
-        if (data.target_type === 'guide') {
+        // If this is a guide invitation, redirect to guide signup flow
+        if (referral.target_type === 'guide') {
           navigate(`/guide/signup?ref=${refCode}${invToken ? `&inv=${invToken}` : ''}`);
           return;
         }
 
-        // Get referrer name
+        // Otherwise treat as hiker referral and show invite banner
         const { data: profile } = await supabase
           .from('profiles')
           .select('name')
-          .eq('id', data.referrer_id)
+          .eq('id', referral.referrer_id)
           .single();
 
         if (profile) {
