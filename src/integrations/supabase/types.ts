@@ -410,6 +410,71 @@ export type Database = {
           },
         ]
       }
+      discount_code_usage: {
+        Row: {
+          booking_id: string
+          booking_total_after: number | null
+          booking_total_before: number | null
+          currency: string | null
+          discount_amount: number
+          discount_code_id: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          booking_total_after?: number | null
+          booking_total_before?: number | null
+          currency?: string | null
+          discount_amount: number
+          discount_code_id: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          booking_total_after?: number | null
+          booking_total_before?: number | null
+          currency?: string | null
+          discount_amount?: number
+          discount_code_id?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_code_usage_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_usage_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_usage_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discount_codes: {
         Row: {
           applicable_tour_ids: string[] | null
@@ -421,11 +486,16 @@ export type Database = {
           guide_id: string | null
           id: string
           is_active: boolean | null
+          is_public: boolean | null
           max_uses: number | null
           min_purchase_amount: number | null
           scope: string
+          source_id: string | null
+          source_type: string | null
           times_used: number | null
           updated_at: string | null
+          user_email: string | null
+          user_id: string | null
           valid_from: string | null
           valid_until: string | null
         }
@@ -439,11 +509,16 @@ export type Database = {
           guide_id?: string | null
           id?: string
           is_active?: boolean | null
+          is_public?: boolean | null
           max_uses?: number | null
           min_purchase_amount?: number | null
           scope: string
+          source_id?: string | null
+          source_type?: string | null
           times_used?: number | null
           updated_at?: string | null
+          user_email?: string | null
+          user_id?: string | null
           valid_from?: string | null
           valid_until?: string | null
         }
@@ -457,11 +532,16 @@ export type Database = {
           guide_id?: string | null
           id?: string
           is_active?: boolean | null
+          is_public?: boolean | null
           max_uses?: number | null
           min_purchase_amount?: number | null
           scope?: string
+          source_id?: string | null
+          source_type?: string | null
           times_used?: number | null
           updated_at?: string | null
+          user_email?: string | null
+          user_id?: string | null
           valid_from?: string | null
           valid_until?: string | null
         }
@@ -476,6 +556,13 @@ export type Database = {
           {
             foreignKeyName: "discount_codes_guide_id_fkey"
             columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_codes_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1438,6 +1525,118 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          click_count: number | null
+          completed_at: string | null
+          completion_booking_id: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_suspicious: boolean | null
+          milestone_2_at: string | null
+          milestone_2_id: string | null
+          milestone_2_type: string | null
+          profile_created_at: string | null
+          referee_email: string | null
+          referee_id: string | null
+          referee_type: string | null
+          referral_code: string
+          referrer_id: string
+          referrer_type: string
+          reward_amount: number | null
+          reward_currency: string | null
+          reward_issued_at: string | null
+          reward_status: string | null
+          reward_type: string
+          status: string | null
+          target_type: string
+          updated_at: string | null
+          voucher_code: string | null
+          voucher_id: string | null
+        }
+        Insert: {
+          click_count?: number | null
+          completed_at?: string | null
+          completion_booking_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_suspicious?: boolean | null
+          milestone_2_at?: string | null
+          milestone_2_id?: string | null
+          milestone_2_type?: string | null
+          profile_created_at?: string | null
+          referee_email?: string | null
+          referee_id?: string | null
+          referee_type?: string | null
+          referral_code: string
+          referrer_id: string
+          referrer_type: string
+          reward_amount?: number | null
+          reward_currency?: string | null
+          reward_issued_at?: string | null
+          reward_status?: string | null
+          reward_type: string
+          status?: string | null
+          target_type: string
+          updated_at?: string | null
+          voucher_code?: string | null
+          voucher_id?: string | null
+        }
+        Update: {
+          click_count?: number | null
+          completed_at?: string | null
+          completion_booking_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_suspicious?: boolean | null
+          milestone_2_at?: string | null
+          milestone_2_id?: string | null
+          milestone_2_type?: string | null
+          profile_created_at?: string | null
+          referee_email?: string | null
+          referee_id?: string | null
+          referee_type?: string | null
+          referral_code?: string
+          referrer_id?: string
+          referrer_type?: string
+          reward_amount?: number | null
+          reward_currency?: string | null
+          reward_issued_at?: string | null
+          reward_status?: string | null
+          reward_type?: string
+          status?: string | null
+          target_type?: string
+          updated_at?: string | null
+          voucher_code?: string | null
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reserved_slugs: {
         Row: {
@@ -2737,6 +2936,76 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings_guide_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_credits: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          notes: string | null
+          source_id: string | null
+          source_type: string
+          status: string | null
+          used_at: string | null
+          used_on_booking_id: string | null
+          user_id: string
+          withdrawal_amount: number | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          notes?: string | null
+          source_id?: string | null
+          source_type: string
+          status?: string | null
+          used_at?: string | null
+          used_on_booking_id?: string | null
+          user_id: string
+          withdrawal_amount?: number | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          notes?: string | null
+          source_id?: string | null
+          source_type?: string
+          status?: string | null
+          used_at?: string | null
+          used_on_booking_id?: string | null
+          user_id?: string
+          withdrawal_amount?: number | null
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_credits_used_on_booking_id_fkey"
+            columns: ["used_on_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_credits_used_on_booking_id_fkey"
+            columns: ["used_on_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
