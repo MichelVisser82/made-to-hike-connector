@@ -213,14 +213,111 @@ export default function ReferralModal({
           </TabsList>
 
           {/* Tab 1: Share & Invite */}
-          <TabsContent value="share" className="p-6 space-y-6">
-            {/* Hiker Invites Section */}
-            {userType === 'hiker' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  Invite Hikers
-                </h3>
-                
+          <TabsContent value="share" className="p-6">
+            <Tabs defaultValue={userType === 'hiker' ? 'invite-hikers' : 'invite-guides'} className="w-full">
+              {/* Nested tab selector */}
+              <TabsList className={`grid w-full mb-6 ${userType === 'hiker' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {userType === 'hiker' && (
+                  <TabsTrigger value="invite-hikers">Invite Hikers (€25)</TabsTrigger>
+                )}
+                <TabsTrigger value="invite-guides">Invite Guides (€50)</TabsTrigger>
+              </TabsList>
+
+              {/* Hiker Invites Content */}
+              {userType === 'hiker' && (
+                <TabsContent value="invite-hikers" className="space-y-6">
+                  {/* Reward Highlight */}
+                  <Card className="p-6 bg-gradient-to-br from-sage/10 to-sage/5 border-sage/20">
+                    <div className="flex items-start gap-4">
+                      <div className="w-16 h-16 rounded-full bg-sage flex items-center justify-center flex-shrink-0">
+                        <Euro className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-3xl mb-2 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          Earn €25
+                        </h3>
+                        <p className="text-charcoal/70 mb-4">For each hiker who joins and completes their first tour</p>
+                        <Card className="p-4 bg-white border-burgundy/10">
+                          <div className="flex items-start gap-2">
+                            <Award className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-semibold text-charcoal mb-1">They also get €10 welcome discount!</p>
+                              <p className="text-sm text-charcoal/70">
+                                It's a win-win. Your friends get a great discount, and you earn rewards.
+                              </p>
+                            </div>
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Referral Link */}
+                  <div>
+                    <h4 className="font-semibold text-charcoal mb-3">Your Personal Referral Link</h4>
+                    <div className="flex gap-2">
+                      <Input value={links?.hikerLink || ''} readOnly className="bg-cream/50 border-burgundy/20 font-mono text-sm flex-1" />
+                      <Button onClick={() => handleCopy(links?.hikerLink || '', 'hiker')} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
+                        {copiedHiker ? (
+                          <>
+                            <Check className="w-4 h-4 mr-2" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-charcoal/60 mt-2">
+                      Share this unique link to track your hiker referrals automatically
+                    </p>
+                  </div>
+
+                  {/* Email Invitation */}
+                  <div>
+                    <h4 className="font-semibold text-charcoal mb-3">Invite via Email</h4>
+                    <div className="flex gap-2">
+                      <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="bg-white flex-1" />
+                      <Button onClick={handleSendInvite} disabled={isSending || !inviteEmail} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
+                        <Send className="w-4 h-4 mr-2" />
+                        {isSending ? 'Sending...' : 'Send'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-charcoal/60 mt-2">
+                      We'll send them a personalized invitation with your referral link
+                    </p>
+                  </div>
+
+                  {/* Social Media Sharing */}
+                  <div>
+                    <h4 className="font-semibold text-charcoal mb-3">Share on Social Media</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('whatsapp')}>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        WhatsApp
+                      </Button>
+                      <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('facebook')}>
+                        <Facebook className="w-4 h-4 mr-2" />
+                        Facebook
+                      </Button>
+                      <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('twitter')}>
+                        <Twitter className="w-4 h-4 mr-2" />
+                        Twitter
+                      </Button>
+                      <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('linkedin')}>
+                        <Linkedin className="w-4 h-4 mr-2" />
+                        LinkedIn
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+
+              {/* Guide Invites Content */}
+              <TabsContent value="invite-guides" className="space-y-6">
                 {/* Reward Highlight */}
                 <Card className="p-6 bg-gradient-to-br from-sage/10 to-sage/5 border-sage/20">
                   <div className="flex items-start gap-4">
@@ -229,20 +326,9 @@ export default function ReferralModal({
                     </div>
                     <div className="flex-1">
                       <h3 className="text-3xl mb-2 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-                        Earn €25
+                        Earn €50
                       </h3>
-                      <p className="text-charcoal/70 mb-4">For each hiker who joins and completes their first tour</p>
-                      <Card className="p-4 bg-white border-burgundy/10">
-                        <div className="flex items-start gap-2">
-                          <Award className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-semibold text-charcoal mb-1">They also get €10 welcome discount!</p>
-                            <p className="text-sm text-charcoal/70">
-                              It's a win-win. Your friends get a great discount, and you earn rewards.
-                            </p>
-                          </div>
-                        </div>
-                      </Card>
+                      <p className="text-charcoal/70">For each guide who joins and completes their first tour</p>
                     </div>
                   </div>
                 </Card>
@@ -251,9 +337,9 @@ export default function ReferralModal({
                 <div>
                   <h4 className="font-semibold text-charcoal mb-3">Your Personal Referral Link</h4>
                   <div className="flex gap-2">
-                    <Input value={links?.hikerLink || ''} readOnly className="bg-cream/50 border-burgundy/20 font-mono text-sm flex-1" />
-                    <Button onClick={() => handleCopy(links?.hikerLink || '', 'hiker')} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
-                      {copiedHiker ? (
+                    <Input value={links?.guideLink || ''} readOnly className="bg-cream/50 border-burgundy/20 font-mono text-sm flex-1" />
+                    <Button onClick={() => handleCopy(links?.guideLink || '', 'guide')} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
+                      {copiedGuide ? (
                         <>
                           <Check className="w-4 h-4 mr-2" />
                           Copied
@@ -267,7 +353,7 @@ export default function ReferralModal({
                     </Button>
                   </div>
                   <p className="text-xs text-charcoal/60 mt-2">
-                    Share this unique link to track your hiker referrals automatically
+                    Share this unique link to track your guide referrals automatically
                   </p>
                 </div>
 
@@ -308,92 +394,8 @@ export default function ReferralModal({
                     </Button>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Guide Invites Section */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-                Invite Guides
-              </h3>
-              
-              {/* Reward Highlight */}
-              <Card className="p-6 bg-gradient-to-br from-sage/10 to-sage/5 border-sage/20">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 rounded-full bg-sage flex items-center justify-center flex-shrink-0">
-                    <Euro className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-3xl mb-2 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-                      Earn €50
-                    </h3>
-                    <p className="text-charcoal/70">For each guide who joins and completes their first tour</p>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Referral Link */}
-              <div>
-                <h4 className="font-semibold text-charcoal mb-3">Your Personal Referral Link</h4>
-                <div className="flex gap-2">
-                  <Input value={links?.guideLink || ''} readOnly className="bg-cream/50 border-burgundy/20 font-mono text-sm flex-1" />
-                  <Button onClick={() => handleCopy(links?.guideLink || '', 'guide')} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
-                    {copiedGuide ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 mr-2" />
-                        Copy
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <p className="text-xs text-charcoal/60 mt-2">
-                  Share this unique link to track your guide referrals automatically
-                </p>
-              </div>
-
-              {/* Email Invitation */}
-              <div>
-                <h4 className="font-semibold text-charcoal mb-3">Invite via Email</h4>
-                <div className="flex gap-2">
-                  <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="bg-white flex-1" />
-                  <Button onClick={handleSendInvite} disabled={isSending || !inviteEmail} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
-                    <Send className="w-4 h-4 mr-2" />
-                    {isSending ? 'Sending...' : 'Send'}
-                  </Button>
-                </div>
-                <p className="text-xs text-charcoal/60 mt-2">
-                  We'll send them a personalized invitation with your referral link
-                </p>
-              </div>
-
-              {/* Social Media Sharing */}
-              <div>
-                <h4 className="font-semibold text-charcoal mb-3">Share on Social Media</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('whatsapp')}>
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp
-                  </Button>
-                  <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('facebook')}>
-                    <Facebook className="w-4 h-4 mr-2" />
-                    Facebook
-                  </Button>
-                  <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('twitter')}>
-                    <Twitter className="w-4 h-4 mr-2" />
-                    Twitter
-                  </Button>
-                  <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('linkedin')}>
-                    <Linkedin className="w-4 h-4 mr-2" />
-                    LinkedIn
-                  </Button>
-                </div>
-              </div>
-            </div>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* Tab 2: Track Referrals */}
