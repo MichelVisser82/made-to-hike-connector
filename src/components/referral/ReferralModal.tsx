@@ -140,13 +140,13 @@ export default function ReferralModal({
       // Error already handled in hook
     }
   };
-  const handleShareSocial = (platform: 'whatsapp' | 'facebook' | 'twitter' | 'linkedin') => {
+  const handleShareSocial = (platform: 'whatsapp' | 'facebook' | 'x' | 'linkedin') => {
     const encodedMessage = encodeURIComponent(shareMessage);
     const encodedUrl = encodeURIComponent(primaryLink || '');
     const urls = {
       whatsapp: `https://wa.me/?text=${encodedMessage}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodedMessage}`,
+      x: `https://x.com/intent/tweet?text=${encodedMessage}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
     };
     window.open(urls[platform], '_blank');
@@ -338,9 +338,9 @@ export default function ReferralModal({
                         <Facebook className="w-4 h-4 mr-2" />
                         Facebook
                       </Button>
-                      <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white transition-colors" onClick={() => handleShareSocial('twitter')}>
+                      <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white transition-colors" onClick={() => handleShareSocial('x')}>
                         <Twitter className="w-4 h-4 mr-2" />
-                        Twitter
+                        X
                       </Button>
                       <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white transition-colors" onClick={() => handleShareSocial('linkedin')}>
                         <Linkedin className="w-4 h-4 mr-2" />
@@ -447,9 +447,9 @@ export default function ReferralModal({
                       <Facebook className="w-4 h-4 mr-2" />
                       Facebook
                     </Button>
-                    <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white transition-colors" onClick={() => handleShareSocial('twitter')}>
+                    <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white transition-colors" onClick={() => handleShareSocial('x')}>
                       <Twitter className="w-4 h-4 mr-2" />
-                      Twitter
+                      X
                     </Button>
                     <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy hover:text-white transition-colors" onClick={() => handleShareSocial('linkedin')}>
                       <Linkedin className="w-4 h-4 mr-2" />
