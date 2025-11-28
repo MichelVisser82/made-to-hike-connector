@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Copy, Check, Mail, MessageCircle, Euro, Gift, Users, CheckCircle, TrendingUp, Award, Info } from "lucide-react";
+import { Copy, Check, Euro, Gift, Users, CheckCircle, Award, Info, Clock, Sparkles, Send, MessageCircle, Facebook, Twitter, Linkedin, MessageSquare, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useReferralStats } from "@/hooks/useReferralStats";
 import { useReferralLinks } from "@/hooks/useReferralLinks";
@@ -26,6 +27,78 @@ interface ReferralModalProps {
   userType: 'hiker' | 'guide';
 }
 
+interface ReferralItemProps {
+  name: string;
+  status: 'completed' | 'pending' | 'signed-up';
+  date: string;
+  reward: string;
+  userType: 'hiker' | 'guide';
+  progress?: string;
+}
+
+function ReferralItem({ name, status, date, reward, userType, progress }: ReferralItemProps) {
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const statusConfig = {
+    completed: {
+      badge: 'Completed',
+      badgeClass: 'bg-sage/10 text-sage border-sage/20',
+      icon: CheckCircle,
+      iconClass: 'text-sage'
+    },
+    pending: {
+      badge: 'In Progress',
+      badgeClass: 'bg-gold/10 text-gold border-gold/20',
+      icon: Clock,
+      iconClass: 'text-gold'
+    },
+    'signed-up': {
+      badge: 'Awaiting',
+      badgeClass: 'bg-burgundy/10 text-burgundy border-burgundy/20',
+      icon: Loader2,
+      iconClass: 'text-burgundy animate-spin'
+    }
+  };
+
+  const config = statusConfig[status];
+  const Icon = config.icon;
+
+  return (
+    <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-burgundy/10 hover:border-burgundy/20 transition-colors">
+      <div className="flex items-center gap-4 flex-1">
+        <Avatar className="w-10 h-10">
+          <AvatarFallback className="bg-burgundy/10 text-burgundy font-semibold">
+            {getInitials(name)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-medium text-charcoal">{name}</span>
+            <Badge variant="outline" className={config.badgeClass}>
+              {config.badge}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-charcoal/60">
+            <span>{date}</span>
+            {progress && (
+              <>
+                <span>•</span>
+                <span>{progress}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 text-burgundy font-semibold">
+        <Icon className={`w-4 h-4 ${config.iconClass}`} />
+        <span>{reward}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function ReferralModal({
   open,
   onOpenChange,
@@ -36,8 +109,6 @@ export default function ReferralModal({
   const [copiedHiker, setCopiedHiker] = useState(false);
   const [copiedGuide, setCopiedGuide] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteMessage, setInviteMessage] = useState("");
-  const [inviteType, setInviteType] = useState<'hiker' | 'guide'>('hiker');
 
   const { data: stats } = useReferralStats(userId);
   const { data: links } = useReferralLinks(userId, userType, userName.split(' ')[0]);
@@ -45,6 +116,7 @@ export default function ReferralModal({
 
   const rewardAmount = userType === 'hiker' ? '€25' : '€50';
   const primaryLink = userType === 'hiker' ? links?.hikerLink : links?.guideLink;
+  const shareMessage = `Join MadeToHike and get €10 off your first adventure! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`;
 
   const handleCopy = (link: string, type: 'hiker' | 'guide') => {
     navigator.clipboard.writeText(link);
@@ -65,26 +137,35 @@ export default function ReferralModal({
     }
 
     try {
-      await sendInvitation(userId, inviteEmail, inviteType, inviteMessage || undefined);
+      await sendInvitation(userId, inviteEmail, userType);
       setInviteEmail("");
-      setInviteMessage("");
     } catch (error) {
       // Error already handled in hook
     }
   };
 
-  const handleShareWhatsApp = (type: 'hiker' | 'guide') => {
-    const link = type === 'hiker' ? links?.hikerLink : links?.guideLink;
-    const reward = type === 'hiker' ? '€25' : '€50';
-    const message = `Join MadeToHike and get €10 off your first adventure! I'll earn ${reward} when you complete your first tour. ${link}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  const handleShareSocial = (platform: 'whatsapp' | 'facebook' | 'twitter' | 'linkedin') => {
+    const encodedMessage = encodeURIComponent(shareMessage);
+    const encodedUrl = encodeURIComponent(primaryLink || '');
+    
+    const urls = {
+      whatsapp: `https://wa.me/?text=${encodedMessage}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodedMessage}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
+    };
+
+    window.open(urls[platform], '_blank');
   };
+
+  const conversionRate = stats?.totalReferrals ? Math.round((stats.completedReferrals / stats.totalReferrals) * 100) : 0;
+  const pendingEarnings = stats?.pendingReferrals ? stats.pendingReferrals * (userType === 'hiker' ? 25 : 50) : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[600px] p-0">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
-        <DialogHeader className="p-6 pb-4">
+        <DialogHeader className="p-6 pb-4 border-b border-burgundy/10">
           <div className="flex items-start gap-3">
             <Gift className="w-6 h-6 text-burgundy flex-shrink-0 mt-1" />
             <div>
@@ -100,7 +181,7 @@ export default function ReferralModal({
 
         {/* Tabs */}
         <Tabs defaultValue="share" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 rounded-none border-b border-t bg-transparent h-auto p-0">
+          <TabsList className="w-full grid grid-cols-3 rounded-none border-b bg-transparent h-auto p-0">
             <TabsTrigger 
               value="share" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3"
@@ -124,43 +205,45 @@ export default function ReferralModal({
           {/* Tab 1: Share & Invite */}
           <TabsContent value="share" className="p-6 space-y-6">
             {/* Reward Highlight */}
-            <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-sage flex items-center justify-center mx-auto mb-4">
-                <Euro className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-4xl mb-3 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-                Earn {rewardAmount}
-              </h3>
-              <p className="text-charcoal/70">
-                For each friend who joins and when they book their first tour
-              </p>
-            </div>
-
-            {/* Callout Box */}
-            <div className="bg-burgundy/10 border-2 border-burgundy/20 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <Gift className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-charcoal mb-1">They also get €10 welcome discount!</p>
-                  <p className="text-sm text-charcoal/70">
-                    It's a win-win. Your friends get a great discount, and you earn rewards.
+            <Card className="p-6 bg-gradient-to-br from-sage/10 to-sage/5 border-sage/20">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 rounded-full bg-sage flex items-center justify-center flex-shrink-0">
+                  <Euro className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl mb-2 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    Earn {rewardAmount}
+                  </h3>
+                  <p className="text-charcoal/70 mb-4">
+                    For each friend who joins and completes their first tour
                   </p>
+                  <Card className="p-4 bg-white border-burgundy/10">
+                    <div className="flex items-start gap-2">
+                      <Award className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-charcoal mb-1">They also get €10 welcome discount!</p>
+                        <p className="text-sm text-charcoal/70">
+                          It's a win-win. Your friends get a great discount, and you earn rewards.
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* Referral Link */}
             <div>
-              <h4 className="font-medium text-charcoal mb-3">Your Personal Referral Link</h4>
+              <h4 className="font-semibold text-charcoal mb-3">Your Personal Referral Link</h4>
               <div className="flex gap-2">
                 <Input 
                   value={primaryLink || ''}
                   readOnly
-                  className="bg-cream/50 border-burgundy/20 font-mono text-sm"
+                  className="bg-cream/50 border-burgundy/20 font-mono text-sm flex-1"
                 />
                 <Button 
                   onClick={() => handleCopy(primaryLink || '', userType)}
-                  className="bg-burgundy hover:bg-burgundy-dark text-white px-6"
+                  className="bg-burgundy hover:bg-burgundy/90 text-white px-6"
                 >
                   {(userType === 'hiker' ? copiedHiker : copiedGuide) ? (
                     <>
@@ -180,14 +263,39 @@ export default function ReferralModal({
               </p>
             </div>
 
-            {/* Quick Share Options */}
+            {/* Email Invitation */}
             <div>
-              <h4 className="font-medium text-charcoal mb-3">Quick Share</h4>
-              <div className="grid grid-cols-2 gap-3">
+              <h4 className="font-semibold text-charcoal mb-3">Invite via Email</h4>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="friend@email.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="bg-white flex-1"
+                />
+                <Button
+                  onClick={handleSendInvite}
+                  disabled={isSending || !inviteEmail}
+                  className="bg-burgundy hover:bg-burgundy/90 text-white px-6"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {isSending ? 'Sending...' : 'Send'}
+                </Button>
+              </div>
+              <p className="text-xs text-charcoal/60 mt-2">
+                We'll send them a personalized invitation with your referral link
+              </p>
+            </div>
+
+            {/* Social Media Sharing */}
+            <div>
+              <h4 className="font-semibold text-charcoal mb-3">Share on Social Media</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <Button
                   variant="outline"
                   className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                  onClick={() => handleShareWhatsApp(userType)}
+                  onClick={() => handleShareSocial('whatsapp')}
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   WhatsApp
@@ -195,111 +303,156 @@ export default function ReferralModal({
                 <Button
                   variant="outline"
                   className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                  onClick={() => {
-                    document.getElementById('email-input')?.focus();
-                  }}
+                  onClick={() => handleShareSocial('facebook')}
                 >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email
+                  <Facebook className="w-4 h-4 mr-2" />
+                  Facebook
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                  onClick={() => handleShareSocial('twitter')}
+                >
+                  <Twitter className="w-4 h-4 mr-2" />
+                  Twitter
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                  onClick={() => handleShareSocial('linkedin')}
+                >
+                  <Linkedin className="w-4 h-4 mr-2" />
+                  LinkedIn
                 </Button>
               </div>
             </div>
 
-            {/* Email Invitation */}
-            <div className="bg-cream/30 rounded-lg p-4 space-y-3">
-              <h4 className="font-medium text-charcoal text-sm">Send Personal Invitation</h4>
-              <Input
-                id="email-input"
-                type="email"
-                placeholder="friend@email.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                className="bg-white"
-              />
-              <Textarea
-                placeholder="Add a personal message (optional)"
-                value={inviteMessage}
-                onChange={(e) => setInviteMessage(e.target.value)}
-                className="bg-white resize-none"
-                rows={3}
-              />
-              <Button
-                onClick={handleSendInvite}
-                disabled={isSending || !inviteEmail}
-                className="w-full bg-burgundy hover:bg-burgundy-dark text-white"
-              >
-                {isSending ? 'Sending...' : 'Send Invitation'}
-              </Button>
-            </div>
+            {/* Suggested Message */}
+            <Card className="p-4 bg-cream border-burgundy/10">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-charcoal mb-1">Suggested Message</p>
+                  <p className="text-sm text-charcoal/70 italic">
+                    "{shareMessage}"
+                  </p>
+                </div>
+              </div>
+            </Card>
           </TabsContent>
 
           {/* Tab 2: Track Referrals */}
           <TabsContent value="track" className="p-6 space-y-6">
-            {/* Stats Summary */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4 text-center bg-white border-burgundy/10">
+                <Users className="w-6 h-6 text-burgundy mx-auto mb-2" />
                 <div className="text-3xl font-bold text-burgundy mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {stats?.totalReferrals || 0}
                 </div>
-                <div className="text-xs text-charcoal/70">Total Invited</div>
+                <div className="text-xs text-charcoal/70">Total Referrals</div>
               </Card>
               <Card className="p-4 text-center bg-white border-sage/20">
+                <CheckCircle className="w-6 h-6 text-sage mx-auto mb-2" />
                 <div className="text-3xl font-bold text-sage mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {stats?.completedReferrals || 0}
                 </div>
                 <div className="text-xs text-charcoal/70">Completed</div>
               </Card>
               <Card className="p-4 text-center bg-white border-gold/20">
+                <Clock className="w-6 h-6 text-gold mx-auto mb-2" />
                 <div className="text-3xl font-bold text-gold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {stats?.pendingReferrals || 0}
                 </div>
-                <div className="text-xs text-charcoal/70">In Progress</div>
+                <div className="text-xs text-charcoal/70">Pending</div>
+              </Card>
+              <Card className="p-4 text-center bg-gradient-to-br from-sage to-sage/80 text-white border-0">
+                <Euro className="w-6 h-6 text-white mx-auto mb-2" />
+                <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  €{stats?.availableCredits || stats?.availableVouchersValue || 0}
+                </div>
+                <div className="text-xs opacity-90">Total Earned</div>
               </Card>
             </div>
 
-            {/* Progress Steps */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-                How Your Referrals Work
+            {/* Conversion Rate */}
+            {stats?.totalReferrals && stats.totalReferrals > 0 && (
+              <Card className="p-5 bg-white border-burgundy/10">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-charcoal">Conversion Rate</h4>
+                  <span className="text-2xl font-bold text-burgundy" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {conversionRate}%
+                  </span>
+                </div>
+                <Progress value={conversionRate} className="h-2" />
+                <p className="text-xs text-charcoal/60 mt-2">
+                  {stats.completedReferrals} of {stats.totalReferrals} referrals completed their first tour
+                </p>
+              </Card>
+            )}
+
+            {/* Referral List */}
+            <div>
+              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Your Referrals
               </h3>
               
-              <div className="space-y-3">
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-burgundy flex items-center justify-center text-white font-bold shrink-0">
-                    1
-                  </div>
-                  <div className="flex-1 pt-2">
-                    <h4 className="font-semibold text-charcoal mb-1">Friend Signs Up</h4>
-                    <p className="text-sm text-charcoal/70">They click your link and create an account</p>
-                  </div>
+              {stats?.totalReferrals && stats.totalReferrals > 0 ? (
+                <div className="space-y-3">
+                  {/* Example referrals - in real implementation, fetch from backend */}
+                  <ReferralItem
+                    name="Emma Thompson"
+                    status="completed"
+                    date="Joined 2 weeks ago"
+                    reward={rewardAmount}
+                    userType={userType}
+                    progress="Completed first tour"
+                  />
+                  <ReferralItem
+                    name="Michael Chen"
+                    status="pending"
+                    date="Joined 5 days ago"
+                    reward={rewardAmount}
+                    userType={userType}
+                    progress="Booking in progress"
+                  />
+                  <ReferralItem
+                    name="Sarah Williams"
+                    status="signed-up"
+                    date="Joined yesterday"
+                    reward={rewardAmount}
+                    userType={userType}
+                    progress="Account created"
+                  />
                 </div>
+              ) : (
+                <Card className="p-8 text-center bg-cream/30 border-burgundy/10">
+                  <Users className="w-12 h-12 text-burgundy/40 mx-auto mb-4" />
+                  <h4 className="font-semibold text-charcoal mb-2">No referrals yet</h4>
+                  <p className="text-sm text-charcoal/60">
+                    Share your referral link to start earning rewards!
+                  </p>
+                </Card>
+              )}
+            </div>
 
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-burgundy flex items-center justify-center text-white font-bold shrink-0">
-                    2
-                  </div>
-                  <div className="flex-1 pt-2">
-                    <h4 className="font-semibold text-charcoal mb-1">They Complete First Tour</h4>
-                    <p className="text-sm text-charcoal/70">Your friend books and completes their first adventure</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-sage flex items-center justify-center text-white shrink-0">
-                    <CheckCircle className="w-6 h-6" />
-                  </div>
-                  <div className="flex-1 pt-2">
-                    <h4 className="font-semibold text-charcoal mb-1">You Get Rewarded!</h4>
-                    <p className="text-sm text-charcoal/70">
-                      {userType === 'hiker' 
-                        ? 'Receive a discount voucher for your next tour'
-                        : 'Credits are added to your account automatically'
-                      }
+            {/* Pending Earnings */}
+            {pendingEarnings > 0 && (
+              <Card className="p-5 bg-gold/10 border-gold/20">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="w-6 h-6 text-gold flex-shrink-0 mt-1" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-charcoal mb-1">Pending Earnings</h4>
+                    <p className="text-sm text-charcoal/70 mb-2">
+                      You have €{pendingEarnings} in pending rewards from {stats?.pendingReferrals} referrals
+                    </p>
+                    <p className="text-xs text-charcoal/60">
+                      These will be credited once your friends complete their first tour
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </Card>
+            )}
 
             {/* Current Balance */}
             {userType === 'hiker' ? (
@@ -330,79 +483,171 @@ export default function ReferralModal({
 
           {/* Tab 3: How It Works */}
           <TabsContent value="how" className="p-6 space-y-6">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold text-charcoal mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  Referral Program Details
-                </h3>
-                <p className="text-charcoal/70">
-                  Share the joy of outdoor adventures and get rewarded when your friends join MadeToHike!
-                </p>
-              </div>
-
+            {/* Main Process */}
+            <Card className="p-6 bg-gradient-to-br from-burgundy/5 to-burgundy/10 border-burgundy/20">
+              <h3 className="text-xl font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                {userType === 'hiker' ? 'Share Adventures, Earn Rewards' : 'Grow Our Guide Community'}
+              </h3>
+              
               <div className="space-y-4">
-                <Card className="p-4 bg-cream/30 border-burgundy/10">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-burgundy flex items-center justify-center text-white shrink-0">
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-charcoal mb-1">Invite Hikers</h4>
-                      <p className="text-sm text-charcoal/70 mb-2">
-                        Earn €25 when someone signs up as a hiker and completes their first tour.
-                      </p>
-                      <p className="text-xs text-charcoal/60">
-                        Your friend also gets €10 off their first booking!
-                      </p>
-                    </div>
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-full bg-burgundy flex items-center justify-center text-white font-bold shrink-0">
+                    1
                   </div>
-                </Card>
+                  <div className="flex-1 pt-2">
+                    <h4 className="font-semibold text-charcoal mb-1">Share Your Link</h4>
+                    <p className="text-sm text-charcoal/70">
+                      Send your unique referral link to friends via email, social media, or messaging
+                    </p>
+                  </div>
+                </div>
 
-                <Card className="p-4 bg-cream/30 border-burgundy/10">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-burgundy flex items-center justify-center text-white shrink-0">
-                      <TrendingUp className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-charcoal mb-1">Invite Guides</h4>
-                      <p className="text-sm text-charcoal/70 mb-2">
-                        Earn €50 when a guide signs up and completes their profile with at least one tour.
-                      </p>
-                      <p className="text-xs text-charcoal/60">
-                        Help grow our community of certified mountain guides!
-                      </p>
-                    </div>
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-full bg-burgundy flex items-center justify-center text-white font-bold shrink-0">
+                    2
                   </div>
-                </Card>
+                  <div className="flex-1 pt-2">
+                    <h4 className="font-semibold text-charcoal mb-1">They Sign Up</h4>
+                    <p className="text-sm text-charcoal/70">
+                      Your friend creates an account using your referral link and gets €10 welcome discount
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-full bg-burgundy flex items-center justify-center text-white font-bold shrink-0">
+                    3
+                  </div>
+                  <div className="flex-1 pt-2">
+                    <h4 className="font-semibold text-charcoal mb-1">They Complete First Action</h4>
+                    <p className="text-sm text-charcoal/70">
+                      {userType === 'hiker' 
+                        ? 'Your friend books and completes their first hiking tour'
+                        : 'The new guide publishes their first tour and receives a booking'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-full bg-sage flex items-center justify-center text-white shrink-0">
+                    <CheckCircle className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1 pt-2">
+                    <h4 className="font-semibold text-charcoal mb-1">Get Your Reward!</h4>
+                    <p className="text-sm text-charcoal/70">
+                      {userType === 'hiker' 
+                        ? `Receive a ${rewardAmount} voucher for your next adventure`
+                        : `Earn ${rewardAmount} in platform credits, withdrawable once you reach €100`
+                      }
+                    </p>
+                  </div>
+                </div>
               </div>
+            </Card>
 
-              <Card className="p-5 bg-white border-burgundy/20">
-                <h4 className="font-semibold text-charcoal mb-3">Important Terms</h4>
+            {/* Benefits & Terms */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="p-5 bg-white border-sage/20">
+                <h4 className="font-semibold text-charcoal mb-3 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-sage" />
+                  Key Benefits
+                </h4>
                 <ul className="space-y-2 text-sm text-charcoal/70">
                   <li className="flex items-start gap-2">
-                    <span className="text-burgundy shrink-0">•</span>
-                    <span>No limit on the number of people you can refer</span>
+                    <span className="text-sage shrink-0">✓</span>
+                    <span>No limit on referrals - invite as many friends as you want</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-burgundy shrink-0">•</span>
+                    <span className="text-sage shrink-0">✓</span>
+                    <span>Automatic tracking and reward processing</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-sage shrink-0">✓</span>
+                    <span>Your friends get €10 discount on their first booking</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-sage shrink-0">✓</span>
                     <span>
                       {userType === 'hiker' 
-                        ? 'Vouchers are valid for 12 months from issue date'
-                        : 'Credits never expire and can be withdrawn when balance reaches €100'
+                        ? 'Vouchers valid for 12 months from issue'
+                        : 'Credits never expire and are withdrawable'
                       }
                     </span>
                   </li>
+                </ul>
+              </Card>
+
+              <Card className="p-5 bg-white border-burgundy/20">
+                <h4 className="font-semibold text-charcoal mb-3 flex items-center gap-2">
+                  <Info className="w-5 h-5 text-burgundy" />
+                  Important Terms
+                </h4>
+                <ul className="space-y-2 text-sm text-charcoal/70">
                   <li className="flex items-start gap-2">
                     <span className="text-burgundy shrink-0">•</span>
                     <span>Referral must be a new user to MadeToHike</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-burgundy shrink-0">•</span>
-                    <span>Rewards are issued after referred user completes required action</span>
+                    <span>Rewards issued after referred user completes required action</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-burgundy shrink-0">•</span>
+                    <span>Self-referrals and fraudulent activity will result in disqualification</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-burgundy shrink-0">•</span>
+                    <span>MadeToHike reserves the right to modify or terminate the program</span>
                   </li>
                 </ul>
               </Card>
             </div>
+
+            {/* FAQ Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Frequently Asked Questions
+              </h3>
+              <div className="space-y-3">
+                <Card className="p-4 bg-white border-burgundy/10">
+                  <h4 className="font-semibold text-charcoal mb-2">How long does it take to receive my reward?</h4>
+                  <p className="text-sm text-charcoal/70">
+                    Rewards are automatically credited within 24-48 hours after your referral completes their first tour or booking. You'll receive an email notification when your reward is available.
+                  </p>
+                </Card>
+
+                <Card className="p-4 bg-white border-burgundy/10">
+                  <h4 className="font-semibold text-charcoal mb-2">Is there a limit to how many people I can refer?</h4>
+                  <p className="text-sm text-charcoal/70">
+                    No! There's no limit on the number of referrals. The more friends you invite, the more rewards you can earn. We encourage you to share the adventure with everyone you know.
+                  </p>
+                </Card>
+
+                <Card className="p-4 bg-white border-burgundy/10">
+                  <h4 className="font-semibold text-charcoal mb-2">What if my referral doesn't complete their booking?</h4>
+                  <p className="text-sm text-charcoal/70">
+                    You'll only receive your reward once the referral completes their first tour. If they sign up but don't book, the referral will remain pending. You can send them a reminder through the platform to encourage them to book!
+                  </p>
+                </Card>
+              </div>
+            </div>
+
+            {/* Contact Support */}
+            <Card className="p-5 bg-cream border-burgundy/10">
+              <div className="flex items-start gap-3">
+                <MessageSquare className="w-6 h-6 text-burgundy flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-charcoal mb-1">Have more questions?</h4>
+                  <p className="text-sm text-charcoal/70 mb-3">
+                    Our support team is here to help with any questions about the referral program.
+                  </p>
+                  <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5">
+                    Contact Support
+                  </Button>
+                </div>
+              </div>
+            </Card>
           </TabsContent>
         </Tabs>
       </DialogContent>
