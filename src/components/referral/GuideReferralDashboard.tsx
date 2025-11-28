@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useReferralStats } from '@/hooks/useReferralStats';
 import { useReferralLinks } from '@/hooks/useReferralLinks';
 import { useSendInvitation } from '@/hooks/useSendInvitation';
+import { useRequestWithdrawal } from '@/hooks/useRequestWithdrawal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Gift, Copy, Mail, Users, Euro, TrendingUp } from 'lucide-react';
+import { Gift, Copy, Mail, Users, Euro, TrendingUp, Loader2, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -19,6 +20,7 @@ export const GuideReferralDashboard = ({ userId }: { userId: string }) => {
     profile?.name?.split(' ')[0] || 'Friend'
   );
   const { sendInvitation, isLoading: sendingInvitation } = useSendInvitation();
+  const { requestWithdrawal, isLoading: withdrawalLoading } = useRequestWithdrawal();
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [personalMessage, setPersonalMessage] = useState('');
@@ -40,6 +42,19 @@ export const GuideReferralDashboard = ({ userId }: { userId: string }) => {
       setPersonalMessage('');
     } catch (error) {
       // Error already handled in hook
+    }
+  };
+
+  const handleWithdrawal = async () => {
+    if (!stats || stats.availableCredits < 100) {
+      toast.error('Minimum withdrawal amount is €100');
+      return;
+    }
+    
+    const result = await requestWithdrawal(stats.availableCredits);
+    if (result.success) {
+      // Refresh stats after withdrawal
+      window.location.reload();
     }
   };
 
@@ -113,10 +128,21 @@ export const GuideReferralDashboard = ({ userId }: { userId: string }) => {
             )}
           </div>
           <Button
-            disabled={(stats?.availableCredits || 0) < 100}
+            onClick={handleWithdrawal}
+            disabled={(stats?.availableCredits || 0) < 100 || withdrawalLoading}
             variant="default"
           >
-            Request Withdrawal
+            {withdrawalLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Banknote className="mr-2 h-4 w-4" />
+                Request Withdrawal
+              </>
+            )}
           </Button>
         </div>
         {(stats?.availableCredits || 0) < 100 && (

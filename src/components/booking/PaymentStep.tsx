@@ -173,7 +173,8 @@ export const PaymentStep = ({
           onUpdatePricing({
             ...pricing,
             discount: newDiscount,
-            total: newTotal
+            total: newTotal,
+            appliedCodeId: voucherData?.id // Store the discount code ID for usage tracking
           });
 
           (form.setValue as any)('discountCode', discountCode.trim().toUpperCase());

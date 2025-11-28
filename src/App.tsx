@@ -26,6 +26,8 @@ const GuidesPage = lazy(() => import("./pages/GuidesPage"));
 const CertificationsPage = lazy(() => import("./pages/CertificationsPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
 const ParticipantPage = lazy(() => import("./pages/ParticipantPage"));
+const JoinPage = lazy(() => import("./pages/JoinPage").then(m => ({ default: m.JoinPage })));
+const GuideJoinPage = lazy(() => import("./pages/GuideJoinPage").then(m => ({ default: m.GuideJoinPage })));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail").then(m => ({ default: m.VerifyEmail })));
 const BookingFlowNew = lazy(() => import("./components/pages/BookingFlowNew").then(m => ({ default: m.BookingFlowNew })));
 const BookingSuccess = lazy(() => import("./components/pages/BookingSuccess").then(m => ({ default: m.BookingSuccess })));
@@ -66,12 +68,14 @@ const App: React.FC = () => {
               <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/join" element={<Suspense fallback={<PageLoader />}><JoinPage /></Suspense>} />
             <Route path="/tours" element={<ToursPage />} />
             <Route path="/verify-email" element={<Suspense fallback={<PageLoader />}><VerifyEmail /></Suspense>} />
             <Route path="/email-test" element={<Suspense fallback={<PageLoader />}><EmailTest /></Suspense>} />
             <Route path="/tours/:tourSlug/book" element={<Suspense fallback={<PageLoader />}><BookingFlowNew /></Suspense>} />
             <Route path="/tours/:slug" element={<Suspense fallback={<PageLoader />}><TourPage /></Suspense>} />
             <Route path="/guides" element={<Suspense fallback={<PageLoader />}><GuidesPage /></Suspense>} />
+            <Route path="/guides/join" element={<Suspense fallback={<PageLoader />}><GuideJoinPage /></Suspense>} />
             <Route path="/guide/signup" element={<Suspense fallback={<PageLoader />}><GuideSignupPage /></Suspense>} />
             <Route path="/certifications" element={<Suspense fallback={<PageLoader />}><CertificationsPage /></Suspense>} />
             <Route path="/booking-success" element={<Suspense fallback={<PageLoader />}><BookingSuccess /></Suspense>} />
