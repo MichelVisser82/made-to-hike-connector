@@ -19,6 +19,7 @@ import WeatherForecastCard from './WeatherForecastCard';
 import { ParticipantCard } from './ParticipantCard';
 import { useState as useDialogState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import PackingListManagerV2 from '@/components/packing-list/PackingListManagerV2';
 import type { PackingListData } from '@/types/packingList';
 interface TourBooking {
@@ -91,6 +92,7 @@ export function TourBookingDetailPage() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [packingListModalOpen, setPackingListModalOpen] = useState(false);
   const [completingTour, setCompletingTour] = useState(false);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   useEffect(() => {
     if (tourSlug && user) {
       fetchTourAndBookings();
@@ -564,7 +566,8 @@ const handleCompleteTour = async () => {
           {bookings.length > 0 && bookings.every(b => b.status === 'confirmed') && (
             <div className="absolute top-4 right-4">
               <Button
-                onClick={handleCompleteTour}
+                onClick={() => setShowCompleteDialog(true)}
+                disabled={completingTour}
                 className="bg-burgundy hover:bg-burgundy-dark text-white shadow-lg"
               >
                 <Check className="h-4 w-4 mr-2" />
@@ -797,5 +800,31 @@ const handleCompleteTour = async () => {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Complete Tour Confirmation Dialog */}
+      <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark Tour as Completed?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will mark all {bookings.length} booking{bookings.length > 1 ? 's' : ''} for this tour date as completed and trigger review requests to all participants.
+              <br /><br />
+              <strong>This action cannot be undone.</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowCompleteDialog(false);
+                handleCompleteTour();
+              }}
+              className="bg-burgundy hover:bg-burgundy-dark text-white"
+            >
+              Mark as Completed
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>;
 }
