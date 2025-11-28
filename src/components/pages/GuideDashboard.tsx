@@ -245,6 +245,32 @@ export function GuideDashboard({
 
       if (error) throw error;
 
+      // Check if this is the guide's first published tour and track referral progress
+      try {
+        const { data: publishedTours } = await supabase
+          .from('tours')
+          .select('id')
+          .eq('guide_id', user?.id)
+          .eq('is_active', true);
+
+        // If this is the first published tour, track referral milestone
+        if (publishedTours && publishedTours.length === 1) {
+          await supabase.functions.invoke('track-referral-progress', {
+            body: {
+              step: 'milestone_2',
+              userId: user?.id,
+              milestoneData: {
+                type: 'first_tour_published',
+                id: tour.id
+              }
+            }
+          });
+        }
+      } catch (referralError) {
+        console.error('Error tracking referral progress:', referralError);
+        // Don't fail the publish if referral tracking fails
+      }
+
       toast({
         title: 'Success',
         description: 'Tour published and now live! You can start accepting bookings.',
