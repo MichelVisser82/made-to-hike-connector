@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export const useSendInvitation = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const sendInvitation = async (
     userId: string,
@@ -25,6 +27,9 @@ export const useSendInvitation = () => {
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+
+      // Refresh referral stats so Track Referrals updates immediately
+      await queryClient.invalidateQueries({ queryKey: ['referral-stats', userId] });
 
       toast.success('Invitation sent successfully!');
       return data;
