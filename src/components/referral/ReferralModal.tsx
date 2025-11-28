@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -101,6 +102,7 @@ export default function ReferralModal({
   const [copiedHiker, setCopiedHiker] = useState(false);
   const [copiedGuide, setCopiedGuide] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [personalMessage, setPersonalMessage] = useState("");
   const {
     data: stats
   } = useReferralStats(userId);
@@ -131,8 +133,9 @@ export default function ReferralModal({
       return;
     }
     try {
-      await sendInvitation(userId, inviteEmail, userType);
+      await sendInvitation(userId, inviteEmail, userType, personalMessage);
       setInviteEmail("");
+      setPersonalMessage("");
     } catch (error) {
       // Error already handled in hook
     }
@@ -279,11 +282,33 @@ export default function ReferralModal({
                   {/* Email Invitation */}
                   <div>
                     <h4 className="font-semibold text-charcoal mb-3">Invite via Email</h4>
-                    <div className="flex gap-2">
-                      <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="bg-white flex-1" />
-                      <Button onClick={handleSendInvite} disabled={isSending || !inviteEmail} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
+                    <div className="space-y-3">
+                      <Input 
+                        type="email" 
+                        placeholder="friend@email.com" 
+                        value={inviteEmail} 
+                        onChange={e => setInviteEmail(e.target.value)} 
+                        className="bg-white" 
+                      />
+                      <div>
+                        <label className="text-sm text-charcoal/70 mb-2 block">
+                          Personal Message (Optional)
+                        </label>
+                        <Textarea
+                          placeholder="I thought you'd love exploring the Alps with certified guides..."
+                          value={personalMessage}
+                          onChange={e => setPersonalMessage(e.target.value)}
+                          className="bg-white resize-none"
+                          rows={3}
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleSendInvite} 
+                        disabled={isSending || !inviteEmail} 
+                        className="bg-burgundy hover:bg-burgundy/90 text-white w-full"
+                      >
                         <Send className="w-4 h-4 mr-2" />
-                        {isSending ? 'Sending...' : 'Send'}
+                        {isSending ? 'Sending...' : 'Send Invitation'}
                       </Button>
                     </div>
                     <p className="text-xs text-charcoal/60 mt-2">
@@ -360,11 +385,33 @@ export default function ReferralModal({
                 {/* Email Invitation */}
                 <div>
                   <h4 className="font-semibold text-charcoal mb-3">Invite via Email</h4>
-                  <div className="flex gap-2">
-                    <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="bg-white flex-1" />
-                    <Button onClick={handleSendInvite} disabled={isSending || !inviteEmail} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
+                  <div className="space-y-3">
+                    <Input 
+                      type="email" 
+                      placeholder="friend@email.com" 
+                      value={inviteEmail} 
+                      onChange={e => setInviteEmail(e.target.value)} 
+                      className="bg-white" 
+                    />
+                    <div>
+                      <label className="text-sm text-charcoal/70 mb-2 block">
+                        Personal Message (Optional)
+                      </label>
+                      <Textarea
+                        placeholder="I thought you'd love exploring the Alps with certified guides..."
+                        value={personalMessage}
+                        onChange={e => setPersonalMessage(e.target.value)}
+                        className="bg-white resize-none"
+                        rows={3}
+                      />
+                    </div>
+                    <Button 
+                      onClick={handleSendInvite} 
+                      disabled={isSending || !inviteEmail} 
+                      className="bg-burgundy hover:bg-burgundy/90 text-white w-full"
+                    >
                       <Send className="w-4 h-4 mr-2" />
-                      {isSending ? 'Sending...' : 'Send'}
+                      {isSending ? 'Sending...' : 'Send Invitation'}
                     </Button>
                   </div>
                   <p className="text-xs text-charcoal/60 mt-2">
