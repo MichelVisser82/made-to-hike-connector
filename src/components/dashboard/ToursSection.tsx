@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -72,6 +73,7 @@ export function ToursSection({
 }: ToursSectionProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'my-tours' | 'custom-tours' | 'calendar' | 'image-library'>(initialTab);
   
   const handleTabChange = (tab: 'my-tours' | 'custom-tours' | 'calendar' | 'image-library') => {
@@ -274,12 +276,20 @@ export function ToursSection({
             <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <div>
+            <div className="flex-1">
               <p className="font-medium text-amber-900 mb-1">Complete Stripe Verification to Publish Tours</p>
-              <p className="text-sm text-amber-800">
+              <p className="text-sm text-amber-800 mb-3">
                 You can create and edit tours as drafts, but you'll need to complete Stripe verification before publishing them live and accepting bookings. 
                 This ensures secure payment processing for you and your hikers.
               </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/settings/payment')}
+                className="bg-white hover:bg-amber-50 border-amber-300 text-amber-900"
+              >
+                Go to Payment & Payout Settings
+              </Button>
             </div>
           </AlertDescription>
         </Alert>
