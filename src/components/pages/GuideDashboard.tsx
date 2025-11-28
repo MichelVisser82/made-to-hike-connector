@@ -23,6 +23,7 @@ import { MoneySection } from '../dashboard/MoneySection';
 import { InboxSection } from '../dashboard/InboxSection';
 import { TodaySection } from '../dashboard/TodaySection';
 import { ToursSection } from '../dashboard/ToursSection';
+import { GuideReferralDashboard } from '@/components/referral/GuideReferralDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Home, Users as UsersIcon, Euro, MessageSquare } from 'lucide-react';
@@ -1015,6 +1016,11 @@ export function GuideDashboard({
               onReplyToReview={handleReplyToReview}
               onUpdateNotificationPreference={handleUpdateNotificationPreference}
             />
+          )}
+
+          {/* REFERRALS Section */}
+          {activeSection === 'referrals' && (
+            <GuideReferralDashboard userId={user.id} />
           )}
         </main>
 

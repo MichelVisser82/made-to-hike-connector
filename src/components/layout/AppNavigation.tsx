@@ -40,7 +40,8 @@ import {
   Headphones,
   Image as ImageIcon,
   ShieldCheck,
-  TrendingUp
+  TrendingUp,
+  Gift
 } from 'lucide-react';
 
 interface AppNavigationProps {
@@ -132,6 +133,7 @@ export function AppNavigation({
     { id: 'tours' as DashboardSection, label: 'Tours', icon: Mountain },
     { id: 'bookings' as DashboardSection, label: 'Bookings', icon: UsersIcon },
     { id: 'money' as DashboardSection, label: 'Money', icon: Euro },
+    { id: 'referrals' as DashboardSection, label: 'Referrals', icon: Gift },
     { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
   ];
 
@@ -389,6 +391,7 @@ export function AppNavigation({
       { id: 'my-trips' as DashboardSection, label: 'My Trips', icon: Mountain },
       { id: 'bookings' as DashboardSection, label: 'Bookings', icon: Calendar },
       { id: 'reviews' as DashboardSection, label: 'Reviews', icon: Star },
+      { id: 'referrals' as DashboardSection, label: 'Referrals', icon: Gift },
       { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
     ];
 

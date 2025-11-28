@@ -241,6 +241,32 @@ serve(async (req) => {
     }
     console.log('Booking created successfully:', booking.id, 'Reference:', booking.booking_reference);
 
+    // Check if this is user's first booking for referral tracking
+    const { count } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('hiker_id', hiker_id);
+
+    if (count === 1) {
+      const { data: userData } = await supabase.auth.admin.getUserById(hiker_id);
+      const refCode = userData?.user?.user_metadata?.referral_code;
+      
+      if (refCode) {
+        console.log('First booking detected, tracking referral milestone_2');
+        try {
+          await supabase.functions.invoke('track-referral-progress', {
+            body: {
+              referralCode: refCode,
+              step: 'milestone_2',
+              milestoneData: { type: 'first_booking', id: booking.id }
+            }
+          });
+        } catch (refError) {
+          console.error('Referral tracking error (non-blocking):', refError);
+        }
+      }
+    }
+
     // Update hiker profile with booking data for future bookings
     console.log('Updating hiker profile with booking information...');
     try {

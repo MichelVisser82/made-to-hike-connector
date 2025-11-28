@@ -1,4 +1,4 @@
-export type DashboardSection = 'today' | 'my-trips' | 'tours' | 'bookings' | 'money' | 'reviews' | 'inbox' | 'overview' | 'support' | 'content' | 'platform' | 'analytics';
+export type DashboardSection = 'today' | 'my-trips' | 'tours' | 'bookings' | 'money' | 'reviews' | 'inbox' | 'overview' | 'support' | 'content' | 'platform' | 'analytics' | 'referrals';
 export type DashboardMode = 'guide' | 'admin' | 'hiker' | null;
 
 export interface DashboardMetric {

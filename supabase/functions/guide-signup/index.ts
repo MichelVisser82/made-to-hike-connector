@@ -37,6 +37,7 @@ serve(async (req) => {
         user_metadata: {
           name: guideData.display_name,
           role: 'guide',
+          referral_code: guideData.referral_code // Capture referral code from guide data
         }
       });
 
@@ -56,6 +57,24 @@ serve(async (req) => {
       } else {
         if (!authData.user) throw new Error('User creation failed');
         userId = authData.user.id;
+
+        // Track referral progress if referral code present
+        if (guideData.referral_code) {
+          console.log('Processing referral code for guide:', guideData.referral_code);
+          try {
+            await supabase.functions.invoke('track-referral-progress', {
+              body: {
+                referralCode: guideData.referral_code,
+                step: 'profile_created',
+                userId: authData.user.id,
+                userType: 'guide'
+              }
+            });
+            console.log('Guide referral progress tracked successfully');
+          } catch (refError) {
+            console.error('Error tracking referral (non-blocking):', refError);
+          }
+        }
       }
     }
 

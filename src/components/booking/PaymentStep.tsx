@@ -119,6 +119,38 @@ export const PaymentStep = ({
     setCodeError('');
 
     try {
+      // First check if it's a user-specific voucher
+      const { data: voucherData } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('code', discountCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (voucherData) {
+        // Check user-specific voucher restrictions
+        if (voucherData.user_id && voucherData.user_id !== userId) {
+          setCodeError('This voucher is assigned to another account');
+          setIsValidatingCode(false);
+          return;
+        }
+
+        // Check single-use vouchers
+        if (voucherData.max_uses === 1 && voucherData.times_used >= 1) {
+          setCodeError('This voucher has already been used');
+          setIsValidatingCode(false);
+          return;
+        }
+
+        // Check minimum purchase
+        if (voucherData.min_purchase_amount && pricing.subtotal < voucherData.min_purchase_amount) {
+          setCodeError(`Minimum purchase of €${voucherData.min_purchase_amount} required`);
+          setIsValidatingCode(false);
+          return;
+        }
+      }
+
+      // Validate via RPC function
       const { data, error } = await supabase.rpc('validate_discount_code', {
         p_code: discountCode.trim().toUpperCase(),
         p_tour_id: tourId,
