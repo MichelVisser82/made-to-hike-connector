@@ -166,9 +166,6 @@ verify_jwt = false
 [functions.process-refund]
 verify_jwt = false
 
-[functions.admin-password-reset]
-verify_jwt = false
-
 # Cron jobs configuration
 [cron]
 enabled = true
