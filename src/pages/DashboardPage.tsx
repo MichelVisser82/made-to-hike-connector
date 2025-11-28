@@ -1,3 +1,4 @@
+// Dashboard page - force rebuild
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams, useLocation } from 'react-router-dom';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
