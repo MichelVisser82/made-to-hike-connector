@@ -391,7 +391,6 @@ export function AppNavigation({
       { id: 'my-trips' as DashboardSection, label: 'My Trips', icon: Mountain },
       { id: 'bookings' as DashboardSection, label: 'Bookings', icon: Calendar },
       { id: 'reviews' as DashboardSection, label: 'Reviews', icon: Star },
-      { id: 'referrals' as DashboardSection, label: 'Referrals', icon: Gift },
       { id: 'inbox' as DashboardSection, label: 'Inbox', icon: MessageSquare },
     ];
 
@@ -579,6 +578,14 @@ export function AppNavigation({
                     >
                       <UserIcon className="w-4 h-4 mr-2" />
                       <span>Profile</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/dashboard?section=referrals')}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
+                    >
+                      <Gift className="w-4 h-4 mr-2" />
+                      <span>Referrals</span>
                     </DropdownMenuItem>
                     
                     <DropdownMenuItem 
