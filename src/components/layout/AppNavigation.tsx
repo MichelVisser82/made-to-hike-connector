@@ -357,6 +357,14 @@ export function AppNavigation({
                     </DropdownMenuItem>
                     
                     <DropdownMenuItem 
+                      onClick={() => navigate('/dashboard?section=referrals')}
+                      className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
+                    >
+                      <Gift className="w-4 h-4 mr-2" />
+                      <span>Referrals</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem 
                       onClick={() => navigate('/settings')}
                       className="cursor-pointer hover:bg-burgundy/5 focus:bg-burgundy/5"
                     >
