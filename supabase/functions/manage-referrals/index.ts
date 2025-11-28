@@ -187,19 +187,28 @@ async function getStats(supabase: any, body: GetStatsRequest) {
 
   if (invitationsError) throw invitationsError;
 
-  // Get all signups with profile email for better matching
+  // Get all signups
   const { data: signups, error: signupsError } = await supabase
     .from('referral_signups')
     .select(`
       *,
       referral_link:referral_links(target_type, reward_amount, reward_type),
-      invitation:referral_invitations(referee_email),
-      profile:profiles(email)
+      invitation:referral_invitations(referee_email)
     `)
     .in('referral_link_id', linkIds)
     .order('created_at', { ascending: false });
 
   if (signupsError) throw signupsError;
+
+  // Fetch profile emails separately for all signups
+  const userIds = signups?.map((s: any) => s.user_id).filter(Boolean) || [];
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, email')
+    .in('id', userIds);
+
+  // Create a map of user_id -> email
+  const profileEmailMap = new Map(profiles?.map((p: any) => [p.id, p.email]) || []);
 
   // Calculate stats
   const stats = {
@@ -228,7 +237,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
       id: signup.id,
       user_id: signup.user_id,
       signup_email: signup.signup_email,
-      profile_email: signup.profile?.email, // Actual current profile email for better matching
+      profile_email: profileEmailMap.get(signup.user_id), // Actual current profile email for better matching
       signup_source: signup.signup_source,
       target_type: signup.referral_link.target_type,
       reward_amount: signup.referral_link.reward_amount,
