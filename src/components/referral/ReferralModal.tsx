@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { Copy, Check, Euro, Gift, Users, CheckCircle, Award, Info, Clock, Sparkles, Send, MessageCircle, Facebook, Twitter, Linkedin, MessageSquare, Loader2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +12,6 @@ import { toast } from "sonner";
 import { useReferralStats } from "@/hooks/useReferralStats";
 import { useReferralLinks } from "@/hooks/useReferralLinks";
 import { useSendInvitation } from "@/hooks/useSendInvitation";
-
 interface ReferralModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,7 +19,6 @@ interface ReferralModalProps {
   userName: string;
   userType: 'hiker' | 'guide';
 }
-
 interface ReferralItemProps {
   name: string;
   status: 'completed' | 'pending' | 'signed-up';
@@ -35,12 +27,17 @@ interface ReferralItemProps {
   userType: 'hiker' | 'guide';
   progress?: string;
 }
-
-function ReferralItem({ name, status, date, reward, userType, progress }: ReferralItemProps) {
+function ReferralItem({
+  name,
+  status,
+  date,
+  reward,
+  userType,
+  progress
+}: ReferralItemProps) {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
   const statusConfig = {
     completed: {
       badge: 'Completed',
@@ -61,12 +58,9 @@ function ReferralItem({ name, status, date, reward, userType, progress }: Referr
       iconClass: 'text-burgundy animate-spin'
     }
   };
-
   const config = statusConfig[status];
   const Icon = config.icon;
-
-  return (
-    <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-burgundy/10 hover:border-burgundy/20 transition-colors">
+  return <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-burgundy/10 hover:border-burgundy/20 transition-colors">
       <div className="flex items-center gap-4 flex-1">
         <Avatar className="w-10 h-10">
           <AvatarFallback className="bg-burgundy/10 text-burgundy font-semibold">
@@ -82,12 +76,10 @@ function ReferralItem({ name, status, date, reward, userType, progress }: Referr
           </div>
           <div className="flex items-center gap-2 text-sm text-charcoal/60">
             <span>{date}</span>
-            {progress && (
-              <>
+            {progress && <>
                 <span>•</span>
                 <span>{progress}</span>
-              </>
-            )}
+              </>}
           </div>
         </div>
       </div>
@@ -95,31 +87,31 @@ function ReferralItem({ name, status, date, reward, userType, progress }: Referr
         <Icon className={`w-4 h-4 ${config.iconClass}`} />
         <span>{reward}</span>
       </div>
-    </div>
-  );
+    </div>;
 }
-
 export default function ReferralModal({
   open,
   onOpenChange,
   userId,
   userName,
-  userType,
+  userType
 }: ReferralModalProps) {
   const [copiedHiker, setCopiedHiker] = useState(false);
   const [copiedGuide, setCopiedGuide] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-
-  const { data: stats } = useReferralStats(userId);
-  const { data: links } = useReferralLinks(userId, userType, userName.split(' ')[0]);
-  const { sendInvitation, isLoading: isSending } = useSendInvitation();
-
+  const {
+    data: stats
+  } = useReferralStats(userId);
+  const {
+    data: links
+  } = useReferralLinks(userId, userType, userName.split(' ')[0]);
+  const {
+    sendInvitation,
+    isLoading: isSending
+  } = useSendInvitation();
   const rewardAmount = userType === 'hiker' ? '€25' : '€50';
   const primaryLink = userType === 'hiker' ? links?.hikerLink : links?.guideLink;
-  const shareMessage = userType === 'hiker' 
-    ? `Join MadeToHike and get €10 off your first adventure! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`
-    : `Join MadeToHike as a guide! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`;
-
+  const shareMessage = userType === 'hiker' ? `Join MadeToHike and get €10 off your first adventure! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}` : `Join MadeToHike as a guide! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`;
   const handleCopy = (link: string, type: 'hiker' | 'guide') => {
     navigator.clipboard.writeText(link);
     if (type === 'hiker') {
@@ -131,13 +123,11 @@ export default function ReferralModal({
     }
     toast.success("Link copied to clipboard!");
   };
-
   const handleSendInvite = async () => {
     if (!inviteEmail) {
       toast.error("Please enter an email address");
       return;
     }
-
     try {
       await sendInvitation(userId, inviteEmail, userType);
       setInviteEmail("");
@@ -145,33 +135,29 @@ export default function ReferralModal({
       // Error already handled in hook
     }
   };
-
   const handleShareSocial = (platform: 'whatsapp' | 'facebook' | 'twitter' | 'linkedin') => {
     const encodedMessage = encodeURIComponent(shareMessage);
     const encodedUrl = encodeURIComponent(primaryLink || '');
-    
     const urls = {
       whatsapp: `https://wa.me/?text=${encodedMessage}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodedMessage}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
     };
-
     window.open(urls[platform], '_blank');
   };
-
-  const conversionRate = stats?.totalReferrals ? Math.round((stats.completedReferrals / stats.totalReferrals) * 100) : 0;
+  const conversionRate = stats?.totalReferrals ? Math.round(stats.completedReferrals / stats.totalReferrals * 100) : 0;
   const pendingEarnings = stats?.pendingReferrals ? stats.pendingReferrals * (userType === 'hiker' ? 25 : 50) : 0;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
         <DialogHeader className="p-6 pb-4 border-b border-burgundy/10">
           <div className="flex items-start gap-3">
             <Gift className="w-6 h-6 text-burgundy flex-shrink-0 mt-1" />
             <div>
-              <DialogTitle className="text-2xl text-charcoal mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <DialogTitle className="text-2xl text-charcoal mb-1" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                 Referral Program
               </DialogTitle>
               <DialogDescription className="text-charcoal/60">
@@ -184,22 +170,13 @@ export default function ReferralModal({
         {/* Tabs */}
         <Tabs defaultValue="share" className="w-full">
           <TabsList className="w-full grid grid-cols-3 rounded-none border-b bg-transparent h-auto p-0">
-            <TabsTrigger 
-              value="share" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3"
-            >
+            <TabsTrigger value="share" className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3">
               Share & Invite
             </TabsTrigger>
-            <TabsTrigger 
-              value="track" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3"
-            >
+            <TabsTrigger value="track" className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3">
               Track Referrals
             </TabsTrigger>
-            <TabsTrigger 
-              value="how" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3"
-            >
+            <TabsTrigger value="how" className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3">
               How It Works
             </TabsTrigger>
           </TabsList>
@@ -213,14 +190,13 @@ export default function ReferralModal({
                   <Euro className="w-8 h-8 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-3xl mb-2 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  <h3 className="text-3xl mb-2 text-charcoal" style={{
+                  fontFamily: 'Playfair Display, serif'
+                }}>
                     Earn {rewardAmount}
                   </h3>
-                  <p className="text-charcoal/70 mb-4">
-                    For each friend who joins and completes their first tour
-                  </p>
-              {userType === 'hiker' && (
-                <Card className="p-4 bg-white border-burgundy/10">
+                  <p className="text-charcoal/70 mb-4">For each guide who joins and completes their first tour</p>
+              {userType === 'hiker' && <Card className="p-4 bg-white border-burgundy/10">
                   <div className="flex items-start gap-2">
                     <Award className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
                     <div>
@@ -230,8 +206,7 @@ export default function ReferralModal({
                       </p>
                     </div>
                   </div>
-                </Card>
-              )}
+                </Card>}
                 </div>
               </div>
             </Card>
@@ -240,26 +215,15 @@ export default function ReferralModal({
             <div>
               <h4 className="font-semibold text-charcoal mb-3">Your Personal Referral Link</h4>
               <div className="flex gap-2">
-                <Input 
-                  value={primaryLink || ''}
-                  readOnly
-                  className="bg-cream/50 border-burgundy/20 font-mono text-sm flex-1"
-                />
-                <Button 
-                  onClick={() => handleCopy(primaryLink || '', userType)}
-                  className="bg-burgundy hover:bg-burgundy/90 text-white px-6"
-                >
-                  {(userType === 'hiker' ? copiedHiker : copiedGuide) ? (
-                    <>
+                <Input value={primaryLink || ''} readOnly className="bg-cream/50 border-burgundy/20 font-mono text-sm flex-1" />
+                <Button onClick={() => handleCopy(primaryLink || '', userType)} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
+                  {(userType === 'hiker' ? copiedHiker : copiedGuide) ? <>
                       <Check className="w-4 h-4 mr-2" />
                       Copied
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       <Copy className="w-4 h-4 mr-2" />
                       Copy
-                    </>
-                  )}
+                    </>}
                 </Button>
               </div>
               <p className="text-xs text-charcoal/60 mt-2">
@@ -271,18 +235,8 @@ export default function ReferralModal({
             <div>
               <h4 className="font-semibold text-charcoal mb-3">Invite via Email</h4>
               <div className="flex gap-2">
-                <Input
-                  type="email"
-                  placeholder="friend@email.com"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  className="bg-white flex-1"
-                />
-                <Button
-                  onClick={handleSendInvite}
-                  disabled={isSending || !inviteEmail}
-                  className="bg-burgundy hover:bg-burgundy/90 text-white px-6"
-                >
+                <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="bg-white flex-1" />
+                <Button onClick={handleSendInvite} disabled={isSending || !inviteEmail} className="bg-burgundy hover:bg-burgundy/90 text-white px-6">
                   <Send className="w-4 h-4 mr-2" />
                   {isSending ? 'Sending...' : 'Send'}
                 </Button>
@@ -296,35 +250,19 @@ export default function ReferralModal({
             <div>
               <h4 className="font-semibold text-charcoal mb-3">Share on Social Media</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <Button
-                  variant="outline"
-                  className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                  onClick={() => handleShareSocial('whatsapp')}
-                >
+                <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('whatsapp')}>
                   <MessageCircle className="w-4 h-4 mr-2" />
                   WhatsApp
                 </Button>
-                <Button
-                  variant="outline"
-                  className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                  onClick={() => handleShareSocial('facebook')}
-                >
+                <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('facebook')}>
                   <Facebook className="w-4 h-4 mr-2" />
                   Facebook
                 </Button>
-                <Button
-                  variant="outline"
-                  className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                  onClick={() => handleShareSocial('twitter')}
-                >
+                <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('twitter')}>
                   <Twitter className="w-4 h-4 mr-2" />
                   Twitter
                 </Button>
-                <Button
-                  variant="outline"
-                  className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                  onClick={() => handleShareSocial('linkedin')}
-                >
+                <Button variant="outline" className="border-burgundy/30 text-burgundy hover:bg-burgundy/5" onClick={() => handleShareSocial('linkedin')}>
                   <Linkedin className="w-4 h-4 mr-2" />
                   LinkedIn
                 </Button>
@@ -351,28 +289,36 @@ export default function ReferralModal({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4 text-center bg-white border-burgundy/10">
                 <Users className="w-6 h-6 text-burgundy mx-auto mb-2" />
-                <div className="text-3xl font-bold text-burgundy mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                <div className="text-3xl font-bold text-burgundy mb-1" style={{
+                fontFamily: 'Playfair Display, serif'
+              }}>
                   {stats?.totalReferrals || 0}
                 </div>
                 <div className="text-xs text-charcoal/70">Total Referrals</div>
               </Card>
               <Card className="p-4 text-center bg-white border-sage/20">
                 <CheckCircle className="w-6 h-6 text-sage mx-auto mb-2" />
-                <div className="text-3xl font-bold text-sage mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                <div className="text-3xl font-bold text-sage mb-1" style={{
+                fontFamily: 'Playfair Display, serif'
+              }}>
                   {stats?.completedReferrals || 0}
                 </div>
                 <div className="text-xs text-charcoal/70">Completed</div>
               </Card>
               <Card className="p-4 text-center bg-white border-gold/20">
                 <Clock className="w-6 h-6 text-gold mx-auto mb-2" />
-                <div className="text-3xl font-bold text-gold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                <div className="text-3xl font-bold text-gold mb-1" style={{
+                fontFamily: 'Playfair Display, serif'
+              }}>
                   {stats?.pendingReferrals || 0}
                 </div>
                 <div className="text-xs text-charcoal/70">Pending</div>
               </Card>
               <Card className="p-4 text-center bg-gradient-to-br from-sage to-sage/80 text-white border-0">
                 <Euro className="w-6 h-6 text-white mx-auto mb-2" />
-                <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                <div className="text-3xl font-bold mb-1" style={{
+                fontFamily: 'Playfair Display, serif'
+              }}>
                   €{stats?.availableCredits || stats?.availableVouchersValue || 0}
                 </div>
                 <div className="text-xs opacity-90">Total Earned</div>
@@ -380,11 +326,12 @@ export default function ReferralModal({
             </div>
 
             {/* Conversion Rate */}
-            {stats?.totalReferrals && stats.totalReferrals > 0 && (
-              <Card className="p-5 bg-white border-burgundy/10">
+            {stats?.totalReferrals && stats.totalReferrals > 0 && <Card className="p-5 bg-white border-burgundy/10">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold text-charcoal">Conversion Rate</h4>
-                  <span className="text-2xl font-bold text-burgundy" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  <span className="text-2xl font-bold text-burgundy" style={{
+                fontFamily: 'Playfair Display, serif'
+              }}>
                     {conversionRate}%
                   </span>
                 </div>
@@ -392,57 +339,32 @@ export default function ReferralModal({
                 <p className="text-xs text-charcoal/60 mt-2">
                   {stats.completedReferrals} of {stats.totalReferrals} referrals completed their first tour
                 </p>
-              </Card>
-            )}
+              </Card>}
 
             {/* Referral List */}
             <div>
-              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                 Your Referrals
               </h3>
               
-              {stats?.totalReferrals && stats.totalReferrals > 0 ? (
-                <div className="space-y-3">
+              {stats?.totalReferrals && stats.totalReferrals > 0 ? <div className="space-y-3">
                   {/* Example referrals - in real implementation, fetch from backend */}
-                  <ReferralItem
-                    name="Emma Thompson"
-                    status="completed"
-                    date="Joined 2 weeks ago"
-                    reward={rewardAmount}
-                    userType={userType}
-                    progress="Completed first tour"
-                  />
-                  <ReferralItem
-                    name="Michael Chen"
-                    status="pending"
-                    date="Joined 5 days ago"
-                    reward={rewardAmount}
-                    userType={userType}
-                    progress="Booking in progress"
-                  />
-                  <ReferralItem
-                    name="Sarah Williams"
-                    status="signed-up"
-                    date="Joined yesterday"
-                    reward={rewardAmount}
-                    userType={userType}
-                    progress="Account created"
-                  />
-                </div>
-              ) : (
-                <Card className="p-8 text-center bg-cream/30 border-burgundy/10">
+                  <ReferralItem name="Emma Thompson" status="completed" date="Joined 2 weeks ago" reward={rewardAmount} userType={userType} progress="Completed first tour" />
+                  <ReferralItem name="Michael Chen" status="pending" date="Joined 5 days ago" reward={rewardAmount} userType={userType} progress="Booking in progress" />
+                  <ReferralItem name="Sarah Williams" status="signed-up" date="Joined yesterday" reward={rewardAmount} userType={userType} progress="Account created" />
+                </div> : <Card className="p-8 text-center bg-cream/30 border-burgundy/10">
                   <Users className="w-12 h-12 text-burgundy/40 mx-auto mb-4" />
                   <h4 className="font-semibold text-charcoal mb-2">No referrals yet</h4>
                   <p className="text-sm text-charcoal/60">
                     Share your referral link to start earning rewards!
                   </p>
-                </Card>
-              )}
+                </Card>}
             </div>
 
             {/* Pending Earnings */}
-            {pendingEarnings > 0 && (
-              <Card className="p-5 bg-gold/10 border-gold/20">
+            {pendingEarnings > 0 && <Card className="p-5 bg-gold/10 border-gold/20">
                 <div className="flex items-start gap-3">
                   <Sparkles className="w-6 h-6 text-gold flex-shrink-0 mt-1" />
                   <div className="flex-1">
@@ -455,41 +377,39 @@ export default function ReferralModal({
                     </p>
                   </div>
                 </div>
-              </Card>
-            )}
+              </Card>}
 
             {/* Current Balance */}
-            {userType === 'hiker' ? (
-              <div className="bg-burgundy text-white rounded-lg p-6 text-center">
+            {userType === 'hiker' ? <div className="bg-burgundy text-white rounded-lg p-6 text-center">
                 <div className="text-sm mb-2 opacity-90">Available Vouchers</div>
-                <div className="text-5xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                <div className="text-5xl font-bold mb-2" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                   {stats?.availableVouchersCount || 0}
                 </div>
                 <div className="text-sm opacity-90">
                   Total value: €{stats?.availableVouchersValue || 0}
                 </div>
-              </div>
-            ) : (
-              <div className="bg-burgundy text-white rounded-lg p-6 text-center">
+              </div> : <div className="bg-burgundy text-white rounded-lg p-6 text-center">
                 <div className="text-sm mb-2 opacity-90">Available Credits</div>
-                <div className="text-5xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                <div className="text-5xl font-bold mb-2" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                   €{stats?.availableCredits || 0}
                 </div>
                 <div className="text-sm opacity-90">
-                  {stats?.availableCredits && stats.availableCredits >= 100
-                    ? '✓ Ready to withdraw'
-                    : `€${100 - (stats?.availableCredits || 0)} until withdrawal`
-                  }
+                  {stats?.availableCredits && stats.availableCredits >= 100 ? '✓ Ready to withdraw' : `€${100 - (stats?.availableCredits || 0)} until withdrawal`}
                 </div>
-              </div>
-            )}
+              </div>}
           </TabsContent>
 
           {/* Tab 3: How It Works */}
           <TabsContent value="how" className="p-6 space-y-6">
             {/* Main Process */}
             <Card className="p-6 bg-gradient-to-br from-burgundy/5 to-burgundy/10 border-burgundy/20">
-              <h3 className="text-xl font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <h3 className="text-xl font-semibold text-charcoal mb-4" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                 {userType === 'hiker' ? 'Share Adventures, Earn Rewards' : 'Grow Our Guide Community'}
               </h3>
               
@@ -526,10 +446,7 @@ export default function ReferralModal({
                   <div className="flex-1 pt-2">
                     <h4 className="font-semibold text-charcoal mb-1">They Complete First Action</h4>
                     <p className="text-sm text-charcoal/70">
-                      {userType === 'hiker' 
-                        ? 'Your friend books and completes their first hiking tour'
-                        : 'The new guide publishes their first tour and receives a booking'
-                      }
+                      {userType === 'hiker' ? 'Your friend books and completes their first hiking tour' : 'The new guide publishes their first tour and receives a booking'}
                     </p>
                   </div>
                 </div>
@@ -541,10 +458,7 @@ export default function ReferralModal({
                   <div className="flex-1 pt-2">
                     <h4 className="font-semibold text-charcoal mb-1">Get Your Reward!</h4>
                     <p className="text-sm text-charcoal/70">
-                      {userType === 'hiker' 
-                        ? `Receive a ${rewardAmount} voucher for your next adventure`
-                        : `Earn ${rewardAmount} in platform credits, withdrawable once you reach €100`
-                      }
+                      {userType === 'hiker' ? `Receive a ${rewardAmount} voucher for your next adventure` : `Earn ${rewardAmount} in platform credits, withdrawable once you reach €100`}
                     </p>
                   </div>
                 </div>
@@ -567,19 +481,14 @@ export default function ReferralModal({
                     <span className="text-sage shrink-0">✓</span>
                     <span>Automatic tracking and reward processing</span>
                   </li>
-                  {userType === 'hiker' && (
-                    <li className="flex items-start gap-2">
+                  {userType === 'hiker' && <li className="flex items-start gap-2">
                       <span className="text-sage shrink-0">✓</span>
                       <span>Your friends get €10 discount on their first booking</span>
-                    </li>
-                  )}
+                    </li>}
                   <li className="flex items-start gap-2">
                     <span className="text-sage shrink-0">✓</span>
                     <span>
-                      {userType === 'hiker' 
-                        ? 'Vouchers valid for 12 months from issue'
-                        : 'Credits never expire and are withdrawable'
-                      }
+                      {userType === 'hiker' ? 'Vouchers valid for 12 months from issue' : 'Credits never expire and are withdrawable'}
                     </span>
                   </li>
                 </ul>
@@ -613,7 +522,9 @@ export default function ReferralModal({
 
             {/* FAQ Section */}
             <div>
-              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{
+              fontFamily: 'Playfair Display, serif'
+            }}>
                 Frequently Asked Questions
               </h3>
               <div className="space-y-3">
@@ -658,6 +569,5 @@ export default function ReferralModal({
           </TabsContent>
         </Tabs>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 }
