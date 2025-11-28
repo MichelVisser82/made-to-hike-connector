@@ -74,8 +74,8 @@ export const JoinPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cream via-white to-sage/20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-burgundy"></div>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export const JoinPage = () => {
                 <Gift className="w-6 h-6 text-burgundy" />
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-serif font-bold text-burgundy mb-2">
+                <h2 className="text-2xl font-bold text-burgundy mb-2" style={{fontFamily: 'Playfair Display, serif'}}>
                   You've Been Invited by {referrerName}!
                 </h2>
                 <p className="text-charcoal/80 mb-4">
