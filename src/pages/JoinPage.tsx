@@ -54,6 +54,12 @@ export const JoinPage = () => {
           return;
         }
 
+        // If this is a guide invitation, redirect to guide signup
+        if (data.target_type === 'guide') {
+          navigate(`/guide/signup?ref=${refCode}${invToken ? `&inv=${invToken}` : ''}`);
+          return;
+        }
+
         // Get referrer name
         const { data: profile } = await supabase
           .from('profiles')
@@ -72,7 +78,7 @@ export const JoinPage = () => {
     };
 
     validateReferral();
-  }, [refCode]);
+  }, [refCode, invToken, navigate]);
 
   if (loading) {
     return (
