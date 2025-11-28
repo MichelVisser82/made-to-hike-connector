@@ -528,20 +528,60 @@ export default function ReferralModal({
 
             {/* Referral List */}
             <div>
-              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{
-              fontFamily: 'Playfair Display, serif'
-            }}>
+              <h3
+                className="text-lg font-semibold text-charcoal mb-4"
+                style={{ fontFamily: "Playfair Display, serif" }}
+              >
                 Referral Activity
               </h3>
-              
-              {stats?.totalReferrals && stats.totalReferrals > 0 ? (
-                <Card className="p-8 text-center bg-cream/30 border-burgundy/10">
-                  <Users className="w-12 h-12 text-burgundy/40 mx-auto mb-4" />
-                  <h4 className="font-semibold text-charcoal mb-2">Referral details</h4>
-                  <p className="text-sm text-charcoal/60">
-                    Your actual referral activity will appear here once detailed data is available.
-                  </p>
-                </Card>
+
+              {meaningfulReferrals.length > 0 ? (
+                <div className="space-y-3">
+                  {meaningfulReferrals.map((r: any) => {
+                    const displayName = r.referee_email || "Unknown";
+                    const createdDate = r.created_at
+                      ? new Date(r.created_at).toLocaleDateString(undefined, {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "Date unknown";
+
+                    const mappedStatus: ReferralItemProps["status"] =
+                      r.status === "completed"
+                        ? "completed"
+                        : r.profile_created_at
+                        ? "signed-up"
+                        : "pending";
+
+                    const rewardLabel = r.reward_amount
+                      ? `€${r.reward_amount} ${r.reward_type === "credit" ? "credit" : "voucher"}`
+                      : userType === "hiker"
+                      ? "€25 potential voucher"
+                      : "€50 potential credit";
+
+                    let progress: string | undefined;
+                    if (r.status === "completed") {
+                      progress = "Tour completed – reward on the way";
+                    } else if (r.profile_created_at) {
+                      progress = "Account created – waiting for first tour";
+                    } else {
+                      progress = "Invite sent – waiting for sign up";
+                    }
+
+                    return (
+                      <ReferralItem
+                        key={r.id}
+                        name={displayName}
+                        status={mappedStatus}
+                        date={createdDate}
+                        reward={rewardLabel}
+                        userType={userType}
+                        progress={progress}
+                      />
+                    );
+                  })}
+                </div>
               ) : (
                 <Card className="p-8 text-center bg-cream/30 border-burgundy/10">
                   <Users className="w-12 h-12 text-burgundy/40 mx-auto mb-4" />
