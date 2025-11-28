@@ -357,7 +357,7 @@ export function TodaySection({
       <GuideReferralWidget
         userId={userId}
         userName={guideName}
-        onViewFullDashboard={() => onNavigateToSection('money', 'referrals')}
+        onViewFullDashboard={() => onSectionNavigate('money')}
       />
     </div>
   );
