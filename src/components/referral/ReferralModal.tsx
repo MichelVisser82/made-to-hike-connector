@@ -504,7 +504,7 @@ export default function ReferralModal({
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-burgundy shrink-0">•</span>
-                    <span>Rewards issued after referred user completes required action</span>
+                    <span>Rewards issued after referred user completes first tour with </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-burgundy shrink-0">•</span>
