@@ -60,6 +60,14 @@ export const JoinPage = () => {
 
           if (legacyError || !legacyData) {
             console.error('Invalid referral code from both referral_links and referrals');
+
+            // Fallback: if referral code looks like a guide code, still send user to guide signup
+            // even if the referral record is missing, so they don't end up in the hiker flow.
+            if (refCode && refCode.includes('_G_')) {
+              navigate(`/guide/signup?ref=${refCode}${invToken ? `&inv=${invToken}` : ''}`);
+              return;
+            }
+
             setLoading(false);
             return;
           }
