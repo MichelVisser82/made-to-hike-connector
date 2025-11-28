@@ -20,14 +20,24 @@ export const useReferralStats = (userId: string | undefined) => {
       const invitations = raw?.invitations ?? [];
       const signups = raw?.signups ?? [];
 
-      // Create a map of signups by email for quick lookup
-      const signupMap = new Map(
-        signups.map((s: any) => [s.signup_email, s])
-      );
+      // Create maps for efficient lookup - try multiple matching strategies
+      const signupByEmail = new Map(signups.map((s: any) => [s.signup_email, s]));
+      const signupByProfileEmail = new Map(signups.map((s: any) => [s.profile_email, s]).filter(([k]) => k));
+      const signupByInvEmail = new Map(signups.map((s: any) => [s.invitation_email, s]).filter(([k]) => k));
 
       // Merge invitation and signup data
       const referrals = invitations.map((inv: any) => {
-        const signup = signupMap.get(inv.referee_email) as any;
+        // Try multiple matching strategies:
+        // 1. Match by invitation email (most reliable if linked)
+        let signup = signupByInvEmail.get(inv.referee_email) as any;
+        // 2. Match by current profile email (handles email changes)
+        if (!signup) {
+          signup = signupByProfileEmail.get(inv.referee_email) as any;
+        }
+        // 3. Fallback to original signup email
+        if (!signup) {
+          signup = signupByEmail.get(inv.referee_email) as any;
+        }
         
         // Determine the actual status based on signup data
         let actualStatus = inv.status;
