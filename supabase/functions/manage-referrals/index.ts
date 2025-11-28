@@ -27,12 +27,14 @@ interface SendInvitationRequest {
 interface TrackClickRequest {
   action: 'track_click';
   referralCode: string;
+  invitationToken?: string;
 }
 
 interface DeleteInvitationRequest {
   action: 'delete_invitation';
   userId: string;
-  refereeEmail: string;
+  invitationId?: string;
+  refereeEmail?: string;
 }
 
 type RequestBody = GenerateLinksRequest | GetStatsRequest | SendInvitationRequest | TrackClickRequest | DeleteInvitationRequest;
@@ -46,383 +48,341 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body: RequestBody = await req.json();
 
-    console.log('manage-referrals called with action:', body.action);
+    console.log('manage-referrals called:', body.action);
 
-    // Route to appropriate handler
+    let response;
     switch (body.action) {
       case 'generate_links':
-        return await generateLinks(supabase, body);
+        response = await generateLinks(supabase, body);
+        break;
       case 'get_stats':
-        return await getStats(supabase, body);
+        response = await getStats(supabase, body);
+        break;
       case 'send_invitation':
-        return await sendInvitation(supabase, body);
+        response = await sendInvitation(supabase, body);
+        break;
       case 'track_click':
-        return await trackClick(supabase, body);
+        response = await trackClick(supabase, body);
+        break;
       case 'delete_invitation':
-        return await deleteInvitation(supabase, body);
+        response = await deleteInvitation(supabase, body);
+        break;
       default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        throw new Error('Invalid action');
     }
+
+    return new Response(JSON.stringify(response), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
   } catch (error) {
     console.error('Error in manage-referrals:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 });
 
 async function generateLinks(supabase: any, body: GenerateLinksRequest) {
   const { userId, userType, firstName } = body;
 
-  // Check if links already exist
-  const { data: existingReferrals } = await supabase
-    .from('referrals')
-    .select('referral_code, target_type')
-    .eq('referrer_id', userId)
-    .in('status', ['link_sent', 'profile_created', 'milestone_2']);
+  const links = {
+    hikerLink: '',
+    guideLink: ''
+  };
 
-  const existingCodes: { [key: string]: string } = {};
-  existingReferrals?.forEach((ref: any) => {
-    existingCodes[ref.target_type] = ref.referral_code;
-  });
+  // Generate hiker referral link (all users can refer hikers)
+  const hikerCode = await generateReferralCode(firstName, 'hiker');
+  const { data: hikerLink, error: hikerError } = await supabase
+    .from('referral_links')
+    .upsert({
+      referrer_id: userId,
+      referrer_type: userType,
+      target_type: 'hiker',
+      referral_code: hikerCode,
+      reward_amount: userType === 'hiker' ? 25 : 50,
+      reward_type: 'voucher'
+    }, {
+      onConflict: 'referrer_id,target_type'
+    })
+    .select()
+    .single();
 
-  const links: { [key: string]: string } = {};
-
-  // Generate hiker link (only for hikers)
-  if (userType === 'hiker') {
-    if (existingCodes['hiker']) {
-      links.hikerLink = `${Deno.env.get('SITE_URL') || 'https://madetohike.com'}/join?ref=${existingCodes['hiker']}`;
-    } else {
-      const hikerCode = generateReferralCode(firstName, 'hiker');
-      await createReferral(supabase, userId, userType, hikerCode, 'hiker');
-      links.hikerLink = `${Deno.env.get('SITE_URL') || 'https://madetohike.com'}/join?ref=${hikerCode}`;
-    }
+  if (hikerError) {
+    console.error('Error creating hiker link:', hikerError);
+    throw hikerError;
   }
 
-  // Generate guide link (for both hikers and guides)
-  if (existingCodes['guide']) {
-    links.guideLink = `${Deno.env.get('SITE_URL') || 'https://madetohike.com'}/guides/join?ref=${existingCodes['guide']}`;
-  } else {
-    const guideCode = generateReferralCode(firstName, 'guide');
-    await createReferral(supabase, userId, userType, guideCode, 'guide');
-    links.guideLink = `${Deno.env.get('SITE_URL') || 'https://madetohike.com'}/guides/join?ref=${guideCode}`;
+  links.hikerLink = `${Deno.env.get('APP_URL') || 'https://madetohike.com'}/join?ref=${hikerLink.referral_code}`;
+
+  // Generate guide referral link (only if user is guide or hiker)
+  const guideCode = await generateReferralCode(firstName, 'guide');
+  const { data: guideLink, error: guideError } = await supabase
+    .from('referral_links')
+    .upsert({
+      referrer_id: userId,
+      referrer_type: userType,
+      target_type: 'guide',
+      referral_code: guideCode,
+      reward_amount: 50,
+      reward_type: userType === 'guide' ? 'credit' : 'voucher'
+    }, {
+      onConflict: 'referrer_id,target_type'
+    })
+    .select()
+    .single();
+
+  if (guideError) {
+    console.error('Error creating guide link:', guideError);
+    throw guideError;
   }
 
-  console.log('Generated links:', links);
+  links.guideLink = `${Deno.env.get('APP_URL') || 'https://madetohike.com'}/join?ref=${guideLink.referral_code}`;
 
-  return new Response(
-    JSON.stringify({ success: true, links }),
-    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
+  return { links };
 }
 
 async function getStats(supabase: any, body: GetStatsRequest) {
   const { userId } = body;
 
-  // Get user type
-  const { data: userRoles } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .single();
-
-  const userType = userRoles?.role || 'hiker';
-
-  // Get referral statistics - include sent invitations with referee_email
-  const { data: referrals } = await supabase
-    .from('referrals')
+  // Get referral links
+  const { data: links, error: linksError } = await supabase
+    .from('referral_links')
     .select('*')
     .eq('referrer_id', userId);
 
-  // Include referrals that have either referee_id, referee_email, OR status showing they've been sent
-  const meaningfulReferrals = referrals?.filter((r: any) => 
-    r.referee_id || r.referee_email || ['invitation_sent'].includes(r.status)
-  ) || [];
+  if (linksError) throw linksError;
 
-  const totalInvites = meaningfulReferrals.length;
-  const acceptedInvites = meaningfulReferrals.filter((r: any) =>
-    ['profile_created', 'milestone_2', 'completed'].includes(r.status)
-  ).length || 0;
-  const completedInvites = meaningfulReferrals.filter((r: any) => r.status === 'completed').length || 0;
+  // Get all invitations
+  const { data: invitations, error: invitationsError } = await supabase
+    .from('referral_invitations')
+    .select(`
+      *,
+      referral_link:referral_links(target_type, reward_amount, reward_type)
+    `)
+    .in('referral_link_id', links.map((l: any) => l.id))
+    .order('created_at', { ascending: false });
 
-  let stats: any = {
-    totalInvites,
-    totalReferrals: totalInvites,
-    acceptedInvites,
-    completedInvites,
-    completedReferrals: completedInvites,
-    pendingReferrals: totalInvites - completedInvites,
-    referrals: meaningfulReferrals
+  if (invitationsError) throw invitationsError;
+
+  // Get all signups
+  const { data: signups, error: signupsError } = await supabase
+    .from('referral_signups')
+    .select(`
+      *,
+      referral_link:referral_links(target_type, reward_amount, reward_type),
+      invitation:referral_invitations(referee_email)
+    `)
+    .in('referral_link_id', links.map((l: any) => l.id))
+    .order('created_at', { ascending: false });
+
+  if (signupsError) throw signupsError;
+
+  // Calculate stats
+  const stats = {
+    total_invitations_sent: invitations.length,
+    total_signups: signups.length,
+    pending_invitations: invitations.filter((i: any) => i.status === 'sent').length,
+    clicked_invitations: invitations.filter((i: any) => i.status === 'clicked').length,
+    completed_signups: signups.filter((s: any) => s.completed_at).length,
+    pending_signups: signups.filter((s: any) => !s.completed_at && s.profile_created_at).length,
+    generic_link_signups: signups.filter((s: any) => s.signup_source === 'generic_link').length,
+    email_signups: signups.filter((s: any) => s.signup_source === 'email_invitation').length,
+    total_rewards_issued: signups.filter((s: any) => s.reward_status === 'issued').length,
+    invitations: invitations.map((inv: any) => ({
+      id: inv.id,
+      invitation_token: inv.invitation_token,
+      referee_email: inv.referee_email,
+      status: inv.status,
+      target_type: inv.referral_link.target_type,
+      reward_amount: inv.referral_link.reward_amount,
+      sent_at: inv.sent_at,
+      clicked_at: inv.clicked_at,
+      expires_at: inv.expires_at
+    })),
+    signups: signups.map((signup: any) => ({
+      id: signup.id,
+      user_id: signup.user_id,
+      signup_email: signup.signup_email,
+      signup_source: signup.signup_source,
+      target_type: signup.referral_link.target_type,
+      reward_amount: signup.referral_link.reward_amount,
+      profile_created_at: signup.profile_created_at,
+      milestone_2_at: signup.milestone_2_at,
+      completed_at: signup.completed_at,
+      reward_status: signup.reward_status,
+      voucher_code: signup.voucher_code,
+      invitation_email: signup.invitation?.referee_email
+    }))
   };
 
-  if (userType === 'hiker') {
-    // Get vouchers
-    const { data: vouchers } = await supabase
-      .from('discount_codes')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('source_type', 'referral_reward')
-      .eq('is_active', true);
-
-    const totalVouchersValue = vouchers?.reduce((sum: number, v: any) => 
-      sum + (v.discount_type === 'fixed' ? v.discount_value : 0), 0) || 0;
-    
-    const availableVouchers = vouchers?.filter((v: any) => v.times_used === 0) || [];
-    const availableVouchersValue = availableVouchers.reduce((sum: number, v: any) => 
-      sum + (v.discount_type === 'fixed' ? v.discount_value : 0), 0) || 0;
-
-    stats.vouchers = vouchers || [];
-    stats.totalVouchersValue = totalVouchersValue;
-    stats.availableVouchersValue = availableVouchersValue;
-    stats.totalEarned = totalVouchersValue;
-  } else if (userType === 'guide') {
-    // Get credits
-    const { data: credits } = await supabase
-      .from('user_credits')
-      .select('*')
-      .eq('user_id', userId);
-
-    const activeCredits = credits?.filter((c: any) => c.status === 'active') || [];
-    const availableCredits = activeCredits.reduce((sum: number, c: any) => sum + c.amount, 0);
-    const totalCredits = credits?.reduce((sum: number, c: any) => 
-      c.source_type !== 'withdrawal' ? sum + c.amount : sum, 0) || 0;
-    
-    const pendingReferrals = meaningfulReferrals.filter((r: any) =>
-      ['link_sent', 'profile_created', 'milestone_2'].includes(r.status)
-    ) || [];
-    const pendingCredits = pendingReferrals.reduce((sum: number, r: any) =>
-      sum + (r.reward_amount || 0), 0);
-
-    stats.credits = credits || [];
-    stats.availableCredits = availableCredits;
-    stats.totalCredits = totalCredits;
-    stats.pendingCredits = pendingCredits;
-    stats.pendingReferrals = pendingReferrals.length;
-    stats.totalEarned = totalCredits;
-  }
-
-  return new Response(
-    JSON.stringify({ success: true, stats }),
-    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
+  return { stats };
 }
 
 async function sendInvitation(supabase: any, body: SendInvitationRequest) {
   const { userId, targetEmail, targetType, personalMessage } = body;
 
-  // Get referrer info
+  // Get the referral link for this user and target type
+  const { data: link, error: linkError } = await supabase
+    .from('referral_links')
+    .select('*')
+    .eq('referrer_id', userId)
+    .eq('target_type', targetType)
+    .single();
+
+  if (linkError) {
+    console.error('Error fetching referral link:', linkError);
+    throw new Error('Referral link not found. Please generate links first.');
+  }
+
+  // Generate unique invitation token
+  const invitationToken = `INV_${generateRandomString(10)}`;
+
+  // Create invitation record
+  const { data: invitation, error: invitationError } = await supabase
+    .from('referral_invitations')
+    .insert({
+      referral_link_id: link.id,
+      invitation_token: invitationToken,
+      referee_email: targetEmail,
+      personal_message: personalMessage,
+      status: 'sent'
+    })
+    .select()
+    .single();
+
+  if (invitationError) {
+    console.error('Error creating invitation:', invitationError);
+    throw invitationError;
+  }
+
+  // Get referrer info for email
   const { data: referrer } = await supabase
     .from('profiles')
     .select('name, first_name')
     .eq('id', userId)
     .single();
 
-  // Check if referral code exists for this target type
-  const { data: existingReferral } = await supabase
-    .from('referrals')
-    .select('referral_code')
-    .eq('referrer_id', userId)
-    .eq('target_type', targetType)
-    .single();
+  // Build invitation URL with both ref and inv tokens
+  const invitationUrl = `${Deno.env.get('APP_URL') || 'https://madetohike.com'}/join?ref=${link.referral_code}&inv=${invitationToken}`;
 
-  let referralCode = existingReferral?.referral_code;
+  // Send invitation email
+  const emailType = targetType === 'hiker' ? 'referral_invitation' : 'referral_invitation_guide';
   
-  if (!referralCode) {
-    referralCode = generateReferralCode(referrer?.first_name || 'Friend', targetType);
-    const { data: userRoles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
-    
-    await createReferral(supabase, userId, userRoles?.role || 'hiker', referralCode, targetType);
-  }
-
-  const referralUrl = targetType === 'hiker' 
-    ? `${Deno.env.get('SITE_URL') || 'https://madetohike.com'}/join?ref=${referralCode}`
-    : `${Deno.env.get('SITE_URL') || 'https://madetohike.com'}/guides/join?ref=${referralCode}`;
-
-  // Get referrer role to determine referrerType
-  const { data: userRoles } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .single();
-
-  // Update referral record with referee email and reset progress for new invite
-  await supabase
-    .from('referrals')
-    .update({ 
-      referee_email: targetEmail,
-      referee_id: null,
-      profile_created_at: null,
-      milestone_2_at: null,
-      milestone_2_id: null,
-      milestone_2_type: null,
-      completed_at: null,
-      completion_booking_id: null,
-      reward_issued_at: null,
-      reward_status: null,
-      voucher_code: null,
-      voucher_id: null,
-      is_suspicious: false,
-      status: 'invitation_sent',
-      updated_at: new Date().toISOString()
-    })
-    .eq('referral_code', referralCode)
-    .eq('target_type', targetType)
-    .eq('referrer_id', userId);
-
-  // Send email via send-email function
-  const emailResult = await supabase.functions.invoke('send-email', {
+  await supabase.functions.invoke('send-email', {
     body: {
-      type: 'referral_invitation',
+      type: emailType,
       to: targetEmail,
-      data: {
-        referrerName: referrer?.name || 'A friend',
-        referrerType: userRoles?.role || 'hiker',
-        targetType,
-        referralLink: referralUrl,
-        personalMessage: personalMessage || null
+      template_data: {
+        referrer_name: referrer?.name || 'A friend',
+        referrer_first_name: referrer?.first_name || 'A friend',
+        invitation_url: invitationUrl,
+        personal_message: personalMessage || null,
+        target_type: targetType,
+        reward_amount: link.reward_amount
       }
     }
   });
 
-  if (emailResult.error) {
-    console.error('Failed to send email:', emailResult.error);
-    throw new Error('Failed to send invitation email');
-  }
-
-  console.log('Invitation sent successfully to:', targetEmail);
-
-  return new Response(
-    JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
-    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
+  return { 
+    success: true, 
+    message: 'Invitation sent successfully',
+    invitation_id: invitation.id,
+    invitation_url: invitationUrl
+  };
 }
 
 async function trackClick(supabase: any, body: TrackClickRequest) {
-  const { referralCode } = body;
+  const { referralCode, invitationToken } = body;
 
-  console.log('Tracking click for referral code:', referralCode);
-
-  // Get current referral
-  const { data: referral, error: fetchError } = await supabase
-    .from('referrals')
-    .select('click_count')
-    .eq('referral_code', referralCode)
-    .single();
-
-  if (fetchError || !referral) {
-    console.error('Referral not found:', referralCode);
-    return new Response(
-      JSON.stringify({ error: 'Referral not found' }),
-      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Increment click count
-  const { error: updateError } = await supabase
-    .from('referrals')
+  // Increment click count on referral link
+  const { error: linkError } = await supabase
+    .from('referral_links')
     .update({ 
-      click_count: (referral.click_count || 0) + 1,
+      click_count: supabase.raw('click_count + 1'),
       updated_at: new Date().toISOString()
     })
     .eq('referral_code', referralCode);
 
-  if (updateError) {
-    console.error('Error updating click count:', updateError);
-    return new Response(
-      JSON.stringify({ error: 'Failed to track click' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+  if (linkError) {
+    console.error('Error tracking link click:', linkError);
   }
 
-  console.log('Click tracked successfully for:', referralCode);
+  // If invitation token provided, update invitation
+  if (invitationToken) {
+    const { error: invError } = await supabase
+      .from('referral_invitations')
+      .update({ 
+        status: 'clicked',
+        clicked_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('invitation_token', invitationToken)
+      .eq('status', 'sent'); // Only update if not already progressed
 
-  return new Response(
-    JSON.stringify({ success: true }),
-    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
+    if (invError) {
+      console.error('Error tracking invitation click:', invError);
+    }
+  }
+
+  return { success: true };
 }
 
 async function deleteInvitation(supabase: any, body: DeleteInvitationRequest) {
-  const { userId, refereeEmail } = body;
+  const { userId, invitationId, refereeEmail } = body;
 
-  console.log('Deleting invitation for:', refereeEmail, 'by user:', userId);
+  let query = supabase.from('referral_invitations').delete();
 
-  // Delete the referral record
-  const { error } = await supabase
-    .from('referrals')
-    .delete()
-    .eq('referrer_id', userId)
-    .eq('referee_email', refereeEmail);
+  if (invitationId) {
+    // Delete by invitation ID (verify ownership)
+    const { data: invitation } = await supabase
+      .from('referral_invitations')
+      .select('referral_link:referral_links(referrer_id)')
+      .eq('id', invitationId)
+      .single();
+
+    if (!invitation || invitation.referral_link.referrer_id !== userId) {
+      throw new Error('Unauthorized to delete this invitation');
+    }
+
+    query = query.eq('id', invitationId);
+  } else if (refereeEmail) {
+    // Delete by email (verify ownership via link)
+    query = query
+      .eq('referee_email', refereeEmail)
+      .in('referral_link_id', 
+        supabase
+          .from('referral_links')
+          .select('id')
+          .eq('referrer_id', userId)
+      );
+  } else {
+    throw new Error('Either invitationId or refereeEmail required');
+  }
+
+  const { error } = await query;
 
   if (error) {
     console.error('Error deleting invitation:', error);
-    throw new Error('Failed to delete invitation');
-  }
-
-  console.log('Invitation deleted successfully');
-
-  return new Response(
-    JSON.stringify({ success: true, message: 'Invitation deleted successfully' }),
-    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-// Helper functions
-function generateReferralCode(firstName: string, type: 'hiker' | 'guide'): string {
-  const cleanName = firstName.toUpperCase().replace(/[^A-Z]/g, '').substring(0, 6);
-  const typeCode = type === 'hiker' ? 'H' : 'G';
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `${cleanName}_${typeCode}_${random}`;
-}
-
-async function createReferral(
-  supabase: any,
-  referrerId: string,
-  referrerType: 'hiker' | 'guide',
-  referralCode: string,
-  targetType: 'hiker' | 'guide'
-) {
-  // Determine reward amount based on referrer and target type
-  let rewardAmount: number;
-  let rewardType: 'voucher' | 'credit';
-
-  if (referrerType === 'hiker' && targetType === 'hiker') {
-    rewardAmount = 25;
-    rewardType = 'voucher';
-  } else if (referrerType === 'hiker' && targetType === 'guide') {
-    rewardAmount = 50;
-    rewardType = 'voucher';
-  } else if (referrerType === 'guide' && targetType === 'guide') {
-    rewardAmount = 50;
-    rewardType = 'credit';
-  } else {
-    throw new Error('Invalid referrer-target combination');
-  }
-
-  const { error } = await supabase
-    .from('referrals')
-    .insert({
-      referrer_id: referrerId,
-      referrer_type: referrerType,
-      referral_code: referralCode,
-      target_type: targetType,
-      reward_amount: rewardAmount,
-      reward_type: rewardType,
-      status: 'link_sent'
-    });
-
-  if (error) {
-    console.error('Error creating referral:', error);
     throw error;
   }
 
-  console.log('Created referral:', referralCode);
+  return { success: true, message: 'Invitation deleted successfully' };
+}
+
+function generateReferralCode(firstName: string, type: 'hiker' | 'guide'): string {
+  const prefix = firstName.substring(0, 6).toUpperCase().replace(/[^A-Z]/g, '');
+  const typeChar = type === 'hiker' ? 'H' : 'G';
+  const random = generateRandomString(6).toUpperCase();
+  return `${prefix}_${typeChar}_${random}`;
+}
+
+function generateRandomString(length: number): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }

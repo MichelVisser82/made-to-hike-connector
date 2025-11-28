@@ -24,10 +24,16 @@ const passwordSchema = z.object({
   path: ["confirmPassword"]
 });
 
-export const CustomSignup = () => {
+interface CustomSignupProps {
+  referralCode?: string | null;
+  invitationToken?: string | null;
+}
+
+export const CustomSignup = ({ referralCode: referralCodeProp, invitationToken: invitationTokenProp }: CustomSignupProps = {}) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const referralCode = searchParams.get('ref');
+  const referralCode = referralCodeProp || searchParams.get('ref');
+  const invitationToken = invitationTokenProp || searchParams.get('inv');
   
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -146,7 +152,9 @@ export const CustomSignup = () => {
           firstName, 
           lastName,
           password,
-          createAccount: true
+          createAccount: true,
+          referralCode,
+          invitationToken
         }
       });
 

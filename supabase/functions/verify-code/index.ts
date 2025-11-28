@@ -8,7 +8,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, code, firstName, lastName, password, verifyOnly, createAccount } = await req.json();
+    const { email, code, firstName, lastName, password, verifyOnly, createAccount, referralCode, invitationToken } = await req.json();
 
     console.log('Received request:', { email, verifyOnly, createAccount, hasPassword: !!password });
 
@@ -148,6 +148,8 @@ serve(async (req) => {
       user_metadata: { 
         firstName,
         lastName,
+        referral_code: referralCode,
+        invitation_token: invitationToken,
         name: fullName,
         role: 'hiker'
       }
@@ -162,6 +164,24 @@ serve(async (req) => {
     }
 
     console.log('User created successfully:', authData.user.id);
+
+    // Track referral if code present
+    if (referralCode) {
+      console.log('Tracking referral for new user:', referralCode, invitationToken);
+      try {
+        await supabase.functions.invoke('track-referral-progress', {
+          body: {
+            referralCode,
+            invitationToken,
+            step: 'profile_created',
+            userId: authData.user.id,
+            userType: 'hiker'
+          }
+        });
+      } catch (refError) {
+        console.error('Error tracking referral (non-blocking):', refError);
+      }
+    }
 
     // Delete verification code from kv_store
     await supabase

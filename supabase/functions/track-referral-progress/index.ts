@@ -6,6 +6,7 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 interface TrackProgressRequest {
   referralCode: string;
+  invitationToken?: string;
   step: 'profile_created' | 'milestone_2' | 'completed';
   userId?: string;
   userType?: 'hiker' | 'guide';
@@ -27,64 +28,106 @@ Deno.serve(async (req) => {
 
     console.log('track-referral-progress called:', body);
 
-    const { referralCode, step, userId, userType, milestoneData, completionBookingId } = body;
+    const { referralCode, invitationToken, step, userId, userType, milestoneData, completionBookingId } = body;
 
-    // Get the referral
-    const { data: referral, error: fetchError } = await supabase
-      .from('referrals')
+    // Get the referral link
+    const { data: link, error: linkError } = await supabase
+      .from('referral_links')
       .select('*')
       .eq('referral_code', referralCode)
       .single();
 
-    if (fetchError || !referral) {
-      console.error('Referral not found:', referralCode);
+    if (linkError || !link) {
+      console.error('Referral link not found:', referralCode);
       return new Response(
-        JSON.stringify({ error: 'Referral not found' }),
+        JSON.stringify({ error: 'Referral link not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check if referral is expired
-    if (new Date(referral.expires_at) < new Date()) {
-      await supabase
-        .from('referrals')
-        .update({ status: 'expired' })
-        .eq('id', referral.id);
-
+    // Check if link is expired
+    if (new Date(link.expires_at) < new Date()) {
       return new Response(
-        JSON.stringify({ error: 'Referral has expired' }),
+        JSON.stringify({ error: 'Referral link has expired' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Update referral based on step
-    let updateData: any = { updated_at: new Date().toISOString() };
-
     switch (step) {
-      case 'profile_created':
-        if (referral.status !== 'link_sent') {
+      case 'profile_created': {
+        if (!userId || !userType) {
+          throw new Error('userId and userType required for profile_created step');
+        }
+
+        // Check if signup already exists
+        const { data: existingSignup } = await supabase
+          .from('referral_signups')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+
+        if (existingSignup) {
+          console.log('Signup already tracked for user:', userId);
           return new Response(
-            JSON.stringify({ error: 'Invalid referral state for profile creation' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ success: true, message: 'Signup already tracked' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        updateData = {
-          ...updateData,
-          status: 'profile_created',
-          referee_id: userId,
-          referee_type: userType,
+
+        // Try to find matching invitation by token or email
+        let invitationId = null;
+        let signupSource = 'generic_link';
+
+        if (invitationToken) {
+          const { data: invitation } = await supabase
+            .from('referral_invitations')
+            .select('id')
+            .eq('invitation_token', invitationToken)
+            .eq('referral_link_id', link.id)
+            .single();
+
+          if (invitation) {
+            invitationId = invitation.id;
+            signupSource = 'email_invitation';
+
+            // Update invitation status
+            await supabase
+              .from('referral_invitations')
+              .update({ 
+                status: 'signed_up',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', invitation.id);
+          }
+        }
+
+        // Get user email
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', userId)
+          .single();
+
+        // Create referral signup record
+        const signupData: any = {
+          referral_link_id: link.id,
+          invitation_id: invitationId,
+          user_id: userId,
+          user_type: userType,
+          signup_email: profile?.email || '',
+          signup_source: signupSource,
           profile_created_at: new Date().toISOString()
         };
-        
+
         // Create €15 welcome discount for hiker referrals
-        if (referral.target_type === 'hiker' && userId) {
+        if (link.target_type === 'hiker' && userType === 'hiker') {
           console.log('Creating €15 welcome discount for new hiker:', userId);
           
           const discountCode = `WELCOME${referralCode.substring(0, 6)}`;
           const expiryDate = new Date();
-          expiryDate.setMonth(expiryDate.getMonth() + 12); // Valid for 12 months
+          expiryDate.setMonth(expiryDate.getMonth() + 12);
           
-          const { error: discountError } = await supabase
+          const { data: discount, error: discountError } = await supabase
             .from('discount_codes')
             .insert({
               code: discountCode,
@@ -93,76 +136,97 @@ Deno.serve(async (req) => {
               scope: 'user_specific',
               user_id: userId,
               source_type: 'referral_welcome',
-              source_id: referral.id,
+              source_id: link.id,
               is_active: true,
               is_public: false,
               max_uses: 1,
               times_used: 0,
               valid_from: new Date().toISOString(),
               valid_until: expiryDate.toISOString()
-            });
+            })
+            .select()
+            .single();
           
           if (discountError) {
             console.error('Error creating welcome discount:', discountError);
-            // Don't fail the referral tracking if discount creation fails
           } else {
-            console.log('Welcome discount created successfully:', discountCode);
+            signupData.welcome_discount_code = discountCode;
+            signupData.welcome_discount_id = discount.id;
+            console.log('Welcome discount created:', discountCode);
           }
         }
-        break;
 
-      case 'milestone_2':
-        if (referral.status !== 'profile_created') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid referral state for milestone 2' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+        const { error: signupError } = await supabase
+          .from('referral_signups')
+          .insert(signupData);
+
+        if (signupError) {
+          console.error('Error creating signup:', signupError);
+          throw signupError;
         }
-        updateData = {
-          ...updateData,
-          status: 'milestone_2',
-          milestone_2_at: new Date().toISOString(),
-          milestone_2_type: milestoneData?.type,
-          milestone_2_id: milestoneData?.id
-        };
-        break;
 
-      case 'completed':
-        if (referral.status !== 'milestone_2') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid referral state for completion' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+        break;
+      }
+
+      case 'milestone_2': {
+        if (!userId) throw new Error('userId required for milestone_2 step');
+
+        const { error: updateError } = await supabase
+          .from('referral_signups')
+          .update({
+            milestone_2_at: new Date().toISOString(),
+            milestone_2_type: milestoneData?.type,
+            milestone_2_id: milestoneData?.id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId)
+          .is('milestone_2_at', null);
+
+        if (updateError) {
+          console.error('Error updating milestone_2:', updateError);
+          throw updateError;
         }
-        updateData = {
-          ...updateData,
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          completion_booking_id: completionBookingId
-        };
 
-        // Trigger reward processing
-        await supabase.functions.invoke('process-referral-reward', {
-          body: { referralId: referral.id }
-        });
         break;
+      }
+
+      case 'completed': {
+        if (!userId) throw new Error('userId required for completed step');
+
+        const { error: updateError } = await supabase
+          .from('referral_signups')
+          .update({
+            completed_at: new Date().toISOString(),
+            completion_booking_id: completionBookingId,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId)
+          .is('completed_at', null);
+
+        if (updateError) {
+          console.error('Error updating completion:', updateError);
+          throw updateError;
+        }
+
+        // Get signup to trigger reward processing
+        const { data: signup } = await supabase
+          .from('referral_signups')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+
+        if (signup) {
+          // Trigger reward processing
+          await supabase.functions.invoke('process-referral-reward', {
+            body: { signupId: signup.id }
+          });
+        }
+
+        break;
+      }
     }
 
-    // Update referral
-    const { error: updateError } = await supabase
-      .from('referrals')
-      .update(updateData)
-      .eq('id', referral.id);
-
-    if (updateError) {
-      console.error('Error updating referral:', updateError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to update referral progress' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Referral progress updated:', referral.id, step);
+    console.log('Referral progress updated:', step);
 
     return new Response(
       JSON.stringify({ success: true, message: `Referral progress updated to ${step}` }),

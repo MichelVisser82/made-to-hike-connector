@@ -9,6 +9,7 @@ export const JoinPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const refCode = searchParams.get('ref');
+  const invToken = searchParams.get('inv');
   const [referrerName, setReferrerName] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
@@ -24,16 +25,17 @@ export const JoinPage = () => {
         await supabase.functions.invoke('manage-referrals', {
           body: {
             action: 'track_click',
-            referralCode: refCode
+            referralCode: refCode,
+            invitationToken: invToken
           }
         });
 
         const { data, error } = await supabase
-          .from('referrals')
+          .from('referral_links')
           .select(`
             referrer_id,
             referrer_type,
-            status,
+            target_type,
             expires_at
           `)
           .eq('referral_code', refCode)
@@ -117,7 +119,7 @@ export const JoinPage = () => {
           </Card>
         )}
 
-        <CustomSignup />
+        <CustomSignup referralCode={refCode} invitationToken={invToken} />
       </div>
     </div>
   );

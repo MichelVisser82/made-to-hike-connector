@@ -5,7 +5,7 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 interface ProcessRewardRequest {
-  referralId: string;
+  signupId: string;
 }
 
 Deno.serve(async (req) => {
@@ -15,62 +15,71 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const body: ProcessRewardRequest = await req.json();
+    const { signupId }: ProcessRewardRequest = await req.json();
 
-    console.log('process-referral-reward called for referral:', body.referralId);
+    console.log('process-referral-reward called for signup:', signupId);
 
-    // Get the referral with referrer info
-    const { data: referral, error: fetchError } = await supabase
-      .from('referrals')
+    // Get signup with link details
+    const { data: signup, error: signupError } = await supabase
+      .from('referral_signups')
       .select(`
         *,
-        referrer:profiles!referrals_referrer_id_fkey(id, name, first_name, email),
-        referee:profiles!referrals_referee_id_fkey(id, name, email)
+        referral_link:referral_links(
+          referrer_id,
+          referrer_type,
+          target_type,
+          reward_amount,
+          reward_currency,
+          reward_type
+        ),
+        referee:profiles!user_id(name, email)
       `)
-      .eq('id', body.referralId)
+      .eq('id', signupId)
       .single();
 
-    if (fetchError || !referral) {
-      console.error('Referral not found:', body.referralId);
-      return new Response(
-        JSON.stringify({ error: 'Referral not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (signupError || !signup) {
+      console.error('Signup not found:', signupId);
+      throw new Error('Signup not found');
     }
 
     // Check if reward already issued
-    if (referral.reward_status === 'issued') {
-      console.log('Reward already issued for referral:', referral.id);
+    if (signup.reward_status === 'issued') {
+      console.log('Reward already issued for signup:', signupId);
       return new Response(
-        JSON.stringify({ success: true, message: 'Reward already issued' }),
+        JSON.stringify({ message: 'Reward already issued' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (referral.reward_type === 'voucher') {
-      // Issue voucher for hiker referrers
-      await issueVoucher(supabase, referral);
-    } else if (referral.reward_type === 'credit') {
-      // Issue credit for guide referrers
-      await issueCredit(supabase, referral);
+    // Check if referral is completed
+    if (!signup.completed_at) {
+      throw new Error('Referral not completed yet');
     }
 
-    // Update referral reward status
+    const link = signup.referral_link;
+
+    // Issue reward based on type
+    if (link.reward_type === 'voucher') {
+      await issueVoucher(supabase, signup, link);
+    } else if (link.reward_type === 'credit') {
+      await issueCredit(supabase, signup, link);
+    }
+
+    // Update signup reward status
     await supabase
-      .from('referrals')
+      .from('referral_signups')
       .update({
         reward_status: 'issued',
-        reward_issued_at: new Date().toISOString()
+        reward_issued_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
-      .eq('id', referral.id);
+      .eq('id', signupId);
 
     // Send thank you email to referee
-    await sendRefereeThanksEmail(supabase, referral);
-
-    console.log('Reward processed successfully for referral:', referral.id);
+    await sendRefereeThanksEmail(supabase, signup);
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Reward processed successfully' }),
+      JSON.stringify({ success: true, message: 'Reward issued successfully' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
@@ -82,77 +91,85 @@ Deno.serve(async (req) => {
   }
 });
 
-async function issueVoucher(supabase: any, referral: any) {
-  const referrerFirstName = referral.referrer?.first_name || 'FRIEND';
-  const voucherCode = `MTHREF_${referrerFirstName.toUpperCase()}_${referral.reward_amount}_${generateRandomString(6)}`;
+async function issueVoucher(supabase: any, signup: any, link: any) {
+  const voucherCode = `REF${generateRandomString(8).toUpperCase()}`;
+  const expiryDate = new Date();
+  expiryDate.setMonth(expiryDate.getMonth() + 12);
 
-  // Create discount code
-  const { data: discountCode, error: discountError } = await supabase
+  const { data: voucher, error: voucherError } = await supabase
     .from('discount_codes')
     .insert({
       code: voucherCode,
       discount_type: 'fixed',
-      discount_value: referral.reward_amount,
-      scope: 'platform',
-      is_active: true,
-      user_id: referral.referrer_id,
-      user_email: referral.referrer?.email,
+      discount_value: link.reward_amount,
+      scope: 'user_specific',
+      user_id: link.referrer_id,
       source_type: 'referral_reward',
-      source_id: referral.id,
+      source_id: signup.id,
+      is_active: true,
       is_public: false,
       max_uses: 1,
-      min_purchase_amount: 100,
+      times_used: 0,
       valid_from: new Date().toISOString(),
-      valid_until: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
+      valid_until: expiryDate.toISOString()
     })
     .select()
     .single();
 
-  if (discountError) {
-    console.error('Error creating discount code:', discountError);
-    throw discountError;
+  if (voucherError) {
+    console.error('Error creating voucher:', voucherError);
+    throw voucherError;
   }
 
-  // Update referral with voucher info
+  // Update signup with voucher info
   await supabase
-    .from('referrals')
+    .from('referral_signups')
     .update({
       voucher_code: voucherCode,
-      voucher_id: discountCode.id
+      voucher_id: voucher.id
     })
-    .eq('id', referral.id);
+    .eq('id', signup.id);
+
+  // Get referrer info
+  const { data: referrer } = await supabase
+    .from('profiles')
+    .select('name, email')
+    .eq('id', link.referrer_id)
+    .single();
 
   // Send email to referrer
   await supabase.functions.invoke('send-email', {
     body: {
-      type: 'referral_voucher_issued_hiker',
-      to: referral.referrer?.email,
-      referrerName: referral.referrer?.name,
-      refereeName: referral.referee?.name,
-      voucherCode,
-      voucherAmount: referral.reward_amount,
-      expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+      type: 'referral_success',
+      to: referrer.email,
+      template_data: {
+        referrer_name: referrer.name,
+        referee_name: signup.referee?.name || 'your referral',
+        reward_type: 'voucher',
+        reward_amount: link.reward_amount,
+        voucher_code: voucherCode,
+        voucher_expiry: expiryDate.toISOString()
+      }
     }
   });
 
   console.log('Voucher issued:', voucherCode);
 }
 
-async function issueCredit(supabase: any, referral: any) {
-  // Create credit entry
+async function issueCredit(supabase: any, signup: any, link: any) {
+  const expiryDate = new Date();
+  expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+
   const { error: creditError } = await supabase
     .from('user_credits')
     .insert({
-      user_id: referral.referrer_id,
-      amount: referral.reward_amount,
-      currency: referral.reward_currency,
+      user_id: link.referrer_id,
+      amount: link.reward_amount,
+      currency: link.reward_currency || 'EUR',
       source_type: 'referral_reward',
-      source_id: referral.id,
-      status: 'active'
+      source_id: signup.id,
+      status: 'active',
+      expires_at: expiryDate.toISOString()
     });
 
   if (creditError) {
@@ -160,41 +177,57 @@ async function issueCredit(supabase: any, referral: any) {
     throw creditError;
   }
 
-  // Get total credits for email
+  // Get referrer info and total credits
+  const { data: referrer } = await supabase
+    .from('profiles')
+    .select('name, email')
+    .eq('id', link.referrer_id)
+    .single();
+
   const { data: credits } = await supabase
     .from('user_credits')
     .select('amount')
-    .eq('user_id', referral.referrer_id)
+    .eq('user_id', link.referrer_id)
     .eq('status', 'active');
 
-  const totalCredits = credits?.reduce((sum: number, c: any) => sum + c.amount, 0) || referral.reward_amount;
+  const totalCredits = credits?.reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
 
   // Send email to referrer
   await supabase.functions.invoke('send-email', {
     body: {
-      type: 'referral_credit_issued_guide',
-      to: referral.referrer?.email,
-      referrerName: referral.referrer?.name,
-      refereeName: referral.referee?.name,
-      creditAmount: referral.reward_amount,
-      totalCredits
+      type: 'referral_success',
+      to: referrer.email,
+      template_data: {
+        referrer_name: referrer.name,
+        referee_name: signup.referee?.name || 'your referral',
+        reward_type: 'credit',
+        reward_amount: link.reward_amount,
+        total_credits: totalCredits,
+        credit_expiry: expiryDate.toISOString()
+      }
     }
   });
 
-  console.log('Credit issued:', referral.reward_amount);
+  console.log('Credit issued:', link.reward_amount);
 }
 
-async function sendRefereeThanksEmail(supabase: any, referral: any) {
+async function sendRefereeThanksEmail(supabase: any, signup: any) {
   await supabase.functions.invoke('send-email', {
     body: {
-      type: 'referral_completed_thanks',
-      to: referral.referee?.email,
-      refereeName: referral.referee?.name,
-      referrerName: referral.referrer?.name
+      type: 'referral_welcome',
+      to: signup.referee?.email || signup.signup_email,
+      template_data: {
+        referee_name: signup.referee?.name || 'there'
+      }
     }
   });
 }
 
 function generateRandomString(length: number): string {
-  return Math.random().toString(36).substring(2, 2 + length).toUpperCase();
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
