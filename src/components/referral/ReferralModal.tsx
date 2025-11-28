@@ -555,30 +555,30 @@ export default function ReferralModal({
                     const mappedStatus: ReferralItemProps["status"] =
                       r.status === "completed"
                         ? "completed"
-                        : r.profile_created_at
+                        : r.status === "profile_created"
                         ? "signed-up"
                         : "pending";
-
+ 
                     // Calculate reward based on actual target_type, not status
                     const rewardLabel = r.reward_amount
                       ? `€${r.reward_amount} ${r.reward_type === "credit" ? "credit" : "voucher"}`
                       : r.target_type === 'guide'
                       ? userType === 'hiker' ? "€50 potential voucher" : "€50 potential credit"
                       : "€25 potential voucher";
-
-                    // More accurate status messages based on target_type
+ 
+                    // More accurate status messages based on backend status
                     let progress: string | undefined;
                     if (r.status === "completed") {
                       progress = "Completed their first tour – reward earned!";
-                    } else if (r.milestone_2_at) {
+                    } else if (r.status === 'milestone_2') {
                       progress = r.target_type === 'guide' 
                         ? "Published first tour – reward pending completion"
                         : "Made first booking – reward pending completion";
-                    } else if (r.profile_created_at) {
+                    } else if (r.status === 'profile_created') {
                       progress = r.target_type === 'guide'
                         ? "Signed up – waiting for first tour to be published"
                         : "Signed up – waiting for first booking";
-                    } else if (r.referee_email) {
+                    } else if (r.status === 'invitation_sent' || r.referee_email) {
                       progress = "Invitation sent – awaiting signup";
                     } else {
                       progress = "Invite ready to send";
