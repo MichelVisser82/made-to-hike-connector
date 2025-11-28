@@ -289,19 +289,17 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
   const invitationUrl = `${Deno.env.get('APP_URL') || 'https://madetohike.com'}/join?ref=${link.referral_code}&inv=${invitationToken}`;
 
   // Send invitation email
-  const emailType = targetType === 'hiker' ? 'referral_invitation' : 'referral_invitation_guide';
-  
   await supabase.functions.invoke('send-email', {
     body: {
-      type: emailType,
+      type: 'referral_invitation',
       to: targetEmail,
       template_data: {
-        referrer_name: referrer?.name || 'A friend',
-        referrer_first_name: referrer?.first_name || 'A friend',
-        invitation_url: invitationUrl,
-        personal_message: personalMessage || null,
-        target_type: targetType,
-        reward_amount: link.reward_amount
+        referrerName: referrer?.name || 'A friend',
+        refereeName: null, // Could add this if we have recipient's name
+        referralLink: invitationUrl,
+        personalMessage: personalMessage || null,
+        targetType: targetType,
+        rewardAmount: link.reward_amount
       }
     }
   });
