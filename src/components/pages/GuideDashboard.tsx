@@ -920,6 +920,8 @@ export function GuideDashboard({
               onViewEarnings={() => setActiveSection('money')}
               onSectionNavigate={(section) => setActiveSection(section as DashboardSection)}
               stripeConnected={!!stripeData?.stripe_account_id && stripeData?.stripe_kyc_status === 'verified'}
+              userId={user.id}
+              userType="guide"
             />
           )}
 
@@ -1003,6 +1005,7 @@ export function GuideDashboard({
               onGenerateTaxDoc={async () => {}}
               onRefresh={() => fetchFinancialData()}
               onUpdatePayoutSchedule={async () => {}}
+              userId={user.id}
             />
           )}
 

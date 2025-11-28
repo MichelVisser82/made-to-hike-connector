@@ -27,6 +27,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { CancellationDiscountsTab } from './policy/CancellationDiscountsTab';
+import { GuideReferralDashboard } from '@/components/referral/GuideReferralDashboard';
 
 interface MoneySectionProps {
   balances: {
@@ -80,6 +81,7 @@ interface MoneySectionProps {
   onGenerateTaxDoc: (year: number) => Promise<void>;
   onRefresh: () => void;
   onUpdatePayoutSchedule: (schedule: string) => Promise<void>;
+  userId: string;
 }
 
 export function MoneySection({
@@ -98,6 +100,7 @@ export function MoneySection({
   onGenerateTaxDoc,
   onRefresh,
   onUpdatePayoutSchedule,
+  userId,
 }: MoneySectionProps) {
   // Filter states
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -225,6 +228,9 @@ export function MoneySection({
           </TabsTrigger>
           <TabsTrigger value="cancellation-discounts" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
             Cancellation & Discounts
+          </TabsTrigger>
+          <TabsTrigger value="referrals" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
+            Referrals
           </TabsTrigger>
           <TabsTrigger value="analytics" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
             Analytics
@@ -596,6 +602,10 @@ export function MoneySection({
 
         <TabsContent value="cancellation-discounts">
           <CancellationDiscountsTab />
+        </TabsContent>
+
+        <TabsContent value="referrals" className="space-y-6">
+          <GuideReferralDashboard userId={userId} />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
