@@ -52,6 +52,7 @@ export interface PricingDetails {
   serviceFee: number;
   total: number;
   currency: string;
+  appliedCodeId?: string;
 }
 
 export type BookingStep = 
