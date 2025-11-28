@@ -24,6 +24,12 @@ export function useGuideSignup() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Capture referral code from URL
+  const [referralCode] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('ref') || undefined;
+  });
+
   const [formData, setFormData] = useState<Partial<GuideSignupData>>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {
@@ -147,6 +153,7 @@ export function useGuideSignup() {
             address_state: formData.address_state,
             address_postal_code: formData.address_postal_code,
             date_of_birth: formData.date_of_birth,
+            referral_code: referralCode, // Include referral code
           },
         },
       });

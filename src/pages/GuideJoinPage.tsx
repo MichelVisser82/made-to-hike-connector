@@ -20,6 +20,14 @@ export const GuideJoinPage = () => {
       }
 
       try {
+        // Track click first
+        await supabase.functions.invoke('manage-referrals', {
+          body: {
+            action: 'track_click',
+            referralCode: refCode
+          }
+        });
+
         const { data, error } = await supabase
           .from('referrals')
           .select(`
