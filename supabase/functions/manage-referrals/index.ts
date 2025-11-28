@@ -218,6 +218,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
       status: inv.status,
       target_type: inv.referral_link.target_type,
       reward_amount: inv.referral_link.reward_amount,
+      reward_type: inv.referral_link.reward_type,
       sent_at: inv.sent_at,
       clicked_at: inv.clicked_at,
       expires_at: inv.expires_at
@@ -229,6 +230,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
       signup_source: signup.signup_source,
       target_type: signup.referral_link.target_type,
       reward_amount: signup.referral_link.reward_amount,
+      reward_type: signup.referral_link.reward_type,
       profile_created_at: signup.profile_created_at,
       milestone_2_at: signup.milestone_2_at,
       completed_at: signup.completed_at,
@@ -237,6 +239,45 @@ async function getStats(supabase: any, body: GetStatsRequest) {
       invitation_email: signup.invitation?.referee_email
     }))
   };
+
+  // Get user's role to determine if they're a guide
+  const { data: userRole } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .single();
+
+  const isGuide = userRole?.role === 'guide';
+
+  // For guides, calculate available credits
+  if (isGuide) {
+    const { data: credits } = await supabase
+      .from('user_credits')
+      .select('amount')
+      .eq('user_id', userId)
+      .eq('status', 'active');
+
+    stats.availableCredits = credits?.reduce((sum: number, c: any) => sum + Number(c.amount), 0) || 0;
+  } else {
+    // For hikers, calculate available vouchers
+    const { data: vouchers } = await supabase
+      .from('discount_codes')
+      .select('discount_value, times_used, max_uses')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .eq('source_type', 'referral')
+      .gte('valid_until', new Date().toISOString());
+
+    const availableVouchers = vouchers?.filter((v: any) => 
+      !v.max_uses || v.times_used < v.max_uses
+    ) || [];
+
+    stats.availableVouchersCount = availableVouchers.length;
+    stats.availableVouchersValue = availableVouchers.reduce(
+      (sum: number, v: any) => sum + Number(v.discount_value), 
+      0
+    );
+  }
 
   return { stats };
 }

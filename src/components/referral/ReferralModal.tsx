@@ -253,7 +253,7 @@ export default function ReferralModal({
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="invite-guides" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
-                  Invite Guides (€50)
+                  Invite Guides (€50 {userType === 'guide' ? 'credit' : 'voucher'})
                 </TabsTrigger>
               </TabsList>
 
@@ -388,9 +388,12 @@ export default function ReferralModal({
                     </div>
                     <div className="flex-1">
                       <h3 className="text-3xl mb-2 text-burgundy" style={{ fontFamily: 'Playfair Display, serif' }}>
-                        Earn €50
+                        Earn €50 {userType === 'guide' ? 'credits' : ''}
                       </h3>
-                      <p className="text-charcoal/70">For each guide who joins and completes their first tour</p>
+                      <p className="text-charcoal/70">
+                        For each guide who joins and completes their first tour
+                        {userType === 'guide' && ' — credits can be withdrawn or applied to your fees'}
+                      </p>
                     </div>
                   </div>
                 </Card>
@@ -578,7 +581,7 @@ export default function ReferralModal({
                     const rewardLabel = r.reward_amount
                       ? `€${r.reward_amount} ${r.reward_type === "credit" ? "credit" : "voucher"}`
                       : r.target_type === 'guide'
-                      ? userType === 'hiker' ? "€50 potential voucher" : "€50 potential credit"
+                      ? userType === 'guide' ? "€50 potential credit" : "€50 potential voucher"
                       : "€25 potential voucher";
  
                     // More accurate status messages based on backend status

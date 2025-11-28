@@ -50,6 +50,7 @@ export const useReferralStats = (userId: string | undefined) => {
           target_type: inv.target_type,
           status: actualStatus,
           reward_amount: inv.reward_amount,
+          reward_type: inv.reward_type,
           sent_at: inv.sent_at,
           clicked_at: inv.clicked_at,
           expires_at: inv.expires_at,
