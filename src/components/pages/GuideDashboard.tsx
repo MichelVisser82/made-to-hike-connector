@@ -218,6 +218,17 @@ export function GuideDashboard({
 
   const handlePublishTour = async (tour: Tour) => {
     try {
+      // Check if Stripe verification is required and completed
+      if (!stripeData?.stripe_account_id || stripeData?.stripe_kyc_status !== 'verified') {
+        toast({ 
+          title: "Stripe Verification Required",
+          description: "Please complete your Stripe account verification before publishing tours. You can accept bookings and receive payments once verified.",
+          variant: "destructive"
+        });
+        setActiveSection('money');
+        return;
+      }
+
       const { error } = await supabase
         .from('tours')
         .update({ is_active: true })
@@ -227,7 +238,7 @@ export function GuideDashboard({
 
       toast({
         title: 'Success',
-        description: 'Tour published',
+        description: 'Tour published and now live! You can start accepting bookings.',
       });
       fetchGuideTours();
     } catch (error) {
@@ -901,16 +912,8 @@ export function GuideDashboard({
               stats={realStats}
               notifications={mockNotifications}
               onCreateTour={() => {
-                // Validate Stripe capabilities before allowing tour creation
-                if (!stripeData?.stripe_account_id || stripeData?.stripe_kyc_status !== 'verified') {
-                  toast({ 
-                    title: "Verification Required",
-                    description: "Please complete your Stripe account verification before creating tours.",
-                    variant: "destructive"
-                  });
-                  setActiveSection('money');
-                  return;
-                }
+                // Allow tour creation regardless of verification status
+                // Tours will be created as drafts and require verification to publish
                 navigate('/tour-creation');
               }}
               onManageAvailability={() => {
@@ -934,16 +937,8 @@ export function GuideDashboard({
                 initialTab={toursActiveTab}
                 onTabChange={setToursActiveTab}
                 onCreateTour={() => {
-                  // Validate Stripe capabilities before allowing tour creation
-                  if (!stripeData?.stripe_account_id || stripeData?.stripe_kyc_status !== 'verified') {
-                    toast({ 
-                      title: "Verification Required",
-                      description: "Please complete your Stripe account verification before creating tours.",
-                      variant: "destructive"
-                    });
-                    setActiveSection('money');
-                    return;
-                  }
+                  // Allow tour creation regardless of verification status
+                  // Tours will be created as drafts and require verification to publish
                   navigate('/tour-creation');
                 }}
                 onEditTour={(tour) => navigate('/tour-creation', { 
@@ -959,6 +954,7 @@ export function GuideDashboard({
                 onArchiveTour={handleArchiveTour}
                 onUnarchiveTour={handleUnarchiveTour}
                 onCopyTour={handleCopyTour}
+                stripeVerified={!!stripeData?.stripe_account_id && stripeData?.stripe_kyc_status === 'verified'}
               />
             </>
           )}

@@ -5,6 +5,7 @@ import { GuideVerificationManager } from './GuideVerificationManager';
 import { DiscountCodesManager } from '../dashboard/policy/DiscountCodesManager';
 import { PlatformFeeSettings } from './PlatformFeeSettings';
 import { ProcessingPaymentsPanel } from './ProcessingPaymentsPanel';
+import { VerificationSettings } from './VerificationSettings';
 
 export function AdminPlatformSection() {
   const [searchParams] = useSearchParams();
@@ -51,6 +52,12 @@ export function AdminPlatformSection() {
           >
             Platform Fees
           </TabsTrigger>
+          <TabsTrigger 
+            value="verification-settings"
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-cream-light"
+          >
+            Verification Settings
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="verifications">
@@ -67,6 +74,10 @@ export function AdminPlatformSection() {
 
         <TabsContent value="platform-fees">
           <PlatformFeeSettings />
+        </TabsContent>
+
+        <TabsContent value="verification-settings">
+          <VerificationSettings />
         </TabsContent>
       </Tabs>
     </div>

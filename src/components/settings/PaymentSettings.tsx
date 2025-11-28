@@ -370,7 +370,7 @@ export function PaymentSettings() {
               {!guideProfile.verified && <Alert className="border-yellow-500/20 bg-yellow-50">
                   <AlertCircle className="h-4 w-4 text-yellow-600" />
                   <AlertDescription className="text-charcoal">
-                    Your guide profile is pending verification. You can connect Stripe now, but you won't be able to create tours until your profile is verified.
+                    Your guide profile is pending verification. You can connect Stripe now and create tours as drafts, but you'll need verification to publish them live and accept bookings.
                   </AlertDescription>
                 </Alert>}
 
