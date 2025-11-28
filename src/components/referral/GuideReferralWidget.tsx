@@ -75,19 +75,19 @@ export default function GuideReferralWidget({
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
             <div className="text-2xl mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
-              {stats?.completedReferrals || 0}
+              {stats?.totalReferrals || stats?.totalInvites || 0}
+            </div>
+            <div className="text-xs text-white/70">Send Invites</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
+            <div className="text-2xl mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+              {stats?.completedReferrals || stats?.completedInvites || 0}
             </div>
             <div className="text-xs text-white/70">Successful</div>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
             <div className="text-2xl mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
-              {stats?.pendingReferrals || 0}
-            </div>
-            <div className="text-xs text-white/70">Pending</div>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-            <div className="text-2xl mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
-              {stats?.totalEarned || 0}
+              €{stats?.totalEarned || 0}
             </div>
             <div className="text-xs text-white/70">Total Earned</div>
           </div>
