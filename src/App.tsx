@@ -69,13 +69,13 @@ const App: React.FC = () => {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/join" element={<Suspense fallback={<PageLoader />}><JoinPage /></Suspense>} />
+            <Route path="/guides/join" element={<Suspense fallback={<PageLoader />}><GuideJoinPage /></Suspense>} />
             <Route path="/tours" element={<ToursPage />} />
             <Route path="/verify-email" element={<Suspense fallback={<PageLoader />}><VerifyEmail /></Suspense>} />
             <Route path="/email-test" element={<Suspense fallback={<PageLoader />}><EmailTest /></Suspense>} />
             <Route path="/tours/:tourSlug/book" element={<Suspense fallback={<PageLoader />}><BookingFlowNew /></Suspense>} />
             <Route path="/tours/:slug" element={<Suspense fallback={<PageLoader />}><TourPage /></Suspense>} />
             <Route path="/guides" element={<Suspense fallback={<PageLoader />}><GuidesPage /></Suspense>} />
-            <Route path="/guides/join" element={<Suspense fallback={<PageLoader />}><GuideJoinPage /></Suspense>} />
             <Route path="/guide/signup" element={<Suspense fallback={<PageLoader />}><GuideSignupPage /></Suspense>} />
             <Route path="/certifications" element={<Suspense fallback={<PageLoader />}><CertificationsPage /></Suspense>} />
             <Route path="/booking-success" element={<Suspense fallback={<PageLoader />}><BookingSuccess /></Suspense>} />
