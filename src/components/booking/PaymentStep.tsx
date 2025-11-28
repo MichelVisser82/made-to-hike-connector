@@ -119,6 +119,10 @@ export const PaymentStep = ({
     setCodeError('');
 
     try {
+      // Get current user ID for voucher validation
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUserId = session?.user?.id;
+
       // First check if it's a user-specific voucher
       const { data: voucherData } = await supabase
         .from('discount_codes')
@@ -129,7 +133,7 @@ export const PaymentStep = ({
 
       if (voucherData) {
         // Check user-specific voucher restrictions
-        if (voucherData.user_id && voucherData.user_id !== userId) {
+        if (voucherData.user_id && voucherData.user_id !== currentUserId) {
           setCodeError('This voucher is assigned to another account');
           setIsValidatingCode(false);
           return;
