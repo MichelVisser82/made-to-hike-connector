@@ -75,6 +75,40 @@ Deno.serve(async (req) => {
           referee_type: userType,
           profile_created_at: new Date().toISOString()
         };
+        
+        // Create €15 welcome discount for hiker referrals
+        if (referral.target_type === 'hiker' && userId) {
+          console.log('Creating €15 welcome discount for new hiker:', userId);
+          
+          const discountCode = `WELCOME${referralCode.substring(0, 6)}`;
+          const expiryDate = new Date();
+          expiryDate.setMonth(expiryDate.getMonth() + 12); // Valid for 12 months
+          
+          const { error: discountError } = await supabase
+            .from('discount_codes')
+            .insert({
+              code: discountCode,
+              discount_type: 'fixed',
+              discount_value: 15,
+              scope: 'user_specific',
+              user_id: userId,
+              source_type: 'referral_welcome',
+              source_id: referral.id,
+              is_active: true,
+              is_public: false,
+              max_uses: 1,
+              times_used: 0,
+              valid_from: new Date().toISOString(),
+              valid_until: expiryDate.toISOString()
+            });
+          
+          if (discountError) {
+            console.error('Error creating welcome discount:', discountError);
+            // Don't fail the referral tracking if discount creation fails
+          } else {
+            console.log('Welcome discount created successfully:', discountCode);
+          }
+        }
         break;
 
       case 'milestone_2':
