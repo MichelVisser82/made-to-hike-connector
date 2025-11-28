@@ -541,7 +541,7 @@ export default function ReferralModal({
                 </Card>
 
                 <Card className="p-4 bg-white border-burgundy/10">
-                  <h4 className="font-semibold text-charcoal mb-2">What if my referral doesn't complete their booking?</h4>
+                  <h4 className="font-semibold text-charcoal mb-2">What if my referral doesn't complete their first tour?</h4>
                   <p className="text-sm text-charcoal/70">
                     You'll only receive your reward once the referral completes their first tour. If they sign up but don't book, the referral will remain pending. You can send them a reminder through the platform to encourage them to book!
                   </p>
