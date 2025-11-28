@@ -245,16 +245,57 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
   const { userId, targetEmail, targetType, personalMessage } = body;
 
   // Get the referral link for this user and target type
-  const { data: link, error: linkError } = await supabase
+  let { data: link, error: linkError } = await supabase
     .from('referral_links')
     .select('*')
     .eq('referrer_id', userId)
     .eq('target_type', targetType)
     .single();
 
-  if (linkError) {
-    console.error('Error fetching referral link:', linkError);
-    throw new Error('Referral link not found. Please generate links first.');
+  // If link doesn't exist, create it automatically
+  if (linkError || !link) {
+    console.log(`Referral link for ${targetType} not found, creating it automatically...`);
+    
+    // Get user info to generate the code
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, first_name')
+      .eq('id', userId)
+      .single();
+    
+    const { data: userRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+    
+    const firstName = profile?.first_name || profile?.name?.split(' ')[0] || 'User';
+    const userType = userRole?.role || 'hiker';
+    
+    // Generate referral code
+    const referralCode = await generateReferralCode(firstName, targetType);
+    
+    // Create the referral link
+    const { data: newLink, error: createError } = await supabase
+      .from('referral_links')
+      .insert({
+        referrer_id: userId,
+        referrer_type: userType,
+        target_type: targetType,
+        referral_code: referralCode,
+        reward_amount: targetType === 'guide' ? 50 : (userType === 'guide' ? 50 : 25),
+        reward_type: (userType === 'guide' && targetType === 'guide') ? 'credit' : 'voucher'
+      })
+      .select()
+      .single();
+    
+    if (createError) {
+      console.error('Error creating referral link:', createError);
+      throw new Error('Failed to create referral link');
+    }
+    
+    link = newLink;
+    console.log(`Created new referral link: ${link.referral_code}`);
   }
 
   // Generate unique invitation token
