@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Mail, Phone, Download, FileText, Send, Paperclip, Package, Edit3 } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Mail, Phone, Download, FileText, Send, Paperclip, Package, Edit3, Check } from 'lucide-react';
 import WeatherForecastCard from './WeatherForecastCard';
 import { ParticipantCard } from './ParticipantCard';
 import { useState as useDialogState } from 'react';
@@ -90,6 +90,7 @@ export function TourBookingDetailPage() {
   const [groupMessage, setGroupMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [packingListModalOpen, setPackingListModalOpen] = useState(false);
+  const [completingTour, setCompletingTour] = useState(false);
   useEffect(() => {
     if (tourSlug && user) {
       fetchTourAndBookings();
@@ -378,10 +379,69 @@ export function TourBookingDetailPage() {
       toast({
         title: 'Error',
         description: 'Failed to send reminder',
-        variant: 'destructive'
-      });
+      variant: 'destructive'
+    });
+  }
+};
+
+const handleCompleteTour = async () => {
+  if (completingTour) return;
+  
+  try {
+    setCompletingTour(true);
+    
+    const bookingIds = bookings.map(b => b.id);
+    let successCount = 0;
+    let failCount = 0;
+
+    // Update all bookings to completed status
+    for (const bookingId of bookingIds) {
+      try {
+        const { error: updateError } = await supabase
+          .from('bookings')
+          .update({ status: 'completed' })
+          .eq('id', bookingId);
+
+        if (updateError) throw updateError;
+
+        // Trigger review creation
+        const { error: reviewError } = await supabase.functions.invoke('process-tour-completions', {
+          body: { booking_id: bookingId, immediate: true }
+        });
+
+        if (reviewError) {
+          console.error(`Error creating reviews for booking ${bookingId}:`, reviewError);
+        }
+
+        successCount++;
+      } catch (error) {
+        console.error(`Error completing booking ${bookingId}:`, error);
+        failCount++;
+      }
     }
-  };
+
+    if (successCount > 0) {
+      toast({
+        title: 'Success',
+        description: `${successCount} booking${successCount > 1 ? 's' : ''} marked as completed${failCount > 0 ? ` (${failCount} failed)` : ''}. Reviews are now available.`
+      });
+      
+      // Refresh data
+      fetchTourAndBookings();
+    } else {
+      throw new Error('Failed to complete any bookings');
+    }
+  } catch (error) {
+    console.error('Error completing tour:', error);
+    toast({
+      title: 'Error',
+      description: 'Failed to mark tour as completed',
+      variant: 'destructive'
+    });
+  } finally {
+    setCompletingTour(false);
+  }
+};
   const handleSendDocumentsEmail = async () => {
     if (!tour || !profile?.email) {
       toast({
@@ -499,6 +559,20 @@ export function TourBookingDetailPage() {
               <MapPin className="w-16 h-16 text-charcoal/40" />
             </div>}
           <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-charcoal/15 to-transparent" />
+          
+          {/* Complete Tour Button - Top Right */}
+          {bookings.length > 0 && bookings.every(b => b.status === 'confirmed') && (
+            <div className="absolute top-4 right-4">
+              <Button
+                onClick={handleCompleteTour}
+                className="bg-burgundy hover:bg-burgundy-dark text-white shadow-lg"
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Mark Tour as Completed
+              </Button>
+            </div>
+          )}
+
           <div className="absolute bottom-6 left-6 text-white">
             <h1 className="text-3xl font-playfair mb-2">{tour.title}</h1>
             <div className="flex items-center gap-4 text-sm">
