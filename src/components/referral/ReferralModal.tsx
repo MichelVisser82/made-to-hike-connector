@@ -110,6 +110,9 @@ export default function ReferralModal({
   const [copiedGuide, setCopiedGuide] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [personalMessage, setPersonalMessage] = useState("");
+  const [activeInviteTab, setActiveInviteTab] = useState<'invite-hikers' | 'invite-guides'>(
+    userType === 'hiker' ? 'invite-hikers' : 'invite-guides'
+  );
   const {
     data: stats
   } = useReferralStats(userId);
@@ -140,7 +143,9 @@ export default function ReferralModal({
       return;
     }
     try {
-      await sendInvitation(userId, inviteEmail, userType, personalMessage);
+      // Determine target type based on active tab
+      const targetType = activeInviteTab === 'invite-hikers' ? 'hiker' : 'guide';
+      await sendInvitation(userId, inviteEmail, targetType, personalMessage);
       setInviteEmail("");
       setPersonalMessage("");
     } catch (error) {
@@ -224,7 +229,7 @@ export default function ReferralModal({
 
           {/* Tab 1: Share & Invite */}
           <TabsContent value="share" className="p-6 bg-cream/30">
-            <Tabs defaultValue={userType === 'hiker' ? 'invite-hikers' : 'invite-guides'} className="w-full">
+            <Tabs value={activeInviteTab} onValueChange={(value) => setActiveInviteTab(value as 'invite-hikers' | 'invite-guides')} className="w-full">
               {/* Nested tab selector */}
               <TabsList className={`grid w-full mb-6 bg-white ${userType === 'hiker' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {userType === 'hiker' && (
