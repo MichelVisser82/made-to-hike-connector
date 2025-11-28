@@ -609,7 +609,7 @@ export default function ReferralModal({
                         reward={rewardLabel}
                         userType={userType}
                         progress={progress}
-                        onDelete={mappedStatus === 'pending' ? () => deleteInvitation(userId, r.referee_email) : undefined}
+                        onDelete={mappedStatus !== 'completed' ? () => deleteInvitation(userId, r.referee_email) : undefined}
                       />
                     );
                   })}
