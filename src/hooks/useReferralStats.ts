@@ -20,16 +20,42 @@ export const useReferralStats = (userId: string | undefined) => {
       const invitations = raw?.invitations ?? [];
       const signups = raw?.signups ?? [];
 
-      const referrals = invitations.map((inv: any) => ({
-        id: inv.id,
-        referee_email: inv.referee_email,
-        target_type: inv.target_type,
-        status: inv.status,
-        reward_amount: inv.reward_amount,
-        sent_at: inv.sent_at,
-        clicked_at: inv.clicked_at,
-        expires_at: inv.expires_at,
-      }));
+      // Create a map of signups by email for quick lookup
+      const signupMap = new Map(
+        signups.map((s: any) => [s.signup_email, s])
+      );
+
+      // Merge invitation and signup data
+      const referrals = invitations.map((inv: any) => {
+        const signup = signupMap.get(inv.referee_email) as any;
+        
+        // Determine the actual status based on signup data
+        let actualStatus = inv.status;
+        let created_at = inv.sent_at;
+        
+        if (signup) {
+          if (signup.completed_at) {
+            actualStatus = 'completed';
+          } else if (signup.milestone_2_at) {
+            actualStatus = 'milestone_2';
+          } else if (signup.profile_created_at) {
+            actualStatus = 'profile_created';
+          }
+          created_at = signup.profile_created_at || inv.sent_at;
+        }
+
+        return {
+          id: inv.id,
+          referee_email: inv.referee_email,
+          target_type: inv.target_type,
+          status: actualStatus,
+          reward_amount: inv.reward_amount,
+          sent_at: inv.sent_at,
+          clicked_at: inv.clicked_at,
+          expires_at: inv.expires_at,
+          created_at,
+        };
+      });
 
       const totalInvites = raw?.total_invitations_sent ?? invitations.length;
       const completedReferrals = raw?.completed_signups ?? 0;
