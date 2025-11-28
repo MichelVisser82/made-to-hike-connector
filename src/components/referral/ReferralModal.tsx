@@ -596,7 +596,7 @@ export default function ReferralModal({
                         : "Made first booking – reward pending completion";
                     } else if (mappedStatus === 'signed-up') {
                       progress = r.target_type === 'guide'
-                        ? "Tour published, waiting for tour to be completed"
+                        ? "Signed up – waiting for first tour to be published"
                         : "Signed up – waiting for first booking";
                     } else if (r.status === 'invitation_sent' || r.referee_email) {
                       progress = "Invitation sent – awaiting signup";
