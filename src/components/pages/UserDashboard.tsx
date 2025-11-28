@@ -6,6 +6,7 @@ import { HikerTripsSection } from '@/components/dashboard/hiker/HikerTripsSectio
 import { HikerBookingsSection } from '@/components/dashboard/hiker/HikerBookingsSection';
 import { HikerReviewsSection } from '@/components/dashboard/hiker/HikerReviewsSection';
 import { HikerInboxSection } from '@/components/dashboard/hiker/HikerInboxSection';
+import { HikerReferralDashboard } from '@/components/referral/HikerReferralDashboard';
 import { useSavedTours } from '@/hooks/useSavedTours';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@/types';
@@ -104,6 +105,8 @@ export function UserDashboard({ user, onNavigateToSearch, onTourClick }: UserDas
         />;
       case 'inbox':
         return <HikerInboxSection userId={user.id} />;
+      case 'referrals':
+        return <HikerReferralDashboard userId={user.id} />;
       default:
         return null;
     }

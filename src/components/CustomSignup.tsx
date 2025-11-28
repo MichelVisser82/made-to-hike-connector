@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { userSignupSchema, type UserSignupData } from '@/lib/validationSchemas';
 
 export const CustomSignup = () => {
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref');
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -63,7 +67,8 @@ export const CustomSignup = () => {
           metadata: {
             name: result.data.name,
             phone: result.data.phone,
-            role: 'hiker'
+            role: 'hiker',
+            referral_code: referralCode || undefined
           }
         }
       });

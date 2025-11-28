@@ -42,6 +42,10 @@ serve(async (req) => {
     const verificationToken = crypto.randomUUID();
     console.log('Generated verification token');
 
+    // Check for referral code in metadata
+    const referralCode = metadata?.referral_code;
+    console.log('Referral code from metadata:', referralCode);
+
     // Create user with email_confirmed: false
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
@@ -50,7 +54,8 @@ serve(async (req) => {
       user_metadata: {
         ...metadata,
         verification_token: verificationToken,
-        verification_sent_at: new Date().toISOString()
+        verification_sent_at: new Date().toISOString(),
+        referral_code: referralCode // Preserve referral code
       }
     });
 
@@ -60,6 +65,24 @@ serve(async (req) => {
     }
 
     console.log('User created successfully:', authData.user.id);
+
+    // Track referral progress if referral code present
+    if (referralCode) {
+      console.log('Processing referral code:', referralCode);
+      try {
+        await supabase.functions.invoke('track-referral-progress', {
+          body: {
+            referralCode,
+            step: 'profile_created',
+            userId: authData.user.id,
+            userType: metadata?.role || 'hiker'
+          }
+        });
+        console.log('Referral progress tracked successfully');
+      } catch (refError) {
+        console.error('Error tracking referral (non-blocking):', refError);
+      }
+    }
 
     // Send verification email using our send-email function
     console.log('Sending verification email...');
