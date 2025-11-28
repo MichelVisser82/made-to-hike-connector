@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ReferralWidget } from '@/components/referral/ReferralWidget';
+import GuideReferralWidget from '@/components/referral/GuideReferralWidget';
 import type { DashboardStats, TodayScheduleItem, WeatherData, Notification } from '@/types/dashboard';
 
 interface TodaySectionProps {
@@ -354,10 +354,10 @@ export function TodaySection({
       </div>
 
       {/* Referral Widget - Full Width */}
-      <ReferralWidget 
+      <GuideReferralWidget
         userId={userId}
-        userType={userType}
         userName={guideName}
+        onViewFullDashboard={() => onNavigateToSection('money', 'referrals')}
       />
     </div>
   );
