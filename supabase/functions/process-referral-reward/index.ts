@@ -31,11 +31,21 @@ Deno.serve(async (req) => {
           reward_amount,
           reward_currency,
           reward_type
-        ),
-        referee:profiles!user_id(name, email)
+        )
       `)
       .eq('id', signupId)
       .single();
+    
+    // Fetch referee profile separately
+    if (signup && !signupError) {
+      const { data: refereeProfile } = await supabase
+        .from('profiles')
+        .select('name, email')
+        .eq('id', signup.user_id)
+        .single();
+      
+      signup.referee = refereeProfile;
+    }
 
     if (signupError || !signup) {
       console.error('Signup not found:', signupId);
@@ -157,9 +167,6 @@ async function issueVoucher(supabase: any, signup: any, link: any) {
 }
 
 async function issueCredit(supabase: any, signup: any, link: any) {
-  const expiryDate = new Date();
-  expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-
   const { error: creditError } = await supabase
     .from('user_credits')
     .insert({
@@ -169,7 +176,7 @@ async function issueCredit(supabase: any, signup: any, link: any) {
       source_type: 'referral_reward',
       source_id: signup.id,
       status: 'active',
-      expires_at: expiryDate.toISOString()
+      notes: 'Referral reward - valid for 12 months'
     });
 
   if (creditError) {
@@ -202,8 +209,7 @@ async function issueCredit(supabase: any, signup: any, link: any) {
         referee_name: signup.referee?.name || 'your referral',
         reward_type: 'credit',
         reward_amount: link.reward_amount,
-        total_credits: totalCredits,
-        credit_expiry: expiryDate.toISOString()
+        total_credits: totalCredits
       }
     }
   });
