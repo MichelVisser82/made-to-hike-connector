@@ -516,7 +516,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         return { success: false };
       }
 
-      // Check Stripe verification before allowing publish
+      // Check Stripe verification to determine tour status
       const { data: guideProfile } = await supabase
         .from('guide_profiles')
         .select('stripe_account_id, stripe_kyc_status')
@@ -525,14 +525,9 @@ export function useTourCreation(options?: UseTourCreationOptions) {
 
       const isStripeVerified = guideProfile?.stripe_account_id && guideProfile?.stripe_kyc_status === 'verified';
       
-      if (!isStripeVerified) {
-        toast({
-          title: "Stripe Verification Required",
-          description: "Complete Stripe verification in Payment & Payout settings before publishing tours.",
-          variant: "destructive",
-        });
-        return { success: false };
-      }
+      // Determine status based on Stripe verification
+      const tourStatus = isStripeVerified ? 'published' : 'draft';
+      const tourIsActive = isStripeVerified;
 
       // Format the data for submission (exclude date_slots, routeData, and form-only fields)
       const { date_slots, routeData, total_distance_km, average_distance_per_day_km, ...tourData } = data as any;
@@ -553,7 +548,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         // UPDATE existing tour (draft or published)
         const { error } = await supabase
           .from('tours')
-          .update({ ...formattedTourData, status: 'published', is_active: true })
+          .update({ ...formattedTourData, status: tourStatus, is_active: tourIsActive })
           .eq('id', createdTourId)
           .eq('guide_id', user.id);
 
@@ -577,7 +572,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         // INSERT new tour (shouldn't happen if auto-save worked, but fallback)
         const { data: newTour, error } = await supabase
           .from('tours')
-          .insert([{ ...formattedTourData, status: 'published', is_active: true }])
+          .insert([{ ...formattedTourData, status: tourStatus, is_active: tourIsActive }])
           .select('id')
           .single();
 
@@ -629,10 +624,17 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         localStorage.removeItem(STORAGE_KEY + '_tour_id');
       }
 
-      toast({
-        title: "Success",
-        description: editMode ? "Tour updated successfully!" : "Tour published successfully!",
-      });
+      if (!isStripeVerified) {
+        toast({
+          title: "Tour Saved as Draft",
+          description: "Your tour is ready! Complete Stripe verification in Payment & Payout settings to publish and start accepting bookings.",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: editMode ? "Tour updated successfully!" : "Tour published successfully!",
+        });
+      }
       
       return { success: true };
     } catch (error) {
