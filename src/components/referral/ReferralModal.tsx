@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Copy, Check, Euro, Gift, Users, CheckCircle, Award, Info, Clock, Sparkles, Send, MessageCircle, Facebook, Linkedin, MessageSquare, Loader2 } from "lucide-react";
+import { Copy, Check, Euro, Gift, Users, CheckCircle, Award, Info, Clock, Sparkles, Send, MessageCircle, Facebook, Linkedin, MessageSquare, Loader2, X } from "lucide-react";
 
 // X (formerly Twitter) logo component
 const XLogo = ({ className }: { className?: string }) => (
@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useReferralStats } from "@/hooks/useReferralStats";
 import { useReferralLinks } from "@/hooks/useReferralLinks";
 import { useSendInvitation } from "@/hooks/useSendInvitation";
+import { useDeleteInvitation } from "@/hooks/useDeleteInvitation";
 interface ReferralModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,6 +36,7 @@ interface ReferralItemProps {
   reward: string;
   userType: 'hiker' | 'guide';
   progress?: string;
+  onDelete?: () => void;
 }
 function ReferralItem({
   name,
@@ -42,7 +44,8 @@ function ReferralItem({
   date,
   reward,
   userType,
-  progress
+  progress,
+  onDelete
 }: ReferralItemProps) {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -92,9 +95,21 @@ function ReferralItem({
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2 text-burgundy font-semibold">
-        <Icon className={`w-4 h-4 ${config.iconClass}`} />
-        <span>{reward}</span>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-burgundy font-semibold">
+          <Icon className={`w-4 h-4 ${config.iconClass}`} />
+          <span>{reward}</span>
+        </div>
+        {onDelete && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            className="text-charcoal/40 hover:text-red-600 hover:bg-red-50"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
       </div>
     </div>;
 }
@@ -123,6 +138,7 @@ export default function ReferralModal({
     sendInvitation,
     isLoading: isSending
   } = useSendInvitation();
+  const { deleteInvitation, isLoading: isDeleting } = useDeleteInvitation();
   const rewardAmount = userType === 'hiker' ? '€25' : '€50';
   const primaryLink = userType === 'hiker' ? links?.hikerLink : links?.guideLink;
   const shareMessage = userType === 'hiker' ? `Join MadeToHike and get €15 off your first adventure! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}` : `Join MadeToHike as a guide! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`;
@@ -587,12 +603,13 @@ export default function ReferralModal({
                     return (
                       <ReferralItem
                         key={r.id}
-                        name={displayName}
+                      name={displayName}
                         status={mappedStatus}
                         date={createdDate}
                         reward={rewardLabel}
                         userType={userType}
                         progress={progress}
+                        onDelete={mappedStatus === 'pending' ? () => deleteInvitation(userId, r.referee_email) : undefined}
                       />
                     );
                   })}

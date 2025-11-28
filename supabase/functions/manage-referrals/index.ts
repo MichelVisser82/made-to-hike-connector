@@ -29,7 +29,13 @@ interface TrackClickRequest {
   referralCode: string;
 }
 
-type RequestBody = GenerateLinksRequest | GetStatsRequest | SendInvitationRequest | TrackClickRequest;
+interface DeleteInvitationRequest {
+  action: 'delete_invitation';
+  userId: string;
+  refereeEmail: string;
+}
+
+type RequestBody = GenerateLinksRequest | GetStatsRequest | SendInvitationRequest | TrackClickRequest | DeleteInvitationRequest;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -52,6 +58,8 @@ Deno.serve(async (req) => {
         return await sendInvitation(supabase, body);
       case 'track_click':
         return await trackClick(supabase, body);
+      case 'delete_invitation':
+        return await deleteInvitation(supabase, body);
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid action' }),
@@ -338,6 +346,31 @@ async function trackClick(supabase: any, body: TrackClickRequest) {
 
   return new Response(
     JSON.stringify({ success: true }),
+    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+async function deleteInvitation(supabase: any, body: DeleteInvitationRequest) {
+  const { userId, refereeEmail } = body;
+
+  console.log('Deleting invitation for:', refereeEmail, 'by user:', userId);
+
+  // Delete the referral record
+  const { error } = await supabase
+    .from('referrals')
+    .delete()
+    .eq('referrer_id', userId)
+    .eq('referee_email', refereeEmail);
+
+  if (error) {
+    console.error('Error deleting invitation:', error);
+    throw new Error('Failed to delete invitation');
+  }
+
+  console.log('Invitation deleted successfully');
+
+  return new Response(
+    JSON.stringify({ success: true, message: 'Invitation deleted successfully' }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
