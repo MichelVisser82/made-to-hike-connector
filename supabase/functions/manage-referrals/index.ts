@@ -242,6 +242,15 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
     .eq('user_id', userId)
     .single();
 
+  // Update referral record with referee email
+  await supabase
+    .from('referrals')
+    .update({ 
+      referee_email: targetEmail,
+      updated_at: new Date().toISOString()
+    })
+    .eq('referral_code', referralCode);
+
   // Send email via send-email function
   await supabase.functions.invoke('send-email', {
     body: {
