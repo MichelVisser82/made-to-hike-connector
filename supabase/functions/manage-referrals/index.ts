@@ -154,6 +154,27 @@ async function getStats(supabase: any, body: GetStatsRequest) {
 
   if (linksError) throw linksError;
 
+  // If no links, return empty stats
+  if (!links || links.length === 0) {
+    return {
+      stats: {
+        total_invitations_sent: 0,
+        total_signups: 0,
+        pending_invitations: 0,
+        clicked_invitations: 0,
+        completed_signups: 0,
+        pending_signups: 0,
+        generic_link_signups: 0,
+        email_signups: 0,
+        total_rewards_issued: 0,
+        invitations: [],
+        signups: []
+      }
+    };
+  }
+
+  const linkIds = links.map((l: any) => l.id);
+
   // Get all invitations
   const { data: invitations, error: invitationsError } = await supabase
     .from('referral_invitations')
@@ -161,7 +182,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
       *,
       referral_link:referral_links(target_type, reward_amount, reward_type)
     `)
-    .in('referral_link_id', links.map((l: any) => l.id))
+    .in('referral_link_id', linkIds)
     .order('created_at', { ascending: false });
 
   if (invitationsError) throw invitationsError;
@@ -174,7 +195,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
       referral_link:referral_links(target_type, reward_amount, reward_type),
       invitation:referral_invitations(referee_email)
     `)
-    .in('referral_link_id', links.map((l: any) => l.id))
+    .in('referral_link_id', linkIds)
     .order('created_at', { ascending: false });
 
   if (signupsError) throw signupsError;
