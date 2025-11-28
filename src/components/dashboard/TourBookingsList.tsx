@@ -45,15 +45,16 @@ export function TourBookingsList({ tours, loading }: TourBookingsListProps) {
   );
 
   // Split into upcoming and past tours
+  // Past tours = completed tours OR tours with dates in the past
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
   const upcomingTours = sortedTours.filter(tour => 
-    new Date(tour.earliest_date) >= today
+    tour.completed_bookings === 0 && new Date(tour.earliest_date) >= today
   );
   
   const pastTours = sortedTours.filter(tour => 
-    new Date(tour.earliest_date) < today
+    tour.completed_bookings > 0 || new Date(tour.earliest_date) < today
   );
 
   const renderTourCard = (tour: TourBookingSummary) => (
@@ -97,7 +98,12 @@ export function TourBookingsList({ tours, loading }: TourBookingsListProps) {
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
-                  {tour.confirmed_bookings > 0 && (
+                  {tour.completed_bookings > 0 && (
+                    <Badge variant="secondary" className="bg-charcoal/10 text-charcoal border-charcoal/20">
+                      Completed
+                    </Badge>
+                  )}
+                  {tour.confirmed_bookings > 0 && tour.completed_bookings === 0 && (
                     <Badge variant="secondary" className="bg-sage/10 text-sage border-sage/20">
                       Confirmed
                     </Badge>
@@ -140,7 +146,7 @@ export function TourBookingsList({ tours, loading }: TourBookingsListProps) {
         <div className="space-y-4">
           <div className="flex items-center gap-2 pt-6 border-t border-burgundy/10">
             <h3 className="text-sm font-semibold text-charcoal/60 uppercase tracking-wide">
-              Past Date Tours
+              Past Tours
             </h3>
           </div>
           {pastTours.map(renderTourCard)}
