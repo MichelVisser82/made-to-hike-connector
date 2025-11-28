@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { X, Copy, Check, Mail, MessageCircle, Euro, TrendingUp, Gift, Users, CheckCircle } from "lucide-react";
+import { X, Copy, Check, Mail, MessageCircle, Euro, Gift, Users, CheckCircle, TrendingUp, Award, Info } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useReferralStats } from "@/hooks/useReferralStats";
 import { useReferralLinks } from "@/hooks/useReferralLinks";
@@ -40,6 +42,9 @@ export default function ReferralModal({
   const { data: stats } = useReferralStats(userId);
   const { data: links } = useReferralLinks(userId, userType, userName.split(' ')[0]);
   const { sendInvitation, isLoading: isSending } = useSendInvitation();
+
+  const rewardAmount = userType === 'hiker' ? '€25' : '€50';
+  const primaryLink = userType === 'hiker' ? links?.hikerLink : links?.guideLink;
 
   const handleCopy = (link: string, type: 'hiker' | 'guide') => {
     navigator.clipboard.writeText(link);
@@ -77,190 +82,154 @@ export default function ReferralModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[800px] p-0 overflow-hidden">
-        {/* Burgundy Header */}
-        <div className="bg-gradient-to-r from-burgundy to-burgundy-dark text-white p-6">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                <Euro className="w-6 h-6" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl text-white mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  Earn {userType === 'hiker' ? 'Vouchers' : 'Credits'} by Inviting Friends
-                </DialogTitle>
-                <p className="text-white/90 text-sm">€25 per hiker • €50 per guide</p>
-              </div>
+      <DialogContent className="max-w-[600px] p-0">
+        {/* Header */}
+        <DialogHeader className="p-6 pb-4">
+          <div className="flex items-start gap-3">
+            <Gift className="w-6 h-6 text-burgundy flex-shrink-0 mt-1" />
+            <div>
+              <DialogTitle className="text-2xl text-charcoal mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Referral Program
+              </DialogTitle>
+              <DialogDescription className="text-charcoal/60">
+                Earn rewards by inviting friends to Made to Hike
+              </DialogDescription>
             </div>
-          </DialogHeader>
-        </div>
+          </div>
+        </DialogHeader>
 
         {/* Tabs */}
         <Tabs defaultValue="share" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 bg-cream/50 rounded-none border-b">
-            <TabsTrigger value="share" className="data-[state=active]:bg-white data-[state=active]:text-burgundy">
+          <TabsList className="w-full grid grid-cols-3 rounded-none border-b border-t bg-transparent h-auto p-0">
+            <TabsTrigger 
+              value="share" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3"
+            >
               Share & Invite
             </TabsTrigger>
-            <TabsTrigger value="track" className="data-[state=active]:bg-white data-[state=active]:text-burgundy">
+            <TabsTrigger 
+              value="track" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3"
+            >
               Track Referrals
             </TabsTrigger>
-            <TabsTrigger value="how" className="data-[state=active]:bg-white data-[state=active]:text-burgundy">
+            <TabsTrigger 
+              value="how" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-burgundy data-[state=active]:bg-transparent py-3"
+            >
               How It Works
             </TabsTrigger>
           </TabsList>
 
           {/* Tab 1: Share & Invite */}
           <TabsContent value="share" className="p-6 space-y-6">
-            {/* Callout Box */}
-            <div className="bg-cream rounded-lg p-4 border-2 border-burgundy/20">
-              <div className="flex items-center gap-2 text-burgundy mb-1">
-                <Gift className="w-5 h-5" />
-                <span className="font-semibold">They also get €10 welcome discount!</span>
+            {/* Reward Highlight */}
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-full bg-sage flex items-center justify-center mx-auto mb-4">
+                <Euro className="w-10 h-10 text-white" />
               </div>
-              <p className="text-sm text-charcoal/70">
-                Your friends receive €10 off their first adventure when they sign up through your link.
+              <h3 className="text-4xl mb-3 text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Earn {rewardAmount}
+              </h3>
+              <p className="text-charcoal/70">
+                For each friend who joins and when they book their first tour
               </p>
             </div>
 
-            {/* Invite Hikers Section */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  Invite Hikers - Earn €25
-                </h3>
-                <Badge className="bg-burgundy text-white">Most Popular</Badge>
-              </div>
-              
-              <div className="bg-white border border-burgundy/20 rounded-lg p-4 space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    readOnly
-                    value={links?.hikerLink || ''}
-                    className="flex-1 bg-cream/50"
-                  />
-                  <Button
-                    size="icon"
-                    onClick={() => handleCopy(links?.hikerLink || '', 'hiker')}
-                    className="bg-burgundy hover:bg-burgundy-dark text-white"
-                  >
-                    {copiedHiker ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                    onClick={() => handleShareWhatsApp('hiker')}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                    onClick={() => {
-                      setInviteType('hiker');
-                      document.getElementById('email-input')?.focus();
-                    }}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email
-                  </Button>
+            {/* Callout Box */}
+            <div className="bg-burgundy/10 border-2 border-burgundy/20 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <Gift className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-charcoal mb-1">They also get €10 welcome discount!</p>
+                  <p className="text-sm text-charcoal/70">
+                    It's a win-win. Your friends get a great discount, and you earn rewards.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Invite Guides Section */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
-                Invite Guides - Earn €50
-              </h3>
-              
-              <div className="bg-white border border-burgundy/20 rounded-lg p-4 space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    readOnly
-                    value={links?.guideLink || ''}
-                    className="flex-1 bg-cream/50"
-                  />
-                  <Button
-                    size="icon"
-                    onClick={() => handleCopy(links?.guideLink || '', 'guide')}
-                    className="bg-burgundy hover:bg-burgundy-dark text-white"
-                  >
-                    {copiedGuide ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                    onClick={() => handleShareWhatsApp('guide')}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-burgundy/30 text-burgundy hover:bg-burgundy/5"
-                    onClick={() => {
-                      setInviteType('guide');
-                      document.getElementById('email-input')?.focus();
-                    }}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Email Invitation Form */}
-            <div className="bg-cream/50 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-charcoal">Send Personal Invitation</h4>
-              <div className="space-y-2">
-                <Input
-                  id="email-input"
-                  type="email"
-                  placeholder="Friend's email address"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  className="bg-white"
+            {/* Referral Link */}
+            <div>
+              <h4 className="font-medium text-charcoal mb-3">Your Personal Referral Link</h4>
+              <div className="flex gap-2">
+                <Input 
+                  value={primaryLink || ''}
+                  readOnly
+                  className="bg-cream/50 border-burgundy/20 font-mono text-sm"
                 />
-                <Textarea
-                  placeholder="Add a personal message (optional)"
-                  value={inviteMessage}
-                  onChange={(e) => setInviteMessage(e.target.value)}
-                  className="bg-white resize-none"
-                  rows={3}
-                />
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm text-charcoal/70">Inviting as:</span>
-                  <div className="flex gap-2">
-                    <Badge
-                      variant={inviteType === 'hiker' ? 'default' : 'outline'}
-                      className={inviteType === 'hiker' ? 'bg-burgundy cursor-pointer' : 'cursor-pointer'}
-                      onClick={() => setInviteType('hiker')}
-                    >
-                      Hiker (€25)
-                    </Badge>
-                    <Badge
-                      variant={inviteType === 'guide' ? 'default' : 'outline'}
-                      className={inviteType === 'guide' ? 'bg-burgundy cursor-pointer' : 'cursor-pointer'}
-                      onClick={() => setInviteType('guide')}
-                    >
-                      Guide (€50)
-                    </Badge>
-                  </div>
-                </div>
-                <Button
-                  onClick={handleSendInvite}
-                  disabled={isSending}
-                  className="w-full bg-burgundy hover:bg-burgundy-dark text-white"
+                <Button 
+                  onClick={() => handleCopy(primaryLink || '', userType)}
+                  className="bg-burgundy hover:bg-burgundy-dark text-white px-6"
                 >
-                  {isSending ? 'Sending...' : 'Send Invitation'}
+                  {(userType === 'hiker' ? copiedHiker : copiedGuide) ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy
+                    </>
+                  )}
                 </Button>
               </div>
+              <p className="text-xs text-charcoal/60 mt-2">
+                Share this unique link to track your referrals automatically
+              </p>
+            </div>
+
+            {/* Quick Share Options */}
+            <div>
+              <h4 className="font-medium text-charcoal mb-3">Quick Share</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                  onClick={() => handleShareWhatsApp(userType)}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  WhatsApp
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-burgundy/30 text-burgundy hover:bg-burgundy/5"
+                  onClick={() => {
+                    document.getElementById('email-input')?.focus();
+                  }}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Email
+                </Button>
+              </div>
+            </div>
+
+            {/* Email Invitation */}
+            <div className="bg-cream/30 rounded-lg p-4 space-y-3">
+              <h4 className="font-medium text-charcoal text-sm">Send Personal Invitation</h4>
+              <Input
+                id="email-input"
+                type="email"
+                placeholder="friend@email.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                className="bg-white"
+              />
+              <Textarea
+                placeholder="Add a personal message (optional)"
+                value={inviteMessage}
+                onChange={(e) => setInviteMessage(e.target.value)}
+                className="bg-white resize-none"
+                rows={3}
+              />
+              <Button
+                onClick={handleSendInvite}
+                disabled={isSending || !inviteEmail}
+                className="w-full bg-burgundy hover:bg-burgundy-dark text-white"
+              >
+                {isSending ? 'Sending...' : 'Send Invitation'}
+              </Button>
             </div>
           </TabsContent>
 
@@ -268,27 +237,27 @@ export default function ReferralModal({
           <TabsContent value="track" className="p-6 space-y-6">
             {/* Stats Summary */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-gradient-to-br from-burgundy/10 to-burgundy/20 rounded-lg p-4 text-center">
+              <Card className="p-4 text-center bg-white border-burgundy/10">
                 <div className="text-3xl font-bold text-burgundy mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {stats?.totalReferrals || 0}
                 </div>
-                <div className="text-sm text-charcoal/70">Total Invited</div>
-              </div>
-              <div className="bg-gradient-to-br from-sage/10 to-sage/20 rounded-lg p-4 text-center">
+                <div className="text-xs text-charcoal/70">Total Invited</div>
+              </Card>
+              <Card className="p-4 text-center bg-white border-sage/20">
                 <div className="text-3xl font-bold text-sage mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {stats?.completedReferrals || 0}
                 </div>
-                <div className="text-sm text-charcoal/70">Completed</div>
-              </div>
-              <div className="bg-gradient-to-br from-gold/10 to-gold/20 rounded-lg p-4 text-center">
+                <div className="text-xs text-charcoal/70">Completed</div>
+              </Card>
+              <Card className="p-4 text-center bg-white border-gold/20">
                 <div className="text-3xl font-bold text-gold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {stats?.pendingReferrals || 0}
                 </div>
-                <div className="text-sm text-charcoal/70">In Progress</div>
-              </div>
+                <div className="text-xs text-charcoal/70">In Progress</div>
+              </Card>
             </div>
 
-            {/* 3-Step Progress */}
+            {/* Progress Steps */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-charcoal" style={{ fontFamily: 'Playfair Display, serif' }}>
                 How Your Referrals Work
@@ -299,14 +268,9 @@ export default function ReferralModal({
                   <div className="w-10 h-10 rounded-full bg-burgundy flex items-center justify-center text-white font-bold shrink-0">
                     1
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 pt-2">
                     <h4 className="font-semibold text-charcoal mb-1">Friend Signs Up</h4>
-                    <p className="text-sm text-charcoal/70">
-                      They click your link and create an account
-                    </p>
-                    <Badge variant="outline" className="mt-2">
-                      {stats?.totalReferrals || 0} signed up
-                    </Badge>
+                    <p className="text-sm text-charcoal/70">They click your link and create an account</p>
                   </div>
                 </div>
 
@@ -314,14 +278,9 @@ export default function ReferralModal({
                   <div className="w-10 h-10 rounded-full bg-burgundy flex items-center justify-center text-white font-bold shrink-0">
                     2
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-charcoal mb-1">They Book & Complete Tour</h4>
-                    <p className="text-sm text-charcoal/70">
-                      Your friend books and completes their first adventure
-                    </p>
-                    <Badge variant="outline" className="mt-2 border-gold text-gold">
-                      {stats?.pendingReferrals || 0} in progress
-                    </Badge>
+                  <div className="flex-1 pt-2">
+                    <h4 className="font-semibold text-charcoal mb-1">They Complete First Tour</h4>
+                    <p className="text-sm text-charcoal/70">Your friend books and completes their first adventure</p>
                   </div>
                 </div>
 
@@ -329,30 +288,24 @@ export default function ReferralModal({
                   <div className="w-10 h-10 rounded-full bg-sage flex items-center justify-center text-white shrink-0">
                     <CheckCircle className="w-6 h-6" />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-charcoal mb-1">You Get {userType === 'hiker' ? 'Voucher' : 'Credits'}!</h4>
+                  <div className="flex-1 pt-2">
+                    <h4 className="font-semibold text-charcoal mb-1">You Get Rewarded!</h4>
                     <p className="text-sm text-charcoal/70">
                       {userType === 'hiker' 
                         ? 'Receive a discount voucher for your next tour'
                         : 'Credits are added to your account automatically'
                       }
                     </p>
-                    <Badge variant="outline" className="mt-2 border-sage text-sage">
-                      {stats?.completedReferrals || 0} completed
-                    </Badge>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Current Balance/Vouchers */}
+            {/* Current Balance */}
             {userType === 'hiker' ? (
-              <div className="bg-burgundy text-white rounded-lg p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-lg font-semibold">Available Vouchers</span>
-                  <Gift className="w-6 h-6" />
-                </div>
-                <div className="text-4xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <div className="bg-burgundy text-white rounded-lg p-6 text-center">
+                <div className="text-sm mb-2 opacity-90">Available Vouchers</div>
+                <div className="text-5xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {stats?.availableVouchersCount || 0}
                 </div>
                 <div className="text-sm opacity-90">
@@ -360,12 +313,9 @@ export default function ReferralModal({
                 </div>
               </div>
             ) : (
-              <div className="bg-burgundy text-white rounded-lg p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-lg font-semibold">Available Credits</span>
-                  <Euro className="w-6 h-6" />
-                </div>
-                <div className="text-4xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <div className="bg-burgundy text-white rounded-lg p-6 text-center">
+                <div className="text-sm mb-2 opacity-90">Available Credits</div>
+                <div className="text-5xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
                   €{stats?.availableCredits || 0}
                 </div>
                 <div className="text-sm opacity-90">
@@ -391,7 +341,7 @@ export default function ReferralModal({
               </div>
 
               <div className="space-y-4">
-                <div className="bg-cream/50 rounded-lg p-4">
+                <Card className="p-4 bg-cream/30 border-burgundy/10">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-burgundy flex items-center justify-center text-white shrink-0">
                       <Users className="w-4 h-4" />
@@ -406,9 +356,9 @@ export default function ReferralModal({
                       </p>
                     </div>
                   </div>
-                </div>
+                </Card>
 
-                <div className="bg-cream/50 rounded-lg p-4">
+                <Card className="p-4 bg-cream/30 border-burgundy/10">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-burgundy flex items-center justify-center text-white shrink-0">
                       <TrendingUp className="w-4 h-4" />
@@ -423,10 +373,10 @@ export default function ReferralModal({
                       </p>
                     </div>
                   </div>
-                </div>
+                </Card>
               </div>
 
-              <div className="bg-white border border-burgundy/20 rounded-lg p-5">
+              <Card className="p-5 bg-white border-burgundy/20">
                 <h4 className="font-semibold text-charcoal mb-3">Important Terms</h4>
                 <ul className="space-y-2 text-sm text-charcoal/70">
                   <li className="flex items-start gap-2">
@@ -450,27 +400,8 @@ export default function ReferralModal({
                     <span className="text-burgundy shrink-0">•</span>
                     <span>Rewards are issued after referred user completes required action</span>
                   </li>
-                  {userType === 'hiker' && (
-                    <li className="flex items-start gap-2">
-                      <span className="text-burgundy shrink-0">•</span>
-                      <span>Vouchers can be combined with other discounts up to 50% total</span>
-                    </li>
-                  )}
                 </ul>
-              </div>
-
-              <div className="text-center">
-                <Button
-                  onClick={() => {
-                    // Switch to Share tab
-                    const shareTab = document.querySelector('[value="share"]') as HTMLElement;
-                    shareTab?.click();
-                  }}
-                  className="bg-burgundy hover:bg-burgundy-dark text-white"
-                >
-                  Start Inviting Friends
-                </Button>
-              </div>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
