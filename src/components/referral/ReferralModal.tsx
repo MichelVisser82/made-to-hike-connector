@@ -586,15 +586,15 @@ export default function ReferralModal({
                       ? userType === 'guide' ? "€50 potential credit" : "€50 potential voucher"
                       : "€25 potential voucher";
  
-                    // More accurate status messages based on backend status
+                    // More accurate status messages based on combined status
                     let progress: string | undefined;
-                    if (r.status === "completed") {
+                    if (mappedStatus === "completed") {
                       progress = "Completed their first tour – reward earned!";
                     } else if (r.status === 'milestone_2') {
                       progress = r.target_type === 'guide' 
                         ? "Published first tour – reward pending completion"
                         : "Made first booking – reward pending completion";
-                    } else if (r.status === 'profile_created') {
+                    } else if (mappedStatus === 'signed-up') {
                       progress = r.target_type === 'guide'
                         ? "Signed up – waiting for first tour to be published"
                         : "Signed up – waiting for first booking";
