@@ -19,11 +19,29 @@ serve(async (req) => {
   try {
     const { email, password, guideData, userId: existingUserId } = await req.json();
 
-    let userId: string;
-
     // If userId is provided, use existing user (already logged in scenario)
     if (existingUserId) {
       userId = existingUserId;
+
+      // Also track referral progress for existing users coming via referral links
+      if (guideData.referral_code) {
+        console.log('Processing referral code for existing guide user:', guideData.referral_code);
+        console.log('With invitation token:', guideData.invitation_token);
+        try {
+          await supabase.functions.invoke('track-referral-progress', {
+            body: {
+              referralCode: guideData.referral_code,
+              invitationToken: guideData.invitation_token,
+              step: 'profile_created',
+              userId: userId,
+              userType: 'guide'
+            }
+          });
+          console.log('Guide referral progress tracked successfully for existing user');
+        } catch (refError) {
+          console.error('Error tracking referral for existing user (non-blocking):', refError);
+        }
+      }
     } else {
       // Create new user
       if (!email || !password) {
@@ -79,9 +97,6 @@ serve(async (req) => {
         }
       }
     }
-
-    // Create profile if it doesn't exist
-    const { error: profileError } = await supabase
       .from('profiles')
       .upsert({
         id: userId,
