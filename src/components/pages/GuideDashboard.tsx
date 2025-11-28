@@ -222,10 +222,19 @@ export function GuideDashboard({
       if (!stripeData?.stripe_account_id || stripeData?.stripe_kyc_status !== 'verified') {
         toast({ 
           title: "Stripe Verification Required",
-          description: "Please complete your Stripe account verification before publishing tours. You can accept bookings and receive payments once verified.",
-          variant: "destructive"
+          description: "Please complete your Stripe verification in Payment & Payout settings before publishing tours. You can accept bookings and receive payments once verified.",
+          variant: "destructive",
+          action: (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/settings/payment')}
+              className="bg-white hover:bg-cream"
+            >
+              Go to Settings
+            </Button>
+          ),
         });
-        setActiveSection('money');
         return;
       }
 
