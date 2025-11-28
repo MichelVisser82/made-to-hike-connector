@@ -9,6 +9,7 @@ export const GuideJoinPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const refCode = searchParams.get('ref');
+  const invitationToken = searchParams.get('inv');
   const [referrerName, setReferrerName] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
@@ -127,7 +128,7 @@ export const GuideJoinPage = () => {
               Create your guide profile and start connecting with hikers worldwide
             </p>
             <Button
-              onClick={() => navigate(`/guide/signup${refCode ? `?ref=${refCode}` : ''}`)}
+              onClick={() => navigate(`/guide/signup${refCode ? `?ref=${refCode}${invitationToken ? `&inv=${invitationToken}` : ''}` : ''}`)}
               size="lg"
               className="w-full sm:w-auto bg-burgundy hover:bg-burgundy/90 text-white"
             >
