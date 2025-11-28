@@ -148,8 +148,21 @@ export default function ReferralModal({
     };
     window.open(urls[platform], '_blank');
   };
-  const conversionRate = stats?.totalReferrals ? Math.round(stats.completedReferrals / stats.totalReferrals * 100) : 0;
-  const pendingEarnings = stats?.pendingReferrals ? stats.pendingReferrals * (userType === 'hiker' ? 25 : 50) : 0;
+
+  const referrals = stats?.referrals || [];
+  const meaningfulReferrals = referrals.filter((r: any) => r.referee_id || r.referee_email);
+  const totalReferralsDisplay = meaningfulReferrals.length;
+  const completedReferralsDisplay = meaningfulReferrals.filter((r: any) => r.status === 'completed').length;
+  const pendingReferralsDisplay = totalReferralsDisplay - completedReferralsDisplay;
+
+  const conversionRate = totalReferralsDisplay
+    ? Math.round((completedReferralsDisplay / totalReferralsDisplay) * 100)
+    : 0;
+
+  const pendingEarnings = pendingReferralsDisplay > 0
+    ? pendingReferralsDisplay * (userType === 'hiker' ? 25 : 50)
+    : 0;
+
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
@@ -291,28 +304,31 @@ export default function ReferralModal({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4 text-center bg-white border-burgundy/10">
                 <Users className="w-6 h-6 text-burgundy mx-auto mb-2" />
-                <div className="text-3xl font-bold text-burgundy mb-1" style={{
-                fontFamily: 'Playfair Display, serif'
-              }}>
-                  {stats?.totalReferrals || 0}
+                <div
+                  className="text-3xl font-bold text-burgundy mb-1"
+                  style={{ fontFamily: 'Playfair Display, serif' }}
+                >
+                  {totalReferralsDisplay}
                 </div>
                 <div className="text-xs text-charcoal/70">Total Referrals</div>
               </Card>
               <Card className="p-4 text-center bg-white border-gold/20">
                 <Clock className="w-6 h-6 text-gold mx-auto mb-2" />
-                <div className="text-3xl font-bold text-gold mb-1" style={{
-                fontFamily: 'Playfair Display, serif'
-              }}>
-                  {stats?.pendingReferrals || 0}
+                <div
+                  className="text-3xl font-bold text-gold mb-1"
+                  style={{ fontFamily: 'Playfair Display, serif' }}
+                >
+                  {pendingReferralsDisplay}
                 </div>
                 <div className="text-xs text-charcoal/70">Pending</div>
               </Card>
               <Card className="p-4 text-center bg-white border-sage/20">
                 <CheckCircle className="w-6 h-6 text-sage mx-auto mb-2" />
-                <div className="text-3xl font-bold text-sage mb-1" style={{
-                fontFamily: 'Playfair Display, serif'
-              }}>
-                  {stats?.completedReferrals || 0}
+                <div
+                  className="text-3xl font-bold text-sage mb-1"
+                  style={{ fontFamily: 'Playfair Display, serif' }}
+                >
+                  {completedReferralsDisplay}
                 </div>
                 <div className="text-xs text-charcoal/70">Completed</div>
               </Card>
@@ -328,20 +344,23 @@ export default function ReferralModal({
             </div>
 
             {/* Conversion Rate */}
-            {stats?.totalReferrals && stats.totalReferrals > 0 && <Card className="p-5 bg-white border-burgundy/10">
+            {totalReferralsDisplay > 0 && (
+              <Card className="p-5 bg-white border-burgundy/10">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold text-charcoal">Conversion Rate</h4>
-                  <span className="text-2xl font-bold text-burgundy" style={{
-                fontFamily: 'Playfair Display, serif'
-              }}>
+                  <span
+                    className="text-2xl font-bold text-burgundy"
+                    style={{ fontFamily: 'Playfair Display, serif' }}
+                  >
                     {conversionRate}%
                   </span>
                 </div>
                 <Progress value={conversionRate} className="h-2" />
                 <p className="text-xs text-charcoal/60 mt-2">
-                  {stats.completedReferrals} of {stats.totalReferrals} referrals completed their first tour
+                  {completedReferralsDisplay} of {totalReferralsDisplay} referrals completed their first tour
                 </p>
-              </Card>}
+              </Card>
+            )}
 
             {/* Referral List */}
             <div>
