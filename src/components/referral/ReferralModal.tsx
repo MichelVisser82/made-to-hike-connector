@@ -180,8 +180,7 @@ export default function ReferralModal({
     window.open(urls[platform], '_blank');
   };
 
-  const referrals = stats?.referrals || [];
-  const meaningfulReferrals = referrals.filter((r: any) => r.referee_id || r.referee_email);
+  const meaningfulReferrals = (stats?.referrals as any[]) || [];
   
   // Split by target type
   const hikerReferrals = meaningfulReferrals.filter((r: any) => r.target_type === 'hiker');
