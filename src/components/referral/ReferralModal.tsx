@@ -559,19 +559,29 @@ export default function ReferralModal({
                         ? "signed-up"
                         : "pending";
 
+                    // Calculate reward based on actual target_type, not status
                     const rewardLabel = r.reward_amount
                       ? `€${r.reward_amount} ${r.reward_type === "credit" ? "credit" : "voucher"}`
-                      : userType === "hiker"
-                      ? "€25 potential voucher"
-                      : "€50 potential credit";
+                      : r.target_type === 'guide'
+                      ? userType === 'hiker' ? "€50 potential voucher" : "€50 potential credit"
+                      : "€25 potential voucher";
 
+                    // More accurate status messages based on target_type
                     let progress: string | undefined;
                     if (r.status === "completed") {
-                      progress = "Tour completed – reward on the way";
+                      progress = "Completed their first tour – reward earned!";
+                    } else if (r.milestone_2_at) {
+                      progress = r.target_type === 'guide' 
+                        ? "Published first tour – reward pending completion"
+                        : "Made first booking – reward pending completion";
                     } else if (r.profile_created_at) {
-                      progress = "Account created – waiting for first tour";
+                      progress = r.target_type === 'guide'
+                        ? "Signed up – waiting for first tour to be published"
+                        : "Signed up – waiting for first booking";
+                    } else if (r.referee_email) {
+                      progress = "Invitation sent – awaiting signup";
                     } else {
-                      progress = "Invite sent – waiting for sign up";
+                      progress = "Invite ready to send";
                     }
 
                     return (

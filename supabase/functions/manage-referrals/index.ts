@@ -124,13 +124,16 @@ async function getStats(supabase: any, body: GetStatsRequest) {
 
   const userType = userRoles?.role || 'hiker';
 
-  // Get referral statistics (exclude base links with no referee yet)
+  // Get referral statistics - include sent invitations with referee_email
   const { data: referrals } = await supabase
     .from('referrals')
     .select('*')
     .eq('referrer_id', userId);
 
-  const meaningfulReferrals = referrals?.filter((r: any) => r.referee_id || r.referee_email) || [];
+  // Include referrals that have either referee_id, referee_email, OR status showing they've been sent
+  const meaningfulReferrals = referrals?.filter((r: any) => 
+    r.referee_id || r.referee_email || ['invitation_sent'].includes(r.status)
+  ) || [];
 
   const totalInvites = meaningfulReferrals.length;
   const acceptedInvites = meaningfulReferrals.filter((r: any) =>
@@ -242,17 +245,19 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
     .eq('user_id', userId)
     .single();
 
-  // Update referral record with referee email
+  // Update referral record with referee email - filter by BOTH code AND target type
   await supabase
     .from('referrals')
     .update({ 
       referee_email: targetEmail,
       updated_at: new Date().toISOString()
     })
-    .eq('referral_code', referralCode);
+    .eq('referral_code', referralCode)
+    .eq('target_type', targetType)
+    .eq('referrer_id', userId);
 
   // Send email via send-email function
-  await supabase.functions.invoke('send-email', {
+  const emailResult = await supabase.functions.invoke('send-email', {
     body: {
       type: 'referral_invitation',
       to: targetEmail,
@@ -266,7 +271,12 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
     }
   });
 
-  console.log('Invitation sent to:', targetEmail);
+  if (emailResult.error) {
+    console.error('Failed to send email:', emailResult.error);
+    throw new Error('Failed to send invitation email');
+  }
+
+  console.log('Invitation sent successfully to:', targetEmail);
 
   return new Response(
     JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
