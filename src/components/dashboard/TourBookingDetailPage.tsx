@@ -556,12 +556,42 @@ export function TourBookingDetailPage() {
       {/* Meeting Point and Weather */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-burgundy/10">
-          <CardContent className="pt-6">
-            <div className="text-sm text-charcoal/60 mb-1">MEETING POINT</div>
-            <div className="font-medium text-charcoal">{tour.meeting_point}</div>
-            {tour.meeting_point_lat && tour.meeting_point_lng && <div className="text-sm text-charcoal/60 mt-1">
-                {tour.meeting_point_lat.toFixed(4)}°N, {tour.meeting_point_lng.toFixed(4)}°E
-              </div>}
+          <CardContent className="pt-6 space-y-4">
+            <div>
+              <div className="text-sm text-charcoal/60 mb-1">MEETING POINT</div>
+              <div className="font-medium text-charcoal">{tour.meeting_point}</div>
+              {tour.meeting_point_lat && tour.meeting_point_lng && <div className="text-sm text-charcoal/60 mt-1">
+                  {tour.meeting_point_lat.toFixed(4)}°N, {tour.meeting_point_lng.toFixed(4)}°E
+                </div>}
+            </div>
+
+            {/* Compact Equipment Checklist */}
+            {tour.packing_list && (tour.packing_list as any)?.enabled && (
+              <div className="pt-4 border-t border-burgundy/10">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-burgundy" />
+                    <span className="text-sm font-medium text-charcoal">Equipment Checklist</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setPackingListModalOpen(true)}
+                    className="h-7 text-xs"
+                  >
+                    <Edit3 className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-charcoal/60">
+                  <span className="capitalize">
+                    {((tour.packing_list as any)?.preset || 'custom').replace(/-/g, ' ')}
+                  </span>
+                  <span>•</span>
+                  <span>{((tour.packing_list as any)?.customItems?.length || 0)} custom items</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -591,46 +621,6 @@ export function TourBookingDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Equipment Checklist - Only show if packing list is configured */}
-        {tour.packing_list && (tour.packing_list as any)?.enabled && (
-          <Card className="border-burgundy/10">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2 font-playfair text-charcoal">
-                <Package className="w-5 h-5 text-burgundy" />
-                Equipment Checklist
-              </CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setPackingListModalOpen(true)}
-              >
-                <Edit3 className="w-4 h-4 mr-2" />
-                Edit List
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-charcoal">Preset Template</p>
-                    <p className="text-xs text-charcoal/60 capitalize">
-                      {((tour.packing_list as any)?.preset || 'custom').replace(/-/g, ' ')}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-burgundy border-burgundy/30">
-                    {((tour.packing_list as any)?.customItems?.length || 0)} custom items
-                  </Badge>
-                </div>
-                {(tour.packing_list as any)?.guideNotes && (
-                  <div className="bg-cream rounded-lg p-3 mt-2">
-                    <p className="text-xs font-medium text-charcoal mb-1">Guide Notes</p>
-                    <p className="text-sm text-charcoal/80">{(tour.packing_list as any).guideNotes}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Group Message */}
         <Card className="border-burgundy/10">
