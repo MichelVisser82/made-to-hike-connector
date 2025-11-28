@@ -245,11 +245,24 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
     .eq('user_id', userId)
     .single();
 
-  // Update referral record with referee email - filter by BOTH code AND target type
+  // Update referral record with referee email and reset progress for new invite
   await supabase
     .from('referrals')
     .update({ 
       referee_email: targetEmail,
+      referee_id: null,
+      profile_created_at: null,
+      milestone_2_at: null,
+      milestone_2_id: null,
+      milestone_2_type: null,
+      completed_at: null,
+      completion_booking_id: null,
+      reward_issued_at: null,
+      reward_status: null,
+      voucher_code: null,
+      voucher_id: null,
+      is_suspicious: false,
+      status: 'invitation_sent',
       updated_at: new Date().toISOString()
     })
     .eq('referral_code', referralCode)
