@@ -367,6 +367,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
           group_size: tourData.group_size || 8,
           guide_id: user.id,
           status: 'draft' as const,
+          is_active: false, // Explicitly set draft tours as inactive
         };
 
         const { data: newTour, error } = await supabase
@@ -515,6 +516,24 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         return { success: false };
       }
 
+      // Check Stripe verification before allowing publish
+      const { data: guideProfile } = await supabase
+        .from('guide_profiles')
+        .select('stripe_account_id, stripe_kyc_status')
+        .eq('user_id', user.id)
+        .single();
+
+      const isStripeVerified = guideProfile?.stripe_account_id && guideProfile?.stripe_kyc_status === 'verified';
+      
+      if (!isStripeVerified) {
+        toast({
+          title: "Stripe Verification Required",
+          description: "Complete Stripe verification in Payment & Payout settings before publishing tours.",
+          variant: "destructive",
+        });
+        return { success: false };
+      }
+
       // Format the data for submission (exclude date_slots, routeData, and form-only fields)
       const { date_slots, routeData, total_distance_km, average_distance_per_day_km, ...tourData } = data as any;
       
@@ -534,7 +553,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         // UPDATE existing tour (draft or published)
         const { error } = await supabase
           .from('tours')
-          .update({ ...formattedTourData, status: 'published' })
+          .update({ ...formattedTourData, status: 'published', is_active: true })
           .eq('id', createdTourId)
           .eq('guide_id', user.id);
 
@@ -558,7 +577,7 @@ export function useTourCreation(options?: UseTourCreationOptions) {
         // INSERT new tour (shouldn't happen if auto-save worked, but fallback)
         const { data: newTour, error } = await supabase
           .from('tours')
-          .insert([{ ...formattedTourData, status: 'published' }])
+          .insert([{ ...formattedTourData, status: 'published', is_active: true }])
           .select('id')
           .single();
 
