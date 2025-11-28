@@ -296,15 +296,6 @@ export default function ReferralModal({
                 </div>
                 <div className="text-xs text-charcoal/70">Total Referrals</div>
               </Card>
-              <Card className="p-4 text-center bg-white border-sage/20">
-                <CheckCircle className="w-6 h-6 text-sage mx-auto mb-2" />
-                <div className="text-3xl font-bold text-sage mb-1" style={{
-                fontFamily: 'Playfair Display, serif'
-              }}>
-                  {stats?.completedReferrals || 0}
-                </div>
-                <div className="text-xs text-charcoal/70">Completed</div>
-              </Card>
               <Card className="p-4 text-center bg-white border-gold/20">
                 <Clock className="w-6 h-6 text-gold mx-auto mb-2" />
                 <div className="text-3xl font-bold text-gold mb-1" style={{
@@ -314,12 +305,21 @@ export default function ReferralModal({
                 </div>
                 <div className="text-xs text-charcoal/70">Pending</div>
               </Card>
+              <Card className="p-4 text-center bg-white border-sage/20">
+                <CheckCircle className="w-6 h-6 text-sage mx-auto mb-2" />
+                <div className="text-3xl font-bold text-sage mb-1" style={{
+                fontFamily: 'Playfair Display, serif'
+              }}>
+                  {stats?.completedReferrals || 0}
+                </div>
+                <div className="text-xs text-charcoal/70">Completed</div>
+              </Card>
               <Card className="p-4 text-center bg-gradient-to-br from-sage to-sage/80 text-white border-0">
                 <Euro className="w-6 h-6 text-white mx-auto mb-2" />
                 <div className="text-3xl font-bold mb-1" style={{
                 fontFamily: 'Playfair Display, serif'
               }}>
-                  €{stats?.availableCredits || stats?.availableVouchersValue || 0}
+                  €{stats?.totalEarned || stats?.availableCredits || stats?.availableVouchersValue || 0}
                 </div>
                 <div className="text-xs opacity-90">Total Earned</div>
               </Card>
