@@ -241,6 +241,52 @@ serve(async (req) => {
     }
     console.log('Booking created successfully:', booking.id, 'Reference:', booking.booking_reference);
 
+    // Track discount code usage if applicable
+    if (discount_code && discount_amount && discount_amount > 0) {
+      console.log('Tracking discount code usage:', discount_code);
+      try {
+        const { data: discountCodeData } = await supabase
+          .from('discount_codes')
+          .select('id')
+          .eq('code', discount_code)
+          .maybeSingle();
+
+        if (discountCodeData) {
+          // Insert usage record
+          await supabase
+            .from('discount_code_usage')
+            .insert({
+              discount_code_id: discountCodeData.id,
+              booking_id: booking.id,
+              user_id: hiker_id,
+              discount_amount: discount_amount,
+              currency: currency || 'EUR',
+              booking_total_before: subtotal,
+              booking_total_after: total_price,
+            });
+
+          // Increment times_used counter using rpc or raw SQL
+          const { data: currentCode } = await supabase
+            .from('discount_codes')
+            .select('times_used')
+            .eq('id', discountCodeData.id)
+            .single();
+          
+          if (currentCode) {
+            await supabase
+              .from('discount_codes')
+              .update({ times_used: (currentCode.times_used || 0) + 1 })
+              .eq('id', discountCodeData.id);
+          }
+
+          console.log('Discount code usage tracked successfully');
+        }
+      } catch (discountError) {
+        console.error('Error tracking discount code usage (non-blocking):', discountError);
+        // Don't fail the booking if discount tracking fails
+      }
+    }
+
     // Check if this is user's first booking for referral tracking
     const { count } = await supabase
       .from('bookings')

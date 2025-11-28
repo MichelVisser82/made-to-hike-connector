@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ReferralWidget } from '@/components/referral/ReferralWidget';
 import type { DashboardStats, TodayScheduleItem, WeatherData, Notification } from '@/types/dashboard';
 
 interface TodaySectionProps {
@@ -31,6 +32,8 @@ interface TodaySectionProps {
   onViewEarnings: () => void;
   onSectionNavigate: (section: string) => void;
   stripeConnected?: boolean;
+  userId: string;
+  userType: 'hiker' | 'guide';
 }
 
 export function TodaySection({
@@ -45,6 +48,8 @@ export function TodaySection({
   onViewEarnings,
   onSectionNavigate,
   stripeConnected = false,
+  userId,
+  userType,
 }: TodaySectionProps) {
   const navigate = useNavigate();
 
@@ -347,6 +352,13 @@ export function TodaySection({
           </Card>
         </div>
       </div>
+
+      {/* Referral Widget - Full Width */}
+      <ReferralWidget 
+        userId={userId}
+        userType={userType}
+        userName={guideName}
+      />
     </div>
   );
 }
