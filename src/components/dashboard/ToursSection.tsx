@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { GuideImageLibrary } from '@/components/guide/GuideImageLibrary';
 import { AvailabilityManager } from './AvailabilityManager';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,6 +51,7 @@ interface ToursSectionProps {
   onArchiveTour: (tour: Tour) => void;
   onUnarchiveTour: (tour: Tour) => void;
   onCopyTour: (tour: Tour) => void;
+  stripeVerified?: boolean;
 }
 
 export function ToursSection({
@@ -66,6 +68,7 @@ export function ToursSection({
   onArchiveTour,
   onUnarchiveTour,
   onCopyTour,
+  stripeVerified = false,
 }: ToursSectionProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -263,6 +266,24 @@ export function ToursSection({
           </Button>
         </div>
       </div>
+
+      {/* Stripe Verification Alert */}
+      {!stripeVerified && (
+        <Alert className="mb-6 border-amber-200 bg-amber-50">
+          <AlertDescription className="text-charcoal flex items-start gap-2">
+            <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-medium text-amber-900 mb-1">Complete Stripe Verification to Publish Tours</p>
+              <p className="text-sm text-amber-800">
+                You can create and edit tours as drafts, but you'll need to complete Stripe verification before publishing them live and accepting bookings. 
+                This ensures secure payment processing for you and your hikers.
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as 'my-tours' | 'custom-tours' | 'calendar' | 'image-library')}>
