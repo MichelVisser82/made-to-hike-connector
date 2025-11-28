@@ -1814,16 +1814,16 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
         `}
       </div>
 
+      ${data.targetType === 'hiker' ? `
       <div style="background-color: #E8F5E9; border-left: 4px solid #7BA05B; padding: 20px; margin: 30px 0;">
         <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0 0 10px 0;">
           <strong>🎁 Special Welcome Gift</strong>
         </p>
         <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0;">
-          ${data.referrerType === 'hiker' && data.targetType === 'hiker'
-            ? `Sign up with ${data.referrerName}'s link and get <strong>€10 off your first tour</strong> when you join!`
-            : `Sign up with ${data.referrerName}'s link and get <strong>priority listing for 30 days</strong> when you join as a guide.`}
+          Sign up with ${data.referrerName}'s link and get <strong>€10 off your first tour</strong> when you join!
         </p>
       </div>
+      ` : ''}
 
       <div style="text-align: center; margin: 40px 0;">
         <a href="${data.referralLink}" style="background-color: #8B1538; color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-size: 18px; font-weight: 600; display: inline-block;">
@@ -1856,7 +1856,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
   </div>
 </body>
 </html>`,
-      text: `${data.referrerName} invited you to join Made to Hike!\n\n${data.refereeName ? `Hi ${data.refereeName}!` : 'Hello!'}\n\n${data.referrerName} thought you'd love Made to Hike and invited you to join our community of ${data.targetType === 'guide' ? 'certified mountain guides' : 'adventurers and certified guides'}.\n\n${data.personalMessage ? `Personal message from ${data.referrerName}:\n"${data.personalMessage}"\n\n` : ''}Special Welcome Gift:\n${data.referrerType === 'hiker' && data.targetType === 'hiker' ? `Sign up with ${data.referrerName}'s link and get €10 off your first tour when you join!` : `Sign up with ${data.referrerName}'s link and get priority listing for 30 days when you join as a guide.`}\n\nJoin now: ${data.referralLink}`
+      text: `${data.referrerName} invited you to join Made to Hike!\n\n${data.refereeName ? `Hi ${data.refereeName}!` : 'Hello!'}\n\n${data.referrerName} thought you'd love Made to Hike and invited you to join our community of ${data.targetType === 'guide' ? 'certified mountain guides' : 'adventurers and certified guides'}.\n\n${data.personalMessage ? `Personal message from ${data.referrerName}:\n"${data.personalMessage}"\n\n` : ''}${data.targetType === 'hiker' ? `Special Welcome Gift:\nSign up with ${data.referrerName}'s link and get €10 off your first tour when you join!\n\n` : ''}Join now: ${data.referralLink}`
     },
 
     referral_success: {
