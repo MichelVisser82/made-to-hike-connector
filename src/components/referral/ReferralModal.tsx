@@ -349,35 +349,24 @@ export default function ReferralModal({
                 Your Referrals
               </h3>
               
-              {stats?.totalReferrals && stats.totalReferrals > 0 ? <div className="space-y-3">
-                  {/* Example referrals - in real implementation, fetch from backend */}
-                  <ReferralItem name="Emma Thompson" status="completed" date="Joined 2 weeks ago" reward={rewardAmount} userType={userType} progress="Completed first tour" />
-                  <ReferralItem name="Michael Chen" status="pending" date="Joined 5 days ago" reward={rewardAmount} userType={userType} progress="Booking in progress" />
-                  <ReferralItem name="Sarah Williams" status="signed-up" date="Joined yesterday" reward={rewardAmount} userType={userType} progress="Account created" />
-                </div> : <Card className="p-8 text-center bg-cream/30 border-burgundy/10">
+              {stats?.totalReferrals && stats.totalReferrals > 0 ? (
+                <Card className="p-8 text-center bg-cream/30 border-burgundy/10">
+                  <Users className="w-12 h-12 text-burgundy/40 mx-auto mb-4" />
+                  <h4 className="font-semibold text-charcoal mb-2">Referral details</h4>
+                  <p className="text-sm text-charcoal/60">
+                    Your actual referral activity will appear here once detailed data is available.
+                  </p>
+                </Card>
+              ) : (
+                <Card className="p-8 text-center bg-cream/30 border-burgundy/10">
                   <Users className="w-12 h-12 text-burgundy/40 mx-auto mb-4" />
                   <h4 className="font-semibold text-charcoal mb-2">No referrals yet</h4>
                   <p className="text-sm text-charcoal/60">
                     Share your referral link to start earning rewards!
                   </p>
-                </Card>}
+                </Card>
+              )}
             </div>
-
-            {/* Pending Earnings */}
-            {pendingEarnings > 0 && <Card className="p-5 bg-gold/10 border-gold/20">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-6 h-6 text-gold flex-shrink-0 mt-1" />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-charcoal mb-1">Pending Earnings</h4>
-                    <p className="text-sm text-charcoal/70 mb-2">
-                      You have €{pendingEarnings} in pending rewards from {stats?.pendingReferrals} referrals
-                    </p>
-                    <p className="text-xs text-charcoal/60">
-                      These will be credited once your friends complete their first tour
-                    </p>
-                  </div>
-                </div>
-              </Card>}
 
             {/* Current Balance */}
             {userType === 'hiker' ? <div className="bg-burgundy text-white rounded-lg p-6 text-center">
