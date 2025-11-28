@@ -97,6 +97,9 @@ serve(async (req) => {
         }
       }
     }
+
+    // Create profile if it doesn't exist
+    const { error: profileError } = await supabase
       .from('profiles')
       .upsert({
         id: userId,
