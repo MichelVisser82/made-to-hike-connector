@@ -151,6 +151,22 @@ export default function ReferralModal({
 
   const referrals = stats?.referrals || [];
   const meaningfulReferrals = referrals.filter((r: any) => r.referee_id || r.referee_email);
+  
+  // Split by target type
+  const hikerReferrals = meaningfulReferrals.filter((r: any) => r.target_type === 'hiker');
+  const guideReferrals = meaningfulReferrals.filter((r: any) => r.target_type === 'guide');
+  
+  // Hiker stats
+  const totalHikerReferrals = hikerReferrals.length;
+  const completedHikerReferrals = hikerReferrals.filter((r: any) => r.status === 'completed').length;
+  const pendingHikerReferrals = totalHikerReferrals - completedHikerReferrals;
+  
+  // Guide stats
+  const totalGuideReferrals = guideReferrals.length;
+  const completedGuideReferrals = guideReferrals.filter((r: any) => r.status === 'completed').length;
+  const pendingGuideReferrals = totalGuideReferrals - completedGuideReferrals;
+  
+  // Overall stats
   const totalReferralsDisplay = meaningfulReferrals.length;
   const completedReferralsDisplay = meaningfulReferrals.filter((r: any) => r.status === 'completed').length;
   const pendingReferralsDisplay = totalReferralsDisplay - completedReferralsDisplay;
@@ -300,47 +316,80 @@ export default function ReferralModal({
 
           {/* Tab 2: Track Referrals */}
           <TabsContent value="track" className="p-6 space-y-6">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="p-4 text-center bg-white border-burgundy/10">
-                <Users className="w-6 h-6 text-burgundy mx-auto mb-2" />
-                <div
-                  className="text-3xl font-bold text-burgundy mb-1"
-                  style={{ fontFamily: 'Playfair Display, serif' }}
-                >
-                  {totalReferralsDisplay}
+            {/* Hiker Invites Section */}
+            {userType === 'hiker' && (
+              <div>
+                <h3 className="text-lg font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  Hiker Invites
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card className="p-4 text-center bg-white border-burgundy/10">
+                    <Users className="w-6 h-6 text-burgundy mx-auto mb-2" />
+                    <div className="text-3xl font-bold text-burgundy mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      {totalHikerReferrals}
+                    </div>
+                    <div className="text-xs text-charcoal/70">Total Invites</div>
+                  </Card>
+                  <Card className="p-4 text-center bg-white border-gold/20">
+                    <Clock className="w-6 h-6 text-gold mx-auto mb-2" />
+                    <div className="text-3xl font-bold text-gold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      {pendingHikerReferrals}
+                    </div>
+                    <div className="text-xs text-charcoal/70">Pending</div>
+                  </Card>
+                  <Card className="p-4 text-center bg-white border-sage/20">
+                    <CheckCircle className="w-6 h-6 text-sage mx-auto mb-2" />
+                    <div className="text-3xl font-bold text-sage mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      {completedHikerReferrals}
+                    </div>
+                    <div className="text-xs text-charcoal/70">Completed</div>
+                  </Card>
+                  <Card className="p-4 text-center bg-gradient-to-br from-sage to-sage/80 text-white border-0">
+                    <Euro className="w-6 h-6 text-white mx-auto mb-2" />
+                    <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      €{completedHikerReferrals * 25}
+                    </div>
+                    <div className="text-xs opacity-90">Earned (€25/hiker)</div>
+                  </Card>
                 </div>
-                <div className="text-xs text-charcoal/70">Total Referrals</div>
-              </Card>
-              <Card className="p-4 text-center bg-white border-gold/20">
-                <Clock className="w-6 h-6 text-gold mx-auto mb-2" />
-                <div
-                  className="text-3xl font-bold text-gold mb-1"
-                  style={{ fontFamily: 'Playfair Display, serif' }}
-                >
-                  {pendingReferralsDisplay}
-                </div>
-                <div className="text-xs text-charcoal/70">Pending</div>
-              </Card>
-              <Card className="p-4 text-center bg-white border-sage/20">
-                <CheckCircle className="w-6 h-6 text-sage mx-auto mb-2" />
-                <div
-                  className="text-3xl font-bold text-sage mb-1"
-                  style={{ fontFamily: 'Playfair Display, serif' }}
-                >
-                  {completedReferralsDisplay}
-                </div>
-                <div className="text-xs text-charcoal/70">Completed</div>
-              </Card>
-              <Card className="p-4 text-center bg-gradient-to-br from-sage to-sage/80 text-white border-0">
-                <Euro className="w-6 h-6 text-white mx-auto mb-2" />
-                <div className="text-3xl font-bold mb-1" style={{
-                fontFamily: 'Playfair Display, serif'
-              }}>
-                  €{stats?.totalEarned || stats?.availableCredits || stats?.availableVouchersValue || 0}
-                </div>
-                <div className="text-xs opacity-90">Total Earned</div>
-              </Card>
+              </div>
+            )}
+
+            {/* Guide Invites Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-charcoal mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Guide Invites
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="p-4 text-center bg-white border-burgundy/10">
+                  <Users className="w-6 h-6 text-burgundy mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-burgundy mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {totalGuideReferrals}
+                  </div>
+                  <div className="text-xs text-charcoal/70">Total Invites</div>
+                </Card>
+                <Card className="p-4 text-center bg-white border-gold/20">
+                  <Clock className="w-6 h-6 text-gold mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-gold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {pendingGuideReferrals}
+                  </div>
+                  <div className="text-xs text-charcoal/70">Pending</div>
+                </Card>
+                <Card className="p-4 text-center bg-white border-sage/20">
+                  <CheckCircle className="w-6 h-6 text-sage mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-sage mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {completedGuideReferrals}
+                  </div>
+                  <div className="text-xs text-charcoal/70">Completed</div>
+                </Card>
+                <Card className="p-4 text-center bg-gradient-to-br from-sage to-sage/80 text-white border-0">
+                  <Euro className="w-6 h-6 text-white mx-auto mb-2" />
+                  <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    €{completedGuideReferrals * 50}
+                  </div>
+                  <div className="text-xs opacity-90">Earned (€50/guide)</div>
+                </Card>
+              </div>
             </div>
 
             {/* Conversion Rate */}
