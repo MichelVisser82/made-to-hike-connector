@@ -16,6 +16,7 @@ export interface TourBookingSummary {
   max_group_size: number;
   confirmed_bookings: number;
   pending_bookings: number;
+  completed_bookings: number;
   earliest_date: string;
   latest_date: string;
   total_revenue: number;
@@ -105,8 +106,9 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
         const compositeKey = `${tour.id}_${tourDate}`;
 
         const existing = tourMap.get(compositeKey);
-        const isConfirmed = ['confirmed', 'pending_confirmation', 'completed'].includes(booking.status);
+        const isConfirmed = booking.status === 'confirmed';
         const isPending = booking.status === 'pending';
+        const isCompleted = booking.status === 'completed';
 
         if (existing) {
           // Aggregate bookings for the same tour on the same date
@@ -114,6 +116,7 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
           existing.total_participants += booking.participants;
           existing.confirmed_bookings += isConfirmed ? 1 : 0;
           existing.pending_bookings += isPending ? 1 : 0;
+          existing.completed_bookings += isCompleted ? 1 : 0;
           existing.total_revenue += booking.total_price;
         } else {
           tourMap.set(compositeKey, {
@@ -131,6 +134,7 @@ export function useGuideBookingsByTour(guideId: string | undefined) {
             max_group_size: tour.max_group_size,
             confirmed_bookings: isConfirmed ? 1 : 0,
             pending_bookings: isPending ? 1 : 0,
+            completed_bookings: isCompleted ? 1 : 0,
             earliest_date: tourDate,
             latest_date: tourDate,
             total_revenue: booking.total_price,
