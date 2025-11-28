@@ -102,6 +102,7 @@ export const useReferralStats = (userId: string | undefined) => {
         totalCredits,
         availableCredits,
         pendingCredits,
+        totalEarned: totalCredits, // Alias for backward compatibility
       };
     },
     enabled: !!userId,
