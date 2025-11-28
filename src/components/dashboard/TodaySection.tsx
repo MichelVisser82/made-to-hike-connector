@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -18,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import GuideReferralWidget from '@/components/referral/GuideReferralWidget';
+import GuideReferralModal from '@/components/referral/GuideReferralModal';
 import type { DashboardStats, TodayScheduleItem, WeatherData, Notification } from '@/types/dashboard';
 
 interface TodaySectionProps {
@@ -52,6 +54,7 @@ export function TodaySection({
   userType,
 }: TodaySectionProps) {
   const navigate = useNavigate();
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
 
   const getGreeting = () => {
     const hour = currentDate.getHours();
@@ -357,7 +360,15 @@ export function TodaySection({
       <GuideReferralWidget
         userId={userId}
         userName={guideName}
-        onViewFullDashboard={() => onSectionNavigate('money')}
+        onViewFullDashboard={() => setReferralModalOpen(true)}
+      />
+
+      {/* Referral Modal */}
+      <GuideReferralModal
+        open={referralModalOpen}
+        onOpenChange={setReferralModalOpen}
+        userId={userId}
+        userName={guideName}
       />
     </div>
   );
