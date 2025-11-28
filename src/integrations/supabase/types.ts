@@ -1526,6 +1526,219 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_invitations: {
+        Row: {
+          clicked_at: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          invitation_token: string
+          personal_message: string | null
+          referee_email: string
+          referral_link_id: string
+          sent_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invitation_token: string
+          personal_message?: string | null
+          referee_email: string
+          referral_link_id: string
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invitation_token?: string
+          personal_message?: string | null
+          referee_email?: string
+          referral_link_id?: string
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_invitations_referral_link_id_fkey"
+            columns: ["referral_link_id"]
+            isOneToOne: false
+            referencedRelation: "referral_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_links: {
+        Row: {
+          click_count: number | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          referral_code: string
+          referrer_id: string
+          referrer_type: string
+          reward_amount: number
+          reward_currency: string | null
+          reward_type: string
+          target_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          click_count?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          referral_code: string
+          referrer_id: string
+          referrer_type: string
+          reward_amount: number
+          reward_currency?: string | null
+          reward_type: string
+          target_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          click_count?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          referral_code?: string
+          referrer_id?: string
+          referrer_type?: string
+          reward_amount?: number
+          reward_currency?: string | null
+          reward_type?: string
+          target_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      referral_signups: {
+        Row: {
+          completed_at: string | null
+          completion_booking_id: string | null
+          created_at: string | null
+          id: string
+          invitation_id: string | null
+          milestone_2_at: string | null
+          milestone_2_id: string | null
+          milestone_2_type: string | null
+          profile_created_at: string | null
+          referral_link_id: string
+          reward_issued_at: string | null
+          reward_status: string | null
+          signup_email: string
+          signup_source: string
+          updated_at: string | null
+          user_id: string
+          user_type: string
+          voucher_code: string | null
+          voucher_id: string | null
+          welcome_discount_code: string | null
+          welcome_discount_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completion_booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          invitation_id?: string | null
+          milestone_2_at?: string | null
+          milestone_2_id?: string | null
+          milestone_2_type?: string | null
+          profile_created_at?: string | null
+          referral_link_id: string
+          reward_issued_at?: string | null
+          reward_status?: string | null
+          signup_email: string
+          signup_source: string
+          updated_at?: string | null
+          user_id: string
+          user_type: string
+          voucher_code?: string | null
+          voucher_id?: string | null
+          welcome_discount_code?: string | null
+          welcome_discount_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completion_booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          invitation_id?: string | null
+          milestone_2_at?: string | null
+          milestone_2_id?: string | null
+          milestone_2_type?: string | null
+          profile_created_at?: string | null
+          referral_link_id?: string
+          reward_issued_at?: string | null
+          reward_status?: string | null
+          signup_email?: string
+          signup_source?: string
+          updated_at?: string | null
+          user_id?: string
+          user_type?: string
+          voucher_code?: string | null
+          voucher_id?: string | null
+          welcome_discount_code?: string | null
+          welcome_discount_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_signups_completion_booking_id_fkey"
+            columns: ["completion_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_signups_completion_booking_id_fkey"
+            columns: ["completion_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_guide_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_signups_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "referral_invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_signups_referral_link_id_fkey"
+            columns: ["referral_link_id"]
+            isOneToOne: false
+            referencedRelation: "referral_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_signups_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_signups_welcome_discount_id_fkey"
+            columns: ["welcome_discount_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           click_count: number | null
