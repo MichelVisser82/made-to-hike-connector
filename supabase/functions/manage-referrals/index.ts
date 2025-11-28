@@ -349,14 +349,20 @@ async function deleteInvitation(supabase: any, body: DeleteInvitationRequest) {
     query = query.eq('id', invitationId);
   } else if (refereeEmail) {
     // Delete by email (verify ownership via link)
+    const { data: links } = await supabase
+      .from('referral_links')
+      .select('id')
+      .eq('referrer_id', userId);
+
+    if (!links || links.length === 0) {
+      throw new Error('No referral links found for this user');
+    }
+
+    const linkIds = links.map((l: any) => l.id);
+
     query = query
       .eq('referee_email', refereeEmail)
-      .in('referral_link_id', 
-        supabase
-          .from('referral_links')
-          .select('id')
-          .eq('referrer_id', userId)
-      );
+      .in('referral_link_id', linkIds);
   } else {
     throw new Error('Either invitationId or refereeEmail required');
   }
