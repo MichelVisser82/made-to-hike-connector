@@ -7,6 +7,7 @@ export const useReferralStats = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) throw new Error('User ID required');
 
+      // Fetch stats from manage-referrals
       const { data, error } = await supabase.functions.invoke('manage-referrals', {
         body: { action: 'get_stats', userId }
       });
@@ -15,6 +16,14 @@ export const useReferralStats = (userId: string | undefined) => {
       if (data?.error) throw new Error(data.error);
 
       const raw = data.stats;
+
+      // Fetch actual credits from user_credits table
+      const { data: credits, error: creditsError } = await supabase
+        .from('user_credits')
+        .select('amount, status')
+        .eq('user_id', userId);
+
+      if (creditsError) throw creditsError;
 
       // Normalize backend stats into the shape expected by the UI components
       const invitations = raw?.invitations ?? [];
@@ -73,8 +82,14 @@ export const useReferralStats = (userId: string | undefined) => {
       const acceptedInvites = raw?.total_signups ?? signups.length;
       const totalReferrals = totalInvites;
 
-      const totalEarned = signups
-        .filter((s: any) => s.reward_status === 'issued')
+      // Calculate credits from user_credits table
+      const activeCredits = credits?.filter((c: any) => c.status === 'active') || [];
+      const totalCredits = activeCredits.reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
+      const availableCredits = totalCredits; // All active credits are available
+
+      // Calculate pending credits from signups
+      const pendingCredits = signups
+        .filter((s: any) => s.reward_status === 'pending')
         .reduce((sum: number, s: any) => sum + (s.reward_amount || 0), 0);
 
       return {
@@ -84,7 +99,9 @@ export const useReferralStats = (userId: string | undefined) => {
         totalReferrals,
         acceptedInvites,
         completedReferrals,
-        totalEarned,
+        totalCredits,
+        availableCredits,
+        pendingCredits,
       };
     },
     enabled: !!userId,
