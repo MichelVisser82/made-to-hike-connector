@@ -420,9 +420,7 @@ export default function ReferralModal({
                   </div>
                   <div className="flex-1 pt-2">
                     <h4 className="font-semibold text-charcoal mb-1">Share Your Link</h4>
-                    <p className="text-sm text-charcoal/70">
-                      Send your unique referral link to friends via email, social media, or messaging
-                    </p>
+                    <p className="text-sm text-charcoal/70">Send your unique referral link to fellow guides via email, social media, or messaging</p>
                   </div>
                 </div>
 
