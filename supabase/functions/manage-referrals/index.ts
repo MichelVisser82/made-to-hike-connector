@@ -124,17 +124,19 @@ async function getStats(supabase: any, body: GetStatsRequest) {
 
   const userType = userRoles?.role || 'hiker';
 
-  // Get referral statistics
+  // Get referral statistics (exclude base links with no referee yet)
   const { data: referrals } = await supabase
     .from('referrals')
     .select('*')
     .eq('referrer_id', userId);
 
-  const totalInvites = referrals?.length || 0;
-  const acceptedInvites = referrals?.filter((r: any) => 
+  const meaningfulReferrals = referrals?.filter((r: any) => r.referee_id || r.referee_email) || [];
+
+  const totalInvites = meaningfulReferrals.length;
+  const acceptedInvites = meaningfulReferrals.filter((r: any) =>
     ['profile_created', 'milestone_2', 'completed'].includes(r.status)
   ).length || 0;
-  const completedInvites = referrals?.filter((r: any) => r.status === 'completed').length || 0;
+  const completedInvites = meaningfulReferrals.filter((r: any) => r.status === 'completed').length || 0;
 
   let stats: any = {
     totalInvites,
@@ -143,7 +145,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
     completedInvites,
     completedReferrals: completedInvites,
     pendingReferrals: totalInvites - completedInvites,
-    referrals: referrals || []
+    referrals: meaningfulReferrals
   };
 
   if (userType === 'hiker') {
@@ -178,10 +180,10 @@ async function getStats(supabase: any, body: GetStatsRequest) {
     const totalCredits = credits?.reduce((sum: number, c: any) => 
       c.source_type !== 'withdrawal' ? sum + c.amount : sum, 0) || 0;
     
-    const pendingReferrals = referrals?.filter((r: any) => 
+    const pendingReferrals = meaningfulReferrals.filter((r: any) =>
       ['link_sent', 'profile_created', 'milestone_2'].includes(r.status)
     ) || [];
-    const pendingCredits = pendingReferrals.reduce((sum: number, r: any) => 
+    const pendingCredits = pendingReferrals.reduce((sum: number, r: any) =>
       sum + (r.reward_amount || 0), 0);
 
     stats.credits = credits || [];
