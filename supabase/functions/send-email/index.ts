@@ -5,7 +5,7 @@ import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 interface EmailRequest {
-  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete' | 'guide_participant_documents' | 'review_response' | 'booking_cancellation_hiker' | 'booking_cancellation_guide' | 'booking_refund_hiker' | 'pre_trip_reminder' | 'post_trip_thank_you' | 'tour_date_change_notification' | 'tour_fully_booked_alert' | 'payout_processed_notification' | 'document_upload_notification' | 'review_received_notification' | 'guide_verification_completed' | 'failed_payment_alert_admin'
+  type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete' | 'guide_participant_documents' | 'review_response' | 'booking_cancellation_hiker' | 'booking_cancellation_guide' | 'booking_refund_hiker' | 'pre_trip_reminder' | 'post_trip_thank_you' | 'tour_date_change_notification' | 'tour_fully_booked_alert' | 'payout_processed_notification' | 'document_upload_notification' | 'review_received_notification' | 'guide_verification_completed' | 'failed_payment_alert_admin' | 'referral_invitation' | 'referral_success' | 'referral_welcome'
   to: string
   from?: string
   reply_to?: string
@@ -1755,9 +1755,386 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 </html>`,
       text: `🚨 Failed Payment Alert - ${data.bookingReference}\n\nAdmin Alert: Payment Failed\n\nBooking Reference: ${data.bookingReference}\nHiker: ${data.hikerName}\nTour: ${data.tourTitle}\nAmount: ${data.currency} ${data.amount}\nError Code: ${data.errorCode}\n\nReview in admin: https://ab369f57-f214-4187-b9e3-10bb8b4025d9.lovableproject.com/admin`
     },
+
+    referral_invitation: {
+      subject: `${data.referrerName} invited you to join Made to Hike!`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background-color: #8B1538; padding: 40px 30px; text-align: center;">
+      <h1 style="font-family: Georgia, 'Playfair Display', serif; color: #ffffff; font-size: 32px; margin: 0 0 10px 0; font-weight: 400;">Made to Hike</h1>
+      <p style="color: #ffffff; opacity: 0.9; margin: 0; font-size: 16px;">Authentic Alpine Adventures</p>
+    </div>
+
+    <div style="padding: 40px 30px;">
+      <h2 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 24px; margin-top: 0; margin-bottom: 20px;">
+        ${data.refereeName ? `Hi ${data.refereeName}!` : 'Hello!'}
+      </h2>
+
+      <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+        <strong>${data.referrerName}</strong> thought you'd love Made to Hike and invited you to join our community of ${data.referrerType === 'guide' ? 'certified mountain guides' : 'adventure seekers'}.
+      </p>
+
+      ${data.personalMessage ? `
+      <div style="background-color: #FFF8F0; border: 2px solid #8B1538; border-radius: 8px; padding: 20px; margin: 30px 0;">
+        <p style="color: #666; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+          Personal message from ${data.referrerName}:
+        </p>
+        <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0; font-style: italic;">
+          "${data.personalMessage}"
+        </p>
+      </div>
+      ` : ''}
+
+      <div style="margin: 30px 0;">
+        <h3 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 20px; margin: 0 0 15px 0;">
+          ${data.referrerType === 'guide' ? 'Why guides choose Made to Hike' : 'Why hikers love Made to Hike'}
+        </h3>
+
+        ${data.referrerType === 'guide' ? `
+        <ul style="color: #2D2D2D; font-size: 16px; line-height: 1.8; padding-left: 20px;">
+          <li>Keep <strong>95% of your earnings</strong> (lowest fees in the industry)</li>
+          <li>You own your client relationships</li>
+          <li>Full control over pricing and scheduling</li>
+          <li>Get discovered by qualified adventure seekers</li>
+        </ul>
+        ` : `
+        <ul style="color: #2D2D2D; font-size: 16px; line-height: 1.8; padding-left: 20px;">
+          <li>Explore the Alps with <strong>certified local guides</strong></li>
+          <li>Authentic experiences, not cookie-cutter tours</li>
+          <li>Direct communication with your guide</li>
+          <li>Support sustainable tourism and local communities</li>
+        </ul>
+        `}
+      </div>
+
+      <div style="background-color: #E8F5E9; border-left: 4px solid #7BA05B; padding: 20px; margin: 30px 0;">
+        <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0 0 10px 0;">
+          <strong>🎁 Special Welcome Gift</strong>
+        </p>
+        <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0;">
+          Sign up with ${data.referrerName}'s link and get <strong>${data.referrerType === 'guide' ? 'priority listing for 30 days' : '€10 off your first tour'}</strong> when you join!
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${data.referralLink}" style="background-color: #8B1538; color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-size: 18px; font-weight: 600; display: inline-block;">
+          ${data.referrerType === 'guide' ? 'Join as a Guide' : 'Explore Tours'}
+        </a>
+      </div>
+
+      <p style="color: #999; font-size: 14px; text-align: center; line-height: 1.6; margin: 20px 0 0 0;">
+        Or copy and paste this link into your browser:<br />
+        <a href="${data.referralLink}" style="color: #8B1538; word-break: break-all;">${data.referralLink}</a>
+      </p>
+    </div>
+
+    <div style="background-color: #F5F5F5; padding: 30px; text-align: center; border-top: 1px solid #E0E0E0;">
+      <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+        Made to Hike connects adventurers with certified local guides for authentic Alpine experiences.
+      </p>
+      <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0;">
+        You received this email because ${data.referrerName} invited you to join Made to Hike.<br />
+        This is a one-time invitation. We won't send you marketing emails unless you create an account.
+      </p>
+      <div style="margin-top: 20px;">
+        <a href="https://madetohike.com" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">Website</a>
+        <span style="color: #CCC;">|</span>
+        <a href="https://madetohike.com/about" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">About Us</a>
+        <span style="color: #CCC;">|</span>
+        <a href="https://madetohike.com/help" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">Help</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`,
+      text: `${data.referrerName} invited you to join Made to Hike!\n\n${data.refereeName ? `Hi ${data.refereeName}!` : 'Hello!'}\n\n${data.referrerName} thought you'd love Made to Hike and invited you to join our community of ${data.referrerType === 'guide' ? 'certified mountain guides' : 'adventure seekers'}.\n\n${data.personalMessage ? `Personal message from ${data.referrerName}:\n"${data.personalMessage}"\n\n` : ''}Special Welcome Gift:\nSign up with ${data.referrerName}'s link and get ${data.referrerType === 'guide' ? 'priority listing for 30 days' : '€10 off your first tour'} when you join!\n\nJoin now: ${data.referralLink}`
+    },
+
+    referral_success: {
+      subject: `🎉 You earned €${data.rewardAmount}! Referral reward from Made to Hike`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background-color: #8B1538; padding: 40px 30px; text-align: center; position: relative; overflow: hidden;">
+      <div style="font-size: 40px; margin-bottom: 10px;">🎉 🎊 🎉</div>
+      <h1 style="font-family: Georgia, 'Playfair Display', serif; color: #ffffff; font-size: 36px; margin: 0 0 10px 0; font-weight: 400;">Congratulations!</h1>
+      <p style="color: #ffffff; opacity: 0.9; margin: 0; font-size: 18px;">You've earned a referral reward</p>
+    </div>
+
+    <div style="padding: 40px 30px;">
+      <h2 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 24px; margin-top: 0; margin-bottom: 20px;">
+        Hi ${data.referrerName}!
+      </h2>
+
+      <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+        Great news! <strong>${data.refereeName}</strong> just completed their first tour as a ${data.refereeType}, which means you've earned your referral reward.
+      </p>
+
+      <div style="background: linear-gradient(135deg, #8B1538 0%, #6B0F28 100%); border-radius: 12px; padding: 30px; text-align: center; margin: 30px 0; box-shadow: 0 4px 6px rgba(139, 21, 56, 0.2);">
+        <p style="color: #ffffff; font-size: 16px; margin: 0 0 10px 0; opacity: 0.9;">Your Reward</p>
+        <div style="font-size: 48px; color: #ffffff; font-family: Georgia, 'Playfair Display', serif; font-weight: 700; margin: 10px 0;">
+          €${data.rewardAmount}
+        </div>
+        <p style="color: #ffffff; font-size: 14px; margin: 10px 0 0 0; opacity: 0.9;">
+          ${data.referrerType === 'guide' ? 'Platform Credit' : 'Discount Voucher'}
+        </p>
+      </div>
+
+      ${data.referrerType !== 'guide' && data.voucherCode ? `
+      <div style="background-color: #FFF8F0; border: 2px dashed #8B1538; border-radius: 8px; padding: 25px; margin: 30px 0; text-align: center;">
+        <p style="color: #666; font-size: 14px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+          Your Voucher Code
+        </p>
+        <div style="background-color: #ffffff; border: 2px solid #8B1538; border-radius: 6px; padding: 15px; margin: 0 0 15px 0;">
+          <code style="font-size: 24px; font-family: Monaco, Consolas, monospace; color: #8B1538; font-weight: 700; letter-spacing: 2px;">
+            ${data.voucherCode}
+          </code>
+        </div>
+        ${data.voucherExpiryDate ? `
+        <p style="color: #666; font-size: 14px; margin: 0;">
+          Valid until ${new Date(data.voucherExpiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+        ` : ''}
+      </div>
+      ` : ''}
+
+      ${data.referrerType !== 'guide' ? `
+      <div style="background-color: #F5F5F5; border-radius: 8px; padding: 25px; margin: 30px 0;">
+        <h3 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 20px; margin: 0 0 15px 0;">
+          How to Use Your Voucher
+        </h3>
+        <ol style="color: #2D2D2D; font-size: 16px; line-height: 1.8; padding-left: 20px; margin: 0;">
+          <li>Browse tours and select your next adventure</li>
+          <li>Enter code <strong>${data.voucherCode}</strong> at checkout</li>
+          <li>€${data.rewardAmount} automatically deducted from your total</li>
+        </ol>
+        <p style="color: #666; font-size: 14px; margin: 15px 0 0 0; font-style: italic;">
+          * Minimum booking amount: €100
+        </p>
+      </div>
+      ` : `
+      <div style="background-color: #E8F5E9; border-radius: 8px; padding: 25px; margin: 30px 0;">
+        <h3 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 20px; margin: 0 0 15px 0;">
+          How to Use Your Credits
+        </h3>
+        <ul style="color: #2D2D2D; font-size: 16px; line-height: 1.8; padding-left: 20px; margin: 0;">
+          <li><strong>Automatic Fee Offset:</strong> Your €${data.rewardAmount} credit will automatically reduce your 5% platform fee on future bookings</li>
+          <li><strong>Withdraw Cash:</strong> Request a payout once your credit balance reaches €100</li>
+          <li><strong>Boost Visibility:</strong> Use credits for promotional features (coming soon)</li>
+        </ul>
+        <p style="color: #666; font-size: 14px; margin: 15px 0 0 0; font-style: italic;">
+          Credits will be included in your next scheduled payout (typically within 7 days)
+        </p>
+      </div>
+      `}
+
+      <div style="background-color: #FFF8F0; border-left: 4px solid #8B1538; padding: 20px; margin: 30px 0;">
+        <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0 0 10px 0;">
+          <strong>💡 Keep Earning!</strong>
+        </p>
+        <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0;">
+          There's no limit to how many people you can refer. Earn €${data.refereeType === 'guide' ? 50 : 25} for every ${data.refereeType} and €${data.refereeType === 'guide' ? 25 : 50} for every ${data.refereeType === 'guide' ? 'hiker' : 'guide'} who completes their first tour.
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 40px 0 20px 0;">
+        ${data.referrerType !== 'guide' ? `
+          <a href="https://madetohike.com/tours" style="background-color: #8B1538; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; display: inline-block; margin: 0 10px 10px 10px;">
+            Book Your Next Adventure
+          </a>
+          <a href="${data.dashboardLink}" style="background-color: #ffffff; color: #8B1538; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; display: inline-block; border: 2px solid #8B1538; margin: 0 10px 10px 10px;">
+            View Referral Dashboard
+          </a>
+        ` : `
+          <a href="${data.dashboardLink}" style="background-color: #8B1538; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; display: inline-block;">
+            View Your Credits
+          </a>
+        `}
+      </div>
+
+      <p style="color: #999; font-size: 14px; text-align: center; line-height: 1.6; margin: 20px 0 0 0;">
+        Share your referral link to keep earning rewards
+      </p>
+    </div>
+
+    <div style="background-color: #F5F5F5; padding: 30px; text-align: center; border-top: 1px solid #E0E0E0;">
+      <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+        Made to Hike connects adventurers with certified local guides for authentic Alpine experiences.
+      </p>
+      <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0;">
+        You're receiving this email because you participated in the Made to Hike referral program.<br />
+        This is an important account notification and cannot be unsubscribed.
+      </p>
+      <div style="margin-top: 20px;">
+        <a href="https://madetohike.com" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">Website</a>
+        <span style="color: #CCC;">|</span>
+        <a href="${data.dashboardLink}" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">Dashboard</a>
+        <span style="color: #CCC;">|</span>
+        <a href="https://madetohike.com/help" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">Help</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`,
+      text: `🎉 You earned €${data.rewardAmount}!\n\nHi ${data.referrerName}!\n\nGreat news! ${data.refereeName} just completed their first tour as a ${data.refereeType}, which means you've earned your referral reward.\n\nYour Reward: €${data.rewardAmount} ${data.referrerType === 'guide' ? 'Platform Credit' : 'Discount Voucher'}\n\n${data.referrerType !== 'guide' && data.voucherCode ? `Your Voucher Code: ${data.voucherCode}\n${data.voucherExpiryDate ? `Valid until ${new Date(data.voucherExpiryDate).toLocaleDateString()}` : ''}\n\n` : ''}Keep earning! Share your referral link to earn more rewards.\n\nView Dashboard: ${data.dashboardLink}`
+    },
+
+    referral_welcome: {
+      subject: `Welcome to Made to Hike, ${data.refereeName}! 🏔️`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background-color: #8B1538; padding: 40px 30px; text-align: center;">
+      <h1 style="font-family: Georgia, 'Playfair Display', serif; color: #ffffff; font-size: 36px; margin: 0 0 10px 0; font-weight: 400;">
+        Welcome to Made to Hike!
+      </h1>
+      <p style="color: #ffffff; opacity: 0.9; margin: 0; font-size: 18px;">
+        ${data.userType === 'guide' ? "Let's get your guide profile set up" : 'Your Alpine adventure starts here'}
+      </p>
+    </div>
+
+    <div style="padding: 40px 30px;">
+      <h2 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 24px; margin-top: 0; margin-bottom: 20px;">
+        Hi ${data.refereeName}!
+      </h2>
+
+      <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+        We're thrilled to have you join Made to Hike! <strong>${data.referrerName}</strong> recommended you, and we can already tell you're going to love it here.
+      </p>
+
+      ${data.userType !== 'guide' ? `
+      <div style="background: linear-gradient(135deg, #7BA05B 0%, #6A8F4F 100%); border-radius: 12px; padding: 25px; text-align: center; margin: 30px 0; box-shadow: 0 4px 6px rgba(123, 160, 91, 0.2);">
+        <div style="font-size: 40px; margin-bottom: 10px;">🎁</div>
+        <p style="color: #ffffff; font-size: 16px; margin: 0 0 10px 0; opacity: 0.9;">Your Welcome Gift</p>
+        <div style="font-size: 24px; color: #ffffff; font-weight: 700; margin: 10px 0;">${data.welcomeBonus}</div>
+        <p style="color: #ffffff; font-size: 14px; margin: 10px 0 0 0; opacity: 0.9;">Applied automatically to your first booking</p>
+      </div>
+      ` : ''}
+
+      ${data.userType === 'guide' ? `
+      <div style="background-color: #F5F5F5; border-radius: 8px; padding: 25px; margin: 30px 0;">
+        <h3 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 20px; margin: 0 0 15px 0;">
+          Get Started in 3 Steps
+        </h3>
+        
+        <div style="margin-bottom: 15px;">
+          <span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background-color: #8B1538; color: #ffffff; text-align: center; line-height: 32px; font-weight: 700; margin-right: 12px; vertical-align: middle;">1</span>
+          <span style="color: #2D2D2D; font-size: 16px; line-height: 1.6; vertical-align: middle;">
+            <strong>Complete your profile</strong> – Add your certifications, bio, and photo
+          </span>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background-color: #8B1538; color: #ffffff; text-align: center; line-height: 32px; font-weight: 700; margin-right: 12px; vertical-align: middle;">2</span>
+          <span style="color: #2D2D2D; font-size: 16px; line-height: 1.6; vertical-align: middle;">
+            <strong>Create your first tour</strong> – Set pricing, route, and availability
+          </span>
+        </div>
+
+        <div>
+          <span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background-color: #8B1538; color: #ffffff; text-align: center; line-height: 32px; font-weight: 700; margin-right: 12px; vertical-align: middle;">3</span>
+          <span style="color: #2D2D2D; font-size: 16px; line-height: 1.6; vertical-align: middle;">
+            <strong>Go live</strong> – Start accepting bookings immediately
+          </span>
+        </div>
+      </div>
+      ` : `
+      <div style="background-color: #F5F5F5; border-radius: 8px; padding: 25px; margin: 30px 0;">
+        <h3 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 20px; margin: 0 0 15px 0;">
+          Start Exploring
+        </h3>
+        <ul style="color: #2D2D2D; font-size: 16px; line-height: 1.8; padding-left: 20px; margin: 0;">
+          <li>Browse tours from certified local guides</li>
+          <li>Read reviews from verified hikers</li>
+          <li>Message guides directly with questions</li>
+          <li>Book with confidence – all guides are certified</li>
+        </ul>
+      </div>
+      `}
+
+      <div style="background-color: #FFF8F0; border-left: 4px solid #8B1538; padding: 20px; margin: 30px 0;">
+        <h4 style="color: #2D2D2D; font-size: 18px; margin: 0 0 12px 0; font-weight: 600;">
+          ${data.userType === 'guide' ? 'Why guides choose us' : 'Why hikers love us'}
+        </h4>
+        ${data.userType === 'guide' ? `
+        <ul style="color: #2D2D2D; font-size: 15px; line-height: 1.8; padding-left: 20px; margin: 0;">
+          <li><strong>Keep 95% of earnings</strong> – Lowest fees in the industry</li>
+          <li><strong>Own your relationships</strong> – Direct contact with clients</li>
+          <li><strong>Full autonomy</strong> – Set your own prices and schedule</li>
+          <li><strong>Sustainability focus</strong> – We care about the mountains</li>
+        </ul>
+        ` : `
+        <ul style="color: #2D2D2D; font-size: 15px; line-height: 1.8; padding-left: 20px; margin: 0;">
+          <li><strong>Certified guides only</strong> – Safety and expertise guaranteed</li>
+          <li><strong>Authentic experiences</strong> – Local guides, unique routes</li>
+          <li><strong>Transparent pricing</strong> – No hidden fees or surprises</li>
+          <li><strong>Sustainable tourism</strong> – Support local communities</li>
+        </ul>
+        `}
+      </div>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${data.setupLink}" style="background-color: #8B1538; color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-size: 18px; font-weight: 600; display: inline-block;">
+          ${data.userType === 'guide' ? 'Complete Your Profile' : 'Explore Tours'}
+        </a>
+      </div>
+
+      <div style="background-color: #E8F5E9; border-radius: 8px; padding: 20px; margin: 30px 0;">
+        <p style="color: #2D2D2D; font-size: 15px; line-height: 1.6; margin: 0;">
+          <strong>📣 Help ${data.referrerName} earn a reward!</strong><br />
+          When you complete your first ${data.userType === 'guide' ? 'tour' : 'booking'}, ${data.referrerName} will receive a thank-you gift from us. It's our way of saying thanks for spreading the word about Made to Hike.
+        </p>
+      </div>
+
+      <p style="color: #666; font-size: 15px; line-height: 1.6; text-align: center; margin: 30px 0 0 0;">
+        Questions? Our team is here to help!<br />
+        <a href="https://madetohike.com/help" style="color: #8B1538; text-decoration: none;">Visit Help Center</a> or reply to this email.
+      </p>
+    </div>
+
+    <div style="background-color: #F5F5F5; padding: 30px; text-align: center; border-top: 1px solid #E0E0E0;">
+      <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+        Made to Hike connects adventurers with certified local guides for authentic Alpine experiences.
+      </p>
+      <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 0;">
+        You're receiving this email because you created an account at Made to Hike.<br />
+        Invited by ${data.referrerName}.
+      </p>
+      <div style="margin-top: 20px;">
+        <a href="https://madetohike.com" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">Website</a>
+        <span style="color: #CCC;">|</span>
+        <a href="https://madetohike.com/about" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">About</a>
+        <span style="color: #CCC;">|</span>
+        <a href="https://madetohike.com/help" style="color: #8B1538; text-decoration: none; font-size: 14px; margin: 0 10px;">Help</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`,
+      text: `Welcome to Made to Hike, ${data.refereeName}! 🏔️\n\nHi ${data.refereeName}!\n\nWe're thrilled to have you join Made to Hike! ${data.referrerName} recommended you, and we can already tell you're going to love it here.\n\n${data.userType !== 'guide' ? `Your Welcome Gift: ${data.welcomeBonus}\nApplied automatically to your first booking\n\n` : ''}${data.userType === 'guide' ? 'Get Started in 3 Steps:\n1. Complete your profile\n2. Create your first tour\n3. Go live and start accepting bookings\n\n' : 'Start Exploring:\n- Browse tours from certified local guides\n- Read reviews from verified hikers\n- Message guides directly with questions\n- Book with confidence\n\n'}Help ${data.referrerName} earn a reward!\nWhen you complete your first ${data.userType === 'guide' ? 'tour' : 'booking'}, ${data.referrerName} will receive a thank-you gift from us.\n\n${data.userType === 'guide' ? 'Complete Your Profile' : 'Explore Tours'}: ${data.setupLink}\n\nQuestions? Visit https://madetohike.com/help or reply to this email.`
+    },
   };
 
-  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin'];
+  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin', 'referral_invitation', 'referral_success', 'referral_welcome'];
 
   return templates[type as keyof typeof templates] || templates.contact
 }
@@ -1766,7 +2143,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin', 'referral_invitation', 'referral_success', 'referral_welcome'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 
