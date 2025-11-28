@@ -1,12 +1,13 @@
+import { useState, useMemo } from 'react';
 import { Calendar, Mountain, MessageSquare, Heart, User, MapPin, Users, Eye, MessageCircle, AlertCircle, CheckCircle, FileText, Shield, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import HikerReferralWidget from '@/components/referral/HikerReferralWidget';
+import HikerReferralModal from '@/components/referral/HikerReferralModal';
 import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
 
 interface HikerTodaySectionProps {
   userId: string;
@@ -42,6 +43,7 @@ export function HikerTodaySection({
 }: HikerTodaySectionProps) {
   const { profile } = useProfile();
   const navigate = useNavigate();
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
   const nextTrip = upcomingTrips[0];
   // Use tour start date from date slot, fallback to booking_date if not available
   const tourStartDate = nextTrip?.tour_date_slots?.slot_date || nextTrip?.booking_date;
@@ -419,7 +421,15 @@ export function HikerTodaySection({
       <HikerReferralWidget
         userId={userId}
         userName={profile?.name || 'Friend'}
-        onViewFullDashboard={() => window.location.href = '/dashboard/referrals'}
+        onViewFullDashboard={() => setReferralModalOpen(true)}
+      />
+
+      {/* Referral Modal */}
+      <HikerReferralModal
+        open={referralModalOpen}
+        onOpenChange={setReferralModalOpen}
+        userId={userId}
+        userName={profile?.name || 'Friend'}
       />
     </div>
   );
