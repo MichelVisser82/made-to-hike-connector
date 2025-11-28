@@ -138,8 +138,11 @@ async function getStats(supabase: any, body: GetStatsRequest) {
 
   let stats: any = {
     totalInvites,
+    totalReferrals: totalInvites,
     acceptedInvites,
     completedInvites,
+    completedReferrals: completedInvites,
+    pendingReferrals: totalInvites - completedInvites,
     referrals: referrals || []
   };
 
@@ -184,6 +187,7 @@ async function getStats(supabase: any, body: GetStatsRequest) {
     stats.availableCredits = availableCredits;
     stats.totalCredits = totalCredits;
     stats.pendingCredits = pendingCredits;
+    stats.pendingReferrals = pendingReferrals.length;
   }
 
   return new Response(
