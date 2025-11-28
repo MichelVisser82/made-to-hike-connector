@@ -113,7 +113,7 @@ export default function ReferralModal({
   } = useSendInvitation();
   const rewardAmount = userType === 'hiker' ? '€25' : '€50';
   const primaryLink = userType === 'hiker' ? links?.hikerLink : links?.guideLink;
-  const shareMessage = userType === 'hiker' ? `Join MadeToHike and get €10 off your first adventure! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}` : `Join MadeToHike as a guide! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`;
+  const shareMessage = userType === 'hiker' ? `Join MadeToHike and get €15 off your first adventure! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}` : `Join MadeToHike as a guide! I'll earn ${rewardAmount} when you complete your first tour. ${primaryLink}`;
   const handleCopy = (link: string, type: 'hiker' | 'guide') => {
     navigator.clipboard.writeText(link);
     if (type === 'hiker') {
@@ -241,7 +241,7 @@ export default function ReferralModal({
                           <div className="flex items-start gap-2">
                             <Award className="w-5 h-5 text-burgundy flex-shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-semibold text-charcoal mb-1">They also get €10 welcome discount!</p>
+                              <p className="font-semibold text-charcoal mb-1">They also get €15 welcome discount!</p>
                               <p className="text-sm text-charcoal/70">
                                 It's a win-win. Your friends get a great discount, and you earn rewards.
                               </p>

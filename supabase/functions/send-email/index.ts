@@ -1814,13 +1814,13 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
         `}
       </div>
 
-      ${data.targetType === 'hiker' ? `
+       ${data.targetType === 'hiker' ? `
       <div style="background-color: #E8F5E9; border-left: 4px solid #7BA05B; padding: 20px; margin: 30px 0;">
         <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0 0 10px 0;">
           <strong>🎁 Special Welcome Gift</strong>
         </p>
         <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6; margin: 0;">
-          Sign up with ${data.referrerName}'s link and get <strong>€10 off your first tour</strong> when you join!
+          Sign up with ${data.referrerName}'s link and get <strong>€15 off your first tour</strong> when you join!
         </p>
       </div>
       ` : ''}
@@ -1856,7 +1856,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
   </div>
 </body>
 </html>`,
-      text: `${data.referrerName} invited you to join Made to Hike!\n\n${data.refereeName ? `Hi ${data.refereeName}!` : 'Hello!'}\n\n${data.referrerName} thought you'd love Made to Hike and invited you to join our community of ${data.targetType === 'guide' ? 'certified mountain guides' : 'adventurers and certified guides'}.\n\n${data.personalMessage ? `Personal message from ${data.referrerName}:\n"${data.personalMessage}"\n\n` : ''}${data.targetType === 'hiker' ? `Special Welcome Gift:\nSign up with ${data.referrerName}'s link and get €10 off your first tour when you join!\n\n` : ''}Join now: ${data.referralLink}`
+      text: `${data.referrerName} invited you to join Made to Hike!\n\n${data.refereeName ? `Hi ${data.refereeName}!` : 'Hello!'}\n\n${data.referrerName} thought you'd love Made to Hike and invited you to join our community of ${data.targetType === 'guide' ? 'certified mountain guides' : 'adventurers and certified guides'}.\n\n${data.personalMessage ? `Personal message from ${data.referrerName}:\n"${data.personalMessage}"\n\n` : ''}${data.targetType === 'hiker' ? `Special Welcome Gift:\nSign up with ${data.referrerName}'s link and get €15 off your first tour when you join!\n\n` : ''}Join now: ${data.referralLink}`
     },
 
     referral_success: {
