@@ -578,8 +578,10 @@ export default function ReferralModal({
                         : "pending";
  
                     // Calculate reward based on actual target_type, not status
+                    // Determine reward type: guides inviting guides get credits, all others get vouchers
+                    const rewardType = r.reward_type || (userType === 'guide' && r.target_type === 'guide' ? 'credit' : 'voucher');
                     const rewardLabel = r.reward_amount
-                      ? `€${r.reward_amount} ${r.reward_type === "credit" ? "credit" : "voucher"}`
+                      ? `€${r.reward_amount} ${rewardType === "credit" ? "credit" : "voucher"}`
                       : r.target_type === 'guide'
                       ? userType === 'guide' ? "€50 potential credit" : "€50 potential voucher"
                       : "€25 potential voucher";
