@@ -242,6 +242,7 @@ async function sendInvitation(supabase: any, body: SendInvitationRequest) {
       data: {
         referrerName: referrer?.name || 'A friend',
         referrerType: userRoles?.role || 'hiker',
+        targetType,
         referralLink: referralUrl,
         personalMessage: personalMessage || null
       }
