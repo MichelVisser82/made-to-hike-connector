@@ -294,22 +294,18 @@ serve(async (req) => {
       .eq('hiker_id', hiker_id);
 
     if (count === 1) {
-      const { data: userData } = await supabase.auth.admin.getUserById(hiker_id);
-      const refCode = userData?.user?.user_metadata?.referral_code;
-      
-      if (refCode) {
-        console.log('First booking detected, tracking referral milestone_2');
-        try {
-          await supabase.functions.invoke('track-referral-progress', {
-            body: {
-              referralCode: refCode,
-              step: 'milestone_2',
-              milestoneData: { type: 'first_booking', id: booking.id }
-            }
-          });
-        } catch (refError) {
-          console.error('Referral tracking error (non-blocking):', refError);
-        }
+      console.log('First booking detected, tracking referral milestone_2');
+      try {
+        await supabase.functions.invoke('track-referral-progress', {
+          body: {
+            userId: hiker_id,
+            userType: 'hiker',
+            step: 'milestone_2',
+            milestoneData: { type: 'first_booking', id: booking.id }
+          }
+        });
+      } catch (refError) {
+        console.error('Referral tracking error (non-blocking):', refError);
       }
     }
 

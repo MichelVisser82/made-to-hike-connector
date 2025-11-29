@@ -279,23 +279,19 @@ Deno.serve(async (req) => {
           console.log(`Review notifications and emails created for booking ${booking.id}`);
         }
 
-        // Track referral completion (Step 3) if this is first completed booking
-        const { data: userData } = await supabase.auth.admin.getUserById(booking.hiker_id);
-        const refCode = userData?.user?.user_metadata?.referral_code;
-        
-        if (refCode) {
-          console.log('Tour completed, checking referral completion');
-          try {
-            await supabase.functions.invoke('track-referral-progress', {
-              body: {
-                referralCode: refCode,
-                step: 'completed',
-                completionBookingId: booking.id
-              }
-            });
-          } catch (refError) {
-            console.error('Referral completion tracking error (non-blocking):', refError);
-          }
+        // Track referral completion (Step 3) - triggers reward processing
+        console.log('Tour completed, tracking referral completion');
+        try {
+          await supabase.functions.invoke('track-referral-progress', {
+            body: {
+              userId: booking.hiker_id,
+              userType: 'hiker',
+              step: 'completed',
+              completionBookingId: booking.id
+            }
+          });
+        } catch (refError) {
+          console.error('Referral completion tracking error (non-blocking):', refError);
         }
 
         results.push({
