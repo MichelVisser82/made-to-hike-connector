@@ -443,20 +443,34 @@ export function GuideDashboard({
 
       if (bookingsError) throw bookingsError;
 
-      // Fetch real Stripe balance
-      const { data: stripeBalance, error: stripeError } = await supabase.functions.invoke('fetch-stripe-balance');
-
       // Calculate lifetime earnings from completed bookings (Stripe doesn't track this)
       const completedBookings = bookingsData?.filter(b => b.status === 'completed') || [];
       const lifetimeTotal = completedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
 
-      // Use real Stripe balance data if available, fallback to booking-based estimates
+      // Fetch real Stripe balance (wrapped in try-catch to not fail entire function)
       let availableBalance = 0;
+      let stripeBalance = null;
+      let stripeError = null;
+      
+      try {
+        const result = await supabase.functions.invoke('fetch-stripe-balance');
+        stripeBalance = result.data;
+        stripeError = result.error;
+        
+        console.log('Stripe balance response:', { stripeBalance, stripeError });
+      } catch (err) {
+        console.warn('Error calling fetch-stripe-balance:', err);
+        stripeError = err;
+      }
+
+      // Use real Stripe balance data if available, fallback to booking-based estimates
       if (stripeBalance && !stripeError) {
         const availableEur = stripeBalance.available?.find((b: any) => b.currency === 'eur')?.amount || 0;
         const pendingEur = stripeBalance.pending?.find((b: any) => b.currency === 'eur')?.amount || 0;
 
         availableBalance = availableEur / 100; // Convert from cents
+
+        console.log('Using Stripe balance:', { available: availableBalance, pending: pendingEur / 100 });
 
         setBalances({
           pending: pendingEur / 100, // Convert from cents
@@ -466,7 +480,7 @@ export function GuideDashboard({
         });
       } else {
         // Fallback to booking-based estimates if Stripe fetch fails
-        console.warn('Failed to fetch Stripe balance, using booking estimates:', stripeError);
+        console.warn('Using booking-based estimates. Stripe error:', stripeError);
         const confirmedBookings = bookingsData?.filter(b => b.status === 'confirmed') || [];
         const pendingBookings = bookingsData?.filter(b => b.status === 'pending') || [];
         
