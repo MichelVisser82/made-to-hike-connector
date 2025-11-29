@@ -127,12 +127,6 @@ export function BookingsSection({
             By Tour ({tours.length})
           </TabsTrigger>
           <TabsTrigger 
-            value="all" 
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
-          >
-            All Bookings ({counts.all})
-          </TabsTrigger>
-          <TabsTrigger 
             value="pending" 
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
@@ -149,6 +143,12 @@ export function BookingsSection({
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             Completed ({counts.completed})
+          </TabsTrigger>
+          <TabsTrigger 
+            value="all" 
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+          >
+            All Bookings ({counts.all})
           </TabsTrigger>
         </TabsList>
 
