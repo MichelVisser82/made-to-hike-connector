@@ -75,6 +75,7 @@ interface MoneySectionProps {
   tours: Array<{ id: string; title: string }>;
   lastUpdated: Date;
   loading: boolean;
+  feePercentage: number;
   onExportReport: () => void;
   onRequestPayout: () => void;
   onDownloadDocument: (docId: string) => void;
@@ -94,6 +95,7 @@ export function MoneySection({
   tours,
   lastUpdated,
   loading,
+  feePercentage,
   onExportReport,
   onRequestPayout,
   onDownloadDocument,
@@ -148,10 +150,15 @@ export function MoneySection({
   }, [transactions]);
 
   // Fee breakdown data
-  const feeBreakdown = useMemo(() => [
-    { name: 'Your Earnings', value: Math.max(0, balances.lifetime * 0.85), fill: '#059669' },
-    { name: 'Platform Fees', value: Math.max(0, balances.lifetime * 0.15), fill: '#f59e0b' },
-  ], [balances.lifetime]);
+  const feeBreakdown = useMemo(() => {
+    const guideFeeRate = feePercentage / 100;
+    const guideEarnings = Math.max(0, balances.lifetime * (1 - guideFeeRate));
+    const platformFees = Math.max(0, balances.lifetime * guideFeeRate);
+    return [
+      { name: 'Your Earnings', value: guideEarnings, fill: '#059669' },
+      { name: 'Platform Fees', value: platformFees, fill: '#f59e0b' },
+    ];
+  }, [balances.lifetime, feePercentage]);
 
   const handleUpdatePayoutSchedule = async () => {
     await onUpdatePayoutSchedule(payoutSchedule);
@@ -448,7 +455,7 @@ export function MoneySection({
                   <TableHead className="px-6 py-4">Tour</TableHead>
                   <TableHead className="px-6 py-4">Guest</TableHead>
                   <TableHead className="px-6 py-4">Gross</TableHead>
-                  <TableHead className="px-6 py-4">Fee</TableHead>
+                  <TableHead className="px-6 py-4">Fee ({feePercentage}%)</TableHead>
                   <TableHead className="px-6 py-4">Net</TableHead>
                   <TableHead className="px-6 py-4">Status</TableHead>
                 </TableRow>

@@ -88,6 +88,8 @@ export function GuideDashboard({
   const [nextPayout, setNextPayout] = useState<Payout | undefined>(undefined);
   const [taxDocuments, setTaxDocuments] = useState<TaxDocument[]>([]);
   const [loadingMoney, setLoadingMoney] = useState(false);
+  const [balancesLastUpdated, setBalancesLastUpdated] = useState(new Date());
+  const [feePercentage, setFeePercentage] = useState(15); // Default 15%
 
   // Inbox state
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -431,6 +433,40 @@ export function GuideDashboard({
     try {
       setLoadingMoney(true);
       
+      // Fetch guide's fee settings
+      const { data: guideData, error: guideError } = await supabase
+        .from('guide_profiles')
+        .select('custom_guide_fee_percentage, custom_hiker_fee_percentage, uses_custom_fees')
+        .eq('user_id', user.id)
+        .single();
+
+      if (guideError) {
+        console.warn('Error fetching guide fee settings:', guideError);
+      }
+
+      // Fetch platform default fees
+      const { data: platformSettings, error: platformError } = await supabase
+        .from('platform_settings')
+        .select('setting_value')
+        .eq('setting_key', 'platform_fees')
+        .single();
+
+      if (platformError) {
+        console.warn('Error fetching platform fees:', platformError);
+      }
+
+      // Calculate total fee percentage
+      let totalFeePercentage = 0.15; // Default 15%
+      if (guideData?.uses_custom_fees && guideData.custom_guide_fee_percentage !== null && guideData.custom_hiker_fee_percentage !== null) {
+        totalFeePercentage = (guideData.custom_guide_fee_percentage + guideData.custom_hiker_fee_percentage) / 100;
+      } else if (platformSettings?.setting_value) {
+        const platformFees = platformSettings.setting_value as any;
+        totalFeePercentage = ((platformFees.guide_fee_percentage || 0) + (platformFees.hiker_fee_percentage || 0)) / 100;
+      }
+
+      // Store fee percentage for display
+      setFeePercentage(totalFeePercentage * 100);
+      
       // Fetch all bookings for this guide's tours
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
@@ -497,7 +533,7 @@ export function GuideDashboard({
       // Transform to transactions
       const transformedTransactions: Transaction[] = bookingsData?.map(booking => {
         const grossAmount = booking.total_price || 0;
-        const platformFee = Math.round(grossAmount * 0.15); // 15% platform fee
+        const platformFee = grossAmount * totalFeePercentage;
         const netAmount = grossAmount - platformFee;
 
         return {
@@ -1094,6 +1130,7 @@ export function GuideDashboard({
               tours={tours}
               lastUpdated={new Date()}
               loading={loadingMoney}
+              feePercentage={feePercentage}
               onExportReport={handleExportReport}
               onRequestPayout={handleRequestPayout}
               onDownloadDocument={handleDownloadDocument}
