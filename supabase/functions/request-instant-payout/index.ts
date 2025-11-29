@@ -1,11 +1,11 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
-import Stripe from 'https://esm.sh/stripe@14.21.0';
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2025-08-27.basil',
-});
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -17,102 +17,98 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const supabaseClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+  );
+
   try {
-    logStep('Function started');
+    logStep("Function started");
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('No authorization header');
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    // Authenticate user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("No authorization header provided");
     
-    if (userError || !user) throw new Error('User not authenticated');
-    logStep('User authenticated', { userId: user.id });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    
+    const user = userData.user;
+    if (!user) throw new Error("User not authenticated");
+    logStep("User authenticated", { userId: user.id });
 
-    const { amount, currency } = await req.json();
-
-    // Fetch guide profile
+    // Get guide's Stripe account
     const { data: guideProfile, error: profileError } = await supabaseClient
       .from('guide_profiles')
-      .select('id, stripe_account_id')
+      .select('stripe_account_id')
       .eq('user_id', user.id)
       .single();
 
-    if (profileError || !guideProfile?.stripe_account_id) {
-      throw new Error('No Stripe account found');
+    if (profileError || !guideProfile) {
+      throw new Error("Guide profile not found");
     }
 
-    logStep('Checking account capabilities', { accountId: guideProfile.stripe_account_id });
+    if (!guideProfile.stripe_account_id) {
+      throw new Error("Stripe account not connected. Please complete your payment setup.");
+    }
 
-    // Verify account supports instant payouts
-    const account = await stripe.accounts.retrieve(guideProfile.stripe_account_id);
+    logStep("Guide profile found", { stripeAccountId: guideProfile.stripe_account_id });
+
+    // Initialize Stripe
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     
-    if (!account.capabilities?.instant_payouts || account.capabilities.instant_payouts !== 'active') {
-      throw new Error('Instant payouts are not available for this account. This feature is primarily available for US accounts with supported banks.');
-    }
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-    if (!account.payouts_enabled) {
-      throw new Error('Payouts are not enabled for this account. Please complete account verification.');
-    }
-
-    // Regional restrictions: Check country and currency match
-    const platformCountry = 'US'; // Your platform country
-    if (account.country !== platformCountry) {
-      throw new Error('Instant payouts only available for accounts in the same country as the platform');
-    }
-
-    logStep('Checking balance', { accountId: guideProfile.stripe_account_id });
-
-    // Check available balance
+    // Get account balance
     const balance = await stripe.balance.retrieve({
       stripeAccount: guideProfile.stripe_account_id,
     });
 
-    const availableBalance = balance.available.find(b => b.currency === (currency || 'eur'));
-    
-    if (!availableBalance || availableBalance.amount < (amount || 0)) {
-      throw new Error('Insufficient balance for instant payout');
+    logStep("Balance retrieved", { balance });
+
+    // Check available balance (in cents)
+    const availableBalance = balance.available.find(b => b.currency === 'eur');
+    if (!availableBalance || availableBalance.amount < 10000) { // Minimum €100
+      throw new Error("Insufficient balance for payout. Minimum €100 required.");
     }
 
-    logStep('Creating instant payout', { amount: amount || availableBalance.amount });
+    const amountInCents = availableBalance.amount;
+    logStep("Creating payout", { amountInCents });
 
     // Create instant payout
     const payout = await stripe.payouts.create(
       {
-        amount: amount || availableBalance.amount,
-        currency: currency || 'eur',
+        amount: amountInCents,
+        currency: 'eur',
         method: 'instant',
       },
-      { stripeAccount: guideProfile.stripe_account_id }
+      {
+        stripeAccount: guideProfile.stripe_account_id,
+      }
     );
 
-    logStep('Payout created', { payoutId: payout.id });
-
-    // Record in database
-    await supabaseClient.from('stripe_payouts').insert({
-      guide_id: guideProfile.id,
-      stripe_payout_id: payout.id,
+    logStep("Payout created successfully", { 
+      payoutId: payout.id, 
       amount: payout.amount,
-      currency: payout.currency,
-      arrival_date: new Date(payout.arrival_date * 1000).toISOString(),
-      status: payout.status,
-      method: 'instant',
-      metadata: payout,
+      status: payout.status 
     });
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        payout_id: payout.id,
-        amount: payout.amount,
-        currency: payout.currency,
+        payout: {
+          id: payout.id,
+          amount: payout.amount / 100, // Convert to euros
+          currency: payout.currency,
+          arrival_date: payout.arrival_date,
+          status: payout.status,
+        },
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
     );
 
   } catch (error) {
