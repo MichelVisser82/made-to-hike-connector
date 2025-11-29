@@ -28,12 +28,16 @@ serve(async (req) => {
 
     logStep('Creating account link', { accountId: account_id });
 
-    // Create account link for onboarding
+    // Create account link for onboarding with upfront collection
     const accountLink = await stripe.accountLinks.create({
       account: account_id,
       refresh_url: refresh_url || `${new URL(req.url).origin}/dashboard?section=settings&tab=payment`,
       return_url: return_url || `${new URL(req.url).origin}/dashboard?section=settings&tab=payment&stripe_success=true`,
       type: 'account_onboarding',
+      collection_options: {
+        fields: 'eventually_due',        // Collect ALL required info upfront including identity documents
+        future_requirements: 'include'    // Include future requirements proactively
+      },
     });
 
     logStep('Account link created', { url: accountLink.url, expiresAt: accountLink.expires_at });
