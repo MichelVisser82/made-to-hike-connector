@@ -83,23 +83,45 @@ serve(async (req) => {
       }
     }
 
-    const { data: settings } = await supabase
+    // Fetch platform fee settings
+    const { data: platformSettings } = await supabase
       .from('platform_settings')
-      .select('default_guide_fee_percentage, default_hiker_fee_percentage')
+      .select('setting_value')
+      .eq('setting_key', 'platform_fees')
       .single();
 
-    const guideFee = guide.uses_custom_fees ? (guide.custom_guide_fee_percentage || 5) : (settings?.default_guide_fee_percentage || 5);
+    const defaultGuideFee = platformSettings?.setting_value?.guide_fee_percentage || 5;
+    const defaultHikerFee = platformSettings?.setting_value?.hiker_fee_percentage || 10;
+
+    // Apply custom fees if guide has them configured, otherwise use platform defaults
+    const guideFee = guide.uses_custom_fees ? (guide.custom_guide_fee_percentage || defaultGuideFee) : defaultGuideFee;
+    const hikerFee = guide.uses_custom_fees ? (guide.custom_hiker_fee_percentage || defaultHikerFee) : defaultHikerFee;
     
-    // Use the pre-calculated service fee from frontend (which was calculated on original price before discount)
+    console.log('[create-payment-intent] Fee structure:', {
+      guideFee,
+      hikerFee,
+      usesCustomFees: guide.uses_custom_fees,
+      guideId
+    });
+    
+    // Calculate fees based on platform settings or guide custom fees
     const amountCents = Math.round(amount * 100); // Tour price after discount
-    const serviceFeeCents = Math.round(serviceFee * 100); // Pre-calculated service fee
     const totalAmountCents = Math.round(totalAmount * 100); // Total to charge customer
     
-    // Calculate guide's portion of the service fee
+    // Calculate both guide fee and hiker service fee from settings
     const guideFeeCents = Math.round(amountCents * (guideFee / 100));
+    const hikerFeeCents = Math.round(amountCents * (hikerFee / 100));
     
-    // Platform takes service fee + guide fee, guide receives amount - guide fee
-    const totalFee = serviceFeeCents + guideFeeCents;
+    // Platform takes hiker service fee + guide fee, guide receives amount - guide fee
+    const totalFee = hikerFeeCents + guideFeeCents;
+    
+    console.log('[create-payment-intent] Fee calculation:', {
+      amountCents,
+      guideFeeCents,
+      hikerFeeCents,
+      totalFee,
+      amountToGuide: amountCents - guideFeeCents
+    });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2025-08-27.basil',
@@ -230,11 +252,13 @@ serve(async (req) => {
           booking_data_key: sessionKey, // Store reference to booking data
           participant_count: String(bookingData?.participantCount || 1),
           guide_fee_percentage: String(guideFee),
-          service_fee_amount: String(serviceFeeCents),
+          hiker_fee_percentage: String(hikerFee),
+          hiker_service_fee_amount: String(hikerFeeCents),
           guide_fee_amount: String(guideFeeCents),
           total_platform_fee: String(totalFee),
           amount_to_guide: String(amountCents - guideFeeCents),
           tour_price_after_discount: String(amountCents),
+          uses_custom_fees: String(guide.uses_custom_fees || false),
           is_deposit: String(isDeposit || false),
           deposit_amount: String(isDeposit ? Math.round((depositAmount || 0) * 100) : 0),
           final_payment_amount: String(isDeposit ? Math.round((finalPaymentAmount || 0) * 100) : 0),
