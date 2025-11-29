@@ -530,11 +530,31 @@ export function GuideDashboard({
         });
       }
 
-      // Transform to transactions
+      // Transform to transactions with proper fee breakdown
       const transformedTransactions: Transaction[] = bookingsData?.map(booking => {
-        const grossAmount = booking.total_price || 0;
-        const platformFee = grossAmount * totalFeePercentage;
-        const netAmount = grossAmount - platformFee;
+        const totalBookingPrice = booking.total_price || 0;
+        
+        // Calculate guide's base price and fees
+        let hikerFeePercentage = 0;
+        let guideFeePercentage = 0;
+        
+        if (guideData?.uses_custom_fees && guideData.custom_guide_fee_percentage !== null && guideData.custom_hiker_fee_percentage !== null) {
+          guideFeePercentage = guideData.custom_guide_fee_percentage;
+          hikerFeePercentage = guideData.custom_hiker_fee_percentage;
+        } else if (platformSettings?.setting_value) {
+          const platformFees = platformSettings.setting_value as any;
+          guideFeePercentage = platformFees.guide_fee_percentage || 0;
+          hikerFeePercentage = platformFees.hiker_fee_percentage || 0;
+        }
+        
+        // Guide's base price (before hiker fee is added)
+        const guideBasePrice = totalBookingPrice / (1 + hikerFeePercentage / 100);
+        
+        // Guide fee (percentage of guide's base price)
+        const guideFee = guideBasePrice * (guideFeePercentage / 100);
+        
+        // Net amount guide receives
+        const netAmount = guideBasePrice - guideFee;
 
         return {
           id: `TX-${booking.id.slice(0, 8)}`,
@@ -543,8 +563,9 @@ export function GuideDashboard({
           tour_title: booking.tours.title,
           guest_name: booking.profiles?.name || 'Unknown Guest',
           date: booking.booking_date,
-          gross_amount: grossAmount,
-          platform_fee: platformFee,
+          guide_base_price: guideBasePrice,
+          guide_fee: guideFee,
+          guide_fee_percentage: guideFeePercentage,
           net_amount: netAmount,
           currency: booking.currency,
           status: booking.status as 'pending' | 'completed' | 'refunded',
@@ -669,9 +690,9 @@ export function GuideDashboard({
       'Date',
       'Tour',
       'Guest',
-      'Gross Amount',
-      'Platform Fee (15%)',
-      'Net Amount',
+      'Tour Price',
+      'Guide Fee',
+      'Net Earned',
       'Status',
       'Currency'
     ];
@@ -680,16 +701,16 @@ export function GuideDashboard({
       format(new Date(item.date), 'yyyy-MM-dd'),
       item.tour_title || '',
       item.guest_name || '',
-      item.gross_amount.toFixed(2),
-      item.platform_fee.toFixed(2),
+      item.guide_base_price.toFixed(2),
+      item.guide_fee.toFixed(2),
       item.net_amount.toFixed(2),
       item.status || '',
       item.currency || 'EUR'
     ]);
 
     // Calculate totals
-    const totalGross = transactions.reduce((sum, item) => sum + item.gross_amount, 0);
-    const totalPlatformFee = transactions.reduce((sum, item) => sum + item.platform_fee, 0);
+    const totalGuidePrice = transactions.reduce((sum, item) => sum + item.guide_base_price, 0);
+    const totalGuideFee = transactions.reduce((sum, item) => sum + item.guide_fee, 0);
     const totalNet = transactions.reduce((sum, item) => sum + item.net_amount, 0);
 
     // Add summary row
@@ -697,8 +718,8 @@ export function GuideDashboard({
       '',
       '',
       'TOTAL',
-      totalGross.toFixed(2),
-      totalPlatformFee.toFixed(2),
+      totalGuidePrice.toFixed(2),
+      totalGuideFee.toFixed(2),
       totalNet.toFixed(2),
       '',
       ''
