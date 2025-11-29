@@ -121,6 +121,12 @@ export function BookingsSection({
       }}>
         <TabsList className="bg-cream p-1 rounded-lg mb-6">
           <TabsTrigger 
+            value="tour" 
+            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
+          >
+            By Tour ({tours.length})
+          </TabsTrigger>
+          <TabsTrigger 
             value="all" 
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
@@ -143,12 +149,6 @@ export function BookingsSection({
             className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
           >
             Completed ({counts.completed})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="tour" 
-            className="data-[state=active]:bg-burgundy data-[state=active]:text-white"
-          >
-            By Tour ({tours.length})
           </TabsTrigger>
         </TabsList>
 
