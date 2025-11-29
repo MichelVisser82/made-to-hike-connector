@@ -656,24 +656,41 @@ export function GuideDashboard({
         body: {},
       });
 
-      if (error) throw error;
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to request payout');
+      if (error) {
+        toast({
+          title: 'Payout Failed',
+          description: error.message || 'Failed to request payout',
+          variant: 'destructive',
+        });
+        return;
       }
 
+      if (data?.error) {
+        toast({
+          title: 'Payout Failed',
+          description: data.error,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const payoutInfo = data.payout;
+      const message = payoutInfo.isInstant 
+        ? "Instant payout requested! Funds will arrive within minutes."
+        : `Payout requested! Funds will arrive in 2-3 business days.`;
+      
       toast({
         title: 'Payout Requested',
-        description: `€${(data.amount / 100).toFixed(2)} will arrive in your account within 30 minutes.`,
+        description: message,
       });
-
+      
       // Refresh financial data
       await fetchFinancialData();
     } catch (error: any) {
-      console.error('Payout error:', error);
+      console.error('Payout request error:', error);
       toast({
         title: 'Payout Failed',
-        description: error.message || 'Failed to request instant payout. Please try again.',
+        description: error.message || 'An unexpected error occurred',
         variant: 'destructive',
       });
     } finally {

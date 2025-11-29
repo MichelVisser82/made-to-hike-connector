@@ -60,6 +60,13 @@ serve(async (req) => {
     
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
+    // Check account capabilities for instant payouts
+    const account = await stripe.accounts.retrieve(guideProfile.stripe_account_id);
+    logStep("Checking account capabilities", { accountId: account.id });
+
+    const supportsInstantPayouts = account.capabilities?.card_payments === 'active' && 
+                                     account.capabilities?.transfers === 'active';
+    
     // Get account balance
     const balance = await stripe.balance.retrieve({
       stripeAccount: guideProfile.stripe_account_id,
@@ -74,14 +81,17 @@ serve(async (req) => {
     }
 
     const amountInCents = availableBalance.amount;
-    logStep("Creating payout", { amountInCents });
+    
+    // Determine payout method based on account capabilities
+    const payoutMethod = supportsInstantPayouts ? 'instant' : 'standard';
+    logStep("Creating payout", { amountInCents, method: payoutMethod });
 
-    // Create instant payout
+    // Create payout (instant if supported, standard otherwise)
     const payout = await stripe.payouts.create(
       {
         amount: amountInCents,
         currency: 'eur',
-        method: 'instant',
+        method: payoutMethod,
       },
       {
         stripeAccount: guideProfile.stripe_account_id,
@@ -103,6 +113,8 @@ serve(async (req) => {
           currency: payout.currency,
           arrival_date: payout.arrival_date,
           status: payout.status,
+          method: payout.method,
+          isInstant: payout.method === 'instant',
         },
       }),
       {
