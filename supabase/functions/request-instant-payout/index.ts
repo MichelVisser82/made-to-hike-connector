@@ -76,11 +76,26 @@ serve(async (req) => {
 
     // Check available balance (in cents)
     const availableBalance = balance.available.find(b => b.currency === 'eur');
-    if (!availableBalance || availableBalance.amount < 10000) { // Minimum €100
+    const pendingBalance = balance.pending.find(b => b.currency === 'eur');
+    
+    const availableAmount = availableBalance?.amount || 0;
+    const pendingAmount = pendingBalance?.amount || 0;
+    
+    logStep("Balance breakdown", { 
+      available: availableAmount / 100, 
+      pending: pendingAmount / 100 
+    });
+
+    if (availableAmount < 10000) { // Minimum €100
+      if (pendingAmount > 0) {
+        throw new Error(
+          `Insufficient available balance. You have €${(pendingAmount / 100).toFixed(2)} pending that will become available in 2-7 days. Available now: €${(availableAmount / 100).toFixed(2)}`
+        );
+      }
       throw new Error("Insufficient balance for payout. Minimum €100 required.");
     }
 
-    const amountInCents = availableBalance.amount;
+    const amountInCents = availableAmount;
     
     // Determine payout method based on account capabilities
     const payoutMethod = supportsInstantPayouts ? 'instant' : 'standard';
