@@ -31,7 +31,7 @@ export function BookingsSection({
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const [viewMode, setViewMode] = useState<'status' | 'tour'>('status');
+  const [viewMode, setViewMode] = useState<'status' | 'tour'>('tour');
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
   
   // Check URL params to auto-select pending tab
