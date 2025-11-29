@@ -42,8 +42,9 @@ interface MoneySectionProps {
     tour_id?: string;
     guest_name: string;
     booking_id?: string;
-    gross_amount: number;
-    platform_fee: number;
+    guide_base_price: number;
+    guide_fee: number;
+    guide_fee_percentage: number;
     net_amount: number;
     status: 'pending' | 'completed' | 'refunded';
   }>;
@@ -454,9 +455,9 @@ export function MoneySection({
                   <TableHead className="px-6 py-4">ID</TableHead>
                   <TableHead className="px-6 py-4">Tour</TableHead>
                   <TableHead className="px-6 py-4">Guest</TableHead>
-                  <TableHead className="px-6 py-4">Gross</TableHead>
-                  <TableHead className="px-6 py-4">Fee ({feePercentage}%)</TableHead>
-                  <TableHead className="px-6 py-4">Net</TableHead>
+                  <TableHead className="px-6 py-4">Tour Price</TableHead>
+                  <TableHead className="px-6 py-4">Guide Fee</TableHead>
+                  <TableHead className="px-6 py-4">Net Earned</TableHead>
                   <TableHead className="px-6 py-4">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -472,10 +473,11 @@ export function MoneySection({
                     <TableCell className="px-6 py-4">{transaction.tour_title}</TableCell>
                     <TableCell className="px-6 py-4">{transaction.guest_name}</TableCell>
                     <TableCell className="px-6 py-4 font-medium text-charcoal">
-                      €{transaction.gross_amount.toFixed(2)}
+                      €{transaction.guide_base_price.toFixed(2)}
                     </TableCell>
                     <TableCell className="px-6 py-4 text-destructive">
-                      -€{transaction.platform_fee.toFixed(2)}
+                      -€{transaction.guide_fee.toFixed(2)}
+                      <span className="text-xs text-charcoal/60 ml-1">({transaction.guide_fee_percentage}%)</span>
                     </TableCell>
                     <TableCell className="px-6 py-4 font-medium text-sage">
                       €{transaction.net_amount.toFixed(2)}
@@ -629,7 +631,7 @@ export function MoneySection({
                   <h4 className="font-medium">Average Transaction Value</h4>
                   <p className="text-3xl font-playfair">
                     €{transactions.length > 0 
-                      ? (transactions.reduce((sum, t) => sum + t.gross_amount, 0) / transactions.length).toFixed(2)
+                      ? (transactions.reduce((sum, t) => sum + t.guide_base_price, 0) / transactions.length).toFixed(2)
                       : '0.00'}
                   </p>
                 </div>

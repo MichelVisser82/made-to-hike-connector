@@ -164,8 +164,9 @@ export interface Transaction {
   tour_title: string;
   guest_name: string;
   date: string;
-  gross_amount: number;
-  platform_fee: number;
+  guide_base_price: number;
+  guide_fee: number;
+  guide_fee_percentage: number;
   net_amount: number;
   currency: 'EUR' | 'GBP';
   status: 'pending' | 'completed' | 'refunded';
