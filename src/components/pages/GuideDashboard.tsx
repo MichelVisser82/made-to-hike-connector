@@ -443,21 +443,42 @@ export function GuideDashboard({
 
       if (bookingsError) throw bookingsError;
 
-      // Calculate balances
+      // Fetch real Stripe balance
+      const { data: stripeBalance, error: stripeError } = await supabase.functions.invoke('fetch-stripe-balance');
+
+      // Calculate lifetime earnings from completed bookings (Stripe doesn't track this)
       const completedBookings = bookingsData?.filter(b => b.status === 'completed') || [];
-      const confirmedBookings = bookingsData?.filter(b => b.status === 'confirmed') || [];
-      const pendingBookings = bookingsData?.filter(b => b.status === 'pending') || [];
-
       const lifetimeTotal = completedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
-      const availableTotal = confirmedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
-      const pendingTotal = pendingBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
 
-      setBalances({
-        pending: pendingTotal,
-        available: availableTotal,
-        lifetime: lifetimeTotal,
-        currency: 'EUR',
-      });
+      // Use real Stripe balance data if available, fallback to booking-based estimates
+      let availableBalance = 0;
+      if (stripeBalance && !stripeError) {
+        const availableEur = stripeBalance.available?.find((b: any) => b.currency === 'eur')?.amount || 0;
+        const pendingEur = stripeBalance.pending?.find((b: any) => b.currency === 'eur')?.amount || 0;
+
+        availableBalance = availableEur / 100; // Convert from cents
+
+        setBalances({
+          pending: pendingEur / 100, // Convert from cents
+          available: availableBalance,
+          lifetime: lifetimeTotal,
+          currency: 'EUR',
+        });
+      } else {
+        // Fallback to booking-based estimates if Stripe fetch fails
+        console.warn('Failed to fetch Stripe balance, using booking estimates:', stripeError);
+        const confirmedBookings = bookingsData?.filter(b => b.status === 'confirmed') || [];
+        const pendingBookings = bookingsData?.filter(b => b.status === 'pending') || [];
+        
+        availableBalance = confirmedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
+        
+        setBalances({
+          pending: pendingBookings.reduce((sum, b) => sum + (b.total_price || 0), 0),
+          available: availableBalance,
+          lifetime: lifetimeTotal,
+          currency: 'EUR',
+        });
+      }
 
       // Transform to transactions
       const transformedTransactions: Transaction[] = bookingsData?.map(booking => {
@@ -519,13 +540,13 @@ export function GuideDashboard({
       setTopTours(topToursData);
 
       // Mock next payout (if available balance > 100)
-      if (availableTotal >= 100) {
+      if (availableBalance >= 100) {
         const nextPayoutDate = new Date();
         nextPayoutDate.setDate(nextPayoutDate.getDate() + 7); // 7 days from now
         
         setNextPayout({
           id: 'payout-1',
-          amount: availableTotal,
+          amount: availableBalance,
           currency: 'EUR',
           scheduled_date: nextPayoutDate.toISOString(),
           status: 'scheduled',
