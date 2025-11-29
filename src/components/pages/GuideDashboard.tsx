@@ -648,11 +648,37 @@ export function GuideDashboard({
     });
   };
 
-  const handleRequestPayout = () => {
-    toast({
-      title: 'Payout Request',
-      description: 'Instant payout requested. Processing may take 1-2 business days.',
-    });
+  const handleRequestPayout = async () => {
+    try {
+      setLoadingMoney(true);
+      
+      const { data, error } = await supabase.functions.invoke('request-instant-payout', {
+        body: {},
+      });
+
+      if (error) throw error;
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to request payout');
+      }
+
+      toast({
+        title: 'Payout Requested',
+        description: `€${(data.amount / 100).toFixed(2)} will arrive in your account within 30 minutes.`,
+      });
+
+      // Refresh financial data
+      await fetchFinancialData();
+    } catch (error: any) {
+      console.error('Payout error:', error);
+      toast({
+        title: 'Payout Failed',
+        description: error.message || 'Failed to request instant payout. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingMoney(false);
+    }
   };
 
   const handleDownloadDocument = (docId: string) => {
