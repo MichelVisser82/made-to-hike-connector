@@ -521,19 +521,53 @@ export function GuideDashboard({
         stripeError = err;
       }
 
+      // Fetch real Stripe payouts to calculate accurate lifetime
+      let totalPayoutsPaid = 0;
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session) {
+          const payoutsResult = await supabase.functions.invoke('fetch-stripe-payouts', {
+            headers: {
+              Authorization: `Bearer ${session.session.access_token}`,
+            },
+          });
+          
+          if (payoutsResult.data?.payouts) {
+            // Sum all paid payouts (status = 'paid')
+            totalPayoutsPaid = payoutsResult.data.payouts
+              .filter((p: any) => p.status === 'paid')
+              .reduce((sum: number, p: any) => sum + (p.amount / 100), 0);
+            
+            console.log('Total paid payouts:', totalPayoutsPaid);
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching payouts for lifetime calculation:', err);
+      }
+
       // Use real Stripe balance data if available, fallback to booking-based estimates
       if (stripeBalance && !stripeError) {
         const availableEur = stripeBalance.available?.find((b: any) => b.currency === 'eur')?.amount || 0;
         const pendingEur = stripeBalance.pending?.find((b: any) => b.currency === 'eur')?.amount || 0;
 
         availableBalance = availableEur / 100; // Convert from cents
+        const pendingBalance = pendingEur / 100;
 
-        console.log('Using Stripe balance:', { available: availableBalance, pending: pendingEur / 100 });
+        // Calculate true lifetime: all paid payouts + current balance
+        const calculatedLifetime = totalPayoutsPaid + availableBalance + pendingBalance;
+
+        console.log('Lifetime calculation:', { 
+          totalPayoutsPaid, 
+          availableBalance, 
+          pendingBalance,
+          calculatedLifetime,
+          lifetimeFromBookings: lifetimeTotal 
+        });
 
         setBalances({
-          pending: pendingEur / 100, // Convert from cents
+          pending: pendingBalance,
           available: availableBalance,
-          lifetime: lifetimeTotal,
+          lifetime: calculatedLifetime, // Use actual Stripe-based lifetime
           currency: 'EUR',
         });
       } else {
