@@ -228,6 +228,7 @@ serve(async (req) => {
         final_payment_amount: final_payment_amount || null,
         final_payment_due_date: final_payment_due_date || null,
         final_payment_status: final_payment_status || null,
+        escrow_enabled: true, // NEW ESCROW MODEL: Funds held until tour completion
       })
       .select()
       .single();

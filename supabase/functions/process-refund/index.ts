@@ -83,6 +83,39 @@ serve(async (req) => {
       );
     }
 
+    // ESCROW MODEL SAFEGUARD: Block refunds for legacy bookings
+    if (!booking.escrow_enabled) {
+      logStep('BLOCKED: Legacy booking with immediate transfer', { 
+        booking_reference: booking.booking_reference,
+        escrow_enabled: false 
+      });
+      return new Response(
+        JSON.stringify({ 
+          error: 'This booking uses the legacy payment model where funds were transferred immediately to the guide. Refunds for legacy bookings must be handled manually. Please contact support.',
+          legacy_booking: true,
+          booking_reference: booking.booking_reference
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // For escrow bookings, also check if transfer has already been made
+    if (booking.transfer_status === 'succeeded') {
+      logStep('BLOCKED: Transfer already completed to guide', {
+        booking_reference: booking.booking_reference,
+        transfer_id: booking.stripe_transfer_id
+      });
+      return new Response(
+        JSON.stringify({ 
+          error: 'Funds have already been transferred to the guide. Refund requires manual processing and reversal. Please contact support.',
+          transfer_completed: true,
+          booking_reference: booking.booking_reference,
+          transfer_id: booking.stripe_transfer_id
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     logStep('Booking found', { 
       booking_reference: booking.booking_reference,
       payment_status: booking.payment_status,
