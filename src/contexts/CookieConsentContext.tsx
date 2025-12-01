@@ -46,15 +46,9 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
     scriptLoaded.current = true;
 
     try {
-      // Set options before loading script
-      window.cookiefirst_options = {
-        api_key: apiKey
-      };
-
-      // Create and append script
+      // Create and append script using site-specific URL
       const script = document.createElement('script');
-      script.src = 'https://consent.cookiefirst.com/banner.js';
-      script.setAttribute('data-cookiefirst-key', apiKey);
+      script.src = `https://consent.cookiefirst.com/sites/${apiKey}/consent.js`;
       script.async = true;
       script.onerror = () => {
         console.warn('CookieFirst script failed to load');
