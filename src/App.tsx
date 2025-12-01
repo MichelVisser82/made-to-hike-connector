@@ -25,6 +25,7 @@ const GuideSignupPage = lazy(() => import("./pages/GuideSignupPage"));
 const GuidesPage = lazy(() => import("./pages/GuidesPage"));
 const CertificationsPage = lazy(() => import("./pages/CertificationsPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ParticipantPage = lazy(() => import("./pages/ParticipantPage"));
 const JoinPage = lazy(() => import("./pages/JoinPage").then(m => ({ default: m.JoinPage })));
 const GuideJoinPage = lazy(() => import("./pages/GuideJoinPage").then(m => ({ default: m.GuideJoinPage })));
@@ -84,6 +85,7 @@ const App: React.FC = () => {
             <Route path="/offer/accept" element={<Suspense fallback={<PageLoader />}><OfferAccept /></Suspense>} />
             <Route path="/offer/decline" element={<Suspense fallback={<PageLoader />}><OfferDecline /></Suspense>} />
             <Route path="/help" element={<Suspense fallback={<PageLoader />}><HelpPage /></Suspense>} />
+            <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>} />
             <Route path="/participant/:token" element={<Suspense fallback={<PageLoader />}><ParticipantPage /></Suspense>} />
                 <Route 
                   path="/dashboard" 
