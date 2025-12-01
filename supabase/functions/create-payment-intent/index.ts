@@ -230,8 +230,8 @@ serve(async (req) => {
         }],
         mode: 'payment',
         payment_intent_data: {
-          application_fee_amount: totalFee, // Platform takes service fee + guide fee
           // ESCROW MODEL: Funds stay on platform account until tour completion
+          // No application_fee_amount or transfer_data - full amount captured to platform
           // Transfer to guide created by process-tour-completion edge function after tour is marked complete
           setup_future_usage: isDeposit ? 'off_session' : undefined, // Save payment method for deposits
           metadata: {
@@ -265,10 +265,8 @@ serve(async (req) => {
         },
       };
 
-      // Add on_behalf_of for platform fee transparency
-      if (guide.stripe_account_id) {
-        sessionConfig.payment_intent_data.on_behalf_of = guide.stripe_account_id;
-      }
+      // ESCROW MODEL: No on_behalf_of needed - funds captured directly to platform account
+      // Guide receives payment after tour completion via transfer
 
       // Stripe automatically filters payment methods based on setup_future_usage
       // No need to manually restrict payment_method_types
