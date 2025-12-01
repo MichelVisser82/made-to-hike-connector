@@ -33,11 +33,13 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
   const scriptLoaded = useRef(false);
 
   useEffect(() => {
-    // Load CookieFirst script dynamically - only if API key is configured
+    // Load CookieFirst script dynamically - only on production domain
     const apiKey = import.meta.env.VITE_COOKIEFIRST_KEY;
+    const isProductionDomain = window.location.hostname === 'madetohike.com' || 
+                               window.location.hostname === 'www.madetohike.com';
     
-    if (!apiKey || apiKey === 'undefined' || apiKey === '' || scriptLoaded.current) {
-      // No API key - skip loading CookieFirst entirely
+    if (!apiKey || apiKey === 'undefined' || apiKey === '' || scriptLoaded.current || !isProductionDomain) {
+      // Skip loading CookieFirst on non-production domains or if no API key
       // App still works, just without cookie consent banner
       setIsInitialized(true);
       return;
