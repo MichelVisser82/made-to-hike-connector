@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 
 interface CookieConsent {
   necessary: boolean;
@@ -21,12 +21,44 @@ declare global {
       consent?: CookieConsent;
       openPanel?: () => void;
     };
+    cookiefirst_options?: {
+      api_key: string;
+    };
   }
 }
 
 export function CookieConsentProvider({ children }: { children: React.ReactNode }) {
   const [consent, setConsent] = useState<CookieConsent | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const scriptLoaded = useRef(false);
+
+  useEffect(() => {
+    // Load CookieFirst script dynamically
+    const apiKey = import.meta.env.VITE_COOKIEFIRST_KEY;
+    
+    if (!apiKey || scriptLoaded.current) {
+      console.warn('CookieFirst API key not configured');
+      return;
+    }
+
+    scriptLoaded.current = true;
+
+    // Set options before loading script
+    window.cookiefirst_options = {
+      api_key: apiKey
+    };
+
+    // Create and append script
+    const script = document.createElement('script');
+    script.src = 'https://consent.cookiefirst.com/banner.js';
+    script.setAttribute('data-cookiefirst-key', apiKey);
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup not strictly necessary as script should persist
+    };
+  }, []);
 
   useEffect(() => {
     const handleCookieFirstInit = () => {
