@@ -455,17 +455,21 @@ export function GuideDashboard({
         console.warn('Error fetching platform fees:', platformError);
       }
 
-      // Calculate guide fee percentage only (for pie chart display)
-      let guideFeePercentage = 0.05; // Default 5%
-      if (guideData?.uses_custom_fees && guideData.custom_guide_fee_percentage !== null) {
-        guideFeePercentage = guideData.custom_guide_fee_percentage / 100;
+      // Calculate fee percentages
+      let guideFeePercentage = 5; // Default 5%
+      let hikerFeePercentage = 10; // Default 10%
+      
+      if (guideData?.uses_custom_fees && guideData.custom_guide_fee_percentage !== null && guideData.custom_hiker_fee_percentage !== null) {
+        guideFeePercentage = guideData.custom_guide_fee_percentage;
+        hikerFeePercentage = guideData.custom_hiker_fee_percentage;
       } else if (platformSettings?.setting_value) {
         const platformFees = platformSettings.setting_value as any;
-        guideFeePercentage = (platformFees.guide_fee_percentage || 5) / 100;
+        guideFeePercentage = platformFees.guide_fee_percentage || 5;
+        hikerFeePercentage = platformFees.hiker_fee_percentage || 10;
       }
 
       // Store fee percentage for display (only guide fee, not combined)
-      setFeePercentage(guideFeePercentage * 100);
+      setFeePercentage(guideFeePercentage);
       
       // Fetch all bookings for this guide's tours
       const { data: bookingsData, error: bookingsError } = await supabase
@@ -480,8 +484,18 @@ export function GuideDashboard({
       if (bookingsError) throw bookingsError;
 
       // Calculate lifetime earnings from completed bookings (Stripe doesn't track this)
+      // Use guide's net earnings: Set Price - Platform Fee
       const completedBookings = bookingsData?.filter(b => b.status === 'completed') || [];
-      const lifetimeTotal = completedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
+      const lifetimeTotal = completedBookings.reduce((sum, b) => {
+        const totalBookingPrice = b.total_price || 0;
+        // Guide's set price (before hiker fee was added)
+        const guideBasePrice = totalBookingPrice / (1 + hikerFeePercentage / 100);
+        // Platform fee deducted from guide's earnings
+        const platformFee = guideBasePrice * (guideFeePercentage / 100);
+        // Guide's actual net earnings
+        const netAmount = guideBasePrice - platformFee;
+        return sum + netAmount;
+      }, 0);
 
       // Fetch real Stripe balance (wrapped in try-catch to not fail entire function)
       let availableBalance = 0;
@@ -520,10 +534,17 @@ export function GuideDashboard({
         const confirmedBookings = bookingsData?.filter(b => b.status === 'confirmed') || [];
         const pendingBookings = bookingsData?.filter(b => b.status === 'pending') || [];
         
-        availableBalance = confirmedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
+        // Calculate net amounts (guide's earnings after fees)
+        const calculateNetAmount = (totalPrice: number) => {
+          const guideBasePrice = totalPrice / (1 + hikerFeePercentage / 100);
+          const platformFee = guideBasePrice * (guideFeePercentage / 100);
+          return guideBasePrice - platformFee;
+        };
+        
+        availableBalance = confirmedBookings.reduce((sum, b) => sum + calculateNetAmount(b.total_price || 0), 0);
         
         setBalances({
-          pending: pendingBookings.reduce((sum, b) => sum + (b.total_price || 0), 0),
+          pending: pendingBookings.reduce((sum, b) => sum + calculateNetAmount(b.total_price || 0), 0),
           available: availableBalance,
           lifetime: lifetimeTotal,
           currency: 'EUR',
