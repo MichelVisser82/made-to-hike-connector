@@ -86,6 +86,14 @@ export function GuideDashboard({
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [topTours, setTopTours] = useState<TopEarningTour[]>([]);
   const [nextPayout, setNextPayout] = useState<Payout | undefined>(undefined);
+  const [payouts, setPayouts] = useState<Array<{
+    id: string;
+    date: string;
+    amount: number;
+    status: 'pending' | 'paid' | 'failed';
+    arrival_date?: string;
+    failure_reason?: string;
+  }>>([]);
   const [taxDocuments, setTaxDocuments] = useState<TaxDocument[]>([]);
   const [loadingMoney, setLoadingMoney] = useState(false);
   const [balancesLastUpdated, setBalancesLastUpdated] = useState(new Date());
@@ -691,6 +699,42 @@ export function GuideDashboard({
         },
       ]);
 
+      // Fetch real Stripe payouts
+      let stripePayouts: Array<{
+        id: string;
+        date: string;
+        amount: number;
+        status: 'pending' | 'paid' | 'failed';
+        arrival_date?: string;
+        failure_reason?: string;
+      }> = [];
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session) {
+          const payoutsResult = await supabase.functions.invoke('fetch-stripe-payouts', {
+            headers: {
+              Authorization: `Bearer ${session.session.access_token}`,
+            },
+          });
+          
+          if (payoutsResult.data?.payouts) {
+            stripePayouts = payoutsResult.data.payouts.map((payout: any) => ({
+              id: payout.id,
+              date: new Date(payout.created * 1000).toISOString(),
+              amount: payout.amount / 100, // Convert from cents
+              status: payout.status === 'in_transit' ? 'pending' : (payout.status as 'pending' | 'paid' | 'failed'),
+              arrival_date: payout.arrival_date ? new Date(payout.arrival_date * 1000).toISOString() : undefined,
+              failure_reason: payout.failure_message || undefined,
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching Stripe payouts:', err);
+      }
+      setPayouts(stripePayouts);
+
+
+
     } catch (error) {
       console.error('Error fetching financial data:', error);
       toast({
@@ -1171,7 +1215,7 @@ export function GuideDashboard({
             <MoneySection
               balances={balances}
               transactions={transactions}
-              payouts={[]}
+              payouts={payouts}
               topTours={topTours}
               taxDocuments={taxDocuments}
               stripeData={null}
