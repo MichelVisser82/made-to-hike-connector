@@ -131,23 +131,26 @@ export function MoneySection({
     });
   }, [transactions, dateRange, statusFilter, tourFilter, searchQuery]);
 
-  // Monthly earnings data for chart
+  // Monthly earnings data for chart - include ALL months with completed bookings
   const monthlyData = useMemo(() => {
-    const last6Months = Array.from({length: 6}, (_, i) => {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      return { month: format(d, 'MMM yyyy'), earnings: 0 };
-    }).reverse();
+    const monthlyMap = new Map<string, number>();
     
+    // Aggregate all completed transactions by month
     transactions.forEach(t => {
       if (t.status === 'completed') {
         const month = format(new Date(t.date), 'MMM yyyy');
-        const monthData = last6Months.find(m => m.month === month);
-        if (monthData) monthData.earnings += t.net_amount;
+        monthlyMap.set(month, (monthlyMap.get(month) || 0) + t.net_amount);
       }
     });
     
-    return last6Months;
+    // Convert to array and sort chronologically
+    return Array.from(monthlyMap.entries())
+      .map(([month, earnings]) => ({ month, earnings }))
+      .sort((a, b) => {
+        const dateA = new Date(a.month);
+        const dateB = new Date(b.month);
+        return dateA.getTime() - dateB.getTime();
+      });
   }, [transactions]);
 
   // Fee breakdown data
