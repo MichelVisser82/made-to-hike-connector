@@ -591,6 +591,7 @@ export function GuideDashboard({
           currency: booking.currency,
           status: booking.status as 'pending' | 'completed' | 'refunded',
           created_at: booking.created_at,
+          participants: booking.participants || 1,
         };
       }) || [];
 

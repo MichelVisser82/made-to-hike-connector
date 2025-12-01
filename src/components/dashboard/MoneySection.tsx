@@ -47,6 +47,7 @@ interface MoneySectionProps {
     guide_fee_percentage: number;
     net_amount: number;
     status: 'pending' | 'completed' | 'refunded';
+    participants: number;
   }>;
   payouts: Array<{
     id: string;
@@ -631,13 +632,13 @@ export function MoneySection({
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <h4 className="font-medium">Average Transaction Value</h4>
+                  <h4 className="font-medium">Avg. Revenue per Hiker</h4>
                   <p className="text-3xl font-playfair">
                     €{(() => {
                       const completedTransactions = transactions.filter(t => t.status === 'completed');
-                      return completedTransactions.length > 0 
-                        ? (completedTransactions.reduce((sum, t) => sum + t.net_amount, 0) / completedTransactions.length).toFixed(2)
-                        : '0.00';
+                      const totalHikers = completedTransactions.reduce((sum, t) => sum + t.participants, 0);
+                      const totalNetEarnings = completedTransactions.reduce((sum, t) => sum + t.net_amount, 0);
+                      return totalHikers > 0 ? (totalNetEarnings / totalHikers).toFixed(2) : '0.00';
                     })()}
                   </p>
                 </div>
