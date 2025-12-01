@@ -630,7 +630,7 @@ export function MoneySection({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <h4 className="font-medium">Avg. Revenue per Hiker</h4>
                   <p className="text-3xl font-playfair">
@@ -645,6 +645,15 @@ export function MoneySection({
                 <div className="space-y-2">
                   <h4 className="font-medium">Completed Bookings</h4>
                   <p className="text-3xl font-playfair">{transactions.filter(t => t.status === 'completed').length}</p>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium">Completed Hikers</h4>
+                  <p className="text-3xl font-playfair">
+                    {(() => {
+                      const completedTransactions = transactions.filter(t => t.status === 'completed');
+                      return completedTransactions.reduce((sum, t) => sum + t.participants, 0);
+                    })()}
+                  </p>
                 </div>
               </div>
             </CardContent>
