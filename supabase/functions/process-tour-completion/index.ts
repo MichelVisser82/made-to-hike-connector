@@ -144,8 +144,8 @@ serve(async (req) => {
       .eq('setting_key', 'platform_fees')
       .single();
 
-    const defaultGuideFee = platformSettings?.setting_value?.guide_fee_percentage || 15;
-    const defaultHikerFee = platformSettings?.setting_value?.hiker_service_fee_percentage || 5;
+    const defaultGuideFee = platformSettings?.setting_value?.guide_fee_percentage || 5;
+    const defaultHikerFee = platformSettings?.setting_value?.hiker_fee_percentage || 10;
 
     // Use guide's custom fees if configured
     const guideFeePercentage = booking.tours.guide_profiles.uses_custom_fees && 
@@ -159,19 +159,31 @@ serve(async (req) => {
       usesCustomFees: booking.tours.guide_profiles.uses_custom_fees 
     });
 
-    // Calculate amounts
-    // Platform already took application_fee_amount during payment
-    // Now calculate what guide receives after all fees
-    const subtotal = booking.subtotal || booking.total_price - (booking.service_fee_amount || 0);
-    const guideFeeAmount = Math.round((subtotal * guideFeePercentage) / 100);
-    const transferAmount = subtotal - guideFeeAmount;
+    // Calculate amounts based on business rules:
+    // - Guide fee: X% of POST-discounted price (what guide actually earns)
+    // - Platform revenue: guide fee + hiker service fee
+    const preDiscountSubtotal = booking.subtotal || 0;
+    const discountAmount = booking.discount_amount || 0;
+    const postDiscountAmount = preDiscountSubtotal - discountAmount;
+
+    // Guide fee calculated on POST-DISCOUNTED amount
+    const guideFeeAmount = Math.round((postDiscountAmount * guideFeePercentage) / 100);
+
+    // Guide receives post-discounted amount minus their fee
+    const transferAmount = postDiscountAmount - guideFeeAmount;
+
+    // Platform revenue = guide fee + hiker service fee (already collected)
+    const platformRevenue = guideFeeAmount + (booking.service_fee_amount || 0);
 
     logStep('Transfer calculation', {
-      subtotal,
+      preDiscountSubtotal,
+      discountAmount,
+      postDiscountAmount,
       guideFeePercentage,
       guideFeeAmount,
-      transferAmount,
-      totalPaid
+      hikerServiceFee: booking.service_fee_amount,
+      platformRevenue,
+      transferAmount
     });
 
     // Convert to cents if not already

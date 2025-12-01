@@ -104,22 +104,31 @@ serve(async (req) => {
       guideId
     });
     
-    // Calculate fees based on platform settings or guide custom fees
-    const amountCents = Math.round(amount * 100); // Tour price after discount
+    // Calculate fees based on business rules:
+    // - Guide fee: X% of POST-discounted price (what guide actually earns)
+    // - Hiker fee: 10% of PRE-discounted price (original tour price)
+    const amountCents = Math.round(amount * 100); // POST-discounted price
     const totalAmountCents = Math.round(totalAmount * 100); // Total to charge customer
+    const preDiscountSubtotal = bookingData?.subtotal || amount; // PRE-discounted base price
+    const preDiscountSubtotalCents = Math.round(preDiscountSubtotal * 100);
     
-    // Calculate both guide fee and hiker service fee from settings
+    // Guide fee on POST-discounted price (guide pays fee on what they actually earn after discounts)
     const guideFeeCents = Math.round(amountCents * (guideFee / 100));
-    const hikerFeeCents = Math.round(amountCents * (hikerFee / 100));
     
-    // Platform takes hiker service fee + guide fee, guide receives amount - guide fee
-    const totalFee = hikerFeeCents + guideFeeCents;
+    // Hiker fee on PRE-discounted price (hiker pays platform fee on original tour value)
+    const hikerFeeCents = Math.round(preDiscountSubtotalCents * (hikerFee / 100));
+    
+    // Total platform revenue
+    const platformRevenue = hikerFeeCents + guideFeeCents;
     
     console.log('[create-payment-intent] Fee calculation:', {
+      preDiscountSubtotalCents,
       amountCents,
+      guideFee: `${guideFee}%`,
+      hikerFee: `${hikerFee}%`,
       guideFeeCents,
       hikerFeeCents,
-      totalFee,
+      platformRevenue,
       amountToGuide: amountCents - guideFeeCents
     });
 
@@ -254,8 +263,9 @@ serve(async (req) => {
           hiker_fee_percentage: String(hikerFee),
           hiker_service_fee_amount: String(hikerFeeCents),
           guide_fee_amount: String(guideFeeCents),
-          total_platform_fee: String(totalFee),
+          platform_revenue: String(platformRevenue),
           amount_to_guide: String(amountCents - guideFeeCents),
+          pre_discount_subtotal: String(preDiscountSubtotalCents),
           tour_price_after_discount: String(amountCents),
           uses_custom_fees: String(guide.uses_custom_fees || false),
           is_deposit: String(isDeposit || false),
