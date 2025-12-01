@@ -455,17 +455,17 @@ export function GuideDashboard({
         console.warn('Error fetching platform fees:', platformError);
       }
 
-      // Calculate total fee percentage
-      let totalFeePercentage = 0.15; // Default 15%
-      if (guideData?.uses_custom_fees && guideData.custom_guide_fee_percentage !== null && guideData.custom_hiker_fee_percentage !== null) {
-        totalFeePercentage = (guideData.custom_guide_fee_percentage + guideData.custom_hiker_fee_percentage) / 100;
+      // Calculate guide fee percentage only (for pie chart display)
+      let guideFeePercentage = 0.05; // Default 5%
+      if (guideData?.uses_custom_fees && guideData.custom_guide_fee_percentage !== null) {
+        guideFeePercentage = guideData.custom_guide_fee_percentage / 100;
       } else if (platformSettings?.setting_value) {
         const platformFees = platformSettings.setting_value as any;
-        totalFeePercentage = ((platformFees.guide_fee_percentage || 0) + (platformFees.hiker_fee_percentage || 0)) / 100;
+        guideFeePercentage = (platformFees.guide_fee_percentage || 5) / 100;
       }
 
-      // Store fee percentage for display
-      setFeePercentage(totalFeePercentage * 100);
+      // Store fee percentage for display (only guide fee, not combined)
+      setFeePercentage(guideFeePercentage * 100);
       
       // Fetch all bookings for this guide's tours
       const { data: bookingsData, error: bookingsError } = await supabase
