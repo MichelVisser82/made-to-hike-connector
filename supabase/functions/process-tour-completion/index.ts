@@ -276,6 +276,8 @@ serve(async (req) => {
         transfer_status: transfer.status === 'pending' ? 'pending' : 'succeeded',
         transfer_created_at: new Date().toISOString(),
         transfer_amount: transferAmount,
+        guide_fee_amount: guideFeeAmount,
+        platform_revenue: platformRevenue,
         updated_at: new Date().toISOString()
       })
       .eq('id', booking_id);
