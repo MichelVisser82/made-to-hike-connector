@@ -115,6 +115,7 @@ export function useHikerBookings(hikerId: string | undefined) {
           final_payment_amount,
           final_payment_due_date,
           deposit_amount,
+          service_fee_amount,
           stripe_payment_intent_id,
           created_at,
           special_requests,
