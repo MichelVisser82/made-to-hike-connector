@@ -171,6 +171,7 @@ export interface Transaction {
   currency: 'EUR' | 'GBP';
   status: 'pending' | 'completed' | 'refunded';
   created_at: string;
+  participants: number;
 }
 
 export interface Balances {
