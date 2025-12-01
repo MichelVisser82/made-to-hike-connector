@@ -602,19 +602,24 @@ export function GuideDashboard({
       completedBookings.forEach(booking => {
         const tourId = booking.tour_id;
         const tourTitle = booking.tours.title;
-        const amount = booking.total_price || 0;
+        
+        // Calculate net amount (guide's earnings after fees)
+        const totalBookingPrice = booking.total_price || 0;
+        const guideBasePrice = totalBookingPrice / (1 + hikerFeePercentage / 100);
+        const platformFee = guideBasePrice * (guideFeePercentage / 100);
+        const netAmount = guideBasePrice - platformFee;
         
         if (tourEarningsMap.has(tourId)) {
           const current = tourEarningsMap.get(tourId)!;
           tourEarningsMap.set(tourId, {
             title: tourTitle,
-            total: current.total + amount,
+            total: current.total + netAmount,
             count: current.count + 1,
           });
         } else {
           tourEarningsMap.set(tourId, {
             title: tourTitle,
-            total: amount,
+            total: netAmount,
             count: 1,
           });
         }
