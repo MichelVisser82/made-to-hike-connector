@@ -662,42 +662,45 @@ export function GuideDashboard({
         setNextPayout(undefined);
       }
 
-      // Mock tax documents
-      setTaxDocuments([
-        {
-          id: 'doc-1',
-          name: '2025 Income Summary',
-          type: 'PDF',
-          year: 2025,
-          file_path: '/documents/2025-income.pdf',
-          created_at: '2025-01-01T00:00:00Z',
-          gross_income: 45000,
-          net_income: 38250,
-          total_bookings: 45,
-        },
-        {
-          id: 'doc-2',
-          name: '2024 Annual Statement',
-          type: 'PDF',
-          year: 2024,
-          file_path: '/documents/2024-annual.pdf',
-          created_at: '2024-12-31T00:00:00Z',
-          gross_income: 38000,
-          net_income: 32300,
-          total_bookings: 38,
-        },
-        {
-          id: 'doc-3',
-          name: '2024 Tax Certificate',
-          type: 'PDF',
-          year: 2024,
-          file_path: '/documents/2024-tax.pdf',
-          created_at: '2024-12-31T00:00:00Z',
-          gross_income: 15000,
-          net_income: 12750,
-          total_bookings: 15,
-        },
-      ]);
+      // Calculate tax documents from actual transactions grouped by year
+      const yearlyData = new Map<number, { grossIncome: number; netIncome: number; bookingCount: number }>();
+      
+      transformedTransactions.forEach(transaction => {
+        if (transaction.status === 'completed') {
+          const year = new Date(transaction.date).getFullYear();
+          
+          if (yearlyData.has(year)) {
+            const current = yearlyData.get(year)!;
+            yearlyData.set(year, {
+              grossIncome: current.grossIncome + transaction.guide_base_price,
+              netIncome: current.netIncome + transaction.net_amount,
+              bookingCount: current.bookingCount + 1,
+            });
+          } else {
+            yearlyData.set(year, {
+              grossIncome: transaction.guide_base_price,
+              netIncome: transaction.net_amount,
+              bookingCount: 1,
+            });
+          }
+        }
+      });
+
+      const calculatedTaxDocs: TaxDocument[] = Array.from(yearlyData.entries())
+        .map(([year, data]) => ({
+          id: `doc-${year}`,
+          name: `${year} Income Summary`,
+          type: 'PDF' as const,
+          year: year,
+          file_path: `/documents/${year}-income.pdf`,
+          created_at: new Date().toISOString(),
+          gross_income: data.grossIncome,
+          net_income: data.netIncome,
+          total_bookings: data.bookingCount,
+        }))
+        .sort((a, b) => b.year - a.year); // Sort by year descending (most recent first)
+
+      setTaxDocuments(calculatedTaxDocs);
 
       // Fetch real Stripe payouts
       let stripePayouts: Array<{
