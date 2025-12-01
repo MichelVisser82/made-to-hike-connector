@@ -75,6 +75,7 @@ export type Database = {
           deposit_amount: number | null
           discount_amount: number | null
           discount_code: string | null
+          escrow_enabled: boolean | null
           final_payment_amount: number | null
           final_payment_due_date: string | null
           final_payment_intent_id: string | null
@@ -99,9 +100,13 @@ export type Database = {
           stripe_client_secret: string | null
           stripe_payment_intent_id: string | null
           stripe_refund_id: string | null
+          stripe_transfer_id: string | null
           subtotal: number | null
           total_price: number
           tour_id: string
+          transfer_amount: number | null
+          transfer_created_at: string | null
+          transfer_status: string | null
           updated_at: string
           waiver_data: Json | null
           waiver_uploaded_at: string | null
@@ -115,6 +120,7 @@ export type Database = {
           deposit_amount?: number | null
           discount_amount?: number | null
           discount_code?: string | null
+          escrow_enabled?: boolean | null
           final_payment_amount?: number | null
           final_payment_due_date?: string | null
           final_payment_intent_id?: string | null
@@ -139,9 +145,13 @@ export type Database = {
           stripe_client_secret?: string | null
           stripe_payment_intent_id?: string | null
           stripe_refund_id?: string | null
+          stripe_transfer_id?: string | null
           subtotal?: number | null
           total_price: number
           tour_id: string
+          transfer_amount?: number | null
+          transfer_created_at?: string | null
+          transfer_status?: string | null
           updated_at?: string
           waiver_data?: Json | null
           waiver_uploaded_at?: string | null
@@ -155,6 +165,7 @@ export type Database = {
           deposit_amount?: number | null
           discount_amount?: number | null
           discount_code?: string | null
+          escrow_enabled?: boolean | null
           final_payment_amount?: number | null
           final_payment_due_date?: string | null
           final_payment_intent_id?: string | null
@@ -179,9 +190,13 @@ export type Database = {
           stripe_client_secret?: string | null
           stripe_payment_intent_id?: string | null
           stripe_refund_id?: string | null
+          stripe_transfer_id?: string | null
           subtotal?: number | null
           total_price?: number
           tour_id?: string
+          transfer_amount?: number | null
+          transfer_created_at?: string | null
+          transfer_status?: string | null
           updated_at?: string
           waiver_data?: Json | null
           waiver_uploaded_at?: string | null

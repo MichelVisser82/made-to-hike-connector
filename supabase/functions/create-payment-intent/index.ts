@@ -231,9 +231,8 @@ serve(async (req) => {
         mode: 'payment',
         payment_intent_data: {
           application_fee_amount: totalFee, // Platform takes service fee + guide fee
-          transfer_data: {
-            destination: guide.stripe_account_id, // Guide receives amount - guide fee
-          },
+          // ESCROW MODEL: Funds stay on platform account until tour completion
+          // Transfer to guide created by process-tour-completion edge function after tour is marked complete
           setup_future_usage: isDeposit ? 'off_session' : undefined, // Save payment method for deposits
           metadata: {
             tour_id: tourId,

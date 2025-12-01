@@ -506,6 +506,7 @@ async function handleTransferPaid(event: any, supabase: any) {
   const transfer = event.data.object;
   logStep('Transfer paid', { transferId: transfer.id });
 
+  // Update stripe_transfers table (if exists)
   await supabase
     .from('stripe_transfers')
     .update({ 
@@ -513,6 +514,48 @@ async function handleTransferPaid(event: any, supabase: any) {
       transferred_at: new Date(transfer.created * 1000).toISOString(),
     })
     .eq('stripe_transfer_id', transfer.id);
+
+  // Update bookings table for escrow model bookings
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('id, booking_reference, tours!inner(guide_profiles!tours_guide_id_fkey(user_id, display_name, profiles!guide_profiles_user_id_fkey(email)))')
+    .eq('stripe_transfer_id', transfer.id)
+    .eq('escrow_enabled', true)
+    .single();
+
+  if (booking) {
+    await supabase
+      .from('bookings')
+      .update({ 
+        transfer_status: 'succeeded',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', booking.id);
+
+    logStep('Booking transfer status updated to succeeded', { bookingId: booking.id });
+
+    // Send email notification to guide about completed payout
+    if (booking.tours?.guide_profiles?.profiles?.email) {
+      try {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'payout_processed_notification',
+            to: booking.tours.guide_profiles.profiles.email,
+            data: {
+              guideName: booking.tours.guide_profiles.display_name,
+              amount: (transfer.amount / 100).toFixed(2),
+              currency: transfer.currency.toUpperCase(),
+              payoutDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+              bookingReference: booking.booking_reference,
+            }
+          }
+        });
+        logStep('Guide payout notification sent');
+      } catch (emailError) {
+        logStep('Error sending guide payout notification', { error: emailError });
+      }
+    }
+  }
 }
 
 async function syncAccountStatus(event: any, supabase: any) {
@@ -670,6 +713,7 @@ async function handleTransferFailed(event: any, supabase: any) {
   const transfer = event.data.object;
   logStep('Transfer failed', { transferId: transfer.id, failureMessage: transfer.failure_message });
 
+  // Update stripe_transfers table
   await supabase
     .from('stripe_transfers')
     .update({ 
@@ -678,6 +722,18 @@ async function handleTransferFailed(event: any, supabase: any) {
       next_retry_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     })
     .eq('stripe_transfer_id', transfer.id);
+
+  // Update bookings table for escrow model bookings
+  await supabase
+    .from('bookings')
+    .update({ 
+      transfer_status: 'failed',
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_transfer_id', transfer.id)
+    .eq('escrow_enabled', true);
+
+  logStep('Booking transfer status updated to failed');
 }
 
 async function handleCapabilityUpdated(event: any, supabase: any) {
