@@ -33,39 +33,46 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
   const scriptLoaded = useRef(false);
 
   useEffect(() => {
-    // Load CookieFirst script dynamically
+    // Load CookieFirst script dynamically - only if API key is configured
     const apiKey = import.meta.env.VITE_COOKIEFIRST_KEY;
     
-    if (!apiKey || scriptLoaded.current) {
-      console.warn('CookieFirst API key not configured');
+    if (!apiKey || apiKey === 'undefined' || apiKey === '' || scriptLoaded.current) {
+      // No API key - skip loading CookieFirst entirely
+      // App still works, just without cookie consent banner
+      setIsInitialized(true);
       return;
     }
 
     scriptLoaded.current = true;
 
-    // Set options before loading script
-    window.cookiefirst_options = {
-      api_key: apiKey
-    };
+    try {
+      // Set options before loading script
+      window.cookiefirst_options = {
+        api_key: apiKey
+      };
 
-    // Create and append script
-    const script = document.createElement('script');
-    script.src = 'https://consent.cookiefirst.com/banner.js';
-    script.setAttribute('data-cookiefirst-key', apiKey);
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup not strictly necessary as script should persist
-    };
+      // Create and append script
+      const script = document.createElement('script');
+      script.src = 'https://consent.cookiefirst.com/banner.js';
+      script.setAttribute('data-cookiefirst-key', apiKey);
+      script.async = true;
+      script.onerror = () => {
+        console.warn('CookieFirst script failed to load');
+        setIsInitialized(true);
+      };
+      document.head.appendChild(script);
+    } catch (error) {
+      console.warn('Error loading CookieFirst:', error);
+      setIsInitialized(true);
+    }
   }, []);
 
   useEffect(() => {
     const handleCookieFirstInit = () => {
       if (window.CookieFirst?.consent) {
         setConsent(window.CookieFirst.consent);
-        setIsInitialized(true);
       }
+      setIsInitialized(true);
     };
 
     const handleCookieFirstConsent = () => {
@@ -92,9 +99,12 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
   const openPreferences = () => {
     if (window.CookieFirst?.openPanel) {
       window.CookieFirst.openPanel();
+    } else {
+      console.warn('CookieFirst not initialized - cannot open preferences');
     }
   };
 
+  // Always render children - never block rendering
   return (
     <CookieConsentContext.Provider value={{ consent, isInitialized, openPreferences }}>
       {children}
