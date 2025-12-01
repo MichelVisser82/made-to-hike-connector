@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LaunchGate } from "@/components/pre-launch/LaunchGate";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { PageLoader } from "@/components/common/PageLoader";
+import { AnalyticsLoader } from "@/components/common/AnalyticsLoader";
 
 // Eager loads (frequently accessed public pages)
 import Index from "./pages/Index";
@@ -26,6 +27,7 @@ const GuidesPage = lazy(() => import("./pages/GuidesPage"));
 const CertificationsPage = lazy(() => import("./pages/CertificationsPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const CookiesPage = lazy(() => import("./pages/CookiesPage"));
 const ParticipantPage = lazy(() => import("./pages/ParticipantPage"));
 const JoinPage = lazy(() => import("./pages/JoinPage").then(m => ({ default: m.JoinPage })));
 const GuideJoinPage = lazy(() => import("./pages/GuideJoinPage").then(m => ({ default: m.GuideJoinPage })));
@@ -64,6 +66,7 @@ const App: React.FC = () => {
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <AnalyticsLoader />
           <AuthProvider>
             <LaunchGate>
               <Routes>
@@ -86,6 +89,7 @@ const App: React.FC = () => {
             <Route path="/offer/decline" element={<Suspense fallback={<PageLoader />}><OfferDecline /></Suspense>} />
             <Route path="/help" element={<Suspense fallback={<PageLoader />}><HelpPage /></Suspense>} />
             <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>} />
+            <Route path="/cookies" element={<Suspense fallback={<PageLoader />}><CookiesPage /></Suspense>} />
             <Route path="/participant/:token" element={<Suspense fallback={<PageLoader />}><ParticipantPage /></Suspense>} />
                 <Route 
                   path="/dashboard" 
