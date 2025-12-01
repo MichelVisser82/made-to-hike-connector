@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
 import { 
   type User, 
   type Tour, 
@@ -866,10 +867,98 @@ export function GuideDashboard({
 
   const handleDownloadDocument = (docId: string) => {
     const doc = taxDocuments.find(d => d.id === docId);
-    toast({
-      title: 'Download',
-      description: `Downloading ${doc?.name || 'document'}...`,
-    });
+    
+    if (!doc) {
+      toast({
+        title: 'Error',
+        description: 'Document not found',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: 'Download',
+        description: `Generating ${doc.name}...`,
+      });
+
+      // Create PDF
+      const pdf = new jsPDF();
+      
+      // Header
+      pdf.setFontSize(20);
+      pdf.setTextColor(124, 45, 58); // Burgundy color
+      pdf.text('MadeToHike', 105, 20, { align: 'center' });
+      
+      pdf.setFontSize(16);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(doc.name, 105, 35, { align: 'center' });
+      
+      // Guide info
+      pdf.setFontSize(11);
+      pdf.text(`Guide: ${user.name}`, 20, 50);
+      pdf.text(`Generated: ${format(new Date(), 'MMMM d, yyyy')}`, 20, 57);
+      
+      // Summary section
+      pdf.setFontSize(14);
+      pdf.text('Income Summary', 20, 75);
+      
+      pdf.setFontSize(11);
+      pdf.text(`Total Bookings: ${doc.total_bookings}`, 20, 85);
+      pdf.text(`Gross Income: €${doc.gross_income.toFixed(2)}`, 20, 92);
+      pdf.text(`Platform Fees: €${(doc.gross_income - doc.net_income).toFixed(2)}`, 20, 99);
+      pdf.text(`Net Income: €${doc.net_income.toFixed(2)}`, 20, 106);
+      
+      // Transactions section
+      const yearTransactions = transactions.filter(t => 
+        new Date(t.date).getFullYear() === doc.year && t.status === 'completed'
+      );
+      
+      if (yearTransactions.length > 0) {
+        pdf.setFontSize(14);
+        pdf.text('Transaction Details', 20, 125);
+        
+        let y = 135;
+        pdf.setFontSize(9);
+        
+        yearTransactions.forEach((txn, index) => {
+          if (y > 270) {
+            pdf.addPage();
+            y = 20;
+          }
+          
+          pdf.text(`${format(new Date(txn.date), 'MMM d, yyyy')} - ${txn.tour_title}`, 20, y);
+          pdf.text(`€${txn.net_amount.toFixed(2)}`, 170, y);
+          y += 7;
+        });
+      }
+      
+      // Footer
+      const pageCount = pdf.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text(`Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+        pdf.text('This document is for informational purposes only', 105, 290, { align: 'center' });
+      }
+      
+      // Download
+      pdf.save(`${doc.name.replace(/\s+/g, '-')}.pdf`);
+      
+      toast({
+        title: 'Success',
+        description: `${doc.name} downloaded successfully`,
+      });
+    } catch (error) {
+      console.error('Error generating document:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate document',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Fetch inbox data
