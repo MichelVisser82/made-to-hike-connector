@@ -3,6 +3,7 @@ import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
 import { useNavigate } from 'react-router-dom';
 import { useFeaturedRegions, formatRegionPath } from '@/hooks/useFeaturedRegions';
+import { useCookieConsent } from '@/hooks/useCookieConsent';
 import { 
   Mountain, 
   Mail, 
@@ -23,6 +24,7 @@ interface FooterProps {
 export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
   const navigate = useNavigate();
   const { data: featuredRegions } = useFeaturedRegions();
+  const { openPreferences } = useCookieConsent();
   const currentYear = new Date().getFullYear();
   
   // Generate dynamic region text for SEO
@@ -246,10 +248,16 @@ export function Footer({ onNavigate, onNavigateToSearch }: FooterProps) {
               Terms of Service
             </button>
             <button 
-              onClick={() => onNavigate('cookies')}
+              onClick={() => navigate('/cookies')}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Cookie Policy
+            </button>
+            <button 
+              onClick={openPreferences}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cookie Settings
             </button>
             <button 
               onClick={() => onNavigate('help')}
