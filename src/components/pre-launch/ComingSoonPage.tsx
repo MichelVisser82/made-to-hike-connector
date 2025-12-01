@@ -82,7 +82,7 @@ export function ComingSoonPage() {
         {/* Hero Section */}
         <section className="relative pt-24 pb-20 min-h-[90vh] flex items-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <SmartImage category="hero" usageContext="landing_hero" tags={['guide', 'mountain', 'professional']} priority="high" className="w-full h-full object-cover" alt="Certified mountain guide leading hikers on European alpine trail" />
+            <SmartImage category="adventure" usageContext="hero" tags={[]} priority="high" className="w-full h-full object-cover" alt="Certified mountain guide leading hikers on European alpine trail" />
             <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/50 to-cream-light" />
           </div>
 
@@ -165,7 +165,7 @@ export function ComingSoonPage() {
 
               <div className="relative">
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                  <SmartImage category="portrait" usageContext="landing" tags={['guide', 'professional', 'mountain']} className="w-full h-full object-cover" alt="IFMGA certified mountain guide in European Alps" />
+                  <SmartImage category="mountains" usageContext="landing" tags={[]} className="w-full h-full object-cover" alt="IFMGA certified mountain guide in European Alps" />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
 
@@ -235,7 +235,7 @@ export function ComingSoonPage() {
             <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
               <div className="relative order-2 md:order-1">
             <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-              <SmartImage category="hiking" usageContext="landing" tags={['trail', 'adventure', 'group']} className="w-full h-full object-cover" alt="Group of hikers with certified guide in Dolomites Italy" />
+              <SmartImage category="trails" usageContext="landing" tags={[]} className="w-full h-full object-cover" alt="Group of hikers with certified guide in Dolomites Italy" />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
 
@@ -307,7 +307,7 @@ export function ComingSoonPage() {
               <div className="grid md:grid-cols-2 gap-12 items-start">
               <div className="relative">
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
-                  <SmartImage category="portrait" usageContext="about" tags={['guide', 'professional', 'outdoor']} className="w-full h-full object-cover" alt="Michel Visser UK Mountain Leader and Made to Hike founder" />
+                  <SmartImage category="landscape" usageContext="landing" tags={[]} className="w-full h-full object-cover" alt="Michel Visser UK Mountain Leader and Made to Hike founder" />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                 </div>
                 <Badge className="absolute top-4 right-4 bg-burgundy text-white border-0">
@@ -542,26 +542,26 @@ export function ComingSoonPage() {
                 {[{
                 name: 'Swiss Alps',
                 guides: 150,
-                tags: ['alps', 'switzerland'],
+                category: 'mountains',
                 alt: 'Swiss Alps mountain peaks with certified IFMGA guides available'
               }, {
                 name: 'Italian Dolomites',
                 guides: 95,
-                tags: ['dolomites', 'italy'],
+                category: 'landscape',
                 alt: 'Italian Dolomites dramatic limestone peaks with mountain guides'
               }, {
                 name: 'Pyrenees',
                 guides: 85,
-                tags: ['pyrenees', 'spain', 'france'],
+                category: 'trails',
                 alt: 'Pyrenees mountain range Spain France with certified hiking guides'
               }, {
                 name: 'Scottish Highlands',
                 guides: 120,
-                tags: ['scotland', 'highlands'],
+                category: 'adventure',
                 alt: 'Scottish Highlands rugged mountains with UK Mountain Leader guides'
               }].map((region, idx) => <Card key={idx} className="overflow-hidden group cursor-pointer hover:shadow-elegant transition-shadow">
                     <div className="relative aspect-[3/4] overflow-hidden">
-                      <SmartImage category="landscape" usageContext="landing" tags={region.tags} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt={region.alt} />
+                      <SmartImage category={region.category} usageContext="landing" tags={[]} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt={region.alt} />
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
                     </div>
                     <div className="p-4">
