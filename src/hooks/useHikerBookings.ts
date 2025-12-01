@@ -16,6 +16,7 @@ export interface HikerBooking {
   final_payment_amount: number | null;
   final_payment_due_date: string | null;
   deposit_amount: number | null;
+  service_fee_amount: number | null;
   created_at: string;
   special_requests: string | null;
   tour_id: string;
