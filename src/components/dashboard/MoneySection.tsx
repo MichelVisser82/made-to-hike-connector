@@ -633,14 +633,17 @@ export function MoneySection({
                 <div className="space-y-2">
                   <h4 className="font-medium">Average Transaction Value</h4>
                   <p className="text-3xl font-playfair">
-                    €{transactions.length > 0 
-                      ? (transactions.reduce((sum, t) => sum + t.guide_base_price, 0) / transactions.length).toFixed(2)
-                      : '0.00'}
+                    €{(() => {
+                      const completedTransactions = transactions.filter(t => t.status === 'completed');
+                      return completedTransactions.length > 0 
+                        ? (completedTransactions.reduce((sum, t) => sum + t.net_amount, 0) / completedTransactions.length).toFixed(2)
+                        : '0.00';
+                    })()}
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-medium">Total Bookings</h4>
-                  <p className="text-3xl font-playfair">{transactions.length}</p>
+                  <h4 className="font-medium">Completed Bookings</h4>
+                  <p className="text-3xl font-playfair">{transactions.filter(t => t.status === 'completed').length}</p>
                 </div>
               </div>
             </CardContent>
