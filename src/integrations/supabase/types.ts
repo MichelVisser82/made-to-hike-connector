@@ -80,6 +80,7 @@ export type Database = {
           final_payment_due_date: string | null
           final_payment_intent_id: string | null
           final_payment_status: string | null
+          guide_fee_amount: number | null
           hiker_email: string | null
           hiker_id: string
           id: string
@@ -89,6 +90,7 @@ export type Database = {
           participants_details: Json | null
           payment_status: string | null
           payment_type: string | null
+          platform_revenue: number | null
           primary_contact_id: string | null
           refund_amount: number | null
           refund_reason: string | null
@@ -125,6 +127,7 @@ export type Database = {
           final_payment_due_date?: string | null
           final_payment_intent_id?: string | null
           final_payment_status?: string | null
+          guide_fee_amount?: number | null
           hiker_email?: string | null
           hiker_id: string
           id?: string
@@ -134,6 +137,7 @@ export type Database = {
           participants_details?: Json | null
           payment_status?: string | null
           payment_type?: string | null
+          platform_revenue?: number | null
           primary_contact_id?: string | null
           refund_amount?: number | null
           refund_reason?: string | null
@@ -170,6 +174,7 @@ export type Database = {
           final_payment_due_date?: string | null
           final_payment_intent_id?: string | null
           final_payment_status?: string | null
+          guide_fee_amount?: number | null
           hiker_email?: string | null
           hiker_id?: string
           id?: string
@@ -179,6 +184,7 @@ export type Database = {
           participants_details?: Json | null
           payment_status?: string | null
           payment_type?: string | null
+          platform_revenue?: number | null
           primary_contact_id?: string | null
           refund_amount?: number | null
           refund_reason?: string | null
