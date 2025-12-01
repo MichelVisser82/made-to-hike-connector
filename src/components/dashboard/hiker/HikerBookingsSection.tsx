@@ -267,9 +267,9 @@ export function HikerBookingsSection({ userId, onViewBooking, onContactGuide }: 
                               <p className="font-medium text-charcoal mb-2">Final Payment Scheduled</p>
                               <div className="grid grid-cols-2 gap-4 mb-3">
                                 <div>
-                                  <p className="text-xs text-charcoal/60 mb-1">Deposit Paid</p>
+                                  <p className="text-xs text-charcoal/60 mb-1">Initial Payment</p>
                                   <p className="text-sm font-medium text-charcoal">
-                                    {getCurrencySymbol(booking.currency)}{booking.deposit_amount?.toFixed(2) || (booking.total_price - (booking.final_payment_amount || 0)).toFixed(2)}
+                                    {getCurrencySymbol(booking.currency)}{((booking.deposit_amount || 0) + (booking.service_fee_amount || 0)).toFixed(2)}
                                   </p>
                                 </div>
                                 <div>
