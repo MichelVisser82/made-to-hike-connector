@@ -100,7 +100,7 @@ export default function ContactPage() {
           {/* Left Side - Image */}
           <div className="lg:w-1/2 h-[50vh] lg:h-screen relative overflow-hidden">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1519904981063-b0cf448d479e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3VudGFpbiUyMGd1aWRlJTIwbWFwJTIwcGxhbm5pbmd8ZW58MXx8fHwxNzY0MDU4Mjc1fDA&ixlib=rb-4.1.0&q=80&w=1080"
+              src="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/hero-images/guides/93487995-df40-4765-9243-e2831abfaced/hero/0.03892489494938478.webp"
               alt="Mountain guide planning route"
               className="w-full h-full object-cover"
             />
