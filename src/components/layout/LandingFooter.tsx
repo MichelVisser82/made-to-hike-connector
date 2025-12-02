@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { Mountain, Mail, MapPin, Leaf } from 'lucide-react';
 
 export function LandingFooter() {
   const navigate = useNavigate();
@@ -7,46 +6,6 @@ export function LandingFooter() {
   return (
     <footer className="bg-charcoal text-white py-16">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Main Footer Content */}
-        <div className="text-center mb-12 pb-12 border-b border-white/10">
-          <h3 className="text-3xl mb-4 text-burgundy-light font-playfair">
-            MADETOHIKE
-          </h3>
-          <p className="text-white/80 mb-6">
-            Built by guides, for guides, in the European Alps
-          </p>
-
-          <div className="max-w-2xl mx-auto p-6 bg-white/5 rounded-lg">
-            <div className="flex items-start gap-4 mb-3">
-              <Mountain className="w-6 h-6 text-burgundy-light flex-shrink-0 mt-1" />
-              <div className="text-left">
-                <p className="text-white mb-2">
-                  <strong>Michel Visser, Founder</strong><br />
-                  <span className="text-white/60">UK Mountain Guide | ML Certified</span>
-                </p>
-                <p className="text-white/70 italic text-sm">
-                  "I built this because platforms were extracting too much value from guides. We're changing that."
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap justify-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-burgundy-light" />
-              <button onClick={() => navigate('/contact')} className="text-white/80 hover:text-burgundy-light transition-colors">Contact Us</button>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-burgundy-light" />
-              <span className="text-white/80">Based in European Alps</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Leaf className="w-4 h-4 text-burgundy-light" />
-              <span className="text-white/80">100% Renewable Energy Hosting</span>
-            </div>
-          </div>
-        </div>
-
         {/* Footer Links */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           <div>
