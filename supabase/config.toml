@@ -1,5 +1,8 @@
 project_id = "ohecxwxumzpfcfsokfkg"
 
+[functions.contact-form]
+verify_jwt = false
+
 [functions.manage-referrals]
 verify_jwt = false
 
