@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { ImageWithFallback } from "@/components/common/ImageWithFallback"
@@ -28,7 +29,8 @@ export default function ContactPage() {
     email: "",
     userType: "",
     subject: "",
-    message: ""
+    message: "",
+    consent: false
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -66,7 +68,7 @@ export default function ContactPage() {
 
       // Reset form after 3 seconds
       setTimeout(() => {
-        setFormData({ name: "", email: "", userType: "", subject: "", message: "" })
+        setFormData({ name: "", email: "", userType: "", subject: "", message: "", consent: false })
         setIsSubmitted(false)
       }, 3000)
     } catch (error) {
@@ -279,21 +281,30 @@ export default function ContactPage() {
                       />
                     </div>
 
-                    {/* Privacy Note */}
+                    {/* Privacy Consent */}
                     <div className="bg-cream border border-burgundy/10 rounded-lg p-6">
-                <p className="text-sm text-charcoal/70 leading-relaxed">
-                  By submitting this form, you agree to our{' '}
-                  <a href="/privacy" className="text-burgundy hover:underline font-medium">
-                    Privacy Policy
-                  </a>
-                  . We'll only use your information to respond to your inquiry and won't share it with third parties.
-                </p>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <Checkbox
+                          checked={formData.consent}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ ...prev, consent: checked === true }))
+                          }
+                          className="mt-0.5 border-burgundy/30 data-[state=checked]:bg-burgundy data-[state=checked]:border-burgundy"
+                        />
+                        <span className="text-sm text-charcoal/70 leading-relaxed">
+                          I agree to the{' '}
+                          <a href="/privacy" className="text-burgundy hover:underline font-medium" onClick={(e) => e.stopPropagation()}>
+                            Privacy Policy
+                          </a>
+                          . I understand my information will only be used to respond to my inquiry and won't be shared with third parties.
+                        </span>
+                      </label>
                     </div>
 
                     {/* Submit Button */}
                     <Button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !formData.consent}
                       className="w-full bg-burgundy hover:bg-burgundy-dark text-white py-6 text-lg"
                     >
                       {isSubmitting ? (

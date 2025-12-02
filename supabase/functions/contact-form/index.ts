@@ -13,6 +13,7 @@ interface ContactFormData {
   userType: string
   subject: string
   message: string
+  consent: boolean
 }
 
 const userTypeLabels: Record<string, string> = {
@@ -31,7 +32,7 @@ serve(async (req) => {
 
   try {
     const formData: ContactFormData = await req.json()
-    const { name, email, userType, subject, message } = formData
+    const { name, email, userType, subject, message, consent } = formData
 
     // Validate required fields
     if (!name || !email || !userType || !subject || !message) {
@@ -103,7 +104,7 @@ serve(async (req) => {
               elements: [
                 {
                   type: "mrkdwn",
-                  text: `Received at ${new Date().toLocaleString('en-GB', { timeZone: 'Europe/Amsterdam' })} CET`
+                  text: `✅ Privacy consent given | Received at ${new Date().toLocaleString('en-GB', { timeZone: 'Europe/Amsterdam' })} CET`
                 }
               ]
             },
@@ -182,6 +183,9 @@ serve(async (req) => {
                   <div class="message-box">
                     <span class="label">Message:</span>
                     <p>${message.replace(/\n/g, '<br>')}</p>
+                  </div>
+                  <div class="field" style="margin-top: 15px;">
+                    <span class="label">Privacy Consent:</span> ✅ Yes
                   </div>
                 </div>
                 <div class="footer">
