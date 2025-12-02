@@ -754,9 +754,7 @@ export function LandingPage({
             <p className="mb-4">
               © 2025 MadeToHike | <button onClick={() => navigate('/privacy')} className="hover:text-burgundy-light">Privacy Policy</button> | <button onClick={() => navigate('/terms')} className="hover:text-burgundy-light">Terms</button> | GDPR Compliant
             </p>
-            <p className="text-xs">
-              Hosted on renewable energy (Hetzner, DE) | Payment processing by Stripe
-            </p>
+            <p className="text-xs">Hosted on renewable energy | Payment processing by Stripe</p>
           </div>
         </div>
       </footer>
