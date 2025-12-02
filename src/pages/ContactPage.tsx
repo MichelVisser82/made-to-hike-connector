@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 import { 
   Send, 
   CheckCircle,
@@ -23,11 +22,10 @@ import { toast } from "sonner"
 import { ImageWithFallback } from "@/components/common/ImageWithFallback"
 import { PageSEO } from "@/components/seo/PageSEO"
 import { MainLayout } from "@/components/layout/MainLayout"
-import { Footer } from "@/components/layout/Footer"
+import { LandingFooter } from "@/components/layout/LandingFooter"
 import { supabase } from "@/integrations/supabase/client"
 
 export default function ContactPage() {
-  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -88,25 +86,6 @@ export default function ContactPage() {
       ...prev,
       [e.target.name]: e.target.value
     }))
-  }
-
-  const handleNavigate = (page: string) => {
-    window.scrollTo(0, 0)
-    if (page === 'tours') navigate('/tours')
-    else if (page === 'guides') navigate('/guides')
-    else if (page === 'help') navigate('/help')
-    else navigate('/')
-  }
-
-  const handleNavigateToSearch = (filters?: any) => {
-    const params = new URLSearchParams()
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.set(key, value as string)
-      })
-    }
-    window.scrollTo(0, 0)
-    navigate(`/tours${params.toString() ? '?' + params.toString() : ''}`)
   }
 
   return (
@@ -601,7 +580,7 @@ export default function ContactPage() {
         </section>
       </div>
       
-      <Footer onNavigate={handleNavigate} onNavigateToSearch={handleNavigateToSearch} />
+      <LandingFooter />
     </MainLayout>
   )
 }
