@@ -698,7 +698,7 @@ export function LandingPage({
             <div className="mt-6 flex flex-wrap justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-burgundy-light" />
-                <a href="mailto:hello@madetohike.com" className="text-white/80 hover:text-burgundy-light">info@madetohike.com</a>
+                <button onClick={() => navigate('/contact')} className="text-white/80 hover:text-burgundy-light transition-colors">Contact Us</button>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-burgundy-light" />
