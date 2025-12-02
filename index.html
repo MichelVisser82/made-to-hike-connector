@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
+    <!-- Google Consent Mode Defaults (MUST be before GTM for GDPR compliance) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'functionality_storage': 'denied',
+        'personalization_storage': 'denied',
+        'security_storage': 'granted',
+        'wait_for_update': 500
+      });
+    </script>
+    
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -51,6 +67,36 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NCS5BSN9"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+    
+    <!-- CookieFirst Consent Update Listener for GTM -->
+    <script>
+      window.addEventListener('cf_consent', function(e) {
+        var c = e.detail;
+        gtag('consent', 'update', {
+          'analytics_storage': c && c.performance ? 'granted' : 'denied',
+          'ad_storage': c && c.advertising ? 'granted' : 'denied',
+          'ad_user_data': c && c.advertising ? 'granted' : 'denied',
+          'ad_personalization': c && c.advertising ? 'granted' : 'denied',
+          'functionality_storage': c && c.functional ? 'granted' : 'denied',
+          'personalization_storage': c && c.functional ? 'granted' : 'denied'
+        });
+      });
+      // Handle returning visitors with existing consent
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.CookieFirst && window.CookieFirst.consent) {
+          var c = window.CookieFirst.consent;
+          gtag('consent', 'update', {
+            'analytics_storage': c && c.performance ? 'granted' : 'denied',
+            'ad_storage': c && c.advertising ? 'granted' : 'denied',
+            'ad_user_data': c && c.advertising ? 'granted' : 'denied',
+            'ad_personalization': c && c.advertising ? 'granted' : 'denied',
+            'functionality_storage': c && c.functional ? 'granted' : 'denied',
+            'personalization_storage': c && c.functional ? 'granted' : 'denied'
+          });
+        }
+      });
+    </script>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
