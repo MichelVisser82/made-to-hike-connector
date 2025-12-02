@@ -281,9 +281,13 @@ export default function ContactPage() {
 
                     {/* Privacy Note */}
                     <div className="bg-cream border border-burgundy/10 rounded-lg p-6">
-                      <p className="text-sm text-charcoal/70 leading-relaxed">
-                        By submitting this form, you agree to our Privacy Policy. We'll only use your information to respond to your inquiry and won't share it with third parties.
-                      </p>
+                <p className="text-sm text-charcoal/70 leading-relaxed">
+                  By submitting this form, you agree to our{' '}
+                  <a href="/privacy" className="text-burgundy hover:underline font-medium">
+                    Privacy Policy
+                  </a>
+                  . We'll only use your information to respond to your inquiry and won't share it with third parties.
+                </p>
                     </div>
 
                     {/* Submit Button */}
