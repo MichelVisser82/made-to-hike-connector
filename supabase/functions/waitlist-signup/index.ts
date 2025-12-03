@@ -7,6 +7,59 @@ interface WaitlistSignupRequest {
   source_section: string;
 }
 
+// Brevo Newsletter List ID - configure this in your Brevo dashboard
+const BREVO_NEWSLETTER_LIST_ID = 2;
+
+async function syncToBrevo(
+  email: string,
+  userType: 'guide' | 'hiker',
+  sourceSection: string
+): Promise<void> {
+  const brevoApiKey = Deno.env.get('BREVO_API_KEY');
+  
+  if (!brevoApiKey) {
+    console.warn('BREVO_API_KEY not configured, skipping Brevo sync');
+    return;
+  }
+
+  try {
+    const response = await fetch('https://api.brevo.com/v3/contacts', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'api-key': brevoApiKey,
+      },
+      body: JSON.stringify({
+        email: email.toLowerCase().trim(),
+        listIds: [BREVO_NEWSLETTER_LIST_ID],
+        updateEnabled: true,
+        attributes: {
+          USER_TYPE: userType.toUpperCase(),
+          SOURCE: 'waitlist',
+          SOURCE_SECTION: sourceSection,
+          SIGNUP_DATE: new Date().toISOString().split('T')[0],
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      // Don't throw for duplicate contacts (already exists)
+      if (errorData.code === 'duplicate_parameter') {
+        console.log('Contact already exists in Brevo, updated attributes');
+        return;
+      }
+      console.error('Brevo API error:', errorData);
+    } else {
+      console.log('Successfully synced contact to Brevo:', email);
+    }
+  } catch (error) {
+    // Don't fail the signup if Brevo sync fails
+    console.error('Failed to sync to Brevo:', error);
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -52,6 +105,9 @@ Deno.serve(async (req) => {
     if (error) {
       // Check for duplicate email (unique constraint violation)
       if (error.code === '23505') {
+        // Still sync to Brevo to update attributes
+        await syncToBrevo(email, user_type, source_section);
+        
         return new Response(
           JSON.stringify({ 
             success: true, 
@@ -65,6 +121,9 @@ Deno.serve(async (req) => {
       console.error('Database error:', error);
       throw error;
     }
+
+    // Sync to Brevo Newsletter list with USER_TYPE tag
+    await syncToBrevo(email, user_type, source_section);
 
     return new Response(
       JSON.stringify({ 
