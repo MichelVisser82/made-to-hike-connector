@@ -75,25 +75,16 @@ export function VerifiedGuidesArchive() {
   const handleDeactivate = async (guide: any) => {
     setIsProcessing(true);
     try {
-      // Set guide profile as not verified
-      const { error: guideError } = await supabase
-        .from('guide_profiles')
-        .update({ verified: false, updated_at: new Date().toISOString() })
-        .eq('user_id', guide.user_id);
+      const { data, error } = await supabase.functions.invoke('admin-manage-guide', {
+        body: { action: 'deactivate', guideUserId: guide.user_id }
+      });
 
-      if (guideError) throw guideError;
-
-      // Deactivate all tours for this guide
-      const { error: toursError } = await supabase
-        .from('tours')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('guide_id', guide.user_id);
-
-      if (toursError) throw toursError;
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to deactivate');
 
       toast({
         title: 'Guide Deactivated',
-        description: `${guide.display_name}'s profile and tours have been unpublished.`,
+        description: `${guide.display_name}'s profile and ${data.toursDeactivated || 0} tours have been unpublished.`,
       });
 
       queryClient.invalidateQueries({ queryKey: ['all-guides-admin'] });
@@ -115,15 +106,12 @@ export function VerifiedGuidesArchive() {
   const handlePublish = async (guide: any) => {
     setIsProcessing(true);
     try {
-      // Set guide profile as verified
-      const { error: guideError } = await supabase
-        .from('guide_profiles')
-        .update({ verified: true, updated_at: new Date().toISOString() })
-        .eq('user_id', guide.user_id);
+      const { data, error } = await supabase.functions.invoke('admin-manage-guide', {
+        body: { action: 'publish', guideUserId: guide.user_id }
+      });
 
-      if (guideError) throw guideError;
-
-      // Note: Tours are NOT auto-reactivated - guide should review them first
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to publish');
 
       toast({
         title: 'Guide Reactivated',
