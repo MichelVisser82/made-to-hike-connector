@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
+import { syncToBrevo } from '../_shared/brevo.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -68,6 +69,20 @@ serve(async (req) => {
     }
 
     console.log('User created successfully:', authData.user.id);
+
+    // Sync to Brevo Newsletter as HIKER
+    const userName = metadata?.name || '';
+    const nameParts = userName.split(' ');
+    await syncToBrevo({
+      email,
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || '',
+      userType: 'HIKER',
+      source: 'registration',
+      attributes: {
+        REFERRAL_SOURCE: referralCode ? 'referral' : 'direct',
+      }
+    });
 
     // Track referral progress if referral code present
     if (referralCode) {
