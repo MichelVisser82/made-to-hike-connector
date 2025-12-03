@@ -7,8 +7,8 @@ interface WaitlistSignupRequest {
   source_section: string;
 }
 
-// Brevo Newsletter List ID - configure this in your Brevo dashboard
-const BREVO_NEWSLETTER_LIST_ID = 2;
+// Brevo Newsletter List ID
+const BREVO_NEWSLETTER_LIST_ID = 5;
 
 async function syncToBrevo(
   email: string,
