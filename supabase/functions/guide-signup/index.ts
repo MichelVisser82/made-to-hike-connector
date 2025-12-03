@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
+import { syncToBrevo } from '../_shared/brevo.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,6 +20,7 @@ serve(async (req) => {
   try {
     const { email, password, guideData, userId: existingUserId } = await req.json();
     let userId: string;
+    let isNewUser = false;
 
     // If userId is provided, use existing user (already logged in scenario)
     if (existingUserId) {
@@ -76,6 +78,7 @@ serve(async (req) => {
       } else {
         if (!authData.user) throw new Error('User creation failed');
         userId = authData.user.id;
+        isNewUser = true;
 
         // Track referral progress if referral code present
         if (guideData.referral_code) {
@@ -275,6 +278,21 @@ serve(async (req) => {
       });
 
     if (guideProfileError) throw guideProfileError;
+
+    // Sync to Brevo Newsletter as GUIDE
+    const nameParts = (guideData.display_name || '').split(' ');
+    await syncToBrevo({
+      email,
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || '',
+      userType: 'GUIDE',
+      source: 'registration',
+      attributes: {
+        LOCATION: guideData.location || '',
+        EXPERIENCE_YEARS: guideData.experience_years || 0,
+        REFERRAL_SOURCE: guideData.referral_code ? 'referral' : 'direct',
+      }
+    });
 
     // Check if guide has any certifications to auto-request verification
     const hasCertifications = guideData.certifications && guideData.certifications.length > 0;
