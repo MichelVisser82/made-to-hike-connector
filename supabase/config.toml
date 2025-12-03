@@ -172,6 +172,9 @@ verify_jwt = false
 [functions.backfill-referral-milestones]
 verify_jwt = false
 
+[functions.gdpr-delete-guide]
+verify_jwt = false
+
 # Cron jobs configuration
 [cron]
 enabled = true

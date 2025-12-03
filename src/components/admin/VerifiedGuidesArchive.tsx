@@ -4,26 +4,33 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { CertificationBadge } from '../ui/certification-badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { useQuery } from '@tanstack/react-query';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, ExternalLink, Eye, MapPin, Calendar, Award, FileText } from 'lucide-react';
+import { Search, ExternalLink, Eye, MapPin, Calendar, Award, FileText, Power, Trash2, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '../ui/alert';
 
 export function VerifiedGuidesArchive() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [selectedDocument, setSelectedDocument] = useState<{ url: string; title: string } | null>(null);
   const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
+  const [showDeactivatedOnly, setShowDeactivatedOnly] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ type: 'deactivate' | 'publish' | 'delete'; guide: any } | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: verifiedGuides, isLoading } = useQuery({
-    queryKey: ['verified-guides'],
+  const { data: allGuides, isLoading } = useQuery({
+    queryKey: ['all-guides-admin'],
     queryFn: async () => {
       const { data: guides, error } = await supabase
         .from('guide_profiles')
         .select('*')
-        .eq('verified', true)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
@@ -52,11 +59,123 @@ export function VerifiedGuidesArchive() {
     },
   });
 
-  const filteredGuides = verifiedGuides?.filter(guide => 
-    guide.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    guide.profile?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    guide.location?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter guides based on verified status and search
+  const filteredGuides = allGuides?.filter(guide => {
+    const matchesSearch = guide.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      guide.profile?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      guide.location?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (showDeactivatedOnly) {
+      return matchesSearch && guide.verified === false;
+    }
+    return matchesSearch && guide.verified === true;
+  });
+
+  // Handle deactivate guide (unpublish)
+  const handleDeactivate = async (guide: any) => {
+    setIsProcessing(true);
+    try {
+      // Set guide profile as not verified
+      const { error: guideError } = await supabase
+        .from('guide_profiles')
+        .update({ verified: false, updated_at: new Date().toISOString() })
+        .eq('user_id', guide.user_id);
+
+      if (guideError) throw guideError;
+
+      // Deactivate all tours for this guide
+      const { error: toursError } = await supabase
+        .from('tours')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('guide_id', guide.user_id);
+
+      if (toursError) throw toursError;
+
+      toast({
+        title: 'Guide Deactivated',
+        description: `${guide.display_name}'s profile and tours have been unpublished.`,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['all-guides-admin'] });
+      setConfirmAction(null);
+      setSelectedGuide(null);
+    } catch (error) {
+      console.error('Error deactivating guide:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to deactivate guide. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle publish guide (reactivate)
+  const handlePublish = async (guide: any) => {
+    setIsProcessing(true);
+    try {
+      // Set guide profile as verified
+      const { error: guideError } = await supabase
+        .from('guide_profiles')
+        .update({ verified: true, updated_at: new Date().toISOString() })
+        .eq('user_id', guide.user_id);
+
+      if (guideError) throw guideError;
+
+      // Note: Tours are NOT auto-reactivated - guide should review them first
+
+      toast({
+        title: 'Guide Reactivated',
+        description: `${guide.display_name}'s profile has been published. Tours need to be manually reactivated.`,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['all-guides-admin'] });
+      setConfirmAction(null);
+      setSelectedGuide(null);
+    } catch (error) {
+      console.error('Error publishing guide:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to publish guide. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle GDPR-compliant deletion
+  const handleDelete = async (guide: any) => {
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gdpr-delete-guide', {
+        body: { guideUserId: guide.user_id },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Guide Deleted',
+        description: `${guide.display_name}'s data has been permanently deleted in compliance with GDPR.`,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['all-guides-admin'] });
+      setConfirmAction(null);
+      setSelectedGuide(null);
+    } catch (error) {
+      console.error('Error deleting guide:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete guide. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Filtering is now done above in the component
 
   const getDocumentUrl = async (documentPath: string): Promise<string> => {
     try {
@@ -136,11 +255,28 @@ export function VerifiedGuidesArchive() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search verified guides..."
+            placeholder="Search guides..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant={!showDeactivatedOnly ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowDeactivatedOnly(false)}
+          >
+            Active ({allGuides?.filter(g => g.verified).length || 0})
+          </Button>
+          <Button
+            variant={showDeactivatedOnly ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowDeactivatedOnly(true)}
+            className={showDeactivatedOnly ? 'bg-amber-600 hover:bg-amber-700' : ''}
+          >
+            Deactivated ({allGuides?.filter(g => !g.verified).length || 0})
+          </Button>
         </div>
       </div>
 
@@ -458,24 +594,70 @@ export function VerifiedGuidesArchive() {
               )}
 
               {/* Actions */}
-              <div className="flex gap-2 pt-4 border-t border-border">
-                <a
-                  href={`/${selectedGuide.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1"
-                >
-                  <Button variant="default" className="w-full gap-2">
-                    View Public Profile
-                    <ExternalLink className="h-4 w-4" />
+              <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                <div className="flex gap-2">
+                  {selectedGuide.verified ? (
+                    <a
+                      href={`/${selectedGuide.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1"
+                    >
+                      <Button variant="default" className="w-full gap-2">
+                        View Public Profile
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </a>
+                  ) : (
+                    <div className="flex-1">
+                      <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                        <AlertDescription className="text-amber-800 dark:text-amber-200">
+                          Profile is deactivated and not publicly visible
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedGuide(null)}
+                  >
+                    Close
                   </Button>
-                </a>
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedGuide(null)}
-                >
-                  Close
-                </Button>
+                </div>
+                
+                {/* Admin Actions */}
+                <div className="flex gap-2">
+                  {selectedGuide.verified ? (
+                    <Button
+                      variant="outline"
+                      className="flex-1 gap-2 border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                      onClick={() => setConfirmAction({ type: 'deactivate', guide: selectedGuide })}
+                    >
+                      <Power className="h-4 w-4" />
+                      Deactivate Guide
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="flex-1 gap-2 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20"
+                        onClick={() => setConfirmAction({ type: 'publish', guide: selectedGuide })}
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                        Publish Guide
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
+                        onClick={() => setConfirmAction({ type: 'delete', guide: selectedGuide })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete Permanently
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -514,6 +696,110 @@ export function VerifiedGuidesArchive() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {confirmAction?.type === 'deactivate' && (
+                <>
+                  <Power className="h-5 w-5 text-amber-600" />
+                  Deactivate Guide
+                </>
+              )}
+              {confirmAction?.type === 'publish' && (
+                <>
+                  <RotateCcw className="h-5 w-5 text-green-600" />
+                  Publish Guide
+                </>
+              )}
+              {confirmAction?.type === 'delete' && (
+                <>
+                  <Trash2 className="h-5 w-5 text-destructive" />
+                  Delete Guide Permanently
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              {confirmAction?.type === 'deactivate' && (
+                <>
+                  This will unpublish <strong>{confirmAction.guide.display_name}</strong>'s profile and deactivate all their tours. 
+                  The guide and tours will no longer be visible to the public.
+                </>
+              )}
+              {confirmAction?.type === 'publish' && (
+                <>
+                  This will publish <strong>{confirmAction.guide.display_name}</strong>'s profile. 
+                  Note: Their tours will need to be manually reactivated.
+                </>
+              )}
+              {confirmAction?.type === 'delete' && (
+                <div className="space-y-3">
+                  <Alert className="border-destructive/50 bg-destructive/10">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <AlertDescription className="text-destructive">
+                      This action is irreversible!
+                    </AlertDescription>
+                  </Alert>
+                  <p>
+                    This will permanently delete all data for <strong>{confirmAction.guide.display_name}</strong> in compliance with GDPR including:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                    <li>Guide profile and all personal information</li>
+                    <li>All tours created by this guide</li>
+                    <li>All certifications and documents</li>
+                    <li>Profile and tour images from storage</li>
+                    <li>Conversation history</li>
+                    <li>User account</li>
+                  </ul>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmAction(null)}
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+            {confirmAction?.type === 'deactivate' && (
+              <Button
+                variant="default"
+                className="bg-amber-600 hover:bg-amber-700"
+                onClick={() => handleDeactivate(confirmAction.guide)}
+                disabled={isProcessing}
+              >
+                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Deactivate
+              </Button>
+            )}
+            {confirmAction?.type === 'publish' && (
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => handlePublish(confirmAction.guide)}
+                disabled={isProcessing}
+              >
+                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Publish
+              </Button>
+            )}
+            {confirmAction?.type === 'delete' && (
+              <Button
+                variant="destructive"
+                onClick={() => handleDelete(confirmAction.guide)}
+                disabled={isProcessing}
+              >
+                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Delete Permanently
+              </Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
