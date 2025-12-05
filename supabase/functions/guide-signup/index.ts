@@ -355,6 +355,29 @@ serve(async (req) => {
       }
     }
 
+    // Send Facebook CAPI CompleteRegistration event
+    try {
+      await supabase.functions.invoke('facebook-capi', {
+        body: {
+          eventName: 'CompleteRegistration',
+          eventSourceUrl: 'https://madetohike.com/guide/signup',
+          userData: {
+            email: email,
+            firstName: guideData.display_name?.split(' ')[0],
+            lastName: guideData.display_name?.split(' ').slice(1).join(' '),
+            country: guideData.country,
+          },
+          customData: {
+            contentName: 'Guide Application',
+            status: 'submitted',
+          },
+        },
+      });
+      console.log('[guide-signup] Facebook CAPI CompleteRegistration event sent');
+    } catch (capiError) {
+      console.error('[guide-signup] Facebook CAPI error (non-blocking):', capiError);
+    }
+
     return new Response(JSON.stringify({
       success: true,
       message: 'Guide account created successfully!',

@@ -282,6 +282,30 @@ serve(async (req) => {
       // No need to manually restrict payment_method_types
 
       session = await stripe.checkout.sessions.create(sessionConfig);
+
+      // Send Facebook CAPI InitiateCheckout event
+      try {
+        await supabase.functions.invoke('facebook-capi', {
+          body: {
+            eventName: 'InitiateCheckout',
+            eventSourceUrl: `https://madetohike.com/tours/${tourId}/book`,
+            userData: {
+              email: hikerEmail,
+            },
+            customData: {
+              value: totalAmount,
+              currency: currency.toUpperCase(),
+              contentIds: [tourId],
+              contentName: tourTitle,
+              contentType: 'product',
+              numItems: bookingData?.participantCount || 1,
+            },
+          },
+        });
+        console.log('[create-payment-intent] Facebook CAPI InitiateCheckout event sent');
+      } catch (capiError) {
+        console.warn('[create-payment-intent] Facebook CAPI error (non-blocking):', capiError);
+      }
     } catch (stripeError: any) {
       console.error('[create-payment-intent] Stripe error:', stripeError);
       

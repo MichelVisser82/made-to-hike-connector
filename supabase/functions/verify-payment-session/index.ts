@@ -146,6 +146,31 @@ serve(async (req) => {
 
     logStep('Booking created successfully', { bookingId: createdBooking.booking.id });
 
+    // Send Facebook CAPI Purchase event
+    try {
+      await supabaseClient.functions.invoke('facebook-capi', {
+        body: {
+          eventName: 'Purchase',
+          eventId: createdBooking.booking.booking_reference, // For deduplication
+          eventSourceUrl: `https://madetohike.com/booking-success?session_id=${session_id}`,
+          userData: {
+            email: bookingData.hikerEmail || bookingData.email,
+          },
+          customData: {
+            value: session.amount_total ? session.amount_total / 100 : 0,
+            currency: session.currency?.toUpperCase() || 'EUR',
+            contentIds: [bookingData.tour_id],
+            contentName: bookingData.tourTitle || 'Hiking Tour',
+            contentType: 'product',
+            numItems: bookingData.participantCount || 1,
+          },
+        },
+      });
+      logStep('Facebook CAPI Purchase event sent');
+    } catch (capiError) {
+      logStep('Facebook CAPI error (non-blocking)', { error: capiError });
+    }
+
     // Return payment verification success with created booking
     return new Response(
       JSON.stringify({ 
