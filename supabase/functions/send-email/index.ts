@@ -1,8 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
 import { corsHeaders } from '../_shared/cors.ts'
 import { generateBookingConfirmationEmail, generateGuideBookingNotificationEmail, type BookingConfirmationData, type GuideBookingNotificationData } from './templates.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+)
 
 interface EmailRequest {
   type: 'contact' | 'newsletter' | 'verification' | 'welcome' | 'booking' | 'booking-confirmation' | 'guide-booking-notification' | 'custom_verification' | 'verification-code' | 'new_message' | 'new_anonymous_inquiry' | 'review_available' | 'review_reminder' | 'waiver_confirmation' | 'waiver_reminder' | 'insurance_reminder' | 'participant_invitation' | 'participant_reminder' | 'participant_completion' | 'booker_participant_complete' | 'guide_participant_documents' | 'review_response' | 'booking_cancellation_hiker' | 'booking_cancellation_guide' | 'booking_refund_hiker' | 'pre_trip_reminder' | 'post_trip_thank_you' | 'tour_date_change_notification' | 'tour_fully_booked_alert' | 'payout_processed_notification' | 'document_upload_notification' | 'review_received_notification' | 'guide_verification_completed' | 'failed_payment_alert_admin' | 'referral_invitation' | 'referral_success' | 'referral_welcome'
@@ -2454,6 +2459,24 @@ serve(async (req) => {
       } catch (error) {
         console.error('Failed to send confirmation email:', error)
         // Don't fail the main request if confirmation email fails
+      }
+
+      // Send Facebook CAPI Contact event
+      try {
+        await supabase.functions.invoke('facebook-capi', {
+          body: {
+            eventName: 'Contact',
+            eventSourceUrl: 'https://madetohike.com/contact',
+            userData: {
+              email: emailRequest.email,
+              firstName: emailRequest.name?.split(' ')[0],
+              lastName: emailRequest.name?.split(' ').slice(1).join(' '),
+            },
+          },
+        });
+        console.log('Facebook CAPI Contact event sent');
+      } catch (capiError) {
+        console.error('Facebook CAPI error (non-blocking):', capiError);
       }
     }
 

@@ -1,5 +1,8 @@
 project_id = "ohecxwxumzpfcfsokfkg"
 
+[functions.facebook-capi]
+verify_jwt = false
+
 [functions.contact-form]
 verify_jwt = false
 
