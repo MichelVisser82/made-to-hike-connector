@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ImageWithFallback } from "@/components/common/ImageWithFallback";
+import { SmartImage } from "@/components/SmartImage";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
@@ -86,10 +86,12 @@ export default function GuidePitchDeckPage() {
       <section className="min-h-screen flex flex-col lg:flex-row print:page-break-after">
         {/* Left: Image with contour overlay */}
         <div className="lg:w-1/2 h-[50vh] lg:h-screen relative overflow-hidden">
-          <ImageWithFallback
-            src="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/tour-images/hero/grossglockner-dolomites-hero.jpg"
+          <SmartImage
+            category="hero"
+            tags={["Alps", "mountain", "summit"]}
             alt="Mountain summit sunrise in the Alps"
             className="w-full h-full object-cover"
+            priority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-charcoal/30 to-charcoal/60" />
           <div className="absolute inset-0 opacity-10">
@@ -889,10 +891,12 @@ export default function GuidePitchDeckPage() {
       <section className="min-h-screen flex flex-col lg:flex-row">
         {/* Left: Image with contour overlay */}
         <div className="lg:w-1/2 h-[50vh] lg:h-screen relative overflow-hidden">
-          <ImageWithFallback
-            src="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/tour-images/hero/pyrenees-adventure-hero.jpg"
+          <SmartImage
+            category="hero"
+            tags={["Pyrenees", "hiking", "mountain"]}
             alt="Mountain guide leading group through the Pyrenees"
             className="w-full h-full object-cover"
+            priority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-charcoal/70 via-burgundy/50 to-charcoal/70" />
           <div className="absolute inset-0 opacity-10">
