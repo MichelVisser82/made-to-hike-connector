@@ -24,6 +24,7 @@ import { Card } from "@/components/ui/card";
 import { SmartImage } from "@/components/SmartImage";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { AppNavigation } from "@/components/layout/AppNavigation";
 
 export default function GuidePitchDeckPage() {
   const navigate = useNavigate();
@@ -47,6 +48,8 @@ export default function GuidePitchDeckPage() {
         <link rel="canonical" href="https://madetohike.com/guide/invite" />
       </Helmet>
 
+      {/* Header */}
+      <AppNavigation />
 
       {/* Add print styles */}
       <style>{`
