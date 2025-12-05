@@ -1,10 +1,14 @@
 import { ReactNode, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { IS_LAUNCHED } from '@/config/launchConfig';
 import { hasValidBypass, clearBypassToken } from '@/utils/bypassAuth';
 import { ComingSoonPage } from './ComingSoonPage';
 import { SecretAccessModal } from './SecretAccessModal';
 import { SEOWrapper } from '@/components/seo/SEOWrapper';
 import { toast } from '@/hooks/use-toast';
+
+// Routes that bypass the coming soon page without authentication
+const PUBLIC_BYPASS_ROUTES = ['/guide/invite'];
 
 interface LaunchGateProps {
   children: ReactNode;
@@ -21,6 +25,12 @@ interface LaunchGateProps {
 export function LaunchGate({ children }: LaunchGateProps) {
   const [showSecretModal, setShowSecretModal] = useState(false);
   const [hasBypass, setHasBypass] = useState(false);
+  const location = useLocation();
+
+  // Check if current route is in public bypass list
+  const isPublicBypassRoute = PUBLIC_BYPASS_ROUTES.some(route => 
+    location.pathname.startsWith(route)
+  );
 
   useEffect(() => {
     // Check bypass status on mount
@@ -54,6 +64,11 @@ export function LaunchGate({ children }: LaunchGateProps) {
 
   // If already launched, show full app with SEO wrapper
   if (IS_LAUNCHED) {
+    return <SEOWrapper>{children}</SEOWrapper>;
+  }
+
+  // If route is in public bypass list, show full app
+  if (isPublicBypassRoute) {
     return <SEOWrapper>{children}</SEOWrapper>;
   }
 
