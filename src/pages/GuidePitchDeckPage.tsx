@@ -926,7 +926,7 @@ export default function GuidePitchDeckPage() {
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/contact')}
-                className="border-2 border-white text-white hover:bg-white/10 px-10 py-6 text-lg"
+                className="border-2 border-burgundy text-burgundy bg-white hover:bg-cream px-10 py-6 text-lg"
               >
                 Questions? Contact Us
               </Button>
