@@ -28,6 +28,24 @@
     })(window,document,'script','dataLayer','GTM-NCS5BSN9');</script>
     <!-- End Google Tag Manager -->
     
+    <!-- Meta Pixel Code (with consent mode - defaults to paused) -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('consent', 'revoke'); // Default to no consent for GDPR
+      fbq('init', '861880582922484');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=861880582922484&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+    
     <!-- Resource Hints for Performance -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
@@ -68,8 +86,19 @@
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     
-    <!-- CookieFirst Consent Update Listener for GTM -->
+    <!-- CookieFirst Consent Update Listener for GTM and Meta Pixel -->
     <script>
+      function updateMetaPixelConsent(hasConsent) {
+        if (typeof fbq !== 'undefined') {
+          if (hasConsent) {
+            fbq('consent', 'grant');
+            fbq('track', 'PageView');
+          } else {
+            fbq('consent', 'revoke');
+          }
+        }
+      }
+      
       window.addEventListener('cf_consent', function(e) {
         var c = e.detail;
         gtag('consent', 'update', {
@@ -80,6 +109,8 @@
           'functionality_storage': c && c.functional ? 'granted' : 'denied',
           'personalization_storage': c && c.functional ? 'granted' : 'denied'
         });
+        // Update Meta Pixel consent
+        updateMetaPixelConsent(c && c.advertising);
       });
       // Handle returning visitors with existing consent
       document.addEventListener('DOMContentLoaded', function() {
@@ -93,6 +124,8 @@
             'functionality_storage': c && c.functional ? 'granted' : 'denied',
             'personalization_storage': c && c.functional ? 'granted' : 'denied'
           });
+          // Update Meta Pixel consent for returning visitors
+          updateMetaPixelConsent(c && c.advertising);
         }
       });
     </script>
