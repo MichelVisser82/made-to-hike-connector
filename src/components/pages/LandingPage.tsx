@@ -730,7 +730,7 @@ export function LandingPage({
               <h4 className="text-burgundy-light mb-4 uppercase text-sm tracking-wider">For Guides</h4>
               <ul className="space-y-2 text-sm text-white/70">
                 <li><button onClick={() => navigate('/guide/signup')} className="hover:text-burgundy-light">Become a Guide</button></li>
-                <li><button onClick={() => navigate('/guide/economics')} className="hover:text-burgundy-light">Why Guides use Made to Hike</button></li>
+                <li><button onClick={() => navigate('/guide/invite')} className="hover:text-burgundy-light">Why Guides use Made to Hike</button></li>
                 <li><button onClick={() => navigate('/guide/verification')} className="hover:text-burgundy-light">Verification</button></li>
                 <li><button onClick={() => navigate('/guide/resources')} className="hover:text-burgundy-light">Guide Resources</button></li>
                 <li><button onClick={() => navigate('/partnerships')} className="hover:text-burgundy-light">Brand Partnerships</button></li>
