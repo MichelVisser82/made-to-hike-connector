@@ -41,6 +41,7 @@ const OfferAccept = lazy(() => import("./pages/OfferAccept"));
 const OfferDecline = lazy(() => import("./pages/OfferDecline"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const EmailTest = lazy(() => import("./components/EmailTest").then(m => ({ default: m.EmailTest })));
+const GuidePitchDeckPage = lazy(() => import("./pages/GuidePitchDeckPage"));
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ const App: React.FC = () => {
             <Route path="/tours/:slug" element={<Suspense fallback={<PageLoader />}><TourPage /></Suspense>} />
             <Route path="/guides" element={<Suspense fallback={<PageLoader />}><GuidesPage /></Suspense>} />
             <Route path="/guide/signup" element={<Suspense fallback={<PageLoader />}><GuideSignupPage /></Suspense>} />
+            <Route path="/guide/invite" element={<Suspense fallback={<PageLoader />}><GuidePitchDeckPage /></Suspense>} />
             <Route path="/certifications" element={<Suspense fallback={<PageLoader />}><CertificationsPage /></Suspense>} />
             <Route path="/booking-success" element={<Suspense fallback={<PageLoader />}><BookingSuccess /></Suspense>} />
             <Route path="/payment-success" element={<Suspense fallback={<PageLoader />}><PaymentSuccess /></Suspense>} />
