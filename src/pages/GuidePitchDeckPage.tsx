@@ -47,17 +47,6 @@ export default function GuidePitchDeckPage() {
         <link rel="canonical" href="https://madetohike.com/guide/invite" />
       </Helmet>
 
-      {/* Print/Download Buttons */}
-      <div className="fixed top-6 right-6 z-50 flex gap-3 print:hidden">
-        <button
-          onClick={handleDownloadPDF}
-          className="bg-burgundy hover:bg-burgundy/90 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 transition-all"
-          style={{ fontFamily: 'Playfair Display, serif' }}
-        >
-          <Printer className="w-5 h-5" />
-          Download PDF
-        </button>
-      </div>
 
       {/* Add print styles */}
       <style>{`
