@@ -91,7 +91,7 @@ export default function GuidePitchDeckPage() {
             <p className="text-lg text-cream/90 mb-6 leading-relaxed">
               Join us in building Europe's first guide-owned marketplace.
             </p>
-            <p className="text-lg text-cream/90 mb-12 leading-relaxed">'It's like Airbnb for guides' - Where your expertise is valued. Where you stay in control.</p>
+            <p className="text-lg text-cream/90 mb-12 leading-relaxed"><em>'It's like Airbnb for guides'</em> - Where your expertise is valued. Where you stay in control.</p>
 
             <div className="grid grid-cols-3 gap-6 mb-12 pb-12 border-b border-white/20">
               <div>
