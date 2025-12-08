@@ -159,7 +159,7 @@ export default function GuidePitchDeckPage() {
               {
                 icon: TrendingUp,
                 title: "Marketing Done for You",
-                opportunity: "Professional booking platform & promotion",
+                opportunity: "Professional booking platform & advertising (Google, Facebook, Instagram, etc)",
                 impact: "Focus on guiding, not admin",
               },
               {
