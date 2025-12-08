@@ -164,27 +164,6 @@ export function ComingSoonPage() {
                     </button>
                   </div>
 
-                  {/* Email Form via EmailSignupCard */}
-                  {userType && <div className="mt-8 pt-8 border-t border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      <EmailSignupCard userType={userType} sectionName="Hero Section" className="bg-transparent border-0 p-0 shadow-none" />
-                    </div>}
-                </div>}
-
-              {/* Success State */}
-              {submitted && <div className="border border-burgundy/30 p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <CheckCircle2 className="w-12 h-12 text-burgundy-light mb-6" />
-                  <h3 className="text-2xl text-white mb-3 font-playfair">
-                    {userType === "hiker" ? "You're on the List" : "Application Received"}
-                  </h3>
-                  <p className="text-cream/70 mb-8 leading-relaxed">
-                    {userType === "hiker" ? "We'll email you as soon as we launch. Get ready to explore Europe's Alps with certified guides." : "We'll review your application and reach out within 48 hours. Excited to have you join us."}
-                  </p>
-                  <Button variant="outline" onClick={() => {
-                setSubmitted(false);
-                setUserType(null);
-              }} className="border border-burgundy-light/30 text-burgundy-light hover:bg-burgundy-light/5">
-                    Submit Another
-                  </Button>
                 </div>}
 
               {/* Launch Badge */}
