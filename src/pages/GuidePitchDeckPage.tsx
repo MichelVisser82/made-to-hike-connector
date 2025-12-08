@@ -149,7 +149,7 @@ export default function GuidePitchDeckPage() {
             <h2 className="text-4xl lg:text-6xl text-charcoal mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>
               Connect to a Community of Enthusiastic Hikers
             </h2>
-            <p className="text-xl text-charcoal/70 leading-relaxed max-w-3xl font-semibold">
+            <p className="text-xl text-charcoal/70 leading-relaxed max-w-3xl">
               Let us handle the marketing while you spend your time in the mountains. We connect you to outdoor lovers who value authentic experiences with certified local guides.
             </p>
           </div>
