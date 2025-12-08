@@ -50,6 +50,10 @@ interface CustomTourRequestModalProps {
   guideName: string;
   tours?: Tour[];
   preSelectedDate?: Date;
+  /** Pre-select a specific tour (for "On Request" flow) */
+  preSelectedTour?: { id: string; title: string };
+  /** Simplified mode for "On Request" - hides tour selection */
+  isOnRequest?: boolean;
 }
 
 export function CustomTourRequestModal({
@@ -59,6 +63,8 @@ export function CustomTourRequestModal({
   guideName,
   tours = [],
   preSelectedDate,
+  preSelectedTour,
+  isOnRequest = false,
 }: CustomTourRequestModalProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -82,15 +88,16 @@ export function CustomTourRequestModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update preferred date when preSelectedDate changes or modal opens
+  // Update preferred date and tour when modal opens
   useEffect(() => {
-    if (open && preSelectedDate) {
+    if (open) {
       setFormData(prev => ({
         ...prev,
-        preferredDate: preSelectedDate
+        preferredDate: preSelectedDate || prev.preferredDate,
+        selectedTour: preSelectedTour?.id || prev.selectedTour,
       }));
     }
-  }, [open, preSelectedDate]);
+  }, [open, preSelectedDate, preSelectedTour]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,10 +170,13 @@ export function CustomTourRequestModal({
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl text-burgundy" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Request Custom Tour
+            {isOnRequest ? 'Request Your Preferred Date' : 'Request Custom Tour'}
           </DialogTitle>
           <DialogDescription>
-            Tell {guideName} about your ideal hiking experience. They'll respond within 2 hours with a personalized tour proposal.
+            {isOnRequest 
+              ? `Select your preferred date for "${preSelectedTour?.title}". ${guideName} will confirm availability within 2 hours.`
+              : `Tell ${guideName} about your ideal hiking experience. They'll respond within 2 hours with a personalized tour proposal.`
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -208,42 +218,57 @@ export function CustomTourRequestModal({
 
           {/* Tour Details */}
           <div className="space-y-4 border-t pt-4">
-            <h3 className="font-semibold text-lg text-charcoal">Tour Details</h3>
+            <h3 className="font-semibold text-lg text-charcoal">
+              {isOnRequest ? 'Request Details' : 'Tour Details'}
+            </h3>
             
-            <div className="space-y-2">
-              <Label htmlFor="tour" className="flex items-center text-charcoal/80">
-                <Mountain className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
-                Select Tour *
-              </Label>
-              <Select
-                value={formData.selectedTour}
-                onValueChange={(value) => {
-                  setFormData({ 
-                    ...formData, 
-                    selectedTour: value,
-                    // Reset conditional fields when switching away from "other"
-                    tourType: value === "other" ? formData.tourType : "",
-                    region: value === "other" ? formData.region : "",
-                  });
-                }}
-                required
-              >
-                <SelectTrigger id="tour" className="border-burgundy/20 focus:border-burgundy">
-                  <SelectValue placeholder="Choose a tour or custom request" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tours.map((tour) => (
-                    <SelectItem key={tour.id} value={tour.id}>
-                      {tour.title}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="other">Other - Custom Tour Request</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Show tour selection only if NOT in "On Request" mode */}
+            {!isOnRequest && (
+              <div className="space-y-2">
+                <Label htmlFor="tour" className="flex items-center text-charcoal/80">
+                  <Mountain className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
+                  Select Tour *
+                </Label>
+                <Select
+                  value={formData.selectedTour}
+                  onValueChange={(value) => {
+                    setFormData({ 
+                      ...formData, 
+                      selectedTour: value,
+                      // Reset conditional fields when switching away from "other"
+                      tourType: value === "other" ? formData.tourType : "",
+                      region: value === "other" ? formData.region : "",
+                    });
+                  }}
+                  required
+                >
+                  <SelectTrigger id="tour" className="border-burgundy/20 focus:border-burgundy">
+                    <SelectValue placeholder="Choose a tour or custom request" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tours.map((tour) => (
+                      <SelectItem key={tour.id} value={tour.id}>
+                        {tour.title}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="other">Other - Custom Tour Request</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            {/* Show selected tour info in "On Request" mode */}
+            {isOnRequest && preSelectedTour && (
+              <div className="p-3 bg-burgundy/5 rounded-lg border border-burgundy/10">
+                <div className="flex items-center gap-2">
+                  <Mountain className="h-4 w-4 text-burgundy" />
+                  <span className="font-medium text-charcoal">{preSelectedTour.title}</span>
+                </div>
+              </div>
+            )}
 
-            {/* Conditional fields for custom tour request */}
-            {formData.selectedTour === "other" && (
+            {/* Conditional fields for custom tour request - only show when NOT in "On Request" mode */}
+            {!isOnRequest && formData.selectedTour === "other" && (
               <div className="space-y-4 pl-4 border-l-2 border-burgundy/20">
                 <div className="space-y-2">
                   <Label htmlFor="tourType" className="flex items-center text-charcoal/80">

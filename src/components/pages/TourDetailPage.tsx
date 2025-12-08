@@ -13,6 +13,7 @@ import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { CertificationBadge } from '../ui/certification-badge';
 import { getPrimaryCertification } from '@/utils/guideDataUtils';
 import { AnonymousChat } from '../chat/AnonymousChat';
+import { CustomTourRequestModal } from '../guide/CustomTourRequestModal';
 import { useTourDateAvailability } from '@/hooks/useTourDateAvailability';
 import { useTourMapData } from '@/hooks/useTourMapData';
 import { useTourReviews } from '@/hooks/useTourReviews';
@@ -41,6 +42,7 @@ export function TourDetailPage({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [onRequestModalOpen, setOnRequestModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [userId, setUserId] = useState<string | undefined>();
 
@@ -142,6 +144,9 @@ export function TourDetailPage({
     return [...images.slice(currentImageIndex), ...images.slice(0, currentImageIndex)];
   };
   const selectedDateOption = dateOptions.find(d => d.date === selectedDate);
+  
+  // Check if no dates are available (for "On Request" flow)
+  const hasNoDates = !isLoadingDates && dateOptions.length === 0;
 
   // Calculate lowest available price from real data
   const lowestPrice = dateOptions.length > 0 ? Math.min(...dateOptions.map(d => d.price)) : tour.price;
@@ -260,49 +265,60 @@ export function TourDetailPage({
                 </div>
               </div>
               
-              {/* Date Selection */}
-              <div className="relative mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">Select a Date</label>
-                <button type="button" onClick={() => setShowDateDropdown(!showDateDropdown)} className="w-full px-3 py-2.5 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left">
-                  <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
-                    {selectedDate ? dateOptions.find(d => d.date === selectedDate)?.dateRange : "Choose available dates"}
-                  </span>
-                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {showDateDropdown && <div className="absolute z-[100] w-full mt-2 bg-background border border-border rounded-lg shadow-lg max-h-80 overflow-auto">
-                    {isLoadingDates ? <div className="p-4 text-center text-muted-foreground">Loading dates...</div> : dateOptions.length === 0 ? <div className="p-4 text-center text-muted-foreground">No dates available</div> : dateOptions.map(option => <button key={option.date} type="button" onClick={() => {
-                  setSelectedDate(option.date);
-                  setSelectedSlotId(option.slotId);
-                  setShowDateDropdown(false);
-                }} className="w-full px-4 py-3 hover:bg-accent transition-colors border-b border-border last:border-b-0 text-left">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <div className="font-medium text-sm mb-1 text-foreground">{option.dateRange}</div>
-                            <div className="flex items-center gap-2">
-                              <Users className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">
-                                {option.spotsLeft} {option.spotsLeft === 1 ? 'spot' : 'spots'} left
-                              </span>
+              {/* Date Selection - Only show if dates are available */}
+              {!hasNoDates && (
+                <div className="relative mb-4">
+                  <label className="block text-sm font-medium mb-2 text-foreground">Select a Date</label>
+                  <button type="button" onClick={() => setShowDateDropdown(!showDateDropdown)} className="w-full px-3 py-2.5 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left">
+                    <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
+                      {selectedDate ? dateOptions.find(d => d.date === selectedDate)?.dateRange : "Choose available dates"}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showDateDropdown && <div className="absolute z-[100] w-full mt-2 bg-background border border-border rounded-lg shadow-lg max-h-80 overflow-auto">
+                      {isLoadingDates ? <div className="p-4 text-center text-muted-foreground">Loading dates...</div> : dateOptions.map(option => <button key={option.date} type="button" onClick={() => {
+                    setSelectedDate(option.date);
+                    setSelectedSlotId(option.slotId);
+                    setShowDateDropdown(false);
+                  }} className="w-full px-4 py-3 hover:bg-accent transition-colors border-b border-border last:border-b-0 text-left">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm mb-1 text-foreground">{option.dateRange}</div>
+                              <div className="flex items-center gap-2">
+                                <Users className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">
+                                  {option.spotsLeft} {option.spotsLeft === 1 ? 'spot' : 'spots'} left
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              {option.discount && <Badge variant="secondary" className="mb-1 text-xs px-2 py-0 bg-burgundy/10 text-burgundy border-0">
+                                  {option.discount}
+                                </Badge>}
+                               <div className="flex flex-col">
+                                {option.originalPrice && <span className="text-xs text-muted-foreground line-through">
+                                    {tour.currency === 'EUR' ? '€' : '£'}{option.originalPrice}
+                                  </span>}
+                                <span className="font-bold text-base text-foreground">
+                                  {tour.currency === 'EUR' ? '€' : '£'}{option.price}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          <div className="text-right flex-shrink-0">
-                            {option.discount && <Badge variant="secondary" className="mb-1 text-xs px-2 py-0 bg-burgundy/10 text-burgundy border-0">
-                                {option.discount}
-                              </Badge>}
-                             <div className="flex flex-col">
-                              {option.originalPrice && <span className="text-xs text-muted-foreground line-through">
-                                  {tour.currency === 'EUR' ? '€' : '£'}{option.originalPrice}
-                                </span>}
-                              <span className="font-bold text-base text-foreground">
-                                {tour.currency === 'EUR' ? '€' : '£'}{option.price}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </button>)}
-                  </div>}
-              </div>
+                        </button>)}
+                    </div>}
+                </div>
+              )}
+              
+              {/* No dates message */}
+              {hasNoDates && (
+                <div className="mb-4 p-3 bg-burgundy/5 rounded-lg border border-burgundy/10">
+                  <p className="text-sm text-muted-foreground text-center">
+                    No scheduled dates — request your preferred date
+                  </p>
+                </div>
+              )}
 
               {/* Available Spots */}
               {selectedDateOption && selectedDateOption.spotsLeft <= 3 && <div className="bg-burgundy/10 rounded-lg p-2.5 mb-4">
@@ -316,9 +332,19 @@ export function TourDetailPage({
               
               {/* Action Buttons */}
               <div className="space-y-2">
-                <Button onClick={() => onBookTour(tour, selectedSlotId || undefined)} disabled={!selectedDate} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium py-2.5">
-                  Book Now
-                </Button>
+                {hasNoDates ? (
+                  <Button 
+                    onClick={() => setOnRequestModalOpen(true)} 
+                    className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium py-2.5"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    On Request
+                  </Button>
+                ) : (
+                  <Button onClick={() => onBookTour(tour, selectedSlotId || undefined)} disabled={!selectedDate} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium py-2.5">
+                    Book Now
+                  </Button>
+                )}
                 <Button variant="outline" className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5 font-medium py-2.5" onClick={() => setChatOpen(true)}>
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Ask the Guide
@@ -344,22 +370,43 @@ export function TourDetailPage({
               </div>
             </div>
             
-            {/* Date Selection (same as desktop) */}
-            <div className="relative mb-4">
-              <label className="block text-sm font-medium mb-2 text-foreground">Select a Date</label>
-              <button type="button" onClick={() => setShowDateDropdown(!showDateDropdown)} className="w-full px-4 py-3 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left">
-                <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
-                  {selectedDate ? dateOptions.find(d => d.date === selectedDate)?.dateRange : "Choose available dates"}
-                </span>
-                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
+            {/* Date Selection - Only show if dates are available */}
+            {!hasNoDates && (
+              <div className="relative mb-4">
+                <label className="block text-sm font-medium mb-2 text-foreground">Select a Date</label>
+                <button type="button" onClick={() => setShowDateDropdown(!showDateDropdown)} className="w-full px-4 py-3 border border-input rounded-lg bg-background hover:border-burgundy transition-colors flex items-center justify-between text-left">
+                  <span className={selectedDate ? "text-foreground" : "text-muted-foreground"}>
+                    {selectedDate ? dateOptions.find(d => d.date === selectedDate)?.dateRange : "Choose available dates"}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDateDropdown ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+            )}
+            
+            {/* No dates message */}
+            {hasNoDates && (
+              <div className="mb-4 p-3 bg-burgundy/5 rounded-lg border border-burgundy/10">
+                <p className="text-sm text-muted-foreground text-center">
+                  No scheduled dates — request your preferred date
+                </p>
+              </div>
+            )}
             
             {/* Action Buttons */}
             <div className="space-y-2">
-              <Button onClick={() => onBookTour(tour, selectedSlotId || undefined)} disabled={!selectedDate} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium text-base py-3">
-                {selectedDate ? 'Book Now' : 'Select a Date to Book'}
-              </Button>
+              {hasNoDates ? (
+                <Button 
+                  onClick={() => setOnRequestModalOpen(true)} 
+                  className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium text-base py-3"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  On Request
+                </Button>
+              ) : (
+                <Button onClick={() => onBookTour(tour, selectedSlotId || undefined)} disabled={!selectedDate} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-medium text-base py-3">
+                  {selectedDate ? 'Book Now' : 'Select a Date to Book'}
+                </Button>
+              )}
               <Button variant="outline" className="w-full border-burgundy/30 text-burgundy hover:bg-burgundy/5 font-medium text-base py-3" onClick={() => setChatOpen(true)}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Ask the Guide
@@ -928,5 +975,15 @@ export function TourDetailPage({
       
       {/* Anonymous Chat Modal */}
       <AnonymousChat isOpen={chatOpen} onClose={() => setChatOpen(false)} tourId={tour.id} guideId={tour.guide_id} tourTitle={tour.title} />
+      
+      {/* On Request Modal */}
+      <CustomTourRequestModal 
+        open={onRequestModalOpen} 
+        onOpenChange={setOnRequestModalOpen}
+        guideId={tour.guide_id}
+        guideName={guideInfo?.displayName || 'the guide'}
+        preSelectedTour={{ id: tour.id, title: tour.title }}
+        isOnRequest={true}
+      />
     </div>;
 }
