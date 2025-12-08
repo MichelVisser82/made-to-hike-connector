@@ -546,8 +546,8 @@ export function ComingSoonPage() {
                   Verified Guide Profiles
                 </h3>
                 <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-                  <MockGuideCard name="Marco Bianchi" certification="IFMGA" location="Dolomites, Italy" experience={12} rating={4.9} verified={true} />
-                  <MockGuideCard name="Sophie Durand" certification="IML" location="Chamonix, France" experience={8} rating={5.0} verified={true} />
+                  <MockGuideCard name="Marco Bianchi" certification="IFMGA" location="Dolomites, Italy" experience={12} rating={4.9} verified={true} imageUrl="https://images.unsplash.com/photo-1507034589631-9433cc6bc453?w=600&q=80" />
+                  <MockGuideCard name="Sophie Durand" certification="IML" location="Chamonix, France" experience={8} rating={5.0} verified={true} imageUrl="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&q=80" />
                 </div>
               </div>
 
