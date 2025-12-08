@@ -654,13 +654,7 @@ export function ComingSoonPage() {
                 <p className="text-cream/90 mb-8 text-lg leading-relaxed">
                   Apply for early access. First 50 get lifetime founder rates
                 </p>
-                <Button onClick={() => {
-                setUserType("guide");
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth"
-                });
-              }} className="w-full bg-background text-burgundy hover:bg-cream h-14 text-lg">
+                <Button onClick={() => scrollToSection('first-tester-programme')} className="w-full bg-background text-burgundy hover:bg-cream h-14 text-lg">
                   Apply Now
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
