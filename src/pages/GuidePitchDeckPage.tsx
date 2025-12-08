@@ -150,7 +150,7 @@ export default function GuidePitchDeckPage() {
               Connect to a Community of Enthusiastic Hikers
             </h2>
             <p className="text-xl text-charcoal/70 leading-relaxed max-w-3xl">
-              Let us handle the marketing while you spend your time in the mountains. We connect you to outdoor lovers who value authentic experiences with certified local guides.
+              Let us <strong>handle the marketing</strong> while you spend your time in the mountains. We connect you to outdoor lovers who value authentic experiences with certified local guides.
             </p>
           </div>
 
