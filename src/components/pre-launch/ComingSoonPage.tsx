@@ -133,7 +133,7 @@ export function ComingSoonPage() {
                   
                   {/* Buttons - Stacked */}
                   <div className="space-y-4">
-                    <button onClick={() => setUserType("hiker")} className={`w-full group text-left p-6 border transition-all duration-300 ${userType === "hiker" ? "border-burgundy bg-burgundy/5" : "border-white/10 hover:border-burgundy/50"}`}>
+                    <button onClick={() => scrollToSection('hiker-waitlist')} className={`w-full group text-left p-6 border transition-all duration-300 ${userType === "hiker" ? "border-burgundy bg-burgundy/5" : "border-white/10 hover:border-burgundy/50"}`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <Users className={`w-6 h-6 transition-colors ${userType === "hiker" ? "text-burgundy-light" : "text-cream/40 group-hover:text-burgundy-light"}`} />
@@ -530,6 +530,77 @@ export function ComingSoonPage() {
                 </div>
               </div>
 
+              {/* Hiker Early Access Signup */}
+              <div id="hiker-waitlist" className="bg-cream/50 border-2 border-burgundy/20 rounded-2xl p-12 lg:p-16">
+                <div className="text-center mb-10">
+                  <Badge className="bg-burgundy/10 text-burgundy border border-burgundy/30 mb-6 px-8 py-3 text-sm tracking-[0.3em] uppercase">
+                    Early Access
+                  </Badge>
+                  <h3 className="text-4xl lg:text-5xl font-playfair text-charcoal mb-4">
+                    Hiker Early Access
+                  </h3>
+                  <p className="text-xl text-charcoal/70 max-w-2xl mx-auto">
+                    Be the first to discover authentic mountain adventures with certified guides
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8 mb-10">
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-charcoal flex items-center gap-2">
+                      <Star className="w-5 h-5 text-burgundy" />
+                      What You'll Get
+                    </h4>
+                    <ul className="space-y-3 text-charcoal/70">
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+                        <span>First access to verified mountain guides</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+                        <span>Early bird discounts on first booking</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+                        <span>Personalized tour recommendations</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+                        <span>Priority booking for popular tours</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-charcoal flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-burgundy" />
+                      Platform Features
+                    </h4>
+                    <ul className="space-y-3 text-charcoal/70">
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+                        <span>Verified guide profiles & certifications</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+                        <span>Secure booking & payment system</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+                        <span>Digital waiver & document management</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-sage mt-0.5 flex-shrink-0" />
+                        <span>Weather forecasts & trail conditions</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="max-w-md mx-auto">
+                  <EmailSignupCard userType="hiker" sectionName="hiker-early-access" />
+                </div>
+              </div>
+
               {/* Tour Cards Preview */}
               <div className="space-y-8">
                 <h3 className="text-2xl font-playfair font-semibold text-charcoal text-center">
@@ -569,13 +640,7 @@ export function ComingSoonPage() {
                 <p className="text-charcoal/70 mb-8 text-lg leading-relaxed">
                   Join the waitlist and be first to book when we launch
                 </p>
-                <Button onClick={() => {
-                setUserType("hiker");
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth"
-                });
-              }} className="w-full bg-burgundy hover:bg-burgundy-dark text-white h-14 text-lg">
+                <Button onClick={() => scrollToSection('hiker-waitlist')} className="w-full bg-burgundy hover:bg-burgundy-dark text-white h-14 text-lg">
                   Join Waitlist
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
