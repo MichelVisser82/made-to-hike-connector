@@ -566,6 +566,78 @@ export function ComingSoonPage() {
           </div>
         </section>
 
+        {/* SECTION 5: Final CTA with Background Image - Be Part of the Journey */}
+        <section className="relative py-32 bg-charcoal overflow-hidden">
+          <div className="absolute inset-0">
+            <SmartImage category="adventure" usageContext="hero" tags={["sunset", "trail", "mountains"]} alt="Mountain path at sunset" className="w-full h-full object-cover opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/90 to-charcoal/80" />
+          </div>
+
+          <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
+            <h2 className="text-5xl lg:text-7xl mb-8 text-white font-playfair">
+              Be Part of the Journey
+            </h2>
+            <p className="text-2xl text-cream/80 mb-16 leading-relaxed max-w-3xl mx-auto">
+              Whether you're seeking authentic mountain experiences or ready to take control of your guiding business
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-8 mb-16 max-w-3xl mx-auto">
+              <Card className="p-10 bg-background hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                <Users className="w-16 h-16 text-burgundy mx-auto mb-6" />
+                <h3 className="text-3xl text-charcoal mb-4 font-playfair">
+                  For Hikers
+                </h3>
+                <p className="text-charcoal/70 mb-8 text-lg leading-relaxed">
+                  Join the waitlist and be first to book when we launch
+                </p>
+                <Button onClick={() => {
+                setUserType("hiker");
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth"
+                });
+              }} className="w-full bg-burgundy hover:bg-burgundy-dark text-white h-14 text-lg">
+                  Join Waitlist
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Card>
+
+              <Card className="p-10 bg-gradient-to-br from-burgundy to-burgundy-dark hover:shadow-2xl hover:shadow-burgundy/30 transition-all duration-500 hover:-translate-y-2">
+                <Mountain className="w-16 h-16 text-white mx-auto mb-6" />
+                <h3 className="text-3xl text-white mb-4 font-playfair">
+                  For Guides
+                </h3>
+                <p className="text-cream/90 mb-8 text-lg leading-relaxed">
+                  Apply for early access. First 50 get lifetime founder rates
+                </p>
+                <Button onClick={() => {
+                setUserType("guide");
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth"
+                });
+              }} className="w-full bg-background text-burgundy hover:bg-cream h-14 text-lg">
+                  Apply Now
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Card>
+            </div>
+
+            <div className="pt-12 border-t border-white/20">
+              <p className="text-cream/60 mb-4 text-lg">
+                Made to Hike • Built by Guides, For Guides
+              </p>
+              <div className="flex justify-center gap-6 text-burgundy-light">
+                <span>IFMGA Verified</span>
+                <span>•</span>
+                <span>UIMLA Certified</span>
+                <span>•</span>
+                <span>EU Compliant</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Certifications Section */}
         <section className="py-24 bg-background">
           <div className="container mx-auto px-4">
@@ -676,78 +748,6 @@ export function ComingSoonPage() {
 
         {/* FAQ Section */}
         <FAQSection />
-
-        {/* SECTION 5: Final CTA with Background Image */}
-        <section className="relative py-32 bg-charcoal overflow-hidden">
-          <div className="absolute inset-0">
-            <SmartImage category="adventure" usageContext="hero" tags={["sunset", "trail", "mountains"]} alt="Mountain path at sunset" className="w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/90 to-charcoal/80" />
-          </div>
-
-          <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
-            <h2 className="text-5xl lg:text-7xl mb-8 text-white font-playfair">
-              Be Part of the Journey
-            </h2>
-            <p className="text-2xl text-cream/80 mb-16 leading-relaxed max-w-3xl mx-auto">
-              Whether you're seeking authentic mountain experiences or ready to take control of your guiding business
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-8 mb-16 max-w-3xl mx-auto">
-              <Card className="p-10 bg-background hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-                <Users className="w-16 h-16 text-burgundy mx-auto mb-6" />
-                <h3 className="text-3xl text-charcoal mb-4 font-playfair">
-                  For Hikers
-                </h3>
-                <p className="text-charcoal/70 mb-8 text-lg leading-relaxed">
-                  Join the waitlist and be first to book when we launch
-                </p>
-                <Button onClick={() => {
-                setUserType("hiker");
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth"
-                });
-              }} className="w-full bg-burgundy hover:bg-burgundy-dark text-white h-14 text-lg">
-                  Join Waitlist
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Card>
-
-              <Card className="p-10 bg-gradient-to-br from-burgundy to-burgundy-dark hover:shadow-2xl hover:shadow-burgundy/30 transition-all duration-500 hover:-translate-y-2">
-                <Mountain className="w-16 h-16 text-white mx-auto mb-6" />
-                <h3 className="text-3xl text-white mb-4 font-playfair">
-                  For Guides
-                </h3>
-                <p className="text-cream/90 mb-8 text-lg leading-relaxed">
-                  Apply for early access. First 50 get lifetime founder rates
-                </p>
-                <Button onClick={() => {
-                setUserType("guide");
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth"
-                });
-              }} className="w-full bg-background text-burgundy hover:bg-cream h-14 text-lg">
-                  Apply Now
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Card>
-            </div>
-
-            <div className="pt-12 border-t border-white/20">
-              <p className="text-cream/60 mb-4 text-lg">
-                Made to Hike • Built by Guides, For Guides
-              </p>
-              <div className="flex justify-center gap-6 text-burgundy-light">
-                <span>IFMGA Verified</span>
-                <span>•</span>
-                <span>UIMLA Certified</span>
-                <span>•</span>
-                <span>EU Compliant</span>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Footer */}
         <footer className="py-8 bg-charcoal text-white/60 text-center text-sm">
