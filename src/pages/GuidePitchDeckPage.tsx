@@ -165,7 +165,7 @@ export default function GuidePitchDeckPage() {
               {
                 icon: Shield,
                 title: "Safety First",
-                opportunity: "Digital waiver & insurance system",
+                opportunity: "Integrated digital waiver & insurance system. Automated packing lists and easy communication",
                 impact: "Protected & professional",
               },
               {
