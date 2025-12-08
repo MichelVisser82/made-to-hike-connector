@@ -247,7 +247,7 @@ export function ComingSoonPage() {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Card 1 - Verified Expertise */}
               <div className="group relative overflow-hidden rounded-2xl h-[600px] shadow-2xl hover:shadow-burgundy/20 transition-all duration-500">
-                <SmartImage category="guide" usageContext="landing" tags={["portrait", "professional"]} alt="Mountain guide portrait" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <SmartImage category="adventure" usageContext="landing" tags={["hiker", "alpine_hiking", "backpacking"]} alt="Mountain guide leading hikers" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/60 to-transparent" />
                 
                 <div className="absolute inset-0 p-8 flex flex-col justify-end">
