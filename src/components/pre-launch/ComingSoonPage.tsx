@@ -257,50 +257,50 @@ export function ComingSoonPage() {
           {/* Right Side - Image Grid */}
           <div className="lg:w-1/2 h-[60vh] lg:h-screen relative overflow-hidden bg-charcoal">
             <div className="grid grid-cols-2 h-full">
-              {/* Top Left */}
+              {/* Top Left - Solo hiker with vista */}
               <div className="relative overflow-hidden group">
                 <SmartImage
-                  category="adventure"
+                  category="tour"
                   usageContext="hero"
-                  tags={["summit", "mountains"]}
-                  alt="Mountain summit at sunrise"
+                  tags={["hiker", "backpacker", "mountain vista"]}
+                  alt="Hiker overlooking mountain landscape"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                   priority="high"
                 />
                 <div className="absolute inset-0 bg-burgundy/10" />
               </div>
               
-              {/* Top Right */}
+              {/* Top Right - Group hiking */}
               <div className="relative overflow-hidden group">
                 <SmartImage
-                  category="trails"
+                  category="adventure"
                   usageContext="landing"
-                  tags={["hiking", "group"]}
-                  alt="Hiking trail with group"
+                  tags={["group hiking", "group_activity"]}
+                  alt="Group of hikers on mountain trail"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                 />
                 <div className="absolute inset-0 bg-charcoal/20" />
               </div>
               
-              {/* Bottom Left */}
+              {/* Bottom Left - Solo hiker on trail */}
               <div className="relative overflow-hidden group">
                 <SmartImage
-                  category="landscape"
+                  category="tour"
                   usageContext="hero"
-                  tags={["mountains", "alpine"]}
-                  alt="Mountain view landscape"
+                  tags={["solo-hiker", "mountain-hiking", "backpacking"]}
+                  alt="Hiker walking mountain trail"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                 />
                 <div className="absolute inset-0 bg-charcoal/30" />
               </div>
               
-              {/* Bottom Right */}
+              {/* Bottom Right - Mountaineering action */}
               <div className="relative overflow-hidden group">
                 <SmartImage
-                  category="adventure"
+                  category="tour"
                   usageContext="landing"
-                  tags={["via-ferrata", "climbing"]}
-                  alt="Via ferrata climbing adventure"
+                  tags={["mountaineering", "alpine", "summit"]}
+                  alt="Mountaineers on alpine summit"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                 />
                 <div className="absolute inset-0 bg-burgundy/20" />
