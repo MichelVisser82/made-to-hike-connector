@@ -141,44 +141,38 @@ export default function GuidePitchDeckPage() {
         </div>
       </section>
 
-      {/* PAGE 2: THE PROBLEM */}
+      {/* PAGE 2: THE OPPORTUNITY */}
       <section className="min-h-screen bg-cream py-16 px-8 lg:px-16 flex items-center print:page-break-after">
         <div className="max-w-6xl mx-auto w-full">
           <div className="mb-12">
-            <div className="text-xs tracking-[0.3em] text-burgundy mb-6 uppercase">The Current Reality</div>
+            <div className="text-xs tracking-[0.3em] text-burgundy mb-6 uppercase">The Opportunity</div>
             <h2 className="text-4xl lg:text-6xl text-charcoal mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Mountain Guiding Has a Problem
+              Connect to a Community of Enthusiastic Hikers
             </h2>
             <p className="text-xl text-charcoal/70 leading-relaxed max-w-3xl">
-              You know the mountains. You have the certifications. You do the work. But the platforms take up to 30% of your earnings.
+              Let us handle the marketing while you spend your time in the mountains. We connect you to outdoor lovers who value authentic experiences with certified local guides.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6 mb-12">
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
             {[
               {
-                icon: Euro,
-                title: "Unfair Commissions",
-                problem: "20-30% taken by platforms",
-                impact: "€800 tour → €560 to you",
-              },
-              {
-                icon: Users,
-                title: "Just a Number",
-                problem: "Algorithm-driven visibility",
-                impact: "No relationship. No soul.",
+                icon: TrendingUp,
+                title: "Marketing Done for You",
+                opportunity: "Professional booking platform & promotion",
+                impact: "Focus on guiding, not admin",
               },
               {
                 icon: Shield,
-                title: "Manual Waivers",
-                problem: "Unclear safety protocols",
-                impact: "Legal risk on you",
+                title: "Safety First",
+                opportunity: "Digital waiver & insurance system",
+                impact: "Protected & professional",
               },
               {
-                icon: TrendingUp,
-                title: "Volume Over Value",
-                problem: "Scale over sustainability",
-                impact: "Race to the bottom",
+                icon: Euro,
+                title: "Fair Earnings",
+                opportunity: "Keep what you earn, 5% platform fee",
+                impact: "€800 tour → €760 to you",
               }
             ].map((item) => (
               <Card key={item.title} className="p-6 border-charcoal/10 bg-white hover:shadow-lg transition-shadow">
@@ -188,7 +182,7 @@ export default function GuidePitchDeckPage() {
                 <h3 className="text-xl text-charcoal mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {item.title}
                 </h3>
-                <p className="text-sm text-charcoal/70 mb-2 leading-relaxed">{item.problem}</p>
+                <p className="text-sm text-charcoal/70 mb-2 leading-relaxed">{item.opportunity}</p>
                 <p className="text-sm text-burgundy italic">{item.impact}</p>
               </Card>
             ))}
@@ -196,7 +190,7 @@ export default function GuidePitchDeckPage() {
 
           <div className="bg-charcoal text-white p-10 rounded-lg">
             <p className="text-2xl lg:text-3xl leading-relaxed italic text-cream" style={{ fontFamily: 'Playfair Display, serif' }}>
-              "We built Made to Hike because guides deserve better. You do the hardest work in the industry. You should keep what you earn."
+              "We built Made to Hike to help guides thrive. Spend your time where you belong—in the mountains—while we connect you with hikers who appreciate your expertise."
             </p>
             <div className="mt-6 text-burgundy-light tracking-wider text-sm uppercase">— The Made to Hike Team</div>
           </div>
