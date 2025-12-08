@@ -95,16 +95,6 @@ export function EmailSignupCard({ userType, sectionName, className }: EmailSignu
     <>
       <Card className={`p-6 bg-gradient-to-br from-burgundy to-burgundy-dark text-white ${className}`}>
         <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-lg">
-            <Mail className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="font-semibold">Join the Waitlist</h3>
-            <p className="text-sm text-white/80">Be first to know when we launch</p>
-          </div>
-        </div>
-
         {isSuccess ? (
           <div className="flex items-center gap-3 py-4">
             <CheckCircle className="h-6 w-6 text-green-400" />
