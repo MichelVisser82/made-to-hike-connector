@@ -815,7 +815,7 @@ export default function GuidePitchDeckPage() {
                 step: "02",
                 title: "Complete Your Profile",
                 description: "15-step setup: bio, certifications (IFMGA/UIMLA), specialties, photos, experience.",
-                duration: "2-3 hrs"
+                duration: "15 mins"
               },
               {
                 step: "03",
