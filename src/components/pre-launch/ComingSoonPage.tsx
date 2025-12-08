@@ -148,7 +148,7 @@ export function ComingSoonPage() {
                       </div>
                     </button>
                     
-                    <button onClick={() => setUserType("guide")} className={`w-full group text-left p-6 border transition-all duration-300 ${userType === "guide" ? "border-burgundy bg-burgundy/5" : "border-white/10 hover:border-burgundy/50"}`}>
+                    <button onClick={() => scrollToSection('first-tester-programme')} className={`w-full group text-left p-6 border transition-all duration-300 ${userType === "guide" ? "border-burgundy bg-burgundy/5" : "border-white/10 hover:border-burgundy/50"}`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <Mountain className={`w-6 h-6 transition-colors ${userType === "guide" ? "text-burgundy-light" : "text-cream/40 group-hover:text-burgundy-light"}`} />
@@ -394,7 +394,7 @@ export function ComingSoonPage() {
             </div>
 
             {/* First Tester Programme */}
-            <div className="bg-white/10 backdrop-blur-md border-2 border-white/30 rounded-2xl p-12 lg:p-16 text-center">
+            <div id="first-tester-programme" className="bg-white/10 backdrop-blur-md border-2 border-white/30 rounded-2xl p-12 lg:p-16 text-center">
               <div className="mb-10">
                 <Badge className="bg-burgundy-light/30 text-white border border-white/30 mb-6 px-8 py-3 text-sm tracking-[0.3em] uppercase">
                   Limited Opportunity
