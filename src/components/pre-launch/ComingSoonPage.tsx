@@ -107,7 +107,7 @@ export function ComingSoonPage() {
                   Europe's first guide-owned marketplace connecting certified mountain professionals with passionate hikers.
                 </p>
                 <p className="text-lg text-cream/70 leading-relaxed">
-                  Dolomites • Pyrenees • Scottish Highlands &amp; more  
+                  Dolomites • Pyrenees • Highlands &amp; more  
                 </p>
               </div>
 
