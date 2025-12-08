@@ -12,6 +12,7 @@ interface MockGuideCardProps {
   experience: number;
   rating: number;
   verified: boolean;
+  imageUrl?: string;
 }
 
 export function MockGuideCard({
@@ -21,17 +22,26 @@ export function MockGuideCard({
   experience,
   rating,
   verified,
+  imageUrl,
 }: MockGuideCardProps) {
   return (
     <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-elegant">
       <div className="relative aspect-[3/4]">
-        <SmartImage
-          category="portrait"
-          usageContext="landing"
-          tags={['guide', 'professional', 'mountain']}
-          className="w-full h-full object-cover"
-          alt={`${name} - Mountain Guide`}
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={`${name} - Mountain Guide`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <SmartImage
+            category="portrait"
+            usageContext="landing"
+            tags={['guide', 'professional', 'mountain']}
+            className="w-full h-full object-cover"
+            alt={`${name} - Mountain Guide`}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
         
         {verified && (
