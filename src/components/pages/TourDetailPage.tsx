@@ -26,6 +26,7 @@ import { PublicTourMapSection } from '../tour/PublicTourMapSection';
 import { TourPolicyDisplay } from '../tour/TourPolicyDisplay';
 import { TourCard } from '../tour/TourCard';
 import { Skeleton } from '../ui/skeleton';
+import { SafeHtml } from '../ui/safe-html';
 interface TourDetailPageProps {
   tour: Tour;
   onBookTour: (tour: Tour, selectedSlotId?: string) => void;
@@ -726,12 +727,18 @@ export function TourDetailPage({
                             <h3 className="font-semibold text-lg">{item.title}</h3>
                           </div>
                           <div className="space-y-2">
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {expandedItinerary[index] ? dayDescription : dayDescription.length > 120 ? `${dayDescription.substring(0, 120)}...` : dayDescription}
-                            </p>
+                            {expandedItinerary[index] ? (
+                              <SafeHtml html={dayDescription} className="text-sm text-muted-foreground leading-relaxed" />
+                            ) : (
+                              <p className="text-sm text-muted-foreground leading-relaxed">
+                                {dayDescription.replace(/<[^>]+>/g, '').length > 120 
+                                  ? `${dayDescription.replace(/<[^>]+>/g, '').substring(0, 120)}...` 
+                                  : dayDescription.replace(/<[^>]+>/g, '')}
+                              </p>
+                            )}
                           </div>
                           
-                          {dayDescription.length > 120 && <button onClick={() => toggleItinerary(index)} className="text-sm text-primary hover:underline mt-2 font-medium transition-colors">
+                          {dayDescription.replace(/<[^>]+>/g, '').length > 120 && <button onClick={() => toggleItinerary(index)} className="text-sm text-primary hover:underline mt-2 font-medium transition-colors">
                               {expandedItinerary[index] ? "Show less" : "Read more"}
                             </button>}
                           

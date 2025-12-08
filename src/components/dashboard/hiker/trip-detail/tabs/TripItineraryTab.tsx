@@ -2,6 +2,7 @@ import { useState, lazy, Suspense } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { MapSkeleton } from '@/components/common/MapSkeleton';
+import { SafeHtml } from '@/components/ui/safe-html';
 import type { TripDetails, TripItineraryDay } from '@/hooks/useTripDetails';
 
 const FullMapReveal = lazy(() => 
@@ -95,7 +96,7 @@ export function TripItineraryTab({ tripDetails }: TripItineraryTabProps) {
                       {/* Description */}
                       <div>
                         <h4 className="font-medium text-foreground mb-2">Overview</h4>
-                        <p className="text-muted-foreground">{day.description}</p>
+                        <SafeHtml html={day.description || ''} className="text-muted-foreground" />
                       </div>
 
                       {/* Activities */}
