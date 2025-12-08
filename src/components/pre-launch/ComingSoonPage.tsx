@@ -546,8 +546,8 @@ export function ComingSoonPage() {
                   Verified Guide Profiles
                 </h3>
                 <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-                  <MockGuideCard name="Marco Bianchi" certification="IFMGA" location="Dolomites, Italy" experience={12} rating={4.9} verified={true} imageUrl="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/tour-images/guides/fff8cf91-e3e2-4dbd-b54f-bb3fa822542b/hero/0.7633095168516884.jpg" />
-                  <MockGuideCard name="Sophie Durand" certification="IML" location="Chamonix, France" experience={8} rating={5.0} verified={true} imageUrl="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/tour-images/guides/93487995-df40-4765-9243-e2831abfaced/hero/0.03892489494938478.webp" />
+                  <MockGuideCard name="Marco Bianchi" certification="IFMGA" location="Dolomites, Italy" experience={12} rating={4.9} verified={true} imageUrl="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/website-images/trails/1758891561479_93owsl.JPG" />
+                  <MockGuideCard name="Sophie Durand" certification="IML" location="Chamonix, France" experience={8} rating={5.0} verified={true} imageUrl="https://ohecxwxumzpfcfsokfkg.supabase.co/storage/v1/object/public/website-images/mountains/1758891560670_mq8m9n.JPG" />
                 </div>
               </div>
 
