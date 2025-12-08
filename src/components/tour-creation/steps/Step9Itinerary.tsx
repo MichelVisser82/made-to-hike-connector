@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { useFormContext } from 'react-hook-form';
 import { TourFormData } from '@/hooks/useTourCreation';
 import { Plus, Trash2, Info } from 'lucide-react';
@@ -135,16 +135,14 @@ export default function Step9Itinerary({ onSave, onNext, onPrev, isSaving }: Ste
                               </Tooltip>
                             </TooltipProvider>
                           </div>
-                          <Textarea
-                            placeholder="e.g., Today we tackle the breathtaking ascent to the summit. Starting at dawn, we'll navigate through ancient pine forests as the morning mist clears. The trail gradually steepens with stunning panoramic views opening up at every turn. We'll pause at Eagle's Nest viewpoint for snacks and photos before the final push. The reward at the top? 360-degree views of snow-capped peaks stretching to the horizon..."
+                          <RichTextEditor
+                            placeholder="e.g., Today we tackle the breathtaking ascent to the summit. Starting at dawn, we'll navigate through ancient pine forests as the morning mist clears. The trail gradually steepens with stunning panoramic views opening up at every turn..."
                             value={day.description}
-                            onChange={(e) => {
+                            onChange={(value) => {
                               const updated = [...itinerary];
-                              updated[index].description = e.target.value;
+                              updated[index].description = value;
                               form.setValue('itinerary', updated);
                             }}
-                            rows={5}
-                            className="resize-none"
                           />
                         </div>
 
