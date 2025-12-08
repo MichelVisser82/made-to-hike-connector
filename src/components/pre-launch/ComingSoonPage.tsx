@@ -281,9 +281,7 @@ export function ComingSoonPage() {
                   <h3 className="text-3xl text-white mb-4 font-playfair">
                     Authentic<br />Alpine Culture
                   </h3>
-                  <p className="text-cream/90 leading-relaxed text-lg mb-6">
-                    Small groups, sustainable practices, and deep connections to local mountain traditions across three iconic European ranges.
-                  </p>
+                  <p className="text-cream/90 leading-relaxed text-lg mb-6">Small groups, sustainable practices, and deep connections to local mountain traditions.</p>
                   <div className="flex items-center gap-3">
                     <Badge className="bg-burgundy text-white border-0 px-4 py-2">
                       <MapPin className="w-4 h-4 mr-2" />
