@@ -622,19 +622,6 @@ export function ComingSoonPage() {
                 </Button>
               </Card>
             </div>
-
-            <div className="pt-12 border-t border-white/20">
-              <p className="text-cream/60 mb-4 text-lg">
-                Made to Hike • Built by Guides, For Guides
-              </p>
-              <div className="flex justify-center gap-6 text-burgundy-light">
-                <span>IFMGA Verified</span>
-                <span>•</span>
-                <span>UIMLA Certified</span>
-                <span>•</span>
-                <span>EU Compliant</span>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -752,7 +739,19 @@ export function ComingSoonPage() {
         {/* Footer */}
         <footer className="py-8 bg-charcoal text-white/60 text-center text-sm">
           <div className="container mx-auto px-4">
-            <p>© 2025 Made to Hike. Built with passion for the mountains.</p>
+            <div className="mb-4">
+              <p className="text-cream/60 mb-4 text-lg">
+                Made to Hike • Built by Guides, For Guides
+              </p>
+              <div className="flex justify-center gap-6 text-burgundy-light text-sm">
+                <span>IFMGA Verified</span>
+                <span>•</span>
+                <span>UIMLA Certified</span>
+                <span>•</span>
+                <span>EU Compliant</span>
+              </div>
+            </div>
+            <p className="mt-4">© 2025 Made to Hike. Built with passion for the mountains.</p>
           </div>
         </footer>
       </div>
