@@ -190,7 +190,7 @@ export function useGuideSignup() {
         description: "Your guide application has been submitted for review.",
       });
 
-      navigate('/dashboard');
+      navigate('/guide/signup-success');
     } catch (error: any) {
       console.error('Signup error:', error);
       toast({
