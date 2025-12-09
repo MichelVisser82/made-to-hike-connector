@@ -718,7 +718,11 @@ export function TourDetailPage({
                       <div className="flex flex-col md:flex-row gap-4">
                         <div className="md:w-64 w-full flex-shrink-0">
                           <div className="aspect-[3/2] rounded-lg overflow-hidden">
-                            {item.image_url ? <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <SmartImage category="tour" usageContext={`${tour.region_country} ${tour.region_subregion}`} tags={[tour.region_country, tour.region_subregion, 'hiking', 'trail']} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" fallbackSrc={tour.images[Math.min(index, tour.images.length - 1)]} alt={item.title} />}
+                            <img 
+                              src={item.image_url || tour.images?.[Math.min(index, (tour.images?.length || 1) - 1)] || '/placeholder.svg'} 
+                              alt={item.title || `Day ${item.day}`} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                            />
                           </div>
                         </div>
                         <div className="flex-1">
