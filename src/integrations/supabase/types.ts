@@ -3816,7 +3816,6 @@ export type Database = {
         }[]
       }
       has_role:
-        | { Args: { _role: string; _user_id: string }; Returns: boolean }
         | {
             Args: {
               _role: Database["public"]["Enums"]["app_role"]
@@ -3824,6 +3823,7 @@ export type Database = {
             }
             Returns: boolean
           }
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
       hiker_has_booking_for_tour: {
         Args: { _hiker_id: string; _tour_id: string }
         Returns: boolean
