@@ -64,7 +64,7 @@ export default function CustomRequestsPage() {
         ...prev,
         name: profile.name || '',
         email: profile.email || '',
-        phone: profile.phone || ''
+        phone: (profile as any).phone || ''
       }));
     }
   }, [profile]);
@@ -656,7 +656,7 @@ export default function CustomRequestsPage() {
                         additionalDetails: "",
                         name: profile?.name || "",
                         email: profile?.email || "",
-                        phone: profile?.phone || ""
+                        phone: (profile as any)?.phone || ""
                       });
                       document.getElementById('request-form')?.scrollIntoView({ behavior: 'smooth' });
                     }}
