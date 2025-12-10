@@ -141,7 +141,6 @@ verify_jwt = false
 [functions.collect-final-payments]
 verify_jwt = false
 
-# Cron jobs configuration
 [functions.create-tour-offer]
 verify_jwt = false
 
@@ -181,14 +180,17 @@ verify_jwt = false
 [functions.admin-manage-guide]
 verify_jwt = false
 
+[functions.create-public-tour-request]
+verify_jwt = false
+
 # Cron jobs configuration
 [cron]
 enabled = true
 
 [cron.jobs.collect-final-payments]
-schedule = "0 9 * * *"  # Run daily at 9:00 AM UTC
+schedule = "0 9 * * *"
 function_name = "collect-final-payments"
 
 [cron.jobs.archive-expired-offers]
-schedule = "0 */6 * * *"  # Run every 6 hours
+schedule = "0 */6 * * *"
 function_name = "archive-expired-offers"

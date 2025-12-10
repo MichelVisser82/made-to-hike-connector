@@ -945,6 +945,61 @@ export type Database = {
         }
         Relationships: []
       }
+      guide_request_responses: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          decline_reason: string | null
+          forwarded_to_email: string | null
+          guide_id: string
+          id: string
+          request_id: string
+          response_type: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          decline_reason?: string | null
+          forwarded_to_email?: string | null
+          guide_id: string
+          id?: string
+          request_id: string
+          response_type: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          decline_reason?: string | null
+          forwarded_to_email?: string | null
+          guide_id?: string
+          id?: string
+          request_id?: string
+          response_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_request_responses_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guide_request_responses_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guide_request_responses_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "public_tour_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       help_faqs: {
         Row: {
           answer: string
@@ -1546,6 +1601,90 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      public_tour_requests: {
+        Row: {
+          additional_details: string | null
+          assigned_guide_id: string | null
+          budget_per_person: string | null
+          created_at: string
+          description: string
+          duration: string
+          experience_level: string
+          expires_at: string | null
+          group_size: string
+          id: string
+          preferred_dates: string
+          region: string
+          requester_email: string
+          requester_id: string | null
+          requester_name: string
+          requester_phone: string | null
+          special_requests: string[] | null
+          status: string
+          trip_name: string
+          updated_at: string
+        }
+        Insert: {
+          additional_details?: string | null
+          assigned_guide_id?: string | null
+          budget_per_person?: string | null
+          created_at?: string
+          description: string
+          duration: string
+          experience_level: string
+          expires_at?: string | null
+          group_size: string
+          id?: string
+          preferred_dates: string
+          region: string
+          requester_email: string
+          requester_id?: string | null
+          requester_name: string
+          requester_phone?: string | null
+          special_requests?: string[] | null
+          status?: string
+          trip_name: string
+          updated_at?: string
+        }
+        Update: {
+          additional_details?: string | null
+          assigned_guide_id?: string | null
+          budget_per_person?: string | null
+          created_at?: string
+          description?: string
+          duration?: string
+          experience_level?: string
+          expires_at?: string | null
+          group_size?: string
+          id?: string
+          preferred_dates?: string
+          region?: string
+          requester_email?: string
+          requester_id?: string | null
+          requester_name?: string
+          requester_phone?: string | null
+          special_requests?: string[] | null
+          status?: string
+          trip_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_tour_requests_assigned_guide_id_fkey"
+            columns: ["assigned_guide_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_tour_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_invitations: {
         Row: {
