@@ -43,6 +43,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const EmailTest = lazy(() => import("./components/EmailTest").then(m => ({ default: m.EmailTest })));
 const GuidePitchDeckPage = lazy(() => import("./pages/GuidePitchDeckPage"));
 const GuideSignupSuccessPage = lazy(() => import("./pages/GuideSignupSuccessPage"));
+const CustomRequestsPage = lazy(() => import("./pages/CustomRequestsPage"));
 
 const queryClient = new QueryClient();
 
@@ -96,6 +97,7 @@ const App: React.FC = () => {
             <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>} />
             <Route path="/cookies" element={<Suspense fallback={<PageLoader />}><CookiesPage /></Suspense>} />
             <Route path="/contact" element={<Suspense fallback={<PageLoader />}><ContactPage /></Suspense>} />
+            <Route path="/custom-requests" element={<Suspense fallback={<PageLoader />}><CustomRequestsPage /></Suspense>} />
             <Route path="/participant/:token" element={<Suspense fallback={<PageLoader />}><ParticipantPage /></Suspense>} />
                 <Route 
                   path="/dashboard" 
