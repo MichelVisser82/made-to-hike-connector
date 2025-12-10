@@ -1,5 +1,8 @@
 project_id = "ohecxwxumzpfcfsokfkg"
 
+[functions.respond-to-public-request]
+verify_jwt = false
+
 [functions.facebook-capi]
 verify_jwt = false
 
