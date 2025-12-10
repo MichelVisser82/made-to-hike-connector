@@ -1,26 +1,5 @@
 import { useState, useEffect } from "react";
-import { 
-  Mountain, 
-  CheckCircle2, 
-  ArrowRight, 
-  Users,
-  Calendar,
-  MapPin,
-  Euro,
-  Clock,
-  Send,
-  Sparkles,
-  MessageSquare,
-  TrendingUp,
-  Utensils,
-  Accessibility,
-  Camera,
-  Binoculars,
-  Landmark,
-  Hotel,
-  Tent,
-  Baby
-} from "lucide-react";
+import { Mountain, CheckCircle2, ArrowRight, Users, Calendar, MapPin, Euro, Clock, Send, Sparkles, MessageSquare, TrendingUp, Utensils, Accessibility, Camera, Binoculars, Landmark, Hotel, Tent, Baby } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -33,11 +12,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
 export default function CustomRequestsPage() {
-  const { user } = useAuth();
-  const { profile } = useProfile();
-  
+  const {
+    user
+  } = useAuth();
+  const {
+    profile
+  } = useProfile();
   const [formData, setFormData] = useState({
     tripName: "",
     region: "",
@@ -61,13 +42,9 @@ export default function CustomRequestsPage() {
   // Fetch real tour images for hero grid
   useEffect(() => {
     const fetchHeroImages = async () => {
-      const { data } = await supabase
-        .from('tours')
-        .select('images')
-        .eq('is_active', true)
-        .not('images', 'is', null)
-        .limit(10);
-      
+      const {
+        data
+      } = await supabase.from('tours').select('images').eq('is_active', true).not('images', 'is', null).limit(10);
       if (data) {
         const allImages = data.flatMap(tour => tour.images || []).slice(0, 4);
         if (allImages.length >= 4) {
@@ -89,13 +66,13 @@ export default function CustomRequestsPage() {
       }));
     }
   }, [profile]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const { error } = await supabase.functions.invoke('create-public-tour-request', {
+      const {
+        error
+      } = await supabase.functions.invoke('create-public-tour-request', {
         body: {
           requester_id: user?.id || null,
           requester_name: formData.name,
@@ -113,9 +90,7 @@ export default function CustomRequestsPage() {
           additional_details: formData.additionalDetails || null
         }
       });
-
       if (error) throw error;
-
       setSubmitted(true);
       toast.success("Your request has been sent to our guides!");
     } catch (error: any) {
@@ -125,23 +100,18 @@ export default function CustomRequestsPage() {
       setIsSubmitting(false);
     }
   };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
-
   const handleCheckboxChange = (option: string) => {
     setFormData(prev => ({
       ...prev,
-      specialRequests: prev.specialRequests.includes(option)
-        ? prev.specialRequests.filter(item => item !== option)
-        : [...prev.specialRequests, option]
+      specialRequests: prev.specialRequests.includes(option) ? prev.specialRequests.filter(item => item !== option) : [...prev.specialRequests, option]
     }));
   };
-
   const regionLabel = (region: string) => {
     const labels: Record<string, string> = {
       dolomites: "Dolomites, Italy",
@@ -152,13 +122,8 @@ export default function CustomRequestsPage() {
     };
     return labels[region] || region;
   };
-
-  return (
-    <MainLayout>
-      <PageSEO 
-        title="Custom Hiking Requests | MadeToHike"
-        description="Post your dream hiking adventure and receive tailored proposals from certified IFMGA & UIMLA guides across Europe. Get 3-5 custom offers within 48 hours."
-      />
+  return <MainLayout>
+      <PageSEO title="Custom Hiking Requests | MadeToHike" description="Post your dream hiking adventure and receive tailored proposals from certified IFMGA & UIMLA guides across Europe. Get 3-5 custom offers within 48 hours." />
       
       <div className="min-h-screen bg-cream">
         {/* HERO SECTION - Split Screen */}
@@ -170,7 +135,7 @@ export default function CustomRequestsPage() {
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <pattern id="hero-grid" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-                    <circle cx="30" cy="30" r="1" fill="white"/>
+                    <circle cx="30" cy="30" r="1" fill="white" />
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#hero-grid)" />
@@ -200,7 +165,7 @@ export default function CustomRequestsPage() {
               {/* Stats - Horizontal */}
               <div className="flex gap-12 mb-12 pb-12 border-b border-white/10">
                 <div>
-                  <div className="text-4xl text-burgundy-light mb-1 font-playfair">127</div>
+                  <div className="text-4xl text-burgundy-light mb-1 font-playfair">All</div>
                   <div className="text-xs text-cream/60 uppercase tracking-widest">Certified</div>
                 </div>
                 <div>
@@ -213,10 +178,9 @@ export default function CustomRequestsPage() {
                 </div>
               </div>
 
-              <Button 
-                onClick={() => document.getElementById('request-form')?.scrollIntoView({ behavior: 'smooth' })}
-                className="bg-burgundy hover:bg-burgundy-dark text-white h-14 px-10"
-              >
+              <Button onClick={() => document.getElementById('request-form')?.scrollIntoView({
+              behavior: 'smooth'
+            })} className="bg-burgundy hover:bg-burgundy-dark text-white h-14 px-10">
                 Create Your Request
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
@@ -225,42 +189,22 @@ export default function CustomRequestsPage() {
 
           {/* Right Side - Images Grid */}
           <div className="lg:w-1/2 h-[50vh] lg:h-screen grid grid-cols-2">
-            {heroImages.length >= 4 ? (
-              <>
+            {heroImages.length >= 4 ? <>
                 <div className="relative overflow-hidden">
-                  <img
-                    src={heroImages[0]}
-                    alt="Mountain adventure"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={heroImages[0]} alt="Mountain adventure" className="w-full h-full object-cover" />
                 </div>
                 <div className="relative overflow-hidden">
-                  <img
-                    src={heroImages[1]}
-                    alt="Hiking experience"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={heroImages[1]} alt="Hiking experience" className="w-full h-full object-cover" />
                 </div>
                 <div className="relative overflow-hidden">
-                  <img
-                    src={heroImages[2]}
-                    alt="Mountain adventure planning"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={heroImages[2]} alt="Mountain adventure planning" className="w-full h-full object-cover" />
                 </div>
                 <div className="relative overflow-hidden">
-                  <img
-                    src={heroImages[3]}
-                    alt="Outdoor adventure team"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={heroImages[3]} alt="Outdoor adventure team" className="w-full h-full object-cover" />
                 </div>
-              </>
-            ) : (
-              <div className="col-span-2 bg-cream/50 flex items-center justify-center">
+              </> : <div className="col-span-2 bg-cream/50 flex items-center justify-center">
                 <Mountain className="w-16 h-16 text-burgundy/30" />
-              </div>
-            )}
+              </div>}
           </div>
         </section>
 
@@ -280,33 +224,27 @@ export default function CustomRequestsPage() {
             </div>
 
             <div className="grid lg:grid-cols-4 gap-12">
-              {[
-                {
-                  step: "01",
-                  title: "Submit Request",
-                  description: "Tell us your destination, dates, and what you're looking for in your ideal hiking adventure.",
-                  icon: MessageSquare
-                },
-                {
-                  step: "02",
-                  title: "Guides Respond",
-                  description: "Certified guides in your region create custom proposals tailored to your needs.",
-                  icon: Users
-                },
-                {
-                  step: "03",
-                  title: "Compare Offers",
-                  description: "Review 3-5 detailed proposals. Compare pricing, itineraries, and guide credentials.",
-                  icon: TrendingUp
-                },
-                {
-                  step: "04",
-                  title: "Book & Hike",
-                  description: "Choose your favorite guide, finalize details, and embark on your dream adventure.",
-                  icon: CheckCircle2
-                }
-              ].map((item) => (
-                <div key={item.step}>
+              {[{
+              step: "01",
+              title: "Submit Request",
+              description: "Tell us your destination, dates, and what you're looking for in your ideal hiking adventure.",
+              icon: MessageSquare
+            }, {
+              step: "02",
+              title: "Guides Respond",
+              description: "Certified guides in your region create custom proposals tailored to your needs.",
+              icon: Users
+            }, {
+              step: "03",
+              title: "Compare Offers",
+              description: "Review 3-5 detailed proposals. Compare pricing, itineraries, and guide credentials.",
+              icon: TrendingUp
+            }, {
+              step: "04",
+              title: "Book & Hike",
+              description: "Choose your favorite guide, finalize details, and embark on your dream adventure.",
+              icon: CheckCircle2
+            }].map(item => <div key={item.step}>
                   <div className="w-16 h-16 bg-burgundy/10 rounded-full flex items-center justify-center mb-6">
                     <item.icon className="w-8 h-8 text-burgundy" />
                   </div>
@@ -317,8 +255,7 @@ export default function CustomRequestsPage() {
                   <p className="text-charcoal/70 leading-relaxed">
                     {item.description}
                   </p>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </section>
@@ -326,8 +263,7 @@ export default function CustomRequestsPage() {
         {/* REQUEST FORM SECTION */}
         <section id="request-form" className="py-24 lg:py-32 bg-cream">
           <div className="max-w-4xl mx-auto px-6">
-            {!submitted ? (
-              <>
+            {!submitted ? <>
                 <div className="text-center mb-16">
                   <div className="text-xs tracking-[0.3em] text-burgundy mb-6 uppercase">
                     Get Started
@@ -352,15 +288,7 @@ export default function CustomRequestsPage() {
                         <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block">
                           Trip Name
                         </label>
-                        <Input
-                          type="text"
-                          name="tripName"
-                          placeholder="e.g., Alpine Adventure 2025"
-                          value={formData.tripName}
-                          onChange={handleChange}
-                          required
-                          className="h-14"
-                        />
+                        <Input type="text" name="tripName" placeholder="e.g., Alpine Adventure 2025" value={formData.tripName} onChange={handleChange} required className="h-14" />
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-6">
@@ -369,13 +297,7 @@ export default function CustomRequestsPage() {
                             <MapPin className="w-4 h-4" />
                             Region
                           </label>
-                          <select
-                            name="region"
-                            value={formData.region}
-                            onChange={handleChange as any}
-                            required
-                            className="w-full h-14 border border-charcoal/20 rounded-md px-4 bg-white"
-                          >
+                          <select name="region" value={formData.region} onChange={handleChange as any} required className="w-full h-14 border border-charcoal/20 rounded-md px-4 bg-white">
                             <option value="">Select region</option>
                             <option value="dolomites">Dolomites, Italy</option>
                             <option value="pyrenees">Pyrenees, France/Spain</option>
@@ -390,15 +312,7 @@ export default function CustomRequestsPage() {
                             <Calendar className="w-4 h-4" />
                             Dates
                           </label>
-                          <Input
-                            type="text"
-                            name="dates"
-                            placeholder="e.g., June 15-22, 2025"
-                            value={formData.dates}
-                            onChange={handleChange}
-                            required
-                            className="h-14"
-                          />
+                          <Input type="text" name="dates" placeholder="e.g., June 15-22, 2025" value={formData.dates} onChange={handleChange} required className="h-14" />
                         </div>
                       </div>
 
@@ -408,13 +322,7 @@ export default function CustomRequestsPage() {
                             <Clock className="w-4 h-4" />
                             Duration
                           </label>
-                          <select
-                            name="duration"
-                            value={formData.duration}
-                            onChange={handleChange as any}
-                            required
-                            className="w-full h-14 border border-charcoal/20 rounded-md px-4 bg-white"
-                          >
+                          <select name="duration" value={formData.duration} onChange={handleChange as any} required className="w-full h-14 border border-charcoal/20 rounded-md px-4 bg-white">
                             <option value="">Select</option>
                             <option value="1-2">1-2 days</option>
                             <option value="3-4">3-4 days</option>
@@ -428,28 +336,14 @@ export default function CustomRequestsPage() {
                             <Users className="w-4 h-4" />
                             Group Size
                           </label>
-                          <Input
-                            type="text"
-                            name="groupSize"
-                            placeholder="e.g., 4 people"
-                            value={formData.groupSize}
-                            onChange={handleChange}
-                            required
-                            className="h-14"
-                          />
+                          <Input type="text" name="groupSize" placeholder="e.g., 4 people" value={formData.groupSize} onChange={handleChange} required className="h-14" />
                         </div>
 
                         <div>
                           <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block">
                             Experience
                           </label>
-                          <select
-                            name="experience"
-                            value={formData.experience}
-                            onChange={handleChange as any}
-                            required
-                            className="w-full h-14 border border-charcoal/20 rounded-md px-4 bg-white"
-                          >
+                          <select name="experience" value={formData.experience} onChange={handleChange as any} required className="w-full h-14 border border-charcoal/20 rounded-md px-4 bg-white">
                             <option value="">Select</option>
                             <option value="beginner">Beginner</option>
                             <option value="intermediate">Intermediate</option>
@@ -464,29 +358,14 @@ export default function CustomRequestsPage() {
                           <Euro className="w-4 h-4" />
                           Budget per Person (Optional)
                         </label>
-                        <Input
-                          type="text"
-                          name="budget"
-                          placeholder="e.g., €500-800"
-                          value={formData.budget}
-                          onChange={handleChange}
-                          className="h-14"
-                        />
+                        <Input type="text" name="budget" placeholder="e.g., €500-800" value={formData.budget} onChange={handleChange} className="h-14" />
                       </div>
 
                       <div>
                         <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block">
                           Describe Your Dream Trip
                         </label>
-                        <Textarea
-                          name="description"
-                          placeholder="What kind of trails? Accommodation preferences? Photography focus? Specific peaks? Any concerns?"
-                          value={formData.description}
-                          onChange={handleChange}
-                          required
-                          rows={6}
-                          className="resize-none"
-                        />
+                        <Textarea name="description" placeholder="What kind of trails? Accommodation preferences? Photography focus? Specific peaks? Any concerns?" value={formData.description} onChange={handleChange} required rows={6} className="resize-none" />
                       </div>
 
                       <div>
@@ -494,27 +373,43 @@ export default function CustomRequestsPage() {
                           Special Requests (Optional)
                         </label>
                         <div className="grid md:grid-cols-2 gap-3">
-                          {[
-                            { id: "dietary", icon: Utensils, label: "Dietary requirements" },
-                            { id: "accessibility", icon: Accessibility, label: "Accessibility needs" },
-                            { id: "photography", icon: Camera, label: "Photography focused" },
-                            { id: "wildlife", icon: Binoculars, label: "Wildlife observation" },
-                            { id: "cultural", icon: Landmark, label: "Cultural experiences" },
-                            { id: "luxury", icon: Hotel, label: "Luxury accommodations" },
-                            { id: "camping", icon: Tent, label: "Camping/refuge based" },
-                            { id: "family", icon: Baby, label: "Family-friendly" }
-                          ].map((option) => (
-                            <label key={option.id} className="flex items-center gap-3 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={formData.specialRequests.includes(option.id)}
-                                onChange={() => handleCheckboxChange(option.id)}
-                                className="w-5 h-5 text-burgundy border-charcoal/20 rounded focus:ring-burgundy"
-                              />
+                          {[{
+                        id: "dietary",
+                        icon: Utensils,
+                        label: "Dietary requirements"
+                      }, {
+                        id: "accessibility",
+                        icon: Accessibility,
+                        label: "Accessibility needs"
+                      }, {
+                        id: "photography",
+                        icon: Camera,
+                        label: "Photography focused"
+                      }, {
+                        id: "wildlife",
+                        icon: Binoculars,
+                        label: "Wildlife observation"
+                      }, {
+                        id: "cultural",
+                        icon: Landmark,
+                        label: "Cultural experiences"
+                      }, {
+                        id: "luxury",
+                        icon: Hotel,
+                        label: "Luxury accommodations"
+                      }, {
+                        id: "camping",
+                        icon: Tent,
+                        label: "Camping/refuge based"
+                      }, {
+                        id: "family",
+                        icon: Baby,
+                        label: "Family-friendly"
+                      }].map(option => <label key={option.id} className="flex items-center gap-3 cursor-pointer">
+                              <input type="checkbox" checked={formData.specialRequests.includes(option.id)} onChange={() => handleCheckboxChange(option.id)} className="w-5 h-5 text-burgundy border-charcoal/20 rounded focus:ring-burgundy" />
                               <option.icon className="w-4 h-4 text-charcoal/70" />
                               <span className="text-charcoal/80">{option.label}</span>
-                            </label>
-                          ))}
+                            </label>)}
                         </div>
                       </div>
 
@@ -522,14 +417,7 @@ export default function CustomRequestsPage() {
                         <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block">
                           Additional Details (Optional)
                         </label>
-                        <Textarea
-                          name="additionalDetails"
-                          placeholder="Specific peaks? Accommodation style? Any concerns we should address?"
-                          value={formData.additionalDetails}
-                          onChange={handleChange}
-                          rows={4}
-                          className="resize-none"
-                        />
+                        <Textarea name="additionalDetails" placeholder="Specific peaks? Accommodation style? Any concerns we should address?" value={formData.additionalDetails} onChange={handleChange} rows={4} className="resize-none" />
                       </div>
                     </div>
                   </Card>
@@ -545,15 +433,7 @@ export default function CustomRequestsPage() {
                         <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block">
                           Full Name
                         </label>
-                        <Input
-                          type="text"
-                          name="name"
-                          placeholder="Your name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          required
-                          className="h-14"
-                        />
+                        <Input type="text" name="name" placeholder="Your name" value={formData.name} onChange={handleChange} required className="h-14" />
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-6">
@@ -561,41 +441,20 @@ export default function CustomRequestsPage() {
                           <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block">
                             Email
                           </label>
-                          <Input
-                            type="email"
-                            name="email"
-                            placeholder="your.email@example.com"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            className="h-14"
-                          />
+                          <Input type="email" name="email" placeholder="your.email@example.com" value={formData.email} onChange={handleChange} required className="h-14" />
                         </div>
 
                         <div>
                           <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block">
                             Phone (Optional)
                           </label>
-                          <Input
-                            type="tel"
-                            name="phone"
-                            placeholder="+44 123 456 7890"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            className="h-14"
-                          />
+                          <Input type="tel" name="phone" placeholder="+44 123 456 7890" value={formData.phone} onChange={handleChange} className="h-14" />
                         </div>
                       </div>
 
                       <div className="pt-4">
                         <label className="flex items-start gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={acceptedTerms}
-                            onChange={(e) => setAcceptedTerms(e.target.checked)}
-                            required
-                            className="w-5 h-5 text-burgundy border-charcoal/20 rounded focus:ring-burgundy mt-0.5 flex-shrink-0"
-                          />
+                          <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} required className="w-5 h-5 text-burgundy border-charcoal/20 rounded focus:ring-burgundy mt-0.5 flex-shrink-0" />
                           <span className="text-sm text-charcoal/70 leading-relaxed">
                             I agree to receive proposals from certified guides via email and accept the <a href="/privacy" className="text-burgundy hover:underline">Privacy Statement</a>. I can unsubscribe at any time and there's no obligation to book.
                           </span>
@@ -606,11 +465,7 @@ export default function CustomRequestsPage() {
 
                   {/* Submit Button */}
                   <div className="text-center pt-4">
-                    <Button 
-                      type="submit"
-                      disabled={isSubmitting || !acceptedTerms}
-                      className="bg-burgundy hover:bg-burgundy-dark text-white h-16 px-12 text-lg disabled:opacity-50"
-                    >
+                    <Button type="submit" disabled={isSubmitting || !acceptedTerms} className="bg-burgundy hover:bg-burgundy-dark text-white h-16 px-12 text-lg disabled:opacity-50">
                       {isSubmitting ? "Submitting..." : "Submit Request"}
                       <Send className="ml-2 w-5 h-5" />
                     </Button>
@@ -619,10 +474,9 @@ export default function CustomRequestsPage() {
                     </p>
                   </div>
                 </form>
-              </>
-            ) : (
-              // Success State
-              <div className="text-center py-20">
+              </> :
+          // Success State
+          <div className="text-center py-20">
                 <div className="max-w-2xl mx-auto">
                   <div className="w-20 h-20 bg-burgundy/10 rounded-full flex items-center justify-center mx-auto mb-8">
                     <CheckCircle2 className="w-12 h-12 text-burgundy" />
@@ -668,35 +522,32 @@ export default function CustomRequestsPage() {
                     Confirmation sent to <span className="text-burgundy">{formData.email}</span>
                   </p>
 
-                  <Button
-                    onClick={() => {
-                      setSubmitted(false);
-                      setAcceptedTerms(false);
-                      setFormData({
-                        tripName: "",
-                        region: "",
-                        dates: "",
-                        duration: "",
-                        groupSize: "",
-                        experience: "",
-                        budget: "",
-                        description: "",
-                        specialRequests: [],
-                        additionalDetails: "",
-                        name: profile?.name || "",
-                        email: profile?.email || "",
-                        phone: (profile as any)?.phone || ""
-                      });
-                      document.getElementById('request-form')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    variant="outline"
-                    className="border-2 border-burgundy text-burgundy hover:bg-burgundy hover:text-white"
-                  >
+                  <Button onClick={() => {
+                setSubmitted(false);
+                setAcceptedTerms(false);
+                setFormData({
+                  tripName: "",
+                  region: "",
+                  dates: "",
+                  duration: "",
+                  groupSize: "",
+                  experience: "",
+                  budget: "",
+                  description: "",
+                  specialRequests: [],
+                  additionalDetails: "",
+                  name: profile?.name || "",
+                  email: profile?.email || "",
+                  phone: (profile as any)?.phone || ""
+                });
+                document.getElementById('request-form')?.scrollIntoView({
+                  behavior: 'smooth'
+                });
+              }} variant="outline" className="border-2 border-burgundy text-burgundy hover:bg-burgundy hover:text-white">
                     Submit Another Request
                   </Button>
                 </div>
-              </div>
-            )}
+              </div>}
           </div>
         </section>
 
@@ -713,28 +564,21 @@ export default function CustomRequestsPage() {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
-              {[
-                {
-                  quote: "Got 4 amazing proposals for our Dolomites trek. Each guide offered unique routes we hadn't considered. The one we chose exceeded all expectations.",
-                  author: "Sarah M.",
-                  trip: "Dolomites Family Trek"
-                },
-                {
-                  quote: "Posted Friday, had 5 proposals by Sunday. The competitive pricing was great, but what impressed me most was how tailored everything was to our skill level.",
-                  author: "James K.",
-                  trip: "Scottish Highlands"
-                },
-                {
-                  quote: "Custom requests brought us to guides with local knowledge we'd never find browsing tours. Made our Pyrenees experience truly special.",
-                  author: "Elena P.",
-                  trip: "Hidden Pyrenees"
-                }
-              ].map((testimonial, idx) => (
-                <Card key={idx} className="p-8 bg-white/5 border-white/10 backdrop-blur-sm">
+              {[{
+              quote: "Got 4 amazing proposals for our Dolomites trek. Each guide offered unique routes we hadn't considered. The one we chose exceeded all expectations.",
+              author: "Sarah M.",
+              trip: "Dolomites Family Trek"
+            }, {
+              quote: "Posted Friday, had 5 proposals by Sunday. The competitive pricing was great, but what impressed me most was how tailored everything was to our skill level.",
+              author: "James K.",
+              trip: "Scottish Highlands"
+            }, {
+              quote: "Custom requests brought us to guides with local knowledge we'd never find browsing tours. Made our Pyrenees experience truly special.",
+              author: "Elena P.",
+              trip: "Hidden Pyrenees"
+            }].map((testimonial, idx) => <Card key={idx} className="p-8 bg-white/5 border-white/10 backdrop-blur-sm">
                   <div className="flex items-center gap-1 mb-6">
-                    {[...Array(5)].map((_, i) => (
-                      <Mountain key={i} className="w-4 h-4 text-burgundy-light fill-burgundy-light" />
-                    ))}
+                    {[...Array(5)].map((_, i) => <Mountain key={i} className="w-4 h-4 text-burgundy-light fill-burgundy-light" />)}
                   </div>
                   <p className="text-cream/90 leading-relaxed mb-6 italic">
                     "{testimonial.quote}"
@@ -743,14 +587,12 @@ export default function CustomRequestsPage() {
                     <div className="text-white">{testimonial.author}</div>
                     <div className="text-xs text-burgundy-light mt-1">{testimonial.trip}</div>
                   </div>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </div>
         </section>
       </div>
       
       <LandingFooter />
-    </MainLayout>
-  );
+    </MainLayout>;
 }
