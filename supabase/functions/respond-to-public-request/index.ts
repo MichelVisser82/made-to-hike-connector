@@ -1,0 +1,213 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+interface RequestBody {
+  request_id: string;
+  guide_id: string;
+  response_type: "interested" | "declined" | "forwarded";
+  decline_reason?: string;
+  forwarded_to_email?: string;
+  personal_note?: string;
+}
+
+serve(async (req: Request) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const body: RequestBody = await req.json();
+    const { request_id, guide_id, response_type, decline_reason, forwarded_to_email, personal_note } = body;
+
+    console.log(`Processing ${response_type} response for request ${request_id} by guide ${guide_id}`);
+
+    // Fetch the public tour request
+    const { data: request, error: requestError } = await supabase
+      .from("public_tour_requests")
+      .select("*")
+      .eq("id", request_id)
+      .single();
+
+    if (requestError || !request) {
+      console.error("Request not found:", requestError);
+      return new Response(
+        JSON.stringify({ error: "Request not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Fetch guide profile
+    const { data: guideProfile } = await supabase
+      .from("guide_profiles")
+      .select("display_name, profile_image_url, slug")
+      .eq("user_id", guide_id)
+      .single();
+
+    const guideName = guideProfile?.display_name || "A certified guide";
+
+    // Record the response
+    const { error: responseError } = await supabase
+      .from("guide_request_responses")
+      .insert({
+        request_id,
+        guide_id,
+        response_type,
+        decline_reason: decline_reason || null,
+        forwarded_to_email: forwarded_to_email || null,
+      });
+
+    if (responseError) {
+      console.error("Failed to record response:", responseError);
+      return new Response(
+        JSON.stringify({ error: "Failed to record response" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    let conversationId: string | null = null;
+
+    if (response_type === "interested") {
+      // Create a conversation with the requester
+      const { data: conversation, error: convError } = await supabase
+        .from("conversations")
+        .insert({
+          guide_id,
+          hiker_id: request.requester_id || null,
+          anonymous_email: request.requester_id ? null : request.requester_email,
+          anonymous_name: request.requester_id ? null : request.requester_name,
+          conversation_type: "custom_tour_request",
+          status: "active",
+          metadata: {
+            public_request_id: request_id,
+            trip_name: request.trip_name,
+            region: request.region,
+            preferred_dates: request.preferred_dates,
+            duration: request.duration,
+            group_size: request.group_size,
+            experience_level: request.experience_level,
+            budget_per_person: request.budget_per_person,
+            description: request.description,
+            special_requests: request.special_requests,
+          },
+        })
+        .select()
+        .single();
+
+      if (convError) {
+        console.error("Failed to create conversation:", convError);
+        return new Response(
+          JSON.stringify({ error: "Failed to create conversation" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      conversationId = conversation.id;
+
+      // Update the guide_request_responses with the conversation_id
+      await supabase
+        .from("guide_request_responses")
+        .update({ conversation_id })
+        .eq("request_id", request_id)
+        .eq("guide_id", guide_id);
+
+      // Create initial system message with request details
+      const systemMessage = `📋 **Custom Tour Request**
+
+**Trip:** ${request.trip_name}
+**Region:** ${request.region}
+**Dates:** ${request.preferred_dates}
+**Duration:** ${request.duration}
+**Group Size:** ${request.group_size}
+**Experience Level:** ${request.experience_level}
+${request.budget_per_person ? `**Budget:** ${request.budget_per_person} per person` : ""}
+
+**Description:**
+${request.description}
+${request.special_requests?.length ? `\n**Special Requests:** ${request.special_requests.join(", ")}` : ""}
+
+---
+*${guideName} has expressed interest in this request.*`;
+
+      await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: guide_id,
+        sender_type: "guide",
+        sender_name: guideName,
+        message_type: "system",
+        content: systemMessage,
+      });
+
+      // Send email to requester
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            type: "guide_interest_notification",
+            to: request.requester_email,
+            requester_name: request.requester_name,
+            trip_name: request.trip_name,
+            guide_name: guideName,
+            guide_slug: guideProfile?.slug,
+          },
+        });
+        console.log("Interest notification email sent to requester");
+      } catch (emailError) {
+        console.error("Failed to send interest email:", emailError);
+        // Don't fail the whole operation if email fails
+      }
+    }
+
+    if (response_type === "forwarded" && forwarded_to_email) {
+      // Send forwarding email
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            type: "forwarded_tour_request",
+            to: forwarded_to_email,
+            forwarder_name: guideName,
+            personal_note: personal_note || null,
+            trip_name: request.trip_name,
+            region: request.region,
+            preferred_dates: request.preferred_dates,
+            duration: request.duration,
+            group_size: request.group_size,
+            experience_level: request.experience_level,
+            budget_per_person: request.budget_per_person,
+            description: request.description,
+            special_requests: request.special_requests,
+            requester_name: request.requester_name,
+          },
+        });
+        console.log(`Request forwarded to ${forwarded_to_email}`);
+      } catch (emailError) {
+        console.error("Failed to send forward email:", emailError);
+      }
+    }
+
+    console.log(`Successfully processed ${response_type} response`);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        response_type,
+        conversation_id: conversationId,
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error in respond-to-public-request:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
