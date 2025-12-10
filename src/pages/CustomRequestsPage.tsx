@@ -56,6 +56,27 @@ export default function CustomRequestsPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+
+  // Fetch real tour images for hero grid
+  useEffect(() => {
+    const fetchHeroImages = async () => {
+      const { data } = await supabase
+        .from('tours')
+        .select('images')
+        .eq('is_active', true)
+        .not('images', 'is', null)
+        .limit(10);
+      
+      if (data) {
+        const allImages = data.flatMap(tour => tour.images || []).slice(0, 4);
+        if (allImages.length >= 4) {
+          setHeroImages(allImages);
+        }
+      }
+    };
+    fetchHeroImages();
+  }, []);
 
   // Auto-fill from profile if logged in
   useEffect(() => {
@@ -204,34 +225,42 @@ export default function CustomRequestsPage() {
 
           {/* Right Side - Images Grid */}
           <div className="lg:w-1/2 h-[50vh] lg:h-screen grid grid-cols-2">
-            <div className="relative overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1619635173638-f9243050fc10?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800"
-                alt="Planning a mountain adventure"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="relative overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1632089401802-57a6747b3dd1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800"
-                alt="Hiking group discussion"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="relative overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1605762830815-ae3673b1f041?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800"
-                alt="Mountain adventure planning"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="relative overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1551632811-561732d1e306?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800"
-                alt="Outdoor adventure team"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            {heroImages.length >= 4 ? (
+              <>
+                <div className="relative overflow-hidden">
+                  <img
+                    src={heroImages[0]}
+                    alt="Mountain adventure"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="relative overflow-hidden">
+                  <img
+                    src={heroImages[1]}
+                    alt="Hiking experience"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="relative overflow-hidden">
+                  <img
+                    src={heroImages[2]}
+                    alt="Mountain adventure planning"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="relative overflow-hidden">
+                  <img
+                    src={heroImages[3]}
+                    alt="Outdoor adventure team"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="col-span-2 bg-cream/50 flex items-center justify-center">
+                <Mountain className="w-16 h-16 text-burgundy/30" />
+              </div>
+            )}
           </div>
         </section>
 
