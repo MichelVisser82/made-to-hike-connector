@@ -154,9 +154,7 @@ export default function CustomRequestsPage() {
               </h1>
               
               <div className="space-y-4 mb-12 text-cream/90 text-lg leading-relaxed">
-                <p>
-                  Post your custom hiking adventure and receive tailored proposals from certified (IFMGA &amp; UIMLA &amp; others) guides across Europe.
-                </p>
+                <p>Post your custom hiking adventure and receive tailored proposals from certified (IFMGA & UIMLA & others) guides.</p>
                 <p className="text-cream/70">
                   Tell us what you want. Our guides compete to create the perfect trip for you.
                 </p>
