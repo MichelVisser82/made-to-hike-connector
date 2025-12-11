@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { useSeenNotifications } from './useSeenNotifications';
@@ -34,8 +34,13 @@ export function useGuideNotifications(guideId: string) {
   // Track seen informative notifications
   const { 
     markAsSeen, 
-    isUnseen 
+    isUnseen,
+    seenIds 
   } = useSeenNotifications('guide_notifications', guideId);
+  
+  // Use ref to access current seenIds without triggering refetch
+  const seenIdsRef = useRef(seenIds);
+  seenIdsRef.current = seenIds;
 
   const fetchNotifications = useCallback(async () => {
     if (!guideId) return;
@@ -96,17 +101,21 @@ export function useGuideNotifications(guideId: string) {
         
         openRequests.forEach((request: RawRequest) => {
           if (!respondedIds.has(request.id)) {
-            allNotifications.push({
-              id: `request-${request.id}`,
-              type: 'custom_request',
-              message: `New custom request: "${request.trip_name}" in ${request.region}`,
-              time: formatDistanceToNow(new Date(request.created_at), { addSuffix: true }),
-              isRead: false,
-              actionLink: '/dashboard?section=inbox&tab=requests',
-              requiresAction: true,
-              actionType: 'respond_request',
-              relatedEntityId: request.id,
-            });
+            const notificationId = `request-${request.id}`;
+            // Only show if not yet dismissed/seen
+            if (!seenIdsRef.current.has(notificationId)) {
+              allNotifications.push({
+                id: notificationId,
+                type: 'custom_request',
+                message: `New custom request: "${request.trip_name}" in ${request.region}`,
+                time: formatDistanceToNow(new Date(request.created_at), { addSuffix: true }),
+                isRead: false,
+                actionLink: '/dashboard?section=inbox&tab=requests',
+                requiresAction: false, // Dismissable - guides can ignore requests
+                actionType: 'view_only',
+                relatedEntityId: request.id,
+              });
+            }
           }
         });
       }
@@ -129,7 +138,7 @@ export function useGuideNotifications(guideId: string) {
       if (recentReviews) {
         recentReviews.forEach((review: any) => {
           const notificationId = `review-${review.id}`;
-          if (isUnseen(notificationId)) {
+          if (!seenIdsRef.current.has(notificationId)) {
             allNotifications.push({
               id: notificationId,
               type: 'review',
@@ -179,7 +188,7 @@ export function useGuideNotifications(guideId: string) {
           // Simple unread check - if there are recent messages
           if (count && count > 0) {
             const notificationId = `message-${conv.id}`;
-            if (isUnseen(notificationId)) {
+            if (!seenIdsRef.current.has(notificationId)) {
               const hikerName = (conv as any).profiles?.name || 'Someone';
               allNotifications.push({
                 id: notificationId,
@@ -210,7 +219,7 @@ export function useGuideNotifications(guideId: string) {
     } finally {
       setLoading(false);
     }
-  }, [guideId, isUnseen]);
+  }, [guideId]);
 
   useEffect(() => {
     fetchNotifications();
