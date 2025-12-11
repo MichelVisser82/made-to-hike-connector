@@ -18,14 +18,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { CalendarIcon, Users, Mountain, Mail, TrendingUp, MapPin } from "lucide-react";
+import { CalendarIcon, Users, Mountain, Mail, TrendingUp, MapPin, ChevronsUpDown, Plus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { RegionSelector } from "@/components/tour-creation/RegionSelector";
+import { useHikingRegions } from '@/hooks/useHikingRegions';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from '@/lib/utils';
 
 interface Tour {
   id: string;
@@ -60,8 +68,10 @@ export function CustomTourRequestModal({
 }: CustomTourRequestModalProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [flexibleLocation, setFlexibleLocation] = useState(false);
+  const { data: hikingRegions, isLoading: regionsLoading } = useHikingRegions();
+  const [showCustomRegionInput, setShowCustomRegionInput] = useState(false);
   const [customRegionText, setCustomRegionText] = useState("");
+  const [regionPopoverOpen, setRegionPopoverOpen] = useState(false);
   const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -97,7 +107,7 @@ export function CustomTourRequestModal({
       // Get current user or use anonymous
       const isAuthenticated = !!user;
       
-      const finalRegion = flexibleLocation ? (customRegionText || "Flexible") : formData.region;
+      const finalRegion = showCustomRegionInput ? customRegionText : formData.region;
       
       // Call edge function to create custom tour request conversation
       const { data, error } = await supabase.functions.invoke('create-custom-tour-request', {
@@ -141,7 +151,7 @@ export function CustomTourRequestModal({
         preferredDate: undefined,
         message: "",
       });
-      setFlexibleLocation(false);
+      setShowCustomRegionInput(false);
       setCustomRegionText("");
       
       onOpenChange(false);
@@ -287,43 +297,90 @@ export function CustomTourRequestModal({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="flex items-center text-charcoal/80">
+                  <Label htmlFor="region" className="flex items-center text-charcoal/80">
                     <MapPin className="h-3.5 w-3.5 mr-1.5 text-burgundy" />
                     Preferred Region *
                   </Label>
                   
-                  {/* Flexible Location Checkbox */}
-                  <label className="flex items-center gap-3 cursor-pointer py-2">
-                    <input 
-                      type="checkbox" 
-                      checked={flexibleLocation} 
-                      onChange={(e) => {
-                        setFlexibleLocation(e.target.checked);
-                        if (e.target.checked) {
-                          setFormData(prev => ({ ...prev, region: "" }));
-                        }
-                      }} 
-                      className="w-4 h-4 text-burgundy border-charcoal/20 rounded focus:ring-burgundy" 
-                    />
-                    <span className="text-sm text-charcoal/80">I'm flexible on location</span>
-                  </label>
-                  
-                  {/* RegionSelector - only show if not flexible */}
-                  {!flexibleLocation && (
-                    <RegionSelector 
-                      value={formData.region} 
-                      onChange={(value) => setFormData(prev => ({ ...prev, region: value }))} 
-                    />
-                  )}
-                  
-                  {/* Custom region text input when flexible */}
-                  {flexibleLocation && (
-                    <Input
-                      placeholder="Optionally specify preferred region or area..."
-                      value={customRegionText}
-                      onChange={(e) => setCustomRegionText(e.target.value)}
-                      className="border-burgundy/20 focus:border-burgundy"
-                    />
+                  <Popover open={regionPopoverOpen} onOpenChange={setRegionPopoverOpen} modal={false}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={regionPopoverOpen}
+                        className="w-full justify-between border-burgundy/20 focus:border-burgundy"
+                      >
+                        {formData.region || "Select region..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0 z-[9999]" align="start" sideOffset={4}>
+                      <Command>
+                        <CommandInput placeholder="Search regions..." />
+                        <CommandList>
+                          <CommandEmpty>No region found.</CommandEmpty>
+                          <CommandGroup>
+                            {regionsLoading ? (
+                              <CommandItem disabled>Loading regions...</CommandItem>
+                            ) : (
+                              <>
+                                {hikingRegions?.map((region) => {
+                                  const displayValue = region.region
+                                    ? `${region.country} - ${region.region} - ${region.subregion}`
+                                    : `${region.country} - ${region.subregion}`;
+
+                                  return (
+                                    <CommandItem
+                                      key={region.id}
+                                      value={displayValue.toLowerCase()}
+                                      onSelect={() => {
+                                        setFormData((prev) => ({ ...prev, region: displayValue }));
+                                        setShowCustomRegionInput(false);
+                                        setCustomRegionText("");
+                                        setRegionPopoverOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          formData.region === displayValue ? "opacity-100" : "opacity-0",
+                                        )}
+                                      />
+                                      {displayValue}
+                                    </CommandItem>
+                                  );
+                                })}
+                                <CommandItem
+                                  value="other"
+                                  onSelect={() => {
+                                    setFormData((prev) => ({ ...prev, region: "Other / Not Listed / Flexible" }));
+                                    setShowCustomRegionInput(true);
+                                    setRegionPopoverOpen(false);
+                                  }}
+                                  className="border-t mt-2 pt-2"
+                                >
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  Other / Not Listed / Flexible
+                                </CommandItem>
+                              </>
+                            )}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Conditional custom region text input */}
+                  {showCustomRegionInput && (
+                    <div className="mt-2">
+                      <Input
+                        placeholder="Please specify your preferred region..."
+                        value={customRegionText}
+                        onChange={(e) => setCustomRegionText(e.target.value)}
+                        className="border-burgundy/20 focus:border-burgundy"
+                        required
+                      />
+                    </div>
                   )}
                 </div>
               </div>
