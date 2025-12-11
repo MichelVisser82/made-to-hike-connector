@@ -152,18 +152,20 @@ export function InboxSection({
   }, [user?.id, isGuide]);
 
   const handlePublicRequestInterested = (requestId: string, conversationId: string) => {
-    // Remove the request from the list and navigate to the conversation
+    // Remove the request from the list
     setPublicRequests(prev => prev.filter(r => r.id !== requestId));
     refetchConversations();
     
-    // Find and select the new conversation
-    setTimeout(() => {
-      const newConv = conversations.find(c => c.id === conversationId);
-      if (newConv) {
-        setSelectedConversation(newConv);
-      }
-      setSearchParams({ section: 'inbox', conversation: conversationId });
-    }, 500);
+    // Navigate to the conversation if we have an ID
+    if (conversationId) {
+      setTimeout(() => {
+        const newConv = conversations.find(c => c.id === conversationId);
+        if (newConv) {
+          setSelectedConversation(newConv);
+        }
+        setSearchParams({ section: 'inbox', conversation: conversationId });
+      }, 500);
+    }
   };
 
   const handlePublicRequestDeclined = (requestId: string) => {

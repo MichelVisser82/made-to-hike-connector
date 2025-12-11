@@ -57,9 +57,17 @@ export function PublicRequestCard({
 
       if (error) throw error;
 
-      toast.success('You expressed interest! A conversation has been created.');
+      if (data?.already_responded) {
+        toast.success('Opening existing conversation...');
+      } else {
+        toast.success('You expressed interest! A conversation has been created.');
+      }
+      
       if (data?.conversation_id) {
         onInterested(data.conversation_id);
+      } else {
+        // Still remove from list even without conversation_id
+        onInterested('');
       }
     } catch (error) {
       console.error('Error expressing interest:', error);
