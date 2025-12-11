@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Mountain, CheckCircle2, ArrowRight, Users, Calendar, MapPin, Euro, Clock, Send, Sparkles, MessageSquare, TrendingUp, Utensils, Accessibility, Camera, Binoculars, Landmark, Hotel, Tent, Baby, ChevronsUpDown, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -127,8 +127,126 @@ export default function CustomRequestsPage() {
     return region || "your selected region";
   };
 
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://madetohike.com';
+
+  const structuredData = useMemo(() => {
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do I request a custom hiking tour?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simply fill out our custom request form with your destination, preferred dates, group size, experience level, and budget. Certified guides in your chosen region will review your request and send personalized proposals within 48 hours."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long does it take to receive guide proposals?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most requesters receive 3-5 tailored proposals from certified IFMGA and UIMLA guides within 48 hours of submitting their request."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are the guides certified?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, all guides on MadeToHike are certified by recognized mountain guiding associations including IFMGA (International Federation of Mountain Guides Associations) and UIMLA (Union of International Mountain Leader Associations)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a fee to submit a custom hiking request?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No, submitting a custom hiking request is completely free. You only pay when you choose to book with one of the guides who sends you a proposal."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What regions can I request custom hiking tours in?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We have certified guides across Europe including the Dolomites (Italy), Scottish Highlands (UK), Pyrenees (France/Spain), Alps (Switzerland, Austria, France), and many more mountain regions. You can also select 'Flexible' if you're open to suggestions."
+          }
+        }
+      ]
+    };
+
+    const howToSchema = {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to Request a Custom Hiking Tour",
+      "description": "From idea to mountain peak in four simple steps - get personalized hiking proposals from certified guides.",
+      "totalTime": "PT5M",
+      "estimatedCost": {
+        "@type": "MonetaryAmount",
+        "currency": "EUR",
+        "value": "0"
+      },
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Submit Request",
+          "text": "Tell us your destination, dates, and what you're looking for in your ideal hiking adventure.",
+          "url": `${baseUrl}/custom-requests#request-form`
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Guides Respond",
+          "text": "Certified guides in your region create custom proposals tailored to your needs."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Compare Offers",
+          "text": "Review 3-5 detailed proposals. Compare pricing, itineraries, and guide credentials."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Book & Hike",
+          "text": "Choose your favorite guide, finalize details, and embark on your dream adventure."
+        }
+      ]
+    };
+
+    const webPageSchema = {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Custom Hiking Requests",
+      "description": "Request a personalized hiking adventure with certified mountain guides across Europe",
+      "url": `${baseUrl}/custom-requests`,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "MadeToHike",
+        "url": baseUrl
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "MadeToHike",
+        "url": baseUrl
+      }
+    };
+
+    return [faqSchema, howToSchema, webPageSchema];
+  }, [baseUrl]);
+
   return <MainLayout>
-      <PageSEO title="Custom Hiking Requests | MadeToHike" description="Post your dream hiking adventure and receive tailored proposals from certified IFMGA & UIMLA guides across Europe. Get 3-5 custom offers within 48 hours." />
+      <PageSEO 
+        title="Custom Hiking Requests | MadeToHike" 
+        description="Post your dream hiking adventure and receive tailored proposals from certified IFMGA & UIMLA guides across Europe. Get 3-5 custom offers within 48 hours."
+        canonicalUrl={`${baseUrl}/custom-requests`}
+        keywords="custom hiking tour, personalized hiking trip, bespoke mountain adventure, private guide booking, tailored hiking experience, IFMGA guide request, custom trek Europe, personal hiking proposal"
+        ogImageAlt="Request a custom hiking adventure with certified mountain guides"
+        structuredData={structuredData}
+      />
       
       <div className="min-h-screen bg-cream">
         {/* HERO SECTION - Split Screen */}
