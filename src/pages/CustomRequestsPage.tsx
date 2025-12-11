@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { RegionSelector } from "@/components/tour-creation/RegionSelector";
 export default function CustomRequestsPage() {
   const {
     user
@@ -34,6 +35,7 @@ export default function CustomRequestsPage() {
     email: "",
     phone: ""
   });
+  const [flexibleLocation, setFlexibleLocation] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,14 +115,22 @@ export default function CustomRequestsPage() {
     }));
   };
   const regionLabel = (region: string) => {
-    const labels: Record<string, string> = {
-      dolomites: "Dolomites, Italy",
-      pyrenees: "Pyrenees, France/Spain",
-      highlands: "Scottish Highlands, UK",
-      alps: "Swiss Alps",
-      flexible: "Flexible / Open to suggestions"
-    };
-    return labels[region] || region;
+    if (region === "flexible") return "Flexible / Open to suggestions";
+    // RegionSelector outputs "Country - Region - Subregion" format
+    return region || "your selected region";
+  };
+
+  const handleRegionChange = (value: string) => {
+    setFormData(prev => ({ ...prev, region: value }));
+  };
+
+  const handleFlexibleToggle = (checked: boolean) => {
+    setFlexibleLocation(checked);
+    if (checked) {
+      setFormData(prev => ({ ...prev, region: "flexible" }));
+    } else {
+      setFormData(prev => ({ ...prev, region: "" }));
+    }
   };
   return <MainLayout>
       <PageSEO title="Custom Hiking Requests | MadeToHike" description="Post your dream hiking adventure and receive tailored proposals from certified IFMGA & UIMLA guides across Europe. Get 3-5 custom offers within 48 hours." />
@@ -289,29 +299,45 @@ export default function CustomRequestsPage() {
                         <Input type="text" name="tripName" placeholder="e.g., Alpine Adventure 2025" value={formData.tripName} onChange={handleChange} required className="h-14" />
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            Region
-                          </label>
-                          <select name="region" value={formData.region} onChange={handleChange as any} required className="w-full h-14 border border-charcoal/20 rounded-md px-4 bg-white">
-                            <option value="">Select region</option>
-                            <option value="dolomites">Dolomites, Italy</option>
-                            <option value="pyrenees">Pyrenees, France/Spain</option>
-                            <option value="highlands">Scottish Highlands, UK</option>
-                            <option value="alps">Swiss Alps</option>
-                            <option value="flexible">Flexible / Open to suggestions</option>
-                          </select>
-                        </div>
+                      {/* Region Selection */}
+                      <div>
+                        <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          Region
+                        </label>
+                        
+                        {/* Flexible Location Checkbox */}
+                        <label className="flex items-center gap-3 cursor-pointer mb-4">
+                          <input 
+                            type="checkbox" 
+                            checked={flexibleLocation} 
+                            onChange={(e) => handleFlexibleToggle(e.target.checked)} 
+                            className="w-5 h-5 text-burgundy border-charcoal/20 rounded focus:ring-burgundy" 
+                          />
+                          <span className="text-charcoal/80">I'm flexible on location / Open to suggestions</span>
+                        </label>
+                        
+                        {/* RegionSelector - only show if not flexible */}
+                        {!flexibleLocation && (
+                          <RegionSelector 
+                            value={formData.region} 
+                            onChange={handleRegionChange} 
+                          />
+                        )}
+                        
+                        {/* Hidden input for form validation when flexible */}
+                        {flexibleLocation && (
+                          <input type="hidden" name="region" value="flexible" />
+                        )}
+                      </div>
 
-                        <div>
-                          <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            Dates
-                          </label>
-                          <Input type="text" name="dates" placeholder="e.g., June 15-22, 2025" value={formData.dates} onChange={handleChange} required className="h-14" />
-                        </div>
+                      {/* Dates - Now full width since region takes more space */}
+                      <div>
+                        <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          Preferred Dates
+                        </label>
+                        <Input type="text" name="dates" placeholder="e.g., June 15-22, 2025" value={formData.dates} onChange={handleChange} required className="h-14" />
                       </div>
 
                       <div className="grid md:grid-cols-3 gap-6">
@@ -523,6 +549,7 @@ export default function CustomRequestsPage() {
                   <Button onClick={() => {
                 setSubmitted(false);
                 setAcceptedTerms(false);
+                setFlexibleLocation(false);
                 setFormData({
                   tripName: "",
                   region: "",
