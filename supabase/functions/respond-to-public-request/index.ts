@@ -270,23 +270,8 @@ ${request.special_requests?.length ? `\n**Special Requests:** ${request.special_
         content: systemMessage,
       });
 
-      // Send email to requester
-      try {
-        await supabase.functions.invoke("send-email", {
-          body: {
-            type: "guide_interest_notification",
-            to: request.requester_email,
-            requester_name: request.requester_name,
-            trip_name: request.trip_name,
-            guide_name: guideName,
-            guide_slug: guideProfile?.slug,
-          },
-        });
-        console.log("Interest notification email sent to requester");
-      } catch (emailError) {
-        console.error("Failed to send interest email:", emailError);
-        // Don't fail the whole operation if email fails
-      }
+      // Note: No email sent to requester - they will see the conversation in their inbox
+      console.log("Conversation created - requester will see it in their inbox");
     }
 
     if (response_type === "forwarded" && forwarded_to_email) {
