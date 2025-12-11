@@ -167,6 +167,17 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           ticketInfo = ticket;
         }
 
+        // Get request_id if custom_tour_request conversation
+        let requestId = null;
+        if (conv.conversation_type === 'custom_tour_request') {
+          const { data: requestResponse } = await supabase
+            .from('guide_request_responses')
+            .select('request_id')
+            .eq('conversation_id', conv.id)
+            .maybeSingle();
+          requestId = requestResponse?.request_id || null;
+        }
+
         // Get admin profile for admin_support conversations
         let adminProfile = null;
         if (conv.conversation_type === 'admin_support' || conv.conversation_type === 'guide_admin') {
@@ -219,7 +230,11 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
           guide_profile: guideProfile,
           profiles: otherProfile,
           unread_count: unreadCount,
-          ticket: ticketInfo
+          ticket: ticketInfo,
+          // Merge request_id into metadata for custom tour requests
+          metadata: requestId 
+            ? { ...(typeof conv.metadata === 'object' && conv.metadata !== null ? conv.metadata : {}), request_id: requestId }
+            : conv.metadata
         };
       })
     );
