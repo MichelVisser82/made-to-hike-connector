@@ -66,9 +66,9 @@ serve(async (req: Request) => {
     if (existingResponse) {
       console.log("Guide already responded to this request:", existingResponse.response_type);
       
-      // Allow changing from "interested" to "declined" or "forwarded"
-      if (existingResponse.response_type === 'interested' && (response_type === 'declined' || response_type === 'forwarded')) {
-        console.log(`Updating response from 'interested' to '${response_type}'`);
+      // Allow changing response type (e.g., interested -> declined/forwarded, or declined -> forwarded)
+      if (response_type !== existingResponse.response_type && (response_type === 'declined' || response_type === 'forwarded')) {
+        console.log(`Updating response from '${existingResponse.response_type}' to '${response_type}'`);
         
         // Update the response record
         const { error: updateError } = await supabase
