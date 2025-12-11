@@ -9,7 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Send, MessageSquare, MapPin, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, Send, MessageSquare, MapPin, FileText, X, Forward } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Conversation } from '@/types/chat';
@@ -31,6 +34,12 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [offerModalOpen, setOfferModalOpen] = useState(false);
+  const [declineModalOpen, setDeclineModalOpen] = useState(false);
+  const [forwardModalOpen, setForwardModalOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+  const [forwardEmail, setForwardEmail] = useState('');
+  const [forwardNote, setForwardNote] = useState('');
+  const [actionLoading, setActionLoading] = useState<'decline' | 'forward' | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -168,6 +177,79 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
     setTemplatesOpen(false);
   };
 
+  // Get request ID from conversation metadata for custom tour requests
+  const requestId = conversation.metadata?.request_id;
+
+  const handleDecline = async () => {
+    if (!requestId || !user?.id) return;
+    
+    setActionLoading('decline');
+    try {
+      const { error } = await supabase.functions.invoke('respond-to-public-request', {
+        body: {
+          request_id: requestId,
+          guide_id: user.id,
+          response_type: 'declined',
+          decline_reason: declineReason || null,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Request Declined",
+        description: "You've declined this custom tour request.",
+      });
+      setDeclineModalOpen(false);
+      setDeclineReason('');
+    } catch (error) {
+      console.error('Error declining request:', error);
+      toast({
+        title: "Failed to decline",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleForward = async () => {
+    if (!requestId || !user?.id || !forwardEmail) return;
+    
+    setActionLoading('forward');
+    try {
+      const { error } = await supabase.functions.invoke('respond-to-public-request', {
+        body: {
+          request_id: requestId,
+          guide_id: user.id,
+          response_type: 'forwarded',
+          forwarded_to_email: forwardEmail,
+          personal_note: forwardNote || null,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Request Forwarded",
+        description: `Request forwarded to ${forwardEmail}`,
+      });
+      setForwardModalOpen(false);
+      setForwardEmail('');
+      setForwardNote('');
+    } catch (error) {
+      console.error('Error forwarding request:', error);
+      toast({
+        title: "Failed to forward",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -239,7 +321,7 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
 
       {/* Input */}
       <div className="p-4 border-t space-y-2">
-        {/* Create Offer button for custom tour requests */}
+        {/* Action buttons for custom tour requests */}
         {conversation.conversation_type === 'custom_tour_request' && 
          user?.id === conversation.guide_id && (
           <>
@@ -255,14 +337,130 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
                 setOfferModalOpen(false);
               }}
             />
-            <Button
-              variant="outline"
-              onClick={() => setOfferModalOpen(true)}
-              className="w-full border-primary text-primary hover:bg-primary/10"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Create Offer
-            </Button>
+            
+            {/* Action buttons row */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setOfferModalOpen(true)}
+                className="flex-1 border-primary text-primary hover:bg-primary/10"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Create Offer
+              </Button>
+              
+              {requestId && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setForwardModalOpen(true)}
+                    className="border-muted-foreground/30 text-muted-foreground hover:bg-muted"
+                  >
+                    <Forward className="w-4 h-4 mr-2" />
+                    Forward
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeclineModalOpen(true)}
+                    className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Decline
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Decline Modal */}
+            <Dialog open={declineModalOpen} onOpenChange={setDeclineModalOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Decline Request</DialogTitle>
+                  <DialogDescription>
+                    Let the requester know why you're unable to take this request.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="decline-reason">Reason (optional)</Label>
+                    <Textarea
+                      id="decline-reason"
+                      value={declineReason}
+                      onChange={(e) => setDeclineReason(e.target.value)}
+                      placeholder="E.g., Fully booked during those dates, outside my guiding area..."
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDeclineModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDecline}
+                    disabled={actionLoading === 'decline'}
+                  >
+                    {actionLoading === 'decline' ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <X className="w-4 h-4 mr-2" />
+                    )}
+                    Decline Request
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Forward Modal */}
+            <Dialog open={forwardModalOpen} onOpenChange={setForwardModalOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Forward Request</DialogTitle>
+                  <DialogDescription>
+                    Forward this request to another guide who might be able to help.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forward-email">Guide's Email *</Label>
+                    <Input
+                      id="forward-email"
+                      type="email"
+                      value={forwardEmail}
+                      onChange={(e) => setForwardEmail(e.target.value)}
+                      placeholder="guide@example.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="forward-note">Personal Note (optional)</Label>
+                    <Textarea
+                      id="forward-note"
+                      value={forwardNote}
+                      onChange={(e) => setForwardNote(e.target.value)}
+                      placeholder="Add a note to the guide you're forwarding to..."
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setForwardModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleForward}
+                    disabled={actionLoading === 'forward' || !forwardEmail}
+                  >
+                    {actionLoading === 'forward' ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Forward className="w-4 h-4 mr-2" />
+                    )}
+                    Forward Request
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
         )}
 
