@@ -26,8 +26,24 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Check if user already exists
+    console.log('Checking if user already exists...');
+    const { data: existingUsers } = await supabase.auth.admin.listUsers();
+    const userExists = existingUsers?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase());
+
+    if (userExists) {
+      console.log('User already exists with this email:', email);
+      return new Response(
+        JSON.stringify({ error: 'This email is already registered. Please log in instead.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('User does not exist, proceeding with verification code...');
+
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('Generated verification code for:', email);
 
     // Store code in kv_store with 10-minute expiry
     const { error: kvError } = await supabase
@@ -41,7 +57,7 @@ serve(async (req) => {
     if (kvError) {
       console.error('Error storing verification code:', kvError);
       return new Response(
-        JSON.stringify({ error: 'Failed to send verification code' }),
+        JSON.stringify({ error: 'Failed to store verification code. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -63,7 +79,7 @@ serve(async (req) => {
     if (emailError) {
       console.error('Error sending email:', emailError);
       return new Response(
-        JSON.stringify({ error: 'Failed to send verification email' }),
+        JSON.stringify({ error: 'Failed to send verification email. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -78,7 +94,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in send-verification-code:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Something went wrong. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

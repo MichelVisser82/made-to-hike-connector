@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Mail, Lock, Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import { z } from 'zod';
 
 const passwordSchema = z.object({
@@ -21,6 +21,15 @@ const passwordSchema = z.object({
   message: "Passwords don't match",
   path: ["confirmPassword"]
 });
+
+// Helper to extract error message from edge function response
+const extractErrorMessage = (error: any): string => {
+  // Try to get message from various error formats
+  if (typeof error === 'string') return error;
+  if (error?.message) return error.message;
+  if (error?.error) return error.error;
+  return 'An unexpected error occurred. Please try again.';
+};
 
 interface AccountStepProps {
   onVerified: (userId: string, userData?: { firstName: string, lastName: string }) => void;
@@ -41,6 +50,7 @@ export function AccountStep({ onVerified }: AccountStepProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const handleLogin = async () => {
     setIsLoading(true);
@@ -80,22 +90,47 @@ export function AccountStep({ onVerified }: AccountStepProps) {
     }
   };
 
-  const handleSendCode = async () => {
+  const handleSendCode = async (isResend = false) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('send-verification-code', {
+      const { data, error } = await supabase.functions.invoke('send-verification-code', {
         body: { email }
       });
 
-      if (error) throw error;
+      // Check for function invocation error
+      if (error) {
+        throw new Error(extractErrorMessage(error));
+      }
+
+      // Check for error in response data
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       setShowVerification(true);
-      toast({ title: 'Verification code sent', description: 'Check your email' });
+      setCode(['', '', '', '', '', '']); // Reset code inputs
+      
+      // Start cooldown timer for resend
+      setResendCooldown(60);
+      const timer = setInterval(() => {
+        setResendCooldown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      toast({ 
+        title: isResend ? 'New code sent' : 'Verification code sent', 
+        description: 'Please check your email inbox and spam folder' 
+      });
     } catch (error: any) {
-      const errorMsg = error.message || 'Failed to send verification code';
+      const errorMsg = extractErrorMessage(error);
       
       // If email already exists, suggest login
-      if (errorMsg.includes('already registered')) {
+      if (errorMsg.toLowerCase().includes('already registered') || errorMsg.toLowerCase().includes('log in')) {
         toast({ 
           title: 'Account exists', 
           description: 'This email is already registered. Please log in instead.',
@@ -110,23 +145,37 @@ export function AccountStep({ onVerified }: AccountStepProps) {
     }
   };
 
+  const handleResendCode = () => {
+    if (resendCooldown > 0) return;
+    handleSendCode(true);
+  };
+
   const handleVerifyCode = async () => {
     setIsLoading(true);
     const verificationCode = code.join('');
     
     try {
-      const { error } = await supabase.functions.invoke('verify-code', {
+      const { data, error } = await supabase.functions.invoke('verify-code', {
         body: { email, code: verificationCode, verifyOnly: true }
       });
 
-      if (error) throw error;
+      // Check for function invocation error
+      if (error) {
+        throw new Error(extractErrorMessage(error));
+      }
+
+      // Check for error in response data
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       // Move to password step
       setShowVerification(false);
       setShowPasswordStep(true);
       toast({ title: 'Email verified!', description: 'Now create your password' });
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      const errorMsg = extractErrorMessage(error);
+      toast({ title: 'Verification failed', description: errorMsg, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -452,7 +501,7 @@ export function AccountStep({ onVerified }: AccountStepProps) {
                 />
               </div>
               <Button 
-                onClick={handleSendCode} 
+                onClick={() => handleSendCode(false)} 
                 disabled={isLoading || !email || !firstName || !lastName} 
                 className="w-full"
               >
@@ -516,6 +565,28 @@ export function AccountStep({ onVerified }: AccountStepProps) {
             <Button onClick={handleVerifyCode} disabled={isLoading || code.some(d => !d)} className="w-full">
               {isLoading ? 'Verifying...' : 'Verify & Continue'}
             </Button>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <span>Didn't receive the code?</span>
+              <Button 
+                variant="link" 
+                size="sm" 
+                onClick={handleResendCode} 
+                disabled={isLoading || resendCooldown > 0}
+                className="p-0 h-auto font-medium text-burgundy"
+              >
+                {resendCooldown > 0 ? (
+                  <span className="flex items-center gap-1">
+                    <RefreshCw className="w-3 h-3" />
+                    Resend in {resendCooldown}s
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <RefreshCw className="w-3 h-3" />
+                    Resend code
+                  </span>
+                )}
+              </Button>
+            </div>
             <Button variant="ghost" onClick={() => setShowVerification(false)} className="w-full">
               Back
             </Button>

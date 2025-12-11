@@ -63,22 +63,26 @@ serve(async (req) => {
 
     if (kvError || !kvData) {
       console.error('Code lookup failed:', kvError);
+      console.error('No stored code found for email:', email);
       return new Response(
-        JSON.stringify({ error: 'Verification code not found or expired' }),
+        JSON.stringify({ error: 'Verification code not found or expired. Please request a new code.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    console.log('Code found, validating...');
+    console.log('Code found in database, validating...');
 
     const storedData = kvData.value as { code: string; timestamp: number };
 
     // Check if code matches
-    console.log('Comparing codes - provided:', code, 'stored:', storedData.code);
-    if (storedData.code !== code) {
-      console.error('Code mismatch');
+    const providedCode = code.trim();
+    const storedCode = storedData.code.trim();
+    console.log('Comparing codes - provided:', providedCode, 'stored:', storedCode);
+    
+    if (storedCode !== providedCode) {
+      console.error('Code mismatch - provided:', providedCode, 'expected:', storedCode);
       return new Response(
-        JSON.stringify({ error: 'Invalid verification code' }),
+        JSON.stringify({ error: 'Invalid verification code. Please check the code and try again.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -86,16 +90,18 @@ serve(async (req) => {
     // Check if code is still valid (10 minutes)
     const now = Date.now();
     const codeAge = now - storedData.timestamp;
-    console.log('Code age:', codeAge, 'ms');
+    const codeAgeMinutes = Math.floor(codeAge / 60000);
+    console.log('Code age:', codeAgeMinutes, 'minutes');
+    
     if (codeAge > 10 * 60 * 1000) {
-      console.error('Code expired');
+      console.error('Code expired - age:', codeAgeMinutes, 'minutes');
       return new Response(
-        JSON.stringify({ error: 'Verification code has expired' }),
+        JSON.stringify({ error: 'Verification code has expired. Please request a new code.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    console.log('Code validation passed');
+    console.log('Code validation passed - age:', codeAgeMinutes, 'minutes');
 
     // If only verifying code, return success without creating account
     if (verifyOnly) {
