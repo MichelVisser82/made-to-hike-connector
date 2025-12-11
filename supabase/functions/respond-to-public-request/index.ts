@@ -239,7 +239,7 @@ ${request.special_requests?.length ? `\n**Special Requests:** ${request.special_
       // Update the guide_request_responses with the conversation_id
       await supabase
         .from("guide_request_responses")
-        .update({ conversation_id })
+        .update({ conversation_id: conversationId })
         .eq("request_id", request_id)
         .eq("guide_id", guide_id);
 
