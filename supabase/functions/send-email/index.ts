@@ -1999,6 +1999,164 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
       text: `🎉 You earned €${data.rewardAmount}!\n\nHi ${data.referrerName}!\n\nGreat news! ${data.refereeName} just completed their first tour as a ${data.refereeType}, which means you've earned your referral reward.\n\nYour Reward: €${data.rewardAmount} ${data.referrerType === 'guide' ? 'Platform Credit' : 'Discount Voucher'}\n\n${data.referrerType !== 'guide' && data.voucherCode ? `Your Voucher Code: ${data.voucherCode}\n${data.voucherExpiryDate ? `Valid until ${new Date(data.voucherExpiryDate).toLocaleDateString()}` : ''}\n\n` : ''}Keep earning! Share your referral link to earn more rewards.\n\nView Dashboard: ${data.dashboardLink}`
     },
 
+    guide_interest_notification: {
+      subject: `Great news! A guide is interested in your trip: ${data.trip_name}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background: linear-gradient(135deg, #8B1538 0%, #7C2D3A 100%); padding: 40px 30px; text-align: center;">
+      <h1 style="font-family: Georgia, 'Playfair Display', serif; color: #ffffff; font-size: 28px; margin: 0 0 10px 0; font-weight: 400;">
+        A Guide Is Interested!
+      </h1>
+      <p style="color: #ffffff; opacity: 0.9; margin: 0; font-size: 16px;">
+        Your custom tour request is getting attention
+      </p>
+    </div>
+
+    <div style="padding: 40px 30px;">
+      <h2 style="font-family: Georgia, 'Playfair Display', serif; color: #2D2D2D; font-size: 22px; margin-top: 0;">
+        Hi ${data.requester_name}!
+      </h2>
+
+      <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6;">
+        Great news! <strong>${data.guide_name}</strong> has expressed interest in guiding your trip "<strong>${data.trip_name}</strong>".
+      </p>
+
+      <div style="background-color: #F9F5F1; border-radius: 8px; padding: 25px; margin: 30px 0;">
+        <h3 style="font-family: Georgia, 'Playfair Display', serif; color: #7C2D3A; font-size: 18px; margin: 0 0 15px 0;">
+          What happens next?
+        </h3>
+        <ul style="color: #2D2D2D; font-size: 15px; line-height: 1.8; padding-left: 20px; margin: 0;">
+          <li>The guide may send you a personalized proposal</li>
+          <li>You can message them directly to discuss details</li>
+          <li>Compare offers from multiple interested guides</li>
+          <li>Book when you find the perfect match!</li>
+        </ul>
+      </div>
+
+      ${data.guide_slug ? `
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://madetohike.com/guide/${data.guide_slug}" style="background-color: #8B1538; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; display: inline-block;">
+          View Guide Profile
+        </a>
+      </div>
+      ` : ''}
+
+      <p style="color: #666; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+        You'll receive a notification when the guide sends you a proposal. Check your inbox regularly!
+      </p>
+    </div>
+
+    <div style="background-color: #F5F5F5; padding: 30px; text-align: center; border-top: 1px solid #E0E0E0;">
+      <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+        Made to Hike connects adventurers with certified local guides.
+      </p>
+      <p style="color: #999; font-size: 12px; margin: 0;">
+        You're receiving this because you submitted a custom tour request.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`,
+      text: `Great news, ${data.requester_name}!\n\n${data.guide_name} has expressed interest in guiding your trip "${data.trip_name}".\n\nWhat happens next?\n- The guide may send you a personalized proposal\n- You can message them directly to discuss details\n- Compare offers from multiple interested guides\n- Book when you find the perfect match!\n\n${data.guide_slug ? `View Guide Profile: https://madetohike.com/guide/${data.guide_slug}` : ''}`
+    },
+
+    forwarded_tour_request: {
+      subject: `${data.forwarder_name} forwarded a tour request to you`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background: linear-gradient(135deg, #7BA05B 0%, #6A8F4F 100%); padding: 40px 30px; text-align: center;">
+      <h1 style="font-family: Georgia, 'Playfair Display', serif; color: #ffffff; font-size: 28px; margin: 0 0 10px 0; font-weight: 400;">
+        Forwarded Tour Request
+      </h1>
+      <p style="color: #ffffff; opacity: 0.9; margin: 0; font-size: 16px;">
+        A fellow guide thinks you'd be perfect for this trip
+      </p>
+    </div>
+
+    <div style="padding: 40px 30px;">
+      <p style="color: #2D2D2D; font-size: 16px; line-height: 1.6;">
+        <strong>${data.forwarder_name}</strong> thought you might be interested in this custom tour request and forwarded it to you.
+      </p>
+
+      ${data.personal_note ? `
+      <div style="background-color: #E8F5E9; border-left: 4px solid #7BA05B; padding: 15px 20px; margin: 20px 0;">
+        <p style="color: #2D2D2D; font-size: 15px; margin: 0; font-style: italic;">
+          "${data.personal_note}"
+        </p>
+        <p style="color: #666; font-size: 13px; margin: 10px 0 0 0;">— ${data.forwarder_name}</p>
+      </div>
+      ` : ''}
+
+      <div style="background-color: #F9F5F1; border-radius: 8px; padding: 25px; margin: 30px 0;">
+        <h3 style="font-family: Georgia, 'Playfair Display', serif; color: #7C2D3A; font-size: 20px; margin: 0 0 20px 0;">
+          ${data.trip_name}
+        </h3>
+        
+        <table style="width: 100%; font-size: 15px; color: #2D2D2D;">
+          <tr><td style="padding: 8px 0;"><strong>Region:</strong></td><td>${data.region}</td></tr>
+          <tr><td style="padding: 8px 0;"><strong>Dates:</strong></td><td>${data.preferred_dates}</td></tr>
+          <tr><td style="padding: 8px 0;"><strong>Duration:</strong></td><td>${data.duration}</td></tr>
+          <tr><td style="padding: 8px 0;"><strong>Group Size:</strong></td><td>${data.group_size}</td></tr>
+          <tr><td style="padding: 8px 0;"><strong>Experience:</strong></td><td>${data.experience_level}</td></tr>
+          ${data.budget_per_person ? `<tr><td style="padding: 8px 0;"><strong>Budget:</strong></td><td>${data.budget_per_person}/person</td></tr>` : ''}
+        </table>
+
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #E0E0E0;">
+          <p style="color: #2D2D2D; font-size: 14px; margin: 0 0 10px 0;"><strong>Description:</strong></p>
+          <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0; white-space: pre-wrap;">${data.description}</p>
+        </div>
+
+        ${data.special_requests && data.special_requests.length > 0 ? `
+        <div style="margin-top: 15px;">
+          <p style="color: #2D2D2D; font-size: 14px; margin: 0 0 10px 0;"><strong>Special Requests:</strong></p>
+          <p style="color: #666; font-size: 14px; margin: 0;">${Array.isArray(data.special_requests) ? data.special_requests.join(', ') : data.special_requests}</p>
+        </div>
+        ` : ''}
+
+        <p style="color: #666; font-size: 13px; margin: 20px 0 0 0;">
+          <strong>From:</strong> ${data.requester_name}
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://madetohike.com/dashboard?section=inbox" style="background-color: #8B1538; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; display: inline-block;">
+          View in Dashboard
+        </a>
+      </div>
+
+      <p style="color: #666; font-size: 14px; line-height: 1.6;">
+        If you're interested, log in to your dashboard to respond directly to this request.
+      </p>
+    </div>
+
+    <div style="background-color: #F5F5F5; padding: 30px; text-align: center; border-top: 1px solid #E0E0E0;">
+      <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+        Made to Hike connects adventurers with certified local guides.
+      </p>
+      <p style="color: #999; font-size: 12px; margin: 0;">
+        This request was forwarded to you by ${data.forwarder_name}.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`,
+      text: `Forwarded Tour Request\n\n${data.forwarder_name} thought you might be interested in this custom tour request.\n\n${data.personal_note ? `Personal note: "${data.personal_note}"\n\n` : ''}Trip: ${data.trip_name}\nRegion: ${data.region}\nDates: ${data.preferred_dates}\nDuration: ${data.duration}\nGroup Size: ${data.group_size}\nExperience: ${data.experience_level}\n${data.budget_per_person ? `Budget: ${data.budget_per_person}/person\n` : ''}\nDescription:\n${data.description}\n\nFrom: ${data.requester_name}\n\nLog in to respond: https://madetohike.com/dashboard?section=inbox`
+    },
+
     referral_welcome: {
       subject: `Welcome to Made to Hike, ${data.refereeName}! 🏔️`,
       html: `
@@ -2141,7 +2299,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
     },
   };
 
-  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin', 'referral_invitation', 'referral_success', 'referral_welcome'];
+  const allowedTypes = ['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin', 'referral_invitation', 'referral_success', 'referral_welcome', 'guide_interest_notification', 'forwarded_tour_request'];
 
   return templates[type as keyof typeof templates] || templates.contact
 }
@@ -2150,7 +2308,7 @@ const getEmailTemplate = (type: string, data: any): EmailTemplate => {
 const validateEmailRequest = (body: any): EmailRequest => {
   const errors: string[] = []
 
-  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin', 'referral_invitation', 'referral_success', 'referral_welcome'].includes(body.type)) {
+  if (!body.type || !['contact', 'newsletter', 'verification', 'welcome', 'booking', 'booking-confirmation', 'guide-booking-notification', 'custom_verification', 'admin_verification_request', 'verification-code', 'new_message', 'new_anonymous_inquiry', 'review_available', 'review_reminder', 'waiver_confirmation', 'waiver_reminder', 'insurance_reminder', 'participant_invitation', 'participant_reminder', 'participant_completion', 'booker_participant_complete', 'guide_participant_documents', 'review_response', 'booking_cancellation_hiker', 'booking_cancellation_guide', 'booking_refund_hiker', 'pre_trip_reminder', 'post_trip_thank_you', 'tour_date_change_notification', 'tour_fully_booked_alert', 'payout_processed_notification', 'document_upload_notification', 'review_received_notification', 'guide_verification_completed', 'failed_payment_alert_admin', 'referral_invitation', 'referral_success', 'referral_welcome', 'guide_interest_notification', 'forwarded_tour_request'].includes(body.type)) {
     errors.push('Invalid or missing email type')
   }
 

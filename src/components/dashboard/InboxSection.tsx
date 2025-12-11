@@ -151,9 +151,9 @@ export function InboxSection({
     fetchPublicRequests();
   }, [user?.id, isGuide]);
 
-  const handlePublicRequestInterested = (conversationId: string) => {
+  const handlePublicRequestInterested = (requestId: string, conversationId: string) => {
     // Remove the request from the list and navigate to the conversation
-    setPublicRequests(prev => prev.filter(r => r.id !== requestToForward?.id));
+    setPublicRequests(prev => prev.filter(r => r.id !== requestId));
     refetchConversations();
     
     // Find and select the new conversation
@@ -166,9 +166,9 @@ export function InboxSection({
     }, 500);
   };
 
-  const handlePublicRequestDeclined = () => {
+  const handlePublicRequestDeclined = (requestId: string) => {
     // Refresh the list to remove declined request
-    setPublicRequests(prev => prev.filter(r => r.id !== requestToForward?.id));
+    setPublicRequests(prev => prev.filter(r => r.id !== requestId));
   };
 
   const handleForwardRequest = (request: PublicTourRequest) => {
@@ -433,14 +433,10 @@ Best regards,
                             request={request}
                             guideId={user?.id || ''}
                             onInterested={(conversationId) => {
-                              setPublicRequests(prev => prev.filter(r => r.id !== request.id));
-                              refetchConversations();
-                              setTimeout(() => {
-                                setSearchParams({ section: 'inbox', conversation: conversationId });
-                              }, 500);
+                              handlePublicRequestInterested(request.id, conversationId);
                             }}
                             onDeclined={() => {
-                              setPublicRequests(prev => prev.filter(r => r.id !== request.id));
+                              handlePublicRequestDeclined(request.id);
                             }}
                             onForward={(req) => {
                               setRequestToForward(req);
