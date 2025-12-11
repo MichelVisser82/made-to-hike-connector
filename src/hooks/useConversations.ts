@@ -170,12 +170,19 @@ export function useConversations(userId: string | undefined, isAdmin: boolean = 
         // Get request_id if custom_tour_request conversation
         let requestId = null;
         if (conv.conversation_type === 'custom_tour_request') {
-          const { data: requestResponse } = await supabase
-            .from('guide_request_responses')
-            .select('request_id')
-            .eq('conversation_id', conv.id)
-            .maybeSingle();
-          requestId = requestResponse?.request_id || null;
+          // First check if public_request_id is already in metadata
+          const metadataObj = typeof conv.metadata === 'object' && conv.metadata !== null ? conv.metadata : {};
+          if ((metadataObj as any).public_request_id) {
+            requestId = (metadataObj as any).public_request_id;
+          } else {
+            // Fall back to querying guide_request_responses
+            const { data: requestResponse } = await supabase
+              .from('guide_request_responses')
+              .select('request_id')
+              .eq('conversation_id', conv.id)
+              .maybeSingle();
+            requestId = requestResponse?.request_id || null;
+          }
         }
 
         // Get admin profile for admin_support conversations
