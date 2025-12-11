@@ -480,7 +480,7 @@ export default function CustomRequestsPage() {
                       }, {
                         id: "camping",
                         icon: Tent,
-                        label: "Camping/refuge based"
+                        label: "(Wild) Camping/refuge based"
                       }, {
                         id: "family",
                         icon: Baby,
