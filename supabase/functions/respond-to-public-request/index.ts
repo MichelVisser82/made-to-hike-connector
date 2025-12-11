@@ -66,6 +66,89 @@ serve(async (req: Request) => {
     if (existingResponse) {
       console.log("Guide already responded to this request:", existingResponse.response_type);
       
+      // Allow changing from "interested" to "declined" or "forwarded"
+      if (existingResponse.response_type === 'interested' && (response_type === 'declined' || response_type === 'forwarded')) {
+        console.log(`Updating response from 'interested' to '${response_type}'`);
+        
+        // Update the response record
+        const { error: updateError } = await supabase
+          .from("guide_request_responses")
+          .update({
+            response_type,
+            decline_reason: decline_reason || null,
+            forwarded_to_email: forwarded_to_email || null,
+          })
+          .eq("id", existingResponse.id);
+
+        if (updateError) {
+          console.error("Failed to update response:", updateError);
+          return new Response(
+            JSON.stringify({ error: "Failed to update response" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Close the existing conversation if there is one
+        if (existingResponse.conversation_id) {
+          await supabase
+            .from("conversations")
+            .update({ status: "closed" })
+            .eq("id", existingResponse.conversation_id);
+
+          // Add system message about the decline/forward
+          const actionMessage = response_type === 'declined'
+            ? `*${guideName} has declined this request.${decline_reason ? ` Reason: ${decline_reason}` : ''}*`
+            : `*${guideName} has forwarded this request to another guide.${forwarded_to_email ? ` (${forwarded_to_email})` : ''}*`;
+
+          await supabase.from("messages").insert({
+            conversation_id: existingResponse.conversation_id,
+            sender_id: guide_id,
+            sender_type: "system",
+            sender_name: "System",
+            message_type: "system",
+            content: actionMessage,
+          });
+        }
+
+        // Send forwarding email if forwarded
+        if (response_type === "forwarded" && forwarded_to_email) {
+          try {
+            await supabase.functions.invoke("send-email", {
+              body: {
+                type: "forwarded_tour_request",
+                to: forwarded_to_email,
+                forwarder_name: guideName,
+                personal_note: personal_note || null,
+                trip_name: request.trip_name,
+                region: request.region,
+                preferred_dates: request.preferred_dates,
+                duration: request.duration,
+                group_size: request.group_size,
+                experience_level: request.experience_level,
+                budget_per_person: request.budget_per_person,
+                description: request.description,
+                special_requests: request.special_requests,
+                requester_name: request.requester_name,
+              },
+            });
+            console.log(`Request forwarded to ${forwarded_to_email}`);
+          } catch (emailError) {
+            console.error("Failed to send forward email:", emailError);
+          }
+        }
+
+        console.log(`Successfully updated response to ${response_type}`);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            response_type,
+            conversation_id: existingResponse.conversation_id,
+            updated: true,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
       // If interested but no conversation was created (previous error), create it now
       if (existingResponse.response_type === 'interested' && !existingResponse.conversation_id) {
         console.log("Creating missing conversation for previous interested response");
