@@ -65,6 +65,98 @@ serve(async (req: Request) => {
 
     if (existingResponse) {
       console.log("Guide already responded to this request:", existingResponse.response_type);
+      
+      // If interested but no conversation was created (previous error), create it now
+      if (existingResponse.response_type === 'interested' && !existingResponse.conversation_id) {
+        console.log("Creating missing conversation for previous interested response");
+        
+        // Create the conversation now
+        const { data: conversation, error: convError } = await supabase
+          .from("conversations")
+          .insert({
+            guide_id,
+            hiker_id: request.requester_id || null,
+            anonymous_email: request.requester_id ? null : request.requester_email,
+            anonymous_name: request.requester_id ? null : request.requester_name,
+            conversation_type: "custom_tour_request",
+            status: "active",
+            metadata: {
+              public_request_id: request_id,
+              trip_name: request.trip_name,
+              tour_type: request.trip_name,
+              region: request.region,
+              preferred_dates: request.preferred_dates,
+              preferred_date: request.preferred_dates,
+              duration: request.duration,
+              group_size: request.group_size,
+              groupSize: request.group_size,
+              experience_level: request.experience_level,
+              hiker_level: request.experience_level,
+              hikerLevel: request.experience_level,
+              budget_per_person: request.budget_per_person,
+              description: request.description,
+              initial_message: request.description,
+              initialMessage: request.description,
+              special_requests: request.special_requests,
+            },
+          })
+          .select()
+          .single();
+
+        if (convError) {
+          console.error("Failed to create conversation:", convError);
+          return new Response(
+            JSON.stringify({ error: "Failed to create conversation" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Update the response record with the conversation_id
+        await supabase
+          .from("guide_request_responses")
+          .update({ conversation_id: conversation.id })
+          .eq("id", existingResponse.id);
+
+        // Create initial system message
+        const systemMessage = `📋 **Custom Tour Request**
+
+**Trip:** ${request.trip_name}
+**Region:** ${request.region}
+**Dates:** ${request.preferred_dates}
+**Duration:** ${request.duration}
+**Group Size:** ${request.group_size}
+**Experience Level:** ${request.experience_level}
+${request.budget_per_person ? `**Budget:** ${request.budget_per_person} per person` : ""}
+
+**Description:**
+${request.description}
+${request.special_requests?.length ? `\n**Special Requests:** ${request.special_requests.join(", ")}` : ""}
+
+---
+*${guideName} has expressed interest in this request.*`;
+
+        await supabase.from("messages").insert({
+          conversation_id: conversation.id,
+          sender_id: guide_id,
+          sender_type: "guide",
+          sender_name: guideName,
+          message_type: "system",
+          content: systemMessage,
+        });
+
+        console.log("Created missing conversation:", conversation.id);
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            response_type: "interested",
+            conversation_id: conversation.id,
+            already_responded: true,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Return existing response info
       return new Response(
         JSON.stringify({
