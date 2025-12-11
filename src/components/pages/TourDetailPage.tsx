@@ -809,14 +809,23 @@ export function TourDetailPage({
                 <div className="grid md:grid-cols-[400px,1fr] gap-0">
                   {/* Guide Image - Left Side with Overlapping Stats Box */}
                   <div className="relative h-[500px]">
-                    {guideInfo.avatarUrl ? <img src={guideInfo.avatarUrl} alt={`${guideInfo.displayName} - Professional hiking guide`} className="w-full h-full object-cover" /> : <SmartImage category="guide" usageContext="professional" tags={['portrait', 'guide', 'professional', 'certified', 'hiking']} className="w-full h-full object-cover" alt="Professional hiking guide" />}
+                    {/* Clickable guide image */}
+                    <div 
+                      className="w-full h-full cursor-pointer"
+                      onClick={() => guideProfile?.slug && navigate(`/${guideProfile.slug}`)}
+                    >
+                      {guideInfo.avatarUrl ? <img src={guideInfo.avatarUrl} alt={`${guideInfo.displayName} - Professional hiking guide`} className="w-full h-full object-cover" /> : <SmartImage category="guide" usageContext="professional" tags={['portrait', 'guide', 'professional', 'certified', 'hiking']} className="w-full h-full object-cover" alt="Professional hiking guide" />}
+                    </div>
                     {/* Gradient overlay - matching hero style */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/15 to-transparent z-[1]" />
-                    <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background z-[1]" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/15 to-transparent z-[1] pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background z-[1] pointer-events-none" />
                     
                     {/* Guide Name & Location - Overlaid on top of image */}
                     <div className="absolute top-6 left-6 right-6 text-white z-[10]">
-                      <h3 className="text-3xl font-bold mb-2 drop-shadow-lg">
+                      <h3 
+                        className="text-3xl font-bold mb-2 drop-shadow-lg cursor-pointer hover:underline"
+                        onClick={() => guideProfile?.slug && navigate(`/${guideProfile.slug}`)}
+                      >
                         {guideInfo.displayName}
                       </h3>
                       {guideInfo.location && <p className="flex items-center gap-1 text-sm mb-1 drop-shadow-md">
