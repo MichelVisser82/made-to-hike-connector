@@ -17,7 +17,8 @@ import {
   type ReviewStats,
   type NotificationPreference,
 } from '../../types';
-import type { DashboardSection, DashboardStats, TodayScheduleItem, Notification } from '@/types/dashboard';
+import type { DashboardSection, DashboardStats, TodayScheduleItem } from '@/types/dashboard';
+import { useGuideNotifications } from '@/hooks/useGuideNotifications';
 import { MainLayout } from '../layout/MainLayout';
 import { BookingsSection } from '../dashboard/BookingsSection';
 import { MoneySection } from '../dashboard/MoneySection';
@@ -1222,8 +1223,9 @@ export function GuideDashboard({
       tourSlug: tour.tourSlug,
     };
   });
-  
-  const mockNotifications: Notification[] = [];
+
+  // Fetch real notifications using the hook
+  const { notifications, dismissNotification } = useGuideNotifications(user.id);
 
 
   return (
@@ -1243,7 +1245,8 @@ export function GuideDashboard({
               currentDate={new Date()}
               upcomingTours={mockSchedule}
               stats={realStats}
-              notifications={mockNotifications}
+              notifications={notifications}
+              onDismissNotification={dismissNotification}
               onCreateTour={() => {
                 // Allow tour creation regardless of verification status
                 // Tours will be created as drafts and require verification to publish
