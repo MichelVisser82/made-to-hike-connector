@@ -400,9 +400,13 @@ export default function CustomRequestsPage() {
                           </label>
                           <select name="duration" value={formData.duration} onChange={handleChange as any} required className="w-full h-14 border border-charcoal/20 rounded-md px-4 bg-white">
                             <option value="">Select</option>
-                            <option value="1-2">1-2 days</option>
-                            <option value="3-4">3-4 days</option>
-                            <option value="5-7">5-7 days</option>
+                            <option value="1">1 day</option>
+                            <option value="2">2 days</option>
+                            <option value="3">3 days</option>
+                            <option value="4">4 days</option>
+                            <option value="5">5 days</option>
+                            <option value="6">6 days</option>
+                            <option value="7">7 days</option>
                             <option value="8+">8+ days</option>
                           </select>
                         </div>
