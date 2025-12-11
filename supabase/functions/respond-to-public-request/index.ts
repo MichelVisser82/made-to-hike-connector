@@ -55,6 +55,28 @@ serve(async (req: Request) => {
 
     const guideName = guideProfile?.display_name || "A certified guide";
 
+    // Check if guide already responded to this request
+    const { data: existingResponse } = await supabase
+      .from("guide_request_responses")
+      .select("*")
+      .eq("request_id", request_id)
+      .eq("guide_id", guide_id)
+      .single();
+
+    if (existingResponse) {
+      console.log("Guide already responded to this request:", existingResponse.response_type);
+      // Return existing response info
+      return new Response(
+        JSON.stringify({
+          success: true,
+          response_type: existingResponse.response_type,
+          conversation_id: existingResponse.conversation_id,
+          already_responded: true,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Record the response
     const { error: responseError } = await supabase
       .from("guide_request_responses")
