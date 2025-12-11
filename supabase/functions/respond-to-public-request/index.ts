@@ -78,6 +78,7 @@ serve(async (req: Request) => {
 
     if (response_type === "interested") {
       // Create a conversation with the requester
+      // Store metadata in format compatible with QuickOfferForm
       const { data: conversation, error: convError } = await supabase
         .from("conversations")
         .insert({
@@ -89,14 +90,22 @@ serve(async (req: Request) => {
           status: "active",
           metadata: {
             public_request_id: request_id,
+            // Store in both formats for compatibility
             trip_name: request.trip_name,
+            tour_type: request.trip_name,
             region: request.region,
             preferred_dates: request.preferred_dates,
+            preferred_date: request.preferred_dates,
             duration: request.duration,
             group_size: request.group_size,
+            groupSize: request.group_size,
             experience_level: request.experience_level,
+            hiker_level: request.experience_level,
+            hikerLevel: request.experience_level,
             budget_per_person: request.budget_per_person,
             description: request.description,
+            initial_message: request.description,
+            initialMessage: request.description,
             special_requests: request.special_requests,
           },
         })
