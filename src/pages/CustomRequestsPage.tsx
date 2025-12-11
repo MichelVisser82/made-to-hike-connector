@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Mountain, CheckCircle2, ArrowRight, Users, Calendar, MapPin, Euro, Clock, Send, Sparkles, MessageSquare, TrendingUp, Utensils, Accessibility, Camera, Binoculars, Landmark, Hotel, Tent, Baby } from "lucide-react";
+import { Mountain, CheckCircle2, ArrowRight, Users, Calendar, MapPin, Euro, Clock, Send, Sparkles, MessageSquare, TrendingUp, Utensils, Accessibility, Camera, Binoculars, Landmark, Hotel, Tent, Baby, ChevronsUpDown, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { RegionSelector } from "@/components/tour-creation/RegionSelector";
+import { useHikingRegions } from "@/hooks/useHikingRegions";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 export default function CustomRequestsPage() {
   const {
     user
@@ -35,11 +38,14 @@ export default function CustomRequestsPage() {
     email: "",
     phone: ""
   });
-  const [flexibleLocation, setFlexibleLocation] = useState(false);
+  const [showCustomRegionInput, setShowCustomRegionInput] = useState(false);
+  const [customRegionText, setCustomRegionText] = useState("");
+  const [regionPopoverOpen, setRegionPopoverOpen] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [heroImages, setHeroImages] = useState<string[]>([]);
+  const { data: hikingRegions, isLoading: regionsLoading } = useHikingRegions();
 
   // Fetch real tour images for hero grid
   useEffect(() => {
@@ -72,6 +78,8 @@ export default function CustomRequestsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const finalRegion = showCustomRegionInput ? customRegionText : formData.region;
+      
       const {
         error
       } = await supabase.functions.invoke('create-public-tour-request', {
@@ -81,7 +89,7 @@ export default function CustomRequestsPage() {
           requester_email: formData.email,
           requester_phone: formData.phone || null,
           trip_name: formData.tripName,
-          region: formData.region,
+          region: finalRegion,
           preferred_dates: formData.dates,
           duration: formData.duration,
           group_size: formData.groupSize,
@@ -115,23 +123,10 @@ export default function CustomRequestsPage() {
     }));
   };
   const regionLabel = (region: string) => {
-    if (region === "flexible") return "Flexible / Open to suggestions";
-    // RegionSelector outputs "Country - Region - Subregion" format
+    if (region === "Other / Not Listed / Flexible") return "Flexible / Open to suggestions";
     return region || "your selected region";
   };
 
-  const handleRegionChange = (value: string) => {
-    setFormData(prev => ({ ...prev, region: value }));
-  };
-
-  const handleFlexibleToggle = (checked: boolean) => {
-    setFlexibleLocation(checked);
-    if (checked) {
-      setFormData(prev => ({ ...prev, region: "flexible" }));
-    } else {
-      setFormData(prev => ({ ...prev, region: "" }));
-    }
-  };
   return <MainLayout>
       <PageSEO title="Custom Hiking Requests | MadeToHike" description="Post your dream hiking adventure and receive tailored proposals from certified IFMGA & UIMLA guides across Europe. Get 3-5 custom offers within 48 hours." />
       
@@ -300,34 +295,91 @@ export default function CustomRequestsPage() {
                       </div>
 
                       {/* Region Selection */}
-                      <div>
+                      <div className="space-y-2">
                         <label className="text-sm text-charcoal/70 uppercase tracking-wider mb-3 block flex items-center gap-2">
                           <MapPin className="w-4 h-4" />
-                          Region
+                          Preferred Region *
                         </label>
                         
-                        {/* Flexible Location Checkbox */}
-                        <label className="flex items-center gap-3 cursor-pointer mb-4">
-                          <input 
-                            type="checkbox" 
-                            checked={flexibleLocation} 
-                            onChange={(e) => handleFlexibleToggle(e.target.checked)} 
-                            className="w-5 h-5 text-burgundy border-charcoal/20 rounded focus:ring-burgundy" 
-                          />
-                          <span className="text-charcoal/80">I'm flexible on location / Open to suggestions</span>
-                        </label>
-                        
-                        {/* RegionSelector - only show if not flexible */}
-                        {!flexibleLocation && (
-                          <RegionSelector 
-                            value={formData.region} 
-                            onChange={handleRegionChange} 
-                          />
-                        )}
-                        
-                        {/* Hidden input for form validation when flexible */}
-                        {flexibleLocation && (
-                          <input type="hidden" name="region" value="flexible" />
+                        <Popover open={regionPopoverOpen} onOpenChange={setRegionPopoverOpen} modal={false}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={regionPopoverOpen}
+                              className="w-full h-14 justify-between border-charcoal/20 focus:border-burgundy bg-white"
+                            >
+                              {formData.region || "Select region..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[400px] p-0 z-[9999] bg-white" align="start" sideOffset={4}>
+                            <Command>
+                              <CommandInput placeholder="Search regions..." />
+                              <CommandList>
+                                <CommandEmpty>No region found.</CommandEmpty>
+                                <CommandGroup>
+                                  {regionsLoading ? (
+                                    <CommandItem disabled>Loading regions...</CommandItem>
+                                  ) : (
+                                    <>
+                                      {hikingRegions?.map((region) => {
+                                        const displayValue = region.region
+                                          ? `${region.country} - ${region.region} - ${region.subregion}`
+                                          : `${region.country} - ${region.subregion}`;
+
+                                        return (
+                                          <CommandItem
+                                            key={region.id}
+                                            value={displayValue.toLowerCase()}
+                                            onSelect={() => {
+                                              setFormData((prev) => ({ ...prev, region: displayValue }));
+                                              setShowCustomRegionInput(false);
+                                              setCustomRegionText("");
+                                              setRegionPopoverOpen(false);
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                formData.region === displayValue ? "opacity-100" : "opacity-0",
+                                              )}
+                                            />
+                                            {displayValue}
+                                          </CommandItem>
+                                        );
+                                      })}
+                                      <CommandItem
+                                        value="other"
+                                        onSelect={() => {
+                                          setFormData((prev) => ({ ...prev, region: "Other / Not Listed / Flexible" }));
+                                          setShowCustomRegionInput(true);
+                                          setRegionPopoverOpen(false);
+                                        }}
+                                        className="border-t mt-2 pt-2"
+                                      >
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Other / Not Listed / Flexible
+                                      </CommandItem>
+                                    </>
+                                  )}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+
+                        {/* Conditional custom region text input */}
+                        {showCustomRegionInput && (
+                          <div className="mt-2">
+                            <Input
+                              placeholder="Please specify your preferred region..."
+                              value={customRegionText}
+                              onChange={(e) => setCustomRegionText(e.target.value)}
+                              className="h-14 border-charcoal/20 focus:border-burgundy"
+                              required
+                            />
+                          </div>
                         )}
                       </div>
 
@@ -549,7 +601,8 @@ export default function CustomRequestsPage() {
                   <Button onClick={() => {
                 setSubmitted(false);
                 setAcceptedTerms(false);
-                setFlexibleLocation(false);
+                setShowCustomRegionInput(false);
+                setCustomRegionText("");
                 setFormData({
                   tripName: "",
                   region: "",
