@@ -27,6 +27,7 @@ interface PublicTourRequest {
   budget_per_person: string | null;
   description: string;
   special_requests: string[] | null;
+  additional_details: string | null;
   requester_name: string;
 }
 

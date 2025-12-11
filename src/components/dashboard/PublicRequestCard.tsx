@@ -19,6 +19,7 @@ interface PublicTourRequest {
   budget_per_person: string | null;
   description: string;
   special_requests: string[] | null;
+  additional_details: string | null;
   requester_name: string;
   requester_email: string;
   created_at: string;
@@ -181,6 +182,16 @@ export function PublicRequestCard({
           <p className="text-sm text-charcoal/80 whitespace-pre-wrap">
             {request.description}
           </p>
+          
+          {/* Additional Details - shown when expanded */}
+          {expanded && request.additional_details && (
+            <div className="mt-3 pt-3 border-t border-charcoal/10">
+              <p className="text-xs font-medium text-charcoal/60 mb-1">Additional Details</p>
+              <p className="text-sm text-charcoal/80 whitespace-pre-wrap">
+                {request.additional_details}
+              </p>
+            </div>
+          )}
         </div>
         
         <button 
