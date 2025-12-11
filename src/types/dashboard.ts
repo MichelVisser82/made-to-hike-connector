@@ -12,11 +12,14 @@ export interface DashboardMetric {
 
 export interface Notification {
   id: string;
-  type: 'booking' | 'review' | 'message' | 'payment';
+  type: 'booking' | 'review' | 'message' | 'payment' | 'custom_request' | 'document' | 'review_pending';
   message: string;
   time: string;
   isRead: boolean;
   actionLink?: string;
+  requiresAction: boolean;
+  actionType?: 'approve_booking' | 'respond_request' | 'write_review' | 'upload_document' | 'view_only';
+  relatedEntityId?: string;
 }
 
 export interface TodayScheduleItem {

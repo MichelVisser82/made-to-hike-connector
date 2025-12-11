@@ -14,6 +14,9 @@ import {
   Eye,
   Cloud,
   Star,
+  Compass,
+  X,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -29,6 +32,7 @@ interface TodaySectionProps {
   stats: DashboardStats;
   weather?: WeatherData;
   notifications: Notification[];
+  onDismissNotification?: (id: string) => void;
   onCreateTour: () => void;
   onManageAvailability: () => void;
   onViewEarnings: () => void;
@@ -45,6 +49,7 @@ export function TodaySection({
   stats,
   weather,
   notifications,
+  onDismissNotification,
   onCreateTour,
   onManageAvailability,
   onViewEarnings,
@@ -77,6 +82,41 @@ export function TodaySection({
         return 'bg-charcoal/20 text-charcoal';
       default:
         return 'bg-burgundy/10 text-burgundy';
+    }
+  };
+
+  const getNotificationIcon = (type: Notification['type']) => {
+    switch (type) {
+      case 'booking': return Users;
+      case 'review': return Star;
+      case 'message': return MessageSquare;
+      case 'custom_request': return Compass;
+      case 'document': return AlertCircle;
+      case 'review_pending': return Star;
+      default: return MessageSquare;
+    }
+  };
+
+  const getNotificationColor = (notification: Notification) => {
+    if (notification.requiresAction) {
+      return 'bg-burgundy/10 text-burgundy';
+    }
+    switch (notification.type) {
+      case 'booking': return 'bg-burgundy/10 text-burgundy';
+      case 'review': return 'bg-gold/10 text-gold';
+      case 'message': return 'bg-sage/10 text-sage';
+      case 'custom_request': return 'bg-burgundy/10 text-burgundy';
+      default: return 'bg-charcoal/10 text-charcoal';
+    }
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    if (notification.actionLink) {
+      navigate(notification.actionLink);
+    }
+    // Only dismiss informative notifications
+    if (!notification.requiresAction && onDismissNotification) {
+      onDismissNotification(notification.id);
     }
   };
 
@@ -327,27 +367,45 @@ export function TodaySection({
                 </div>
               )}
 
-              {notifications.slice(0, stripeConnected ? 3 : 2).map((notification) => {
-                const Icon = notification.type === 'booking' 
-                  ? Users 
-                  : notification.type === 'review' 
-                    ? Star 
-                    : MessageSquare;
-                const colorClass = notification.type === 'booking'
-                  ? 'bg-burgundy/10 text-burgundy'
-                  : notification.type === 'review'
-                    ? 'bg-gold/10 text-gold'
-                    : 'bg-sage/10 text-sage';
+              {notifications.length === 0 && stripeConnected && (
+                <div className="py-6 text-center">
+                  <p className="text-sm text-charcoal/60">No new notifications</p>
+                </div>
+              )}
+
+              {notifications.slice(0, stripeConnected ? 5 : 4).map((notification) => {
+                const Icon = getNotificationIcon(notification.type);
+                const colorClass = getNotificationColor(notification);
 
                 return (
-                  <div key={notification.id} className="flex items-start gap-3">
+                  <div 
+                    key={notification.id} 
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-cream/50 cursor-pointer transition-colors"
+                    onClick={() => handleNotificationClick(notification)}
+                  >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${colorClass}`}>
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-charcoal">{notification.message}</p>
                       <p className="text-xs text-charcoal/50 mt-1">{notification.time}</p>
+                      {notification.requiresAction && (
+                        <Badge className="mt-2 bg-burgundy/10 text-burgundy text-xs border-0">
+                          Action Required
+                        </Badge>
+                      )}
                     </div>
+                    {!notification.requiresAction && onDismissNotification && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDismissNotification(notification.id);
+                        }}
+                        className="text-charcoal/30 hover:text-charcoal p-1 rounded transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 );
               })}
