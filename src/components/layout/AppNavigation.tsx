@@ -5,6 +5,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { useConversations } from '@/hooks/useConversations';
 import { usePendingReviews } from '@/hooks/useReviewSystem';
 import { usePendingBookingsNotifications } from '@/hooks/usePendingBookingsNotifications';
+import { usePublicRequestsNotifications } from '@/hooks/usePublicRequestsNotifications';
+import { useSeenNotifications } from '@/hooks/useSeenNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import { type User } from '@/types';
 import type { DashboardSection, DashboardMode } from '@/types/dashboard';
@@ -41,7 +43,8 @@ import {
   Image as ImageIcon,
   ShieldCheck,
   TrendingUp,
-  Gift
+  Gift,
+  Compass
 } from 'lucide-react';
 
 interface AppNavigationProps {
@@ -88,10 +91,19 @@ export function AppNavigation({
 
   // Fetch pending reviews for hiker notification
   const { data: pendingReviews = [] } = usePendingReviews();
-  const pendingReviewsCount = pendingReviews.filter(r => r.review_status === 'draft').length;
+  const pendingReviewIds = pendingReviews.filter(r => r.review_status === 'draft').map(r => r.id);
+  
+  // Track seen pending reviews
+  const { markAllAsSeen: markReviewsSeen, getUnseenCount: getUnseenReviewCount } = useSeenNotifications('pending_reviews', user?.id);
+  const pendingReviewsCount = getUnseenReviewCount(pendingReviewIds);
 
   // Fetch pending bookings notifications for guides
   const { newPendingCount, markAllAsSeen } = usePendingBookingsNotifications(
+    user?.role === 'guide' ? user?.id : undefined
+  );
+
+  // Fetch public custom requests notifications for guides
+  const { unseenCount: customRequestsCount, markRequestsAsSeen } = usePublicRequestsNotifications(
     user?.role === 'guide' ? user?.id : undefined
   );
 
@@ -184,9 +196,9 @@ export function AppNavigation({
                 <HoverCardTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative text-charcoal/70 hover:bg-burgundy/5 hover:text-burgundy">
                     <Bell className="w-5 h-5" />
-                    {(unreadCount > 0 || pendingReviewsCount > 0 || newPendingCount > 0) && (
+                    {(unreadCount > 0 || pendingReviewsCount > 0 || newPendingCount > 0 || customRequestsCount > 0) && (
                       <Badge className="absolute -top-1 -right-1 h-5 w-5 min-w-[20px] flex items-center justify-center p-0 bg-burgundy text-white text-xs">
-                        {(unreadCount + pendingReviewsCount + newPendingCount) > 9 ? '9+' : (unreadCount + pendingReviewsCount + newPendingCount)}
+                        {(unreadCount + pendingReviewsCount + newPendingCount + customRequestsCount) > 9 ? '9+' : (unreadCount + pendingReviewsCount + newPendingCount + customRequestsCount)}
                       </Badge>
                     )}
                   </Button>
@@ -196,7 +208,7 @@ export function AppNavigation({
                     <h4 className="font-semibold text-sm text-charcoal">Notifications</h4>
                   </div>
                   <div className="max-h-[400px] overflow-y-auto">
-                    {conversations.filter(c => (c.unread_count || 0) > 0).length === 0 && pendingReviewsCount === 0 && newPendingCount === 0 ? (
+                    {conversations.filter(c => (c.unread_count || 0) > 0).length === 0 && pendingReviewsCount === 0 && newPendingCount === 0 && customRequestsCount === 0 ? (
                       <div className="p-8 text-center text-charcoal/60 text-sm">
                         No new notifications
                       </div>
@@ -234,9 +246,42 @@ export function AppNavigation({
                             </div>
                           </button>
                         )}
+                        {customRequestsCount > 0 && (
+                          <button
+                            onClick={() => {
+                              markRequestsAsSeen();
+                              setNotificationsOpen(false);
+                              navigate('/dashboard?section=inbox&tab=requests');
+                            }}
+                            className="w-full p-4 hover:bg-burgundy/5 border-b text-left transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="h-10 w-10 flex-shrink-0 bg-sage/20 rounded-full flex items-center justify-center">
+                                <Compass className="w-5 h-5 text-sage-dark" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="font-medium text-sm text-charcoal truncate">
+                                    Custom Request{customRequestsCount > 1 ? 's' : ''}
+                                  </p>
+                                  <Badge className="h-5 px-1.5 bg-sage text-white text-xs flex-shrink-0">
+                                    {customRequestsCount}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-charcoal/60 truncate mt-0.5">
+                                  {customRequestsCount} new custom tour request{customRequestsCount > 1 ? 's' : ''} from hikers
+                                </p>
+                                <p className="text-xs text-sage-dark mt-1">
+                                  Click to view requests
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        )}
                         {pendingReviewsCount > 0 && (
                           <button
                             onClick={() => {
+                              markReviewsSeen(pendingReviewIds);
                               setNotificationsOpen(false);
                               if (pendingReviews.length > 0) {
                                 navigate(`/dashboard?section=inbox&tab=reviews&bookingId=${pendingReviews[0].booking_id}`);
