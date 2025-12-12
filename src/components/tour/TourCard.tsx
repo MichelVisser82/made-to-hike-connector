@@ -126,13 +126,13 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
       </div>
 
       {/* Content Section */}
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-3">
         {/* Tour Title and Guide */}
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-1">
+          <h3 className="text-lg font-semibold text-foreground line-clamp-2 mb-1">
             {tour.title}
           </h3>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2 flex-wrap">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
             <span>by {guideInfo.displayName}</span>
             {priorityCerts.length > 0 && (
               <CertificationBadge
@@ -142,62 +142,62 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
               />
             )}
           </div>
-          
-          {/* Reviews */}
-          {tour.rating > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-              <span className="text-sm font-medium text-gray-900">
-                {tour.rating.toFixed(1)}
-              </span>
-              {tour.reviews_count > 0 && (
-                <span className="text-xs text-gray-500">
-                  ({tour.reviews_count} reviews)
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        {/* Reviews */}
+        {tour.rating > 0 && (
           <div className="flex items-center gap-1.5">
-            <MapPin className="w-4 h-4" />
-            <span>
+            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+            <span className="text-sm font-medium text-foreground">
+              {tour.rating.toFixed(1)}
+            </span>
+            {tour.reviews_count > 0 && (
+              <span className="text-xs text-muted-foreground">
+                ({tour.reviews_count} reviews)
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Stats - stacked for better readability */}
+        <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <MapPin className="w-4 h-4 shrink-0" />
+            <span className="truncate">
               {(tour as any).region_country && (tour as any).region_region
                 ? `${(tour as any).region_country} - ${(tour as any).region_region}`
                 : tour.region}
             </span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4" />
-            <span>{tour.duration}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Users className="w-4 h-4" />
-            <span>Max {tour.group_size}</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4 shrink-0" />
+              <span>{tour.duration}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Users className="w-4 h-4 shrink-0" />
+              <span>Max {tour.group_size}</span>
+            </div>
           </div>
         </div>
 
-        {/* Price */}
-        <div className="flex items-center justify-between">
+        {/* Price and Book Button */}
+        <div className="flex items-center justify-between gap-3 pt-1">
           <div className="font-medium text-foreground text-lg">
             {tour.currency === 'EUR' ? '€' : '£'}{tour.price}
             <span className="text-sm text-muted-foreground font-normal ml-1">/ person</span>
           </div>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              onBookTour(tour);
+            }}
+            className="bg-burgundy hover:bg-burgundy/90 text-white"
+            size="sm"
+          >
+            Book Now
+          </Button>
         </div>
-
-        {/* Book Now Button */}
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            onBookTour(tour);
-          }}
-          className="w-full bg-[#881337] hover:bg-[#7f1d1d] text-white"
-          size="lg"
-        >
-          Book Now
-        </Button>
       </div>
     </article>
   );
