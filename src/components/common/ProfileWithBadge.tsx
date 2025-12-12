@@ -134,12 +134,12 @@ export function ProfileWithBadge({
               className={cn(
                 'absolute rounded-full flex items-center justify-center shadow-lg transition-transform duration-200 group-hover:scale-110',
                 hasCustomSize 
-                  ? 'w-8 h-8 -bottom-1 -right-1' 
+                  ? 'w-10 h-10 -bottom-3 -right-3' 
                   : config.badge,
                 badge.badgeBg
               )}
             >
-              <BadgeIcon className={cn('text-white', hasCustomSize ? 'h-4 w-4' : config.icon)} />
+              <BadgeIcon className={cn('text-white', hasCustomSize ? 'h-5 w-5' : config.icon)} />
             </div>
           )}
 
