@@ -275,7 +275,7 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
             </div>
 
             {/* Calendar Widget & Trust Indicators - sticky container */}
-            <div className="sticky top-24 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="sticky top-24 space-y-6">
               <EnhancedCalendarWidget 
                 guideId={guide.user_id}
                 guideName={guide.display_name}
