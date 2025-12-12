@@ -6,9 +6,12 @@ const FUNCTION_VERSION = '4.0.0';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL') ?? '';
+// Use dedicated verification webhook, fallback to general webhook
+const slackVerificationWebhook = Deno.env.get('SLACK_VERIFICATION_WEBHOOK_URL');
+const slackWebhookUrl = slackVerificationWebhook || Deno.env.get('SLACK_WEBHOOK_URL') || '';
 
 console.log(`[slack-verification-notification] Version ${FUNCTION_VERSION} initialized with JWT authentication`);
+console.log(`[slack-verification-notification] Using ${slackVerificationWebhook ? 'dedicated verification' : 'general'} Slack webhook`);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
