@@ -1,6 +1,49 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+
+// Helper function to verify Slack signature
+async function verifySlackSignature(
+  signingSecret: string,
+  timestamp: string,
+  body: string,
+  signature: string
+): Promise<boolean> {
+  // Prevent replay attacks - check timestamp is within 5 minutes
+  const currentTime = Math.floor(Date.now() / 1000);
+  const requestTime = parseInt(timestamp, 10);
+  if (Math.abs(currentTime - requestTime) > 300) {
+    console.error('[slack-interactive-handler] Request timestamp too old');
+    return false;
+  }
+
+  // Create the signature base string
+  const sigBaseString = `v0:${timestamp}:${body}`;
+  
+  // Compute HMAC SHA256
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(signingSecret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  
+  const signatureBuffer = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(sigBaseString)
+  );
+  
+  // Convert to hex string
+  const expectedSignature = 'v0=' + Array.from(new Uint8Array(signatureBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  
+  return signature === expectedSignature;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -13,12 +56,42 @@ serve(async (req) => {
     // Use dedicated verification webhook for verification actions, fallback to general
     const slackVerificationWebhook = Deno.env.get('SLACK_VERIFICATION_WEBHOOK_URL');
     const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL')!;
+    // Get signing secret for signature verification
+    const slackSigningSecret = Deno.env.get('SLACK_VERIFICATION_SIGNING_SECRET') || Deno.env.get('SLACK_SIGNING_SECRET');
     const supabase = createClient(supabaseUrl, supabaseKey);
     
     console.log(`[slack-interactive-handler] Using ${slackVerificationWebhook ? 'dedicated verification' : 'general'} Slack webhook for verifications`);
 
     const body = await req.text();
     console.log('[slack-interactive-handler] Received payload');
+    
+    // Verify Slack signature if signing secret is configured
+    if (slackSigningSecret) {
+      const timestamp = req.headers.get('X-Slack-Request-Timestamp');
+      const signature = req.headers.get('X-Slack-Signature');
+      
+      if (!timestamp || !signature) {
+        console.error('[slack-interactive-handler] Missing Slack signature headers');
+        return new Response('Unauthorized - Missing signature headers', { 
+          status: 401, 
+          headers: corsHeaders 
+        });
+      }
+      
+      const isValid = await verifySlackSignature(slackSigningSecret, timestamp, body, signature);
+      
+      if (!isValid) {
+        console.error('[slack-interactive-handler] Invalid Slack signature');
+        return new Response('Unauthorized - Invalid signature', { 
+          status: 401, 
+          headers: corsHeaders 
+        });
+      }
+      
+      console.log('[slack-interactive-handler] Slack signature verified successfully');
+    } else {
+      console.warn('[slack-interactive-handler] No signing secret configured - skipping signature verification');
+    }
     
     const payload = JSON.parse(new URLSearchParams(body).get('payload') || '{}');
 
