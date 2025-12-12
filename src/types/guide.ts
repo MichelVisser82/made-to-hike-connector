@@ -75,6 +75,9 @@ export interface GuideProfile {
   // Policy settings
   cancellation_approach?: 'single' | 'customer_choice';
   cancellation_policy_type?: 'flexible' | 'moderate' | 'strict' | 'non_refundable' | 'ultra_flexible';
+  // Badge settings
+  badge_type?: 'founder' | 'pioneer-guide' | null;
+  pioneer_number?: number;
 }
 
 export interface GuideSignupData {

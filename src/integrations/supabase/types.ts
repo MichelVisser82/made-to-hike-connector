@@ -739,6 +739,7 @@ export type Database = {
           address_line2: string | null
           address_postal_code: string | null
           address_state: string | null
+          badge_type: string | null
           bank_account_last4: string | null
           bio: string | null
           cancellation_approach: string | null
@@ -782,6 +783,7 @@ export type Database = {
           payout_schedule: string | null
           phone: string | null
           phone_country: string | null
+          pioneer_number: number | null
           portfolio_images: string[] | null
           profile_completed: boolean | null
           profile_image_url: string | null
@@ -810,6 +812,7 @@ export type Database = {
           address_line2?: string | null
           address_postal_code?: string | null
           address_state?: string | null
+          badge_type?: string | null
           bank_account_last4?: string | null
           bio?: string | null
           cancellation_approach?: string | null
@@ -853,6 +856,7 @@ export type Database = {
           payout_schedule?: string | null
           phone?: string | null
           phone_country?: string | null
+          pioneer_number?: number | null
           portfolio_images?: string[] | null
           profile_completed?: boolean | null
           profile_image_url?: string | null
@@ -881,6 +885,7 @@ export type Database = {
           address_line2?: string | null
           address_postal_code?: string | null
           address_state?: string | null
+          badge_type?: string | null
           bank_account_last4?: string | null
           bio?: string | null
           cancellation_approach?: string | null
@@ -924,6 +929,7 @@ export type Database = {
           payout_schedule?: string | null
           phone?: string | null
           phone_country?: string | null
+          pioneer_number?: number | null
           portfolio_images?: string[] | null
           profile_completed?: boolean | null
           profile_image_url?: string | null

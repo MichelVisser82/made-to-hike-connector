@@ -7,11 +7,13 @@ import { CertificationBadge } from '../ui/certification-badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, ExternalLink, Eye, MapPin, Calendar, Award, FileText, Power, Trash2, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
+import { Search, ExternalLink, Eye, MapPin, Calendar, Award, FileText, Power, Trash2, RotateCcw, AlertTriangle, Loader2, Crown, Mountain } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '../ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Label } from '../ui/label';
 
 export function VerifiedGuidesArchive() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,6 +23,11 @@ export function VerifiedGuidesArchive() {
   const [showDeactivatedOnly, setShowDeactivatedOnly] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ type: 'deactivate' | 'publish' | 'delete'; guide: any } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Badge management state
+  const [badgeType, setBadgeType] = useState<'founder' | 'pioneer-guide' | 'none'>('none');
+  const [pioneerNumber, setPioneerNumber] = useState<number | undefined>(undefined);
+  const [isSavingBadge, setIsSavingBadge] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -234,7 +241,56 @@ export function VerifiedGuidesArchive() {
     };
     
     loadDocumentUrls();
+    
+    // Initialize badge state when guide is selected
+    if (selectedGuide) {
+      setBadgeType(selectedGuide.badge_type || 'none');
+      setPioneerNumber(selectedGuide.pioneer_number || undefined);
+    }
   }, [selectedGuide]);
+
+  // Handle save badge
+  const handleSaveBadge = async () => {
+    if (!selectedGuide) return;
+    
+    setIsSavingBadge(true);
+    try {
+      const updateData: { badge_type: string | null; pioneer_number: number | null } = {
+        badge_type: badgeType === 'none' ? null : badgeType,
+        pioneer_number: badgeType === 'pioneer-guide' ? pioneerNumber || null : null,
+      };
+      
+      const { error } = await supabase
+        .from('guide_profiles')
+        .update(updateData)
+        .eq('user_id', selectedGuide.user_id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'Badge Updated',
+        description: `${selectedGuide.display_name}'s badge has been updated.`,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['all-guides-admin'] });
+      
+      // Update selected guide locally
+      setSelectedGuide((prev: any) => ({
+        ...prev,
+        badge_type: updateData.badge_type,
+        pioneer_number: updateData.pioneer_number,
+      }));
+    } catch (error) {
+      console.error('Error saving badge:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update badge. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingBadge(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -580,6 +636,103 @@ export function VerifiedGuidesArchive() {
                   )}
                 </div>
               )}
+
+              {/* Badge Management */}
+              <div className="pt-4 border-t border-border">
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Award className="h-4 w-4" />
+                  Recognition Badge
+                </h4>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="badge-type">Badge Type</Label>
+                    <Select
+                      value={badgeType}
+                      onValueChange={(value: 'founder' | 'pioneer-guide' | 'none') => setBadgeType(value)}
+                    >
+                      <SelectTrigger id="badge-type" className="w-full">
+                        <SelectValue placeholder="Select badge type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">
+                          <span className="flex items-center gap-2">
+                            No Badge
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="founder">
+                          <span className="flex items-center gap-2">
+                            <Crown className="h-4 w-4 text-amber-500" />
+                            Platform Founder
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="pioneer-guide">
+                          <span className="flex items-center gap-2">
+                            <Mountain className="h-4 w-4 text-burgundy" />
+                            Pioneer Guide
+                          </span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {badgeType === 'pioneer-guide' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="pioneer-number">Pioneer Number (1-50)</Label>
+                      <Input
+                        id="pioneer-number"
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={pioneerNumber || ''}
+                        onChange={(e) => setPioneerNumber(e.target.value ? parseInt(e.target.value) : undefined)}
+                        placeholder="e.g., 12"
+                        className="w-32"
+                      />
+                    </div>
+                  )}
+                  
+                  <Button 
+                    onClick={handleSaveBadge}
+                    disabled={isSavingBadge}
+                    size="sm"
+                    className="gap-2"
+                  >
+                    {isSavingBadge ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Badge'
+                    )}
+                  </Button>
+                  
+                  {/* Current badge preview */}
+                  {selectedGuide.badge_type && (
+                    <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                      <p className="text-xs text-muted-foreground mb-1">Current Badge:</p>
+                      <div className="flex items-center gap-2">
+                        {selectedGuide.badge_type === 'founder' && (
+                          <>
+                            <div className="p-1.5 rounded-full bg-gradient-to-br from-amber-400 to-amber-600">
+                              <Crown className="h-4 w-4 text-white" />
+                            </div>
+                            <span className="text-sm font-medium">Platform Founder</span>
+                          </>
+                        )}
+                        {selectedGuide.badge_type === 'pioneer-guide' && (
+                          <>
+                            <div className="p-1.5 rounded-full bg-gradient-to-br from-burgundy-light to-burgundy">
+                              <Mountain className="h-4 w-4 text-white" />
+                            </div>
+                            <span className="text-sm font-medium">Pioneer Guide #{selectedGuide.pioneer_number || '?'}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Actions */}
               <div className="flex flex-col gap-3 pt-4 border-t border-border">
