@@ -54,6 +54,7 @@ export default {
         burgundy: {
           DEFAULT: "hsl(var(--burgundy))",
           dark: "hsl(var(--burgundy-dark))",
+          light: "hsl(var(--burgundy-light))",
         },
         "cream-light": "hsl(var(--cream-light))",
         cream: "hsl(var(--cream))",
