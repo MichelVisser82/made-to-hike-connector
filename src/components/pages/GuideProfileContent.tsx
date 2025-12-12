@@ -275,22 +275,24 @@ export function GuideProfileContent({ guide, stats, tours, reviews }: GuideProfi
             </div>
 
             {/* Calendar Widget & Trust Indicators - sticky container */}
-            <div className="sticky top-24 space-y-6">
-              <EnhancedCalendarWidget 
-                guideId={guide.user_id}
-                guideName={guide.display_name}
-                tours={tours}
-                calendarData={calendarData}
-                isLoading={calendarLoading}
-              />
-              
-              <TrustIndicatorsCard 
-                guideName={guide.display_name}
-                isVerified={guide.verified}
-                averageRating={stats.average_rating}
-                totalReviews={reviews.length}
-                totalClients={stats.total_hikers}
-              />
+            <div className="sticky top-24">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                <EnhancedCalendarWidget 
+                  guideId={guide.user_id}
+                  guideName={guide.display_name}
+                  tours={tours}
+                  calendarData={calendarData}
+                  isLoading={calendarLoading}
+                />
+                
+                <TrustIndicatorsCard 
+                  guideName={guide.display_name}
+                  isVerified={guide.verified}
+                  averageRating={stats.average_rating}
+                  totalReviews={reviews.length}
+                  totalClients={stats.total_hikers}
+                />
+              </div>
             </div>
           </div>
         </div>
