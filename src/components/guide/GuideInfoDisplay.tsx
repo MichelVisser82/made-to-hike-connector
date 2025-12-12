@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { CertificationBadge } from '../ui/certification-badge';
+import { ProfileWithBadge } from '../common/ProfileWithBadge';
 import { Award, Loader2 } from 'lucide-react';
 import type { GuideDisplayInfo } from '@/utils/guideDataUtils';
 import { getExperienceDisplayText, getPrimaryCertification } from '@/utils/guideDataUtils';
@@ -15,6 +16,9 @@ interface GuideInfoDisplayProps {
   certifications?: GuideCertification[];
   isGuideVerified?: boolean;
   guideSlug?: string;
+  badgeType?: 'founder' | 'pioneer-guide';
+  pioneerNumber?: number;
+  joinedDate?: string;
 }
 
 /**
@@ -29,7 +33,10 @@ export function GuideInfoDisplay({
   variant = 'default',
   certifications,
   isGuideVerified = false,
-  guideSlug
+  guideSlug,
+  badgeType,
+  pioneerNumber,
+  joinedDate
 }: GuideInfoDisplayProps) {
   const primaryCert = getPrimaryCertification(certifications);
   const avatarSizes = {
@@ -105,24 +112,32 @@ export function GuideInfoDisplay({
     );
   }
 
+  const profileBadgeSize = size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md';
+
   const AvatarComponent = guideSlug ? (
     <Link to={`/${guideSlug}`} className="block hover:opacity-80 transition-opacity">
-      <div className={avatarSizes[size]}>
-        <img
-          src={guideInfo.avatarUrl || 'https://via.placeholder.com/80'}
-          alt={guideInfo.displayName}
-          className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
-        />
-      </div>
+      <ProfileWithBadge
+        imageUrl={guideInfo.avatarUrl || undefined}
+        name={guideInfo.displayName}
+        badgeType={badgeType}
+        pioneerNumber={pioneerNumber}
+        joinedDate={joinedDate}
+        size={profileBadgeSize}
+        showVerifiedBadge={true}
+        isVerified={isGuideVerified}
+      />
     </Link>
   ) : (
-    <div className={avatarSizes[size]}>
-      <img
-        src={guideInfo.avatarUrl || 'https://via.placeholder.com/80'}
-        alt={guideInfo.displayName}
-        className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
-      />
-    </div>
+    <ProfileWithBadge
+      imageUrl={guideInfo.avatarUrl || undefined}
+      name={guideInfo.displayName}
+      badgeType={badgeType}
+      pioneerNumber={pioneerNumber}
+      joinedDate={joinedDate}
+      size={profileBadgeSize}
+      showVerifiedBadge={true}
+      isVerified={isGuideVerified}
+    />
   );
 
   return (
