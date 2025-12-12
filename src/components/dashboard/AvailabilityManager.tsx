@@ -501,10 +501,6 @@ export function AvailabilityManager() {
             ) : selectedDate ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No tours scheduled for this date</p>
-                <Button className="mt-4" size="sm">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Date Slot
-                </Button>
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
