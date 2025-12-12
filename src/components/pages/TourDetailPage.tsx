@@ -255,7 +255,7 @@ export function TourDetailPage({
             <Card className="hidden lg:block lg:flex-shrink-0 lg:w-80 lg:mt-24 bg-background/95 backdrop-blur-sm shadow-lg rounded-xl p-4 border-border">
               {/* Guide Info */}
               <div className="mb-4 pb-4 border-b border-border">
-                <GuideInfoDisplay guideInfo={guideInfo} isLoadingProfessional={isLoadingProfessional} showBadge={true} size="lg" certifications={guideProfile?.certifications} isGuideVerified={guideProfile?.verified ?? false} guideSlug={guideProfile?.slug} />
+                <GuideInfoDisplay guideInfo={guideInfo} isLoadingProfessional={isLoadingProfessional} showBadge={true} size="lg" certifications={guideProfile?.certifications} isGuideVerified={guideProfile?.verified ?? false} guideSlug={guideProfile?.slug} badgeType={guideProfile?.badge_type as 'founder' | 'pioneer-guide' | undefined} pioneerNumber={guideProfile?.pioneer_number ?? undefined} joinedDate={guideProfile?.created_at} />
               </div>
 
               {/* Price Display */}
@@ -398,7 +398,7 @@ export function TourDetailPage({
           <Card className="lg:hidden mt-6 bg-background/95 backdrop-blur-sm shadow-lg rounded-xl p-5 border-border">
             {/* Guide Info */}
             <div className="mb-4 pb-4 border-b border-border">
-              <GuideInfoDisplay guideInfo={guideInfo} isLoadingProfessional={isLoadingProfessional} showBadge={true} size="lg" certifications={guideProfile?.certifications} isGuideVerified={guideProfile?.verified ?? false} guideSlug={guideProfile?.slug} />
+              <GuideInfoDisplay guideInfo={guideInfo} isLoadingProfessional={isLoadingProfessional} showBadge={true} size="lg" certifications={guideProfile?.certifications} isGuideVerified={guideProfile?.verified ?? false} guideSlug={guideProfile?.slug} badgeType={guideProfile?.badge_type as 'founder' | 'pioneer-guide' | undefined} pioneerNumber={guideProfile?.pioneer_number ?? undefined} joinedDate={guideProfile?.created_at} />
             </div>
 
             {/* Price Display */}
