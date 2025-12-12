@@ -135,7 +135,7 @@ serve(async (req) => {
         }
 
         // Check if already processed
-        if (verification.verification_status === 'verified' || verification.verification_status === 'rejected') {
+        if (verification.verification_status === 'approved' || verification.verification_status === 'rejected') {
           return new Response(
             JSON.stringify({ text: `ℹ️ This verification has already been ${verification.verification_status}` }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -157,7 +157,7 @@ serve(async (req) => {
           );
         }
 
-        const newStatus = isApproval ? 'verified' : 'rejected';
+        const newStatus = isApproval ? 'approved' : 'rejected';
         const slackUserId = payload.user?.id;
         const slackUserName = payload.user?.name || 'Unknown';
         const adminNotes = `${isApproval ? 'Approved' : 'Rejected'} via Slack by ${slackUserName}`;
