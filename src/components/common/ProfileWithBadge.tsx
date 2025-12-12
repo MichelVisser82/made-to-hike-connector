@@ -134,7 +134,7 @@ export function ProfileWithBadge({
               className={cn(
                 'absolute rounded-full flex items-center justify-center shadow-lg transition-transform duration-200 group-hover:scale-110',
                 hasCustomSize 
-                  ? 'w-10 h-10 -bottom-3 -right-3' 
+                  ? 'w-10 h-10 bottom-1 right-1' 
                   : config.badge,
                 badge.badgeBg
               )}
