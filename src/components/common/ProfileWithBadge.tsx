@@ -21,28 +21,28 @@ export interface ProfileWithBadgeProps {
 
 const sizeConfig = {
   sm: {
-    container: 'w-16 h-16',
+    container: 'w-12 h-12',
     ring: 'ring-2',
-    badge: 'w-5 h-5 -bottom-0.5 -right-0.5',
-    icon: 'h-2.5 w-2.5',
+    badge: 'w-4 h-4 -bottom-0.5 -right-0.5',
+    icon: 'h-2 w-2',
     hoverCard: 'w-56',
-    verifiedBadge: 'w-4 h-4 -bottom-0.5 -right-0.5',
+    verifiedBadge: 'w-3.5 h-3.5 -bottom-0.5 -right-0.5',
   },
   md: {
-    container: 'w-24 h-24',
+    container: 'w-20 h-20',
     ring: 'ring-[3px]',
-    badge: 'w-7 h-7 -bottom-1 -right-1',
-    icon: 'h-3.5 w-3.5',
+    badge: 'w-6 h-6 -bottom-1 -right-1',
+    icon: 'h-3 w-3',
     hoverCard: 'w-64',
     verifiedBadge: 'w-5 h-5 -bottom-1 -right-1',
   },
   lg: {
-    container: 'w-48 h-48',
-    ring: 'ring-4',
-    badge: 'w-10 h-10 -bottom-1 -right-1',
-    icon: 'h-5 w-5',
+    container: 'w-20 h-20',
+    ring: 'ring-[3px]',
+    badge: 'w-6 h-6 -bottom-1 -right-1',
+    icon: 'h-3 w-3',
     hoverCard: 'w-72',
-    verifiedBadge: 'w-7 h-7 -bottom-1 -right-1',
+    verifiedBadge: 'w-5 h-5 -bottom-1 -right-1',
   },
 };
 
