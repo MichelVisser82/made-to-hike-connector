@@ -11,6 +11,7 @@ import { useFollowedGuides } from '@/hooks/useFollowedGuides';
 import { supabase } from '@/integrations/supabase/client';
 import { CustomTourRequestModal } from './CustomTourRequestModal';
 import { useGuideTours } from '@/hooks/useGuideTours';
+import { ProfileWithBadge } from '../common/ProfileWithBadge';
 
 interface GuideHeroSectionProps {
   guide: GuideProfile;
@@ -133,20 +134,19 @@ export function GuideHeroSection({ guide, stats }: GuideHeroSectionProps) {
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between lg:gap-6 w-full py-8 lg:py-0">
           {/* Left Side - Profile + Info */}
           <div className="flex flex-col md:flex-row gap-6 items-center md:items-start flex-1">
-            {/* Profile Image */}
+            {/* Profile Image with Badge */}
             <div className="flex-shrink-0">
-              <div className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48">
-                <img
-                  src={guide.profile_image_url || 'https://via.placeholder.com/176'}
-                  alt={guide.display_name}
-                  className="w-full h-full rounded-full object-cover border-4 border-white shadow-2xl"
-                />
-                {guide.verified && (
-                  <div className="absolute bottom-2 right-2 bg-burgundy rounded-full p-2.5 shadow-lg border-3 border-white">
-                    <CheckCircle className="w-6 h-6 text-white" />
-                  </div>
-                )}
-              </div>
+              <ProfileWithBadge
+                imageUrl={guide.profile_image_url}
+                name={guide.display_name}
+                badgeType={guide.badge_type}
+                pioneerNumber={guide.pioneer_number}
+                joinedDate={guide.created_at}
+                size="lg"
+                showVerifiedBadge={true}
+                isVerified={guide.verified}
+                className="w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48"
+              />
             </div>
 
             {/* Name, Location & Stats */}
