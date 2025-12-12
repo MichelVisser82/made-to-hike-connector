@@ -29,9 +29,8 @@ export function EnhancedCalendarWidget({
   const [customTourModalOpen, setCustomTourModalOpen] = useState(false);
 
   // Process calendar data to get booked dates (dates with any bookings)
-  const { bookedDates, availableDates } = useMemo(() => {
+  const bookedDates = useMemo(() => {
     const booked: Date[] = [];
-    const available: Date[] = [];
     
     calendarData.forEach(slot => {
       // Dates where the guide is on tour (has bookings)
@@ -42,18 +41,32 @@ export function EnhancedCalendarWidget({
           booked.push(new Date(currentDate));
           currentDate.setDate(currentDate.getDate() + 1);
         }
-      } else {
-        // Available dates (no bookings yet)
-        available.push(new Date(slot.date));
       }
     });
     
-    return { bookedDates: booked, availableDates: available };
+    return booked;
   }, [calendarData]);
 
-  const isDateBooked = (date: Date) => {
-    return bookedDates.some(d => isSameDay(d, date));
-  };
+  // Generate available dates: all future dates that are not booked
+  const availableDates = useMemo(() => {
+    const available: Date[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Generate dates for next 365 days
+    for (let i = 0; i < 365; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // Check if this date is not booked
+      const isBooked = bookedDates.some(d => isSameDay(d, date));
+      if (!isBooked) {
+        available.push(date);
+      }
+    }
+    
+    return available;
+  }, [bookedDates]);
 
   if (isLoading) {
     return (
