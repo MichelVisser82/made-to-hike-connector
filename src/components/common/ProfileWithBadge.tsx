@@ -97,6 +97,9 @@ export function ProfileWithBadge({
 
   const BadgeIcon = badge?.icon;
 
+  // Check if className contains size overrides (w-XX h-XX)
+  const hasCustomSize = className && /w-\d+|h-\d+/.test(className);
+
   return (
     <HoverCard openDelay={200} closeDelay={100}>
       <HoverCardTrigger asChild>
@@ -104,8 +107,8 @@ export function ProfileWithBadge({
           {/* Profile Image with Ring */}
           <div
             className={cn(
-              'relative rounded-full overflow-hidden border-4 border-white shadow-2xl',
-              config.container,
+              'relative rounded-full overflow-hidden border-4 border-white shadow-2xl w-full h-full',
+              !hasCustomSize && config.container,
               badge && config.ring,
               badge?.ring
             )}
@@ -130,11 +133,13 @@ export function ProfileWithBadge({
             <div
               className={cn(
                 'absolute rounded-full flex items-center justify-center shadow-lg transition-transform duration-200 group-hover:scale-110',
-                config.badge,
+                hasCustomSize 
+                  ? 'w-8 h-8 -bottom-1 -right-1' 
+                  : config.badge,
                 badge.badgeBg
               )}
             >
-              <BadgeIcon className={cn('text-white', config.icon)} />
+              <BadgeIcon className={cn('text-white', hasCustomSize ? 'h-4 w-4' : config.icon)} />
             </div>
           )}
 
