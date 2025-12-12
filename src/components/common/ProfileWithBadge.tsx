@@ -1,7 +1,11 @@
-import { useState } from 'react';
 import { Crown, Mountain } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
 
 export interface ProfileWithBadgeProps {
   imageUrl?: string;
@@ -84,7 +88,6 @@ export function ProfileWithBadge({
   isVerified = false,
   className,
 }: ProfileWithBadgeProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const config = sizeConfig[size];
   const badge = badgeType ? getBadgeConfig(badgeType, name, pioneerNumber) : null;
 
@@ -95,79 +98,77 @@ export function ProfileWithBadge({
   const BadgeIcon = badge?.icon;
 
   return (
-    <div
-      className={cn('relative group', className)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Profile Image with Ring */}
-      <div
-        className={cn(
-          'relative rounded-full overflow-hidden border-4 border-white shadow-2xl',
-          config.container,
-          badge && config.ring,
-          badge?.ring
-        )}
-      >
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <span className="text-muted-foreground font-semibold text-lg">
-              {name?.charAt(0) || 'G'}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Badge Icon (bottom-right) */}
-      {badge && BadgeIcon && (
-        <div
-          className={cn(
-            'absolute rounded-full flex items-center justify-center shadow-lg transition-transform duration-200 group-hover:scale-110',
-            config.badge,
-            badge.badgeBg
-          )}
-        >
-          <BadgeIcon className={cn('text-white', config.icon)} />
-        </div>
-      )}
-
-      {/* Verified Badge (only show if no special badge and isVerified) */}
-      {!badge && showVerifiedBadge && isVerified && (
-        <div
-          className={cn(
-            'absolute rounded-full flex items-center justify-center bg-sage text-white shadow-lg',
-            config.verifiedBadge
-          )}
-        >
-          <svg
-            className={cn(config.icon)}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <HoverCard openDelay={200} closeDelay={100}>
+      <HoverCardTrigger asChild>
+        <div className={cn('relative group cursor-pointer', className)}>
+          {/* Profile Image with Ring */}
+          <div
+            className={cn(
+              'relative rounded-full overflow-hidden border-4 border-white shadow-2xl',
+              config.container,
+              badge && config.ring,
+              badge?.ring
+            )}
           >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
-      )}
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <span className="text-muted-foreground font-semibold text-lg">
+                  {name?.charAt(0) || 'G'}
+                </span>
+              </div>
+            )}
+          </div>
 
-      {/* Hover Card */}
-      {badge && isHovered && (
-        <div
-          className={cn(
-            'absolute z-50 left-1/2 -translate-x-1/2 mt-2 rounded-xl shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200',
-            config.hoverCard,
-            size === 'sm' ? 'top-full' : 'top-full'
+          {/* Badge Icon (bottom-right) */}
+          {badge && BadgeIcon && (
+            <div
+              className={cn(
+                'absolute rounded-full flex items-center justify-center shadow-lg transition-transform duration-200 group-hover:scale-110',
+                config.badge,
+                badge.badgeBg
+              )}
+            >
+              <BadgeIcon className={cn('text-white', config.icon)} />
+            </div>
           )}
-          style={{ top: '100%' }}
+
+          {/* Verified Badge (only show if no special badge and isVerified) */}
+          {!badge && showVerifiedBadge && isVerified && (
+            <div
+              className={cn(
+                'absolute rounded-full flex items-center justify-center bg-sage text-white shadow-lg',
+                config.verifiedBadge
+              )}
+            >
+              <svg
+                className={cn(config.icon)}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          )}
+        </div>
+      </HoverCardTrigger>
+
+      {/* Hover Card Content - uses portal for proper z-index */}
+      {badge && (
+        <HoverCardContent 
+          className={cn('p-0 overflow-hidden', config.hoverCard)}
+          side="bottom"
+          align="center"
+          sideOffset={8}
         >
           {/* Header */}
           <div className={cn('px-4 py-3 text-white', badge.headerBg)}>
@@ -211,8 +212,8 @@ export function ProfileWithBadge({
               </div>
             )}
           </div>
-        </div>
+        </HoverCardContent>
       )}
-    </div>
+    </HoverCard>
   );
 }
