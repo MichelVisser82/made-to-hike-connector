@@ -33,29 +33,15 @@ import { useHikingRegions } from '@/hooks/useHikingRegions';
 import { ScrollArea } from '../ui/scroll-area';
 import { useMemo } from 'react';
 
-const SPECIALTY_OPTIONS = [
-  'Alpine Hiking', 'Mountain Climbing', 'Glacier Trekking', 'Via Ferrata',
-  'Winter Hiking', 'Wildlife Tracking', 'Photography Tours', 'Multi-day Expeditions'
-];
+import { 
+  SPECIALTY_OPTIONS, 
+  TERRAIN_OPTIONS, 
+  DIFFICULTY_OPTIONS, 
+  LANGUAGE_OPTIONS 
+} from '@/constants/guideOptions';
 
-const TERRAIN_OPTIONS = [
-  'Mountain Trails', 'Glacier Routes', 'Forest Paths', 'Coastal Walks',
-  'Alpine Meadows', 'Rocky Terrain', 'Snow & Ice', 'Canyon Routes'
-];
-
-// Removed static GUIDING_AREAS - now using dynamic region selection
-
-const LANGUAGES = [
-  'English', 'German', 'French', 'Italian', 'Spanish', 
-  'Dutch', 'Norwegian', 'Swedish', 'Polish', 'Czech'
-];
-
-const DIFFICULTY_OPTIONS = [
-  { value: 'beginner', label: 'Beginner', description: 'Easy trails for newcomers' },
-  { value: 'intermediate', label: 'Intermediate', description: 'Moderate difficulty' },
-  { value: 'advanced', label: 'Advanced', description: 'Challenging terrain' },
-  { value: 'expert', label: 'Expert', description: 'Extreme conditions' },
-];
+// Alias for backward compatibility in this file
+const LANGUAGES = LANGUAGE_OPTIONS;
 
 interface GuideProfileEditFormProps {
   onNavigateToGuideProfile?: (guideId: string) => void;

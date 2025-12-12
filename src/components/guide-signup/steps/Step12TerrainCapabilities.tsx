@@ -2,6 +2,7 @@ import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { TERRAIN_OPTIONS } from '@/constants/guideOptions';
 import type { GuideSignupData } from '@/types/guide';
 
 interface Step12TerrainCapabilitiesProps {
@@ -10,12 +11,6 @@ interface Step12TerrainCapabilitiesProps {
   onNext: () => void;
   onBack: () => void;
 }
-
-const terrainOptions = [
-  'High Alpine', 'Rock Climbing', 'Scrambling', 'Snow & Ice',
-  'Glacier Trekking', 'Via Ferrata', 'Ridge Walking', 'Forest Trails',
-  'Coastal Paths', 'Desert Hiking'
-];
 
 export function Step12TerrainCapabilities({ data, updateData, onNext, onBack }: Step12TerrainCapabilitiesProps) {
   const selected = data.terrain_capabilities || [];
@@ -36,7 +31,7 @@ export function Step12TerrainCapabilities({ data, updateData, onNext, onBack }: 
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-3">
-            {terrainOptions.map((terrain) => {
+            {TERRAIN_OPTIONS.map((terrain) => {
               const isSelected = selected.includes(terrain);
               return (
                 <Badge

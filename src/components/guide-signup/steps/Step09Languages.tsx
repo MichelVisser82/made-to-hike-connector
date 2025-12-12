@@ -2,46 +2,46 @@ import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { SPECIALTY_OPTIONS } from '@/constants/guideOptions';
+import { LANGUAGE_OPTIONS } from '@/constants/guideOptions';
 import type { GuideSignupData } from '@/types/guide';
 
-interface Step04SpecialtiesProps {
+interface Step09LanguagesProps {
   data: Partial<GuideSignupData>;
   updateData: (data: Partial<GuideSignupData>) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-export function Step04Specialties({ data, updateData, onNext, onBack }: Step04SpecialtiesProps) {
-  const selected = data.specialties || [];
+export function Step09Languages({ data, updateData, onNext, onBack }: Step09LanguagesProps) {
+  const selected = data.languages_spoken || [];
 
-  const toggleSpecialty = (specialty: string) => {
-    const newSelected = selected.includes(specialty)
-      ? selected.filter(s => s !== specialty)
-      : [...selected, specialty];
-    updateData({ specialties: newSelected });
+  const toggleLanguage = (language: string) => {
+    const newSelected = selected.includes(language)
+      ? selected.filter(l => l !== language)
+      : [...selected, language];
+    updateData({ languages_spoken: newSelected });
   };
 
   return (
     <div className="max-w-2xl mx-auto">
       <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>Your Specialties</CardTitle>
-          <p className="text-muted-foreground">Select all that apply (minimum 1)</p>
+          <CardTitle className="text-2xl md:text-3xl font-serif text-charcoal" style={{fontFamily: 'Playfair Display, serif'}}>Languages Spoken</CardTitle>
+          <p className="text-muted-foreground">Select all languages you can guide in (minimum 1)</p>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-3">
-            {SPECIALTY_OPTIONS.map((specialty) => {
-              const isSelected = selected.includes(specialty);
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {LANGUAGE_OPTIONS.map((language) => {
+              const isSelected = selected.includes(language);
               return (
                 <Badge
-                  key={specialty}
+                  key={language}
                   variant={isSelected ? "default" : "outline"}
                   className="cursor-pointer py-3 justify-start text-sm hover:bg-muted"
-                  onClick={() => toggleSpecialty(specialty)}
+                  onClick={() => toggleLanguage(language)}
                 >
                   {isSelected && <Check className="w-4 h-4 mr-2" />}
-                  {specialty}
+                  {language}
                 </Badge>
               );
             })}
