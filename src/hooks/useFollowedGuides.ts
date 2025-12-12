@@ -20,6 +20,10 @@ interface FollowedGuide {
     experience_years: number | null;
     daily_rate: number | null;
     daily_rate_currency: string | null;
+    badge_type: string | null;
+    pioneer_number: number | null;
+    created_at: string;
+    verified: boolean | null;
   };
 }
 
@@ -49,7 +53,11 @@ export function useFollowedGuides(userId: string | undefined) {
             certifications,
             experience_years,
             daily_rate,
-            daily_rate_currency
+            daily_rate_currency,
+            badge_type,
+            pioneer_number,
+            created_at,
+            verified
           )
         `)
         .eq('follower_id', userId)
