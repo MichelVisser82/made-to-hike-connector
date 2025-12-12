@@ -132,9 +132,16 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
           <h3 className="text-lg font-semibold text-foreground mb-1">
             {tour.title}
           </h3>
-          <p className="text-sm text-muted-foreground mb-2">
-            by {guideInfo.displayName}
-          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2 flex-wrap">
+            <span>by {guideInfo.displayName}</span>
+            {priorityCerts.length > 0 && (
+              <CertificationBadge
+                certification={priorityCerts[0]}
+                displayMode="simple"
+                showTooltip={true}
+              />
+            )}
+          </div>
           
           {/* Reviews */}
           {tour.rating > 0 && (
