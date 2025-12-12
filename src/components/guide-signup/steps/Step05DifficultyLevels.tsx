@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { DIFFICULTY_OPTIONS } from '@/constants/guideOptions';
 import type { GuideSignupData } from '@/types/guide';
 
 interface Step05DifficultyLevelsProps {
@@ -10,13 +10,6 @@ interface Step05DifficultyLevelsProps {
   onNext: () => void;
   onBack: () => void;
 }
-
-const difficultyOptions = [
-  { value: 'easy', label: 'Easy', description: 'Suitable for beginners' },
-  { value: 'moderate', label: 'Moderate', description: 'Some experience required' },
-  { value: 'challenging', label: 'Challenging', description: 'Advanced skills needed' },
-  { value: 'expert', label: 'Expert', description: 'For experienced mountaineers' },
-];
 
 export function Step05DifficultyLevels({ data, updateData, onNext, onBack }: Step05DifficultyLevelsProps) {
   const selected = data.difficulty_levels || [];
@@ -37,7 +30,7 @@ export function Step05DifficultyLevels({ data, updateData, onNext, onBack }: Ste
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            {difficultyOptions.map((option) => {
+            {DIFFICULTY_OPTIONS.map((option) => {
               const isSelected = selected.includes(option.value);
               return (
                 <Card
