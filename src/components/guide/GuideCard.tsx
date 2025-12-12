@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Star, Users, Calendar, UserPlus, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ProfileWithBadge } from '@/components/common/ProfileWithBadge';
 import { useNavigate } from 'react-router-dom';
 import { useWebsiteImages } from '@/hooks/useWebsiteImages';
 import { useFollowedGuides } from '@/hooks/useFollowedGuides';
@@ -104,10 +105,15 @@ export function GuideCard({ guide }: GuideCardProps) {
 
         {/* Guide Avatar - Bottom Left */}
         <div className="absolute bottom-3 left-3">
-          <img
-            src={guide.profile_image_url || '/placeholder.svg'}
-            alt={guide.display_name}
-            className="w-24 h-24 rounded-full border-2 border-white shadow-lg object-cover"
+          <ProfileWithBadge
+            imageUrl={guide.profile_image_url || undefined}
+            name={guide.display_name}
+            badgeType={guide.badge_type as 'founder' | 'pioneer-guide' | undefined}
+            pioneerNumber={guide.pioneer_number || undefined}
+            joinedDate={guide.created_at}
+            size="md"
+            showVerifiedBadge={true}
+            isVerified={guide.verified || false}
           />
         </div>
       </div>

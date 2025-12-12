@@ -5,6 +5,7 @@ import { SmartImage } from '../SmartImage';
 import { GuideInfoDisplay } from '../guide/GuideInfoDisplay';
 import { CertificationBadge } from '../ui/certification-badge';
 import { RegionBadge } from '../common/RegionBadge';
+import { ProfileWithBadge } from '../common/ProfileWithBadge';
 import { useEnhancedGuideInfo } from '@/hooks/useEnhancedGuideInfo';
 import { useGuideProfile } from '@/hooks/useGuideProfile';
 import { useSavedTours } from '@/hooks/useSavedTours';
@@ -111,19 +112,16 @@ export function TourCard({ tour, onTourClick, onBookTour }: TourCardProps) {
 
         {/* Guide Avatar - Bottom Left */}
         <div className="absolute bottom-3 left-3">
-          {guideProfile?.profile_image_url ? (
-            <img
-              src={guideProfile.profile_image_url}
-              alt={guideInfo.displayName}
-              className="w-16 h-16 rounded-full border-2 border-white shadow-lg object-cover"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full border-2 border-white shadow-lg bg-muted flex items-center justify-center">
-              <span className="text-lg font-semibold text-muted-foreground">
-                {guideInfo.displayName.charAt(0)}
-              </span>
-            </div>
-          )}
+          <ProfileWithBadge
+            imageUrl={guideProfile?.profile_image_url || undefined}
+            name={guideInfo.displayName}
+            badgeType={guideProfile?.badge_type as 'founder' | 'pioneer-guide' | undefined}
+            pioneerNumber={guideProfile?.pioneer_number || undefined}
+            joinedDate={guideProfile?.created_at}
+            size="sm"
+            showVerifiedBadge={true}
+            isVerified={isGuideVerified}
+          />
         </div>
       </div>
 

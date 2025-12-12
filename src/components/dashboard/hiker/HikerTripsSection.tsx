@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CertificationBadge } from '@/components/ui/certification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProfileWithBadge } from '@/components/common/ProfileWithBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -268,6 +269,10 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
     rating: (follow.guide_profiles as any)?.average_rating || 4.9,
     reviewCount: (follow.guide_profiles as any)?.review_count || 0,
     tourCount: (follow.guide_profiles as any)?.tour_count || 0,
+    badgeType: (follow.guide_profiles as any)?.badge_type as 'founder' | 'pioneer-guide' | undefined,
+    pioneerNumber: (follow.guide_profiles as any)?.pioneer_number as number | undefined,
+    createdAt: follow.guide_profiles?.created_at,
+    verified: (follow.guide_profiles as any)?.verified || false,
   }));
 
   if (loading) {
@@ -598,12 +603,16 @@ export function HikerTripsSection({ userId, onViewTour, onMessageGuide, defaultT
                     />
                     {/* Avatar - Bottom Left Overlay */}
                     <div className="absolute bottom-3 left-3">
-                      <Avatar className="w-16 h-16 border-2 border-white shadow-lg">
-                        <AvatarImage src={guide.avatar || ''} />
-                        <AvatarFallback className="bg-burgundy text-white text-lg font-semibold">
-                          {guide.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
+                      <ProfileWithBadge
+                        imageUrl={guide.avatar || undefined}
+                        name={guide.name}
+                        badgeType={guide.badgeType}
+                        pioneerNumber={guide.pioneerNumber}
+                        joinedDate={guide.createdAt}
+                        size="sm"
+                        showVerifiedBadge={true}
+                        isVerified={guide.verified}
+                      />
                     </div>
                   </div>
 
