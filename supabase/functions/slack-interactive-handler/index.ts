@@ -10,8 +10,12 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // Use dedicated verification webhook for verification actions, fallback to general
+    const slackVerificationWebhook = Deno.env.get('SLACK_VERIFICATION_WEBHOOK_URL');
     const slackWebhookUrl = Deno.env.get('SLACK_WEBHOOK_URL')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    console.log(`[slack-interactive-handler] Using ${slackVerificationWebhook ? 'dedicated verification' : 'general'} Slack webhook for verifications`);
 
     const body = await req.text();
     console.log('[slack-interactive-handler] Received payload');
@@ -163,8 +167,9 @@ serve(async (req) => {
           },
         ];
 
-        // Send confirmation to Slack webhook
-        await fetch(slackWebhookUrl, {
+        // Send confirmation to Slack webhook (use dedicated verification webhook if available)
+        const verificationWebhookUrl = slackVerificationWebhook || slackWebhookUrl;
+        await fetch(verificationWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ blocks: confirmationBlocks }),
