@@ -186,6 +186,9 @@ verify_jwt = false
 [functions.create-public-tour-request]
 verify_jwt = false
 
+[functions.og-crawler-handler]
+verify_jwt = false
+
 # Cron jobs configuration
 [cron]
 enabled = true
