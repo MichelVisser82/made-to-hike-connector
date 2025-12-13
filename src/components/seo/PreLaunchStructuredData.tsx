@@ -13,7 +13,13 @@ export function PreLaunchStructuredData() {
     "name": "Made to Hike",
     "description": "Europe's premium marketplace connecting certified IFMGA and IML mountain guides with adventure seekers across the Alps, Dolomites, Pyrenees, and Scottish Highlands.",
     "url": "https://madetohike.com",
-    "logo": "https://madetohike.com/logo.png",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://madetohike.com/logo.png",
+      "width": 512,
+      "height": 512
+    },
+    "image": "https://madetohike.com/og-default.jpg",
     "foundingDate": "2025",
     "founder": {
       "@type": "Person",
