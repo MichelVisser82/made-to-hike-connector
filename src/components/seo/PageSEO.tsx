@@ -44,7 +44,7 @@ export function PageSEO({
   keywords,
   structuredData
 }: PageSEOProps) {
-  const baseUrl = window.location.origin;
+  const baseUrl = 'https://madetohike.com';
   const finalOgImage = ogImage || `${baseUrl}/og-default.jpg`;
   const finalImageAlt = ogImageAlt || title;
 
